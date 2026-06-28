@@ -1,5 +1,12 @@
 # @sagifire/ioc
 
-Core package placeholder for Stage 2 repository and build foundation.
+Core package for `@sagifire/ioc`.
 
-Runtime APIs are not implemented in this stage.
+Implemented in the current stage:
+
+- typed tokens;
+- token namespaces;
+- token ID validation.
+
+Container, context, composer, DSL, diagnostics and lifecycle APIs are planned for later
+roadmap stages.

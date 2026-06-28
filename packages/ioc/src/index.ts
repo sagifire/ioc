@@ -1,2 +1,2 @@
-// Stage 2 placeholder. Runtime API is introduced by later roadmap stages.
-export {}
+export { InvalidTokenIdError, namespace, token } from './tokens'
+export type { Token, TokenNamespace, TokenOptions } from './tokens'

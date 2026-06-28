@@ -1,10 +1,11 @@
 # @sagifire/ioc
 
-Stage 2 repository and build foundation for the planned `@sagifire/ioc` package family.
+Staged implementation of the planned `@sagifire/ioc` package family.
 
 This repository currently provides workspace structure, package manifests, TypeScript
-configuration, build/test/lint/format tooling, placeholder package exports and documentation
-skeletons. Runtime IoC behavior starts in later roadmap stages and is not implemented here.
+configuration, build/test/lint/format tooling, documentation skeletons and the Stage 3 core
+token API. Container, composer, DSL, diagnostics and framework adapter behavior are planned
+for later roadmap stages.
 
 ## Packages
 
@@ -26,7 +27,7 @@ pnpm format
 ## Documentation
 
 The files in `docs/` are skeletons for later stages. They intentionally do not describe
-working runtime APIs yet.
+container, composer, DSL or adapter APIs before those layers are implemented.
 
 ## License
 

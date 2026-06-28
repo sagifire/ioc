@@ -19,4 +19,20 @@ describe('package export placeholders', () => {
 
         expect(module).toBeTypeOf('object')
     })
+
+    test('root export exposes token API', async () => {
+        const module = await import('@sagifire/ioc')
+
+        expect(module.token).toBeTypeOf('function')
+        expect(module.namespace).toBeTypeOf('function')
+        expect(module.InvalidTokenIdError).toBeTypeOf('function')
+    })
+
+    test('tokens subpath exposes token API', async () => {
+        const module = await import('@sagifire/ioc/tokens')
+
+        expect(module.token).toBeTypeOf('function')
+        expect(module.namespace).toBeTypeOf('function')
+        expect(module.InvalidTokenIdError).toBeTypeOf('function')
+    })
 })

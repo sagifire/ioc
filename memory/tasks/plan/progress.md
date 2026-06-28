@@ -41,7 +41,7 @@
 ## Stage 3 Implementation
 
 - [TASK-06.26-0006-stage-3-tokens](TASK-06.26-0006-stage-3-tokens/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Stage 3 typed tokens, namespace helper, token ID validation and tests.

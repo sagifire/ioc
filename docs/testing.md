@@ -2,5 +2,5 @@
 
 Status: skeleton.
 
-Testing helpers are planned for a later roadmap stage. Stage 2 tests only validate
-repository, build and export plumbing.
+Testing helpers are planned for a later roadmap stage. Current tests validate repository,
+build/export plumbing and implemented core token behavior.

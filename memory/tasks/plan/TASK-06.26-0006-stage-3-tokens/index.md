@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Backlog-задача реалізації Stage 3 tokens у core package `@sagifire/ioc`.
+Завершена задача реалізації Stage 3 tokens у core package `@sagifire/ioc`.
 
 ## Folders
 

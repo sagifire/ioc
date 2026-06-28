@@ -13,7 +13,11 @@ export default defineConfig({
     },
     format: ['esm'],
     target: 'es2022',
-    dts: true,
+    dts: {
+        compilerOptions: {
+            composite: false
+        }
+    },
     sourcemap: true,
     clean: true,
     splitting: false

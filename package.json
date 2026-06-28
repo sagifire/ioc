@@ -12,7 +12,7 @@
         "lint": "eslint .",
         "test": "pnpm build && vitest run",
         "test:unit": "vitest run",
-        "typecheck": "tsc -b --pretty false"
+        "typecheck": "tsc -b --pretty false && tsc -p tsconfig.test.json --pretty false"
     },
     "devDependencies": {
         "@eslint/js": "^9.39.2",

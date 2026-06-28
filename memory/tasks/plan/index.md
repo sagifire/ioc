@@ -23,7 +23,7 @@
   - Purpose: Планування реалізації Stage 3 tokens.
 - [TASK-06.26-0006-stage-3-tokens](TASK-06.26-0006-stage-3-tokens/index.md)
   - Type: folder
-  - Purpose: Backlog-задача реалізації Stage 3 tokens.
+  - Purpose: Завершена задача реалізації Stage 3 tokens.
 
 ## Files
 

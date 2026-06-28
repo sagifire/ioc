@@ -30,12 +30,13 @@ Stage 3 implementation planning завершено після task-level human r
 
 - [TASK-06.26-0005-stage-3-implementation-planning](tasks/plan/TASK-06.26-0005-stage-3-implementation-planning/index.md)
 
-Поточний фокус - Stage 3 implementation task підготовлена в backlog:
+Stage 3 tokens implementation завершено після task-level human review approval:
 
 - [TASK-06.26-0006-stage-3-tokens](tasks/plan/TASK-06.26-0006-stage-3-tokens/index.md)
 
-Stage 3 має реалізувати тільки core token API: `Token<TValue>`, `token()`,
-`namespace()`, token ID validation, public exports і tests.
+RUN-001 реалізував тільки core token API: `Token<TValue>`, `token()`, `namespace()`,
+token ID validation, public exports і tests. Container/composer/DSL/diagnostics framework
+behavior не реалізовувався.
 
 ## Active Tasks
 
@@ -63,7 +64,7 @@ Stage 3 має реалізувати тільки core token API: `Token<TValue
   - Status: done
   - Summary: Stage 3 implementation planning.
 - [TASK-06.26-0006-stage-3-tokens](tasks/plan/TASK-06.26-0006-stage-3-tokens/index.md)
-  - Status: backlog
+  - Status: done
   - Summary: Stage 3 tokens implementation task.
 
 ## Recent Decisions
@@ -94,16 +95,15 @@ Stage 3 має реалізувати тільки core token API: `Token<TValue
 - Для Stage 3 token type-level assertions planned approach - Vitest `expectTypeOf`.
 - Stage 3 може додати мінімальний token-specific invalid ID error, але не реалізує full
   diagnostics layer до Stage 8.
+- `TASK-06.26-0006-stage-3-tokens` RUN-001 виконаний агентом і переведений у `review`.
+- `TASK-06.26-0006-stage-3-tokens` завершена після task-level human review approval.
 
 ## Current Risks
 
-- Stage 3 треба втримати в межах core token API і не почати container/provider behavior.
-- Token ID validation не має створювати global mutable registry або object-identity based
-  matching.
 - Мінімальна token-specific error не має перетворитися на повний diagnostics framework
-  раніше Stage 8.
+  раніше Stage 8 у наступних задачах.
 - `@sagifire/ioc/tokens` має залишатися tree-shaking friendly і не тягнути
-  container/composer/DSL/adapters.
+  container/composer/DSL/adapters у наступних stages.
 - Root `SPEC.md` лишається source reference і може дублювати canonical memory; для
   operational рішень використовувати `memory/product/`, `memory/domain/` і
   `memory/technical/`.
@@ -112,7 +112,7 @@ Stage 3 має реалізувати тільки core token API: `Token<TValue
 
 ## Next Steps
 
-- Запустити `TASK-06.26-0006-stage-3-tokens` як autonomous implementation task.
+- Готувати наступний roadmap stage після окремого planning/implementation task.
 
 ## Open Questions
 

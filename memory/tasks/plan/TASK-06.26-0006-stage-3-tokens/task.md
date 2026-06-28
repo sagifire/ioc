@@ -1,6 +1,6 @@
 # TASK-06.26-0006: Stage 3 tokens
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-06-28
@@ -50,25 +50,25 @@ Tokens є primary identity mechanism для dependency providers, capabilities, 
 
 ## Acceptance Criteria
 
-- [ ] `Token<TValue>` public type доступний з `@sagifire/ioc` і `@sagifire/ioc/tokens`.
-- [ ] `token<TValue>(id, options?)` повертає token з stable `id` і optional
+- [x] `Token<TValue>` public type доступний з `@sagifire/ioc` і `@sagifire/ioc/tokens`.
+- [x] `token<TValue>(id, options?)` повертає token з stable `id` і optional
   `description`.
-- [ ] `Token<TValue>` зберігає type inference для `TValue` без runtime use of phantom
+- [x] `Token<TValue>` зберігає type inference для `TValue` без runtime use of phantom
   type metadata.
-- [ ] Namespaces створюють stable prefixed IDs, наприклад
+- [x] Namespaces створюють stable prefixed IDs, наприклад
   `namespace('contact-requests').token('public-api').id === 'contact-requests.public-api'`.
-- [ ] Token ID є canonical runtime identity; implementation не покладається на object
+- [x] Token ID є canonical runtime identity; implementation не покладається на object
   identity або global registry.
-- [ ] Invalid token IDs і namespace IDs rejected через readable token-specific error.
-- [ ] `@sagifire/ioc/tokens` import не тягне container/composer/DSL/adapters behavior.
-- [ ] Stage 3 не реалізує container, composer, DSL, diagnostics report/formatter,
+- [x] Invalid token IDs і namespace IDs rejected через readable token-specific error.
+- [x] `@sagifire/ioc/tokens` import не тягне container/composer/DSL/adapters behavior.
+- [x] Stage 3 не реалізує container, composer, DSL, diagnostics report/formatter,
   Next.js adapters або testing helpers.
-- [ ] Runtime tests покривають token creation, namespace IDs і invalid IDs.
-- [ ] Type-level assertions покривають token value inference.
-- [ ] `pnpm build` works.
-- [ ] `pnpm test` works.
-- [ ] `pnpm typecheck` works.
-- [ ] `pnpm lint` works.
+- [x] Runtime tests покривають token creation, namespace IDs і invalid IDs.
+- [x] Type-level assertions покривають token value inference.
+- [x] `pnpm build` works.
+- [x] `pnpm test` works.
+- [x] `pnpm typecheck` works.
+- [x] `pnpm lint` works.
 
 ## Linked Memory
 
@@ -83,9 +83,9 @@ Tokens є primary identity mechanism для dependency providers, capabilities, 
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: planned
+  - Status: completed
   - Purpose: Початковий autonomous implementation run для Stage 3 tokens.
-  - Result: pending
+  - Result: approved
 
 ## Research
 
