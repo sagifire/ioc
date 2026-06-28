@@ -22,6 +22,12 @@
   - Summary: Планування реалізації Stage 2 repository/build foundation і підготовка
     implementation task.
   - Current: FIX-001
+- [TASK-06.26-0005-stage-3-implementation-planning](TASK-06.26-0005-stage-3-implementation-planning/index.md)
+  - Status: done
+  - Type: memory-update
+  - Execution Mode: interactive-memory-update
+  - Summary: Планування реалізації Stage 3 tokens і підготовка implementation task.
+  - Current: FIX-001
 
 ## Stage 2 Implementation
 
@@ -30,6 +36,15 @@
   - Type: chore
   - Execution Mode: autonomous-implementation
   - Summary: Stage 2 monorepo/package/build foundation без runtime/container logic.
+  - Current: RUN-001
+
+## Stage 3 Implementation
+
+- [TASK-06.26-0006-stage-3-tokens](TASK-06.26-0006-stage-3-tokens/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 3 typed tokens, namespace helper, token ID validation and tests.
   - Current: RUN-001
 
 ## Format

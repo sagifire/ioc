@@ -12,6 +12,8 @@ Root source trace:
 - `TASK-06.26-0002` - Stage 1 memory bootstrap task.
 - `TASK-06.26-0003` - Stage 2 implementation planning task.
 - `TASK-06.26-0004` - Stage 2 repository/build foundation implementation task.
+- `TASK-06.26-0005` - Stage 3 implementation planning task.
+- `TASK-06.26-0006` - Stage 3 tokens implementation task.
 
 ## Completed
 
@@ -26,15 +28,13 @@ Root source trace:
     - roadmap, state, progress і релевантні `index.md` оновлені;
     - implementation code або monorepo foundation не створювались.
 
-## Now
-
 - Stage 2: Repository and build foundation.
-  - Status: planned; implementation task у backlog, planning task done.
+  - Status: done.
   - Source: `SPEC.md` section 32.
   - Planning Task: `TASK-06.26-0003-stage-2-implementation-planning`.
   - Implementation Task: `TASK-06.26-0004-stage-2-repository-build-foundation`.
-  - Planned Build Tool: `tsup`.
-  - Implement:
+  - Build Tool: `tsup`.
+  - Implemented:
     - `pnpm` workspace;
     - package structure для `@sagifire/ioc`, `@sagifire/ioc-next`,
       `@sagifire/ioc-testing`;
@@ -46,25 +46,51 @@ Root source trace:
     - `pnpm install` works;
     - `pnpm build` works;
     - `pnpm test` works;
+    - `pnpm typecheck` works;
+    - `pnpm lint` works;
     - all packages build independently;
     - all package exports resolve correctly;
     - types are generated;
-    - `sideEffects: false` is configured.
+    - `sideEffects: false` is configured;
+    - Stage 3+ runtime behavior is not implemented.
   - Guardrails:
     - не реалізовувати container logic;
     - не реалізовувати tokens, composer, DSL, diagnostics behavior або adapters;
     - не заявляти в README/docs, що unimplemented runtime API вже працює.
 
-## Next
+## Now
 
 - Stage 3: Tokens.
+  - Status: planned; planning task done, implementation task у backlog.
   - Source: `SPEC.md` section 33.
-  - Implement: `Token<T>`, `token()`, `namespace()`, token ID validation and tests.
+  - Planning Task: `TASK-06.26-0005-stage-3-implementation-planning`.
+  - Implementation Task: `TASK-06.26-0006-stage-3-tokens`.
+  - Type-Level Test Approach: Vitest `expectTypeOf` for Stage 3 token inference.
+  - Implement:
+    - `Token<TValue>`;
+    - `token<TValue>(id, options?)`;
+    - `namespace(id)` helper for stable prefixed IDs;
+    - token ID validation;
+    - minimal token-specific invalid ID error without full diagnostics layer;
+    - root and `./tokens` public exports;
+    - runtime tests and type-level assertions.
   - Acceptance:
     - typed tokens infer `TValue`;
     - namespaces create stable prefixed IDs;
     - token ID is runtime identity;
-    - invalid token IDs are rejected or diagnosed.
+    - invalid token IDs are rejected through readable token-specific error;
+    - `@sagifire/ioc/tokens` remains independent from container/composer/DSL/adapters;
+    - `pnpm build`, `pnpm test`, `pnpm typecheck` and `pnpm lint` pass.
+  - Guardrails:
+    - не реалізовувати container, providers, lifetimes, scopes або async model;
+    - не реалізовувати composer, modules, capabilities, required ports або bindings;
+    - не реалізовувати DSL, Next.js adapters або testing helpers;
+    - не реалізовувати full diagnostics layer: `SagifireIocError`,
+      `DiagnosticReport` або `formatDiagnostics()`;
+    - не додавати global mutable token registry;
+    - не покладатися на object identity як canonical token identity.
+
+## Next
 
 - Stage 4: Container sync providers.
   - Source: `SPEC.md` section 34.

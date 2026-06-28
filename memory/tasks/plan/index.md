@@ -18,6 +18,12 @@
 - [TASK-06.26-0004-stage-2-repository-build-foundation](TASK-06.26-0004-stage-2-repository-build-foundation/index.md)
   - Type: folder
   - Purpose: Завершена задача реалізації Stage 2 repository/build foundation.
+- [TASK-06.26-0005-stage-3-implementation-planning](TASK-06.26-0005-stage-3-implementation-planning/index.md)
+  - Type: folder
+  - Purpose: Планування реалізації Stage 3 tokens.
+- [TASK-06.26-0006-stage-3-tokens](TASK-06.26-0006-stage-3-tokens/index.md)
+  - Type: folder
+  - Purpose: Backlog-задача реалізації Stage 3 tokens.
 
 ## Files
 

@@ -1,6 +1,6 @@
 # Stack
 
-Source trace: `SPEC.md` sections 4-6 and 32.
+Source trace: `SPEC.md` sections 4-6, 32 and 33.
 
 ## Product Stack
 
@@ -119,19 +119,20 @@ Documentation:
 
 ## Build Tooling
 
-Planned Stage 2 build tool: `tsup`.
+Stage 2 build tool: `tsup`.
 
-`tsup` is the default choice for Stage 2 because the repository needs ESM-first library
-output, `.d.ts` generation, subpath-export-friendly package builds and independent package
-build scripts.
+`tsup` is used because the repository needs ESM-first library output, `.d.ts` generation,
+subpath-export-friendly package builds and independent package build scripts.
 
-If implementation discovers a concrete blocker, the replacement build tool must be
-documented in the Stage 2 task result and synced back to technical memory. Do not switch
+If a later implementation discovers a concrete blocker, the replacement build tool must be
+documented in the relevant task result and synced back to technical memory. Do not switch
 build tooling silently.
 
 ## Test Tooling
 
 Use Vitest for runtime tests.
 
-Type-level test tooling is still open and must be chosen before or during the relevant
-type-test implementation stage.
+Stage 3 token inference assertions use Vitest `expectTypeOf`.
+
+Broader type-level test tooling remains open for later stages if Vitest assertions are not
+enough for more complex public API inference.

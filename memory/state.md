@@ -19,13 +19,23 @@ Project Memory тепер містить canonical контекст для:
 - trace mapping від root source documents до canonical memory;
 - historical immutable source snapshot `memory/sources/SPEC.md`.
 
-Поточний фокус - Stage 2 repository/build foundation завершено після task-level human
-review approval:
+Stage 2 repository/build foundation завершено після task-level human review approval:
 
 - [TASK-06.26-0004-stage-2-repository-build-foundation](tasks/plan/TASK-06.26-0004-stage-2-repository-build-foundation/index.md)
 
 Stage 2 agent run створив monorepo/package/build foundation і не реалізовував container
 logic або будь-яку Stage 3+ runtime behavior.
+
+Stage 3 implementation planning завершено після task-level human review approval:
+
+- [TASK-06.26-0005-stage-3-implementation-planning](tasks/plan/TASK-06.26-0005-stage-3-implementation-planning/index.md)
+
+Поточний фокус - Stage 3 implementation task підготовлена в backlog:
+
+- [TASK-06.26-0006-stage-3-tokens](tasks/plan/TASK-06.26-0006-stage-3-tokens/index.md)
+
+Stage 3 має реалізувати тільки core token API: `Token<TValue>`, `token()`,
+`namespace()`, token ID validation, public exports і tests.
 
 ## Active Tasks
 
@@ -35,7 +45,7 @@ logic або будь-яку Stage 3+ runtime behavior.
 
 Немає.
 
-Неархівні planning tasks:
+Неархівні tasks:
 
 - [TASK-06.26-0001-initial-implementation-planning](tasks/plan/TASK-06.26-0001-initial-implementation-planning/index.md)
   - Status: done
@@ -49,6 +59,12 @@ logic або будь-яку Stage 3+ runtime behavior.
 - [TASK-06.26-0004-stage-2-repository-build-foundation](tasks/plan/TASK-06.26-0004-stage-2-repository-build-foundation/index.md)
   - Status: done
   - Summary: Stage 2 repository/build foundation implementation task.
+- [TASK-06.26-0005-stage-3-implementation-planning](tasks/plan/TASK-06.26-0005-stage-3-implementation-planning/index.md)
+  - Status: done
+  - Summary: Stage 3 implementation planning.
+- [TASK-06.26-0006-stage-3-tokens](tasks/plan/TASK-06.26-0006-stage-3-tokens/index.md)
+  - Status: backlog
+  - Summary: Stage 3 tokens implementation task.
 
 ## Recent Decisions
 
@@ -65,21 +81,29 @@ logic або будь-яку Stage 3+ runtime behavior.
 - `memory/sources/SPEC.md` є historical immutable source snapshot і не редагується під час
   реалізаційних або ordinary memory-update задач.
 - `AGENTS.md` оновлено під фактичну Project Memory 3.0 / PDADM MVP 0.3.
-- Для Stage 2 planned build tool - `tsup`; заміна допустима тільки після конкретного
-  implementation blocker і memory sync.
+- Для Stage 2 build tool використано `tsup`; майбутня заміна допустима тільки після
+  конкретного implementation blocker і memory sync.
 - Stage 2 implementation зафіксована окремою backlog-задачею `TASK-06.26-0004`.
 - `TASK-06.26-0003-stage-2-implementation-planning` завершена після task-level human
   review approval.
 - `TASK-06.26-0004-stage-2-repository-build-foundation` завершена після task-level human
   review approval.
+- `TASK-06.26-0005-stage-3-implementation-planning` завершена після task-level human
+  review approval.
+- `TASK-06.26-0006-stage-3-tokens` створена як backlog implementation task.
+- Для Stage 3 token type-level assertions planned approach - Vitest `expectTypeOf`.
+- Stage 3 може додати мінімальний token-specific invalid ID error, але не реалізує full
+  diagnostics layer до Stage 8.
 
 ## Current Risks
 
-- Stage 2 треба втримати в межах repository/build foundation і не реалізувати container
-  logic.
-- Placeholder exports у Stage 2 не повинні непомітно реалізувати tokens/container/composer
-  або іншу runtime behavior.
-- README/docs skeleton не повинен заявляти, що unimplemented runtime API вже працює.
+- Stage 3 треба втримати в межах core token API і не почати container/provider behavior.
+- Token ID validation не має створювати global mutable registry або object-identity based
+  matching.
+- Мінімальна token-specific error не має перетворитися на повний diagnostics framework
+  раніше Stage 8.
+- `@sagifire/ioc/tokens` має залишатися tree-shaking friendly і не тягнути
+  container/composer/DSL/adapters.
 - Root `SPEC.md` лишається source reference і може дублювати canonical memory; для
   operational рішень використовувати `memory/product/`, `memory/domain/` і
   `memory/technical/`.
@@ -88,9 +112,9 @@ logic або будь-яку Stage 3+ runtime behavior.
 
 ## Next Steps
 
-- Планувати наступну roadmap stage відповідно до `memory/product/roadmap.md`.
+- Запустити `TASK-06.26-0006-stage-3-tokens` як autonomous implementation task.
 
 ## Open Questions
 
-- Який інструмент type-level tests обрати пізніше: `tsd`, `expect-type` або Vitest type
-  assertions.
+- Чи вистачить Vitest `expectTypeOf` для майбутніх type-level tests після Stage 3, чи
+  пізніше знадобиться окремий tool на кшталт `tsd`.

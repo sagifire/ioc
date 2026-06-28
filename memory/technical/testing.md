@@ -50,7 +50,12 @@ Candidate tools:
 - `expect-type`;
 - Vitest type assertions.
 
-The exact tool must be chosen during implementation.
+Stage 3 choice:
+
+- Use Vitest `expectTypeOf` for token type inference assertions.
+
+Later stages may choose `tsd` or another dedicated type-test tool if Vitest assertions are
+not enough for complex inference contracts.
 
 ## Tree-Shaking Tests
 
@@ -67,3 +72,6 @@ Verify:
 Every behavior-changing stage must add or update relevant tests. Stage 2 foundation should
 add smoke tests or placeholder tests only if they validate package/export/build plumbing and
 do not implement container logic.
+
+Stage 3 must add runtime tests for token creation, namespace ID composition and invalid ID
+rejection, plus type-level assertions for token value inference.

@@ -96,5 +96,13 @@ For Stage 2, allowed implementation scope is limited to workspace, package struc
 TypeScript, ESLint, Prettier, Vitest, build scripts, package export placeholders,
 README/docs skeleton and CI-ready scripts.
 
-Container, tokens, composer, DSL, diagnostics behavior and adapters start only at their
-respective stages.
+For Stage 3, allowed implementation scope is limited to core token API:
+`Token<TValue>`, `token()`, `namespace()`, token ID validation, root/subpath exports and
+tests.
+
+Stage 3 may introduce a minimal token-specific invalid ID error with a stable code and
+readable message. It must not implement the full diagnostics layer, diagnostic reports or
+diagnostic formatting.
+
+Container, composer, DSL, diagnostics behavior and adapters start only at their respective
+stages.

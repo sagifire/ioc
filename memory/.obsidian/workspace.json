@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "tasks/plan/TASK-06.26-0004-stage-2-repository-build-foundation/task.md",
+                "file": "domain/open-questions.md",
                 "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "task"
+              "title": "open-questions"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "tasks/plan/TASK-06.26-0004-stage-2-repository-build-foundation/task.md",
+                "file": "domain/open-questions.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Зворотні посилання для task"
+              "title": "Зворотні посилання для open-questions"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "tasks/plan/TASK-06.26-0004-stage-2-repository-build-foundation/task.md",
+                "file": "domain/open-questions.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Вихідні посилання з task"
+              "title": "Вихідні посилання з open-questions"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "tasks/plan/TASK-06.26-0004-stage-2-repository-build-foundation/task.md",
+                "file": "domain/open-questions.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Вміст task"
+              "title": "Вміст open-questions"
             }
           }
         ]
@@ -185,6 +185,27 @@
   },
   "active": "eda4bb9c85689afd",
   "lastOpenFiles": [
+    "tasks/plan/TASK-06.26-0006-stage-3-tokens/runs/RUN-001/result.md",
+    "tasks/plan/TASK-06.26-0006-stage-3-tokens/runs/RUN-001/context.md",
+    "tasks/plan/TASK-06.26-0006-stage-3-tokens/runs/RUN-001/requirements.md",
+    "tasks/plan/TASK-06.26-0006-stage-3-tokens/runs/RUN-001/index.md",
+    "tasks/plan/TASK-06.26-0006-stage-3-tokens/runs/index.md",
+    "tasks/plan/TASK-06.26-0006-stage-3-tokens/task.md",
+    "tasks/plan/TASK-06.26-0006-stage-3-tokens/index.md",
+    "tasks/plan/TASK-06.26-0005-stage-3-implementation-planning/fixations/FIX-001.md",
+    "tasks/plan/TASK-06.26-0005-stage-3-implementation-planning/fixations/index.md",
+    "tasks/plan/TASK-06.26-0005-stage-3-implementation-planning/worklog.md",
+    "tasks/plan/TASK-06.26-0005-stage-3-implementation-planning/task.md",
+    "tasks/plan/TASK-06.26-0005-stage-3-implementation-planning/index.md",
+    "tasks/plan/TASK-06.26-0006-stage-3-tokens/runs/RUN-001",
+    "tasks/plan/TASK-06.26-0006-stage-3-tokens/runs",
+    "tasks/plan/TASK-06.26-0006-stage-3-tokens",
+    "tasks/plan/TASK-06.26-0005-stage-3-implementation-planning/fixations",
+    "tasks/plan/TASK-06.26-0005-stage-3-implementation-planning",
+    "product/vision.md",
+    "product/roadmap.md",
+    "state.md",
+    "tasks/plan/TASK-06.26-0004-stage-2-repository-build-foundation/task.md",
     "tasks/plan/TASK-06.26-0004-stage-2-repository-build-foundation/runs/RUN-001/result.md",
     "tasks/plan/TASK-06.26-0004-stage-2-repository-build-foundation/index.md",
     "tasks/plan/progress.md",
@@ -193,29 +214,12 @@
     "tasks/plan/TASK-06.26-0004-stage-2-repository-build-foundation/runs/RUN-001/requirements.md",
     "tasks/plan/TASK-06.26-0004-stage-2-repository-build-foundation/runs/RUN-001/index.md",
     "tasks/plan/TASK-06.26-0004-stage-2-repository-build-foundation/runs/index.md",
-    "tasks/plan/TASK-06.26-0004-stage-2-repository-build-foundation/task.md",
     "tasks/plan/TASK-06.26-0003-stage-2-implementation-planning/fixations/FIX-001.md",
     "tasks/plan/TASK-06.26-0003-stage-2-implementation-planning/fixations/index.md",
-    "tasks/plan/TASK-06.26-0003-stage-2-implementation-planning/worklog.md",
-    "tasks/plan/TASK-06.26-0003-stage-2-implementation-planning/task.md",
-    "tasks/plan/TASK-06.26-0003-stage-2-implementation-planning/index.md",
     "tasks/plan/TASK-06.26-0004-stage-2-repository-build-foundation/runs/RUN-001",
     "tasks/plan/TASK-06.26-0004-stage-2-repository-build-foundation/runs",
     "tasks/plan/TASK-06.26-0004-stage-2-repository-build-foundation",
     "tasks/plan/TASK-06.26-0003-stage-2-implementation-planning/fixations",
-    "tasks/plan/TASK-06.26-0003-stage-2-implementation-planning",
-    "tasks/plan/TASK-06.28-0002-stage-2-repository-build-foundation/runs/RUN-001",
-    "tasks/plan/TASK-06.28-0002-stage-2-repository-build-foundation/runs",
-    "tasks/plan/TASK-06.28-0002-stage-2-repository-build-foundation",
-    "README.md",
-    "tasks/plan/TASK-06.28-0001-stage-2-implementation-planning/fixations",
-    "tasks/plan/TASK-06.28-0001-stage-2-implementation-planning",
-    "index.md",
-    "product/index.md",
-    "product/requirements.md",
-    "product/vision.md",
-    "sources/SPEC.md",
-    "tasks/plan/TASK-06.26-0002-project-memory-bootstrap/fixations/FIX-001.md",
-    "product/roadmap.md"
+    "tasks/plan/TASK-06.26-0003-stage-2-implementation-planning"
   ]
 }
