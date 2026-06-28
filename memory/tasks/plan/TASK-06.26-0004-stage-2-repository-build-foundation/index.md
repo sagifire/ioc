@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Backlog-задача реалізації Stage 2 repository/build foundation.
+Завершена задача реалізації Stage 2 repository/build foundation.
 
 ## Folders
 

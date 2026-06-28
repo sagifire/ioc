@@ -26,7 +26,7 @@
 ## Stage 2 Implementation
 
 - [TASK-06.26-0004-stage-2-repository-build-foundation](TASK-06.26-0004-stage-2-repository-build-foundation/index.md)
-  - Status: backlog
+  - Status: done
   - Type: chore
   - Execution Mode: autonomous-implementation
   - Summary: Stage 2 monorepo/package/build foundation без runtime/container logic.

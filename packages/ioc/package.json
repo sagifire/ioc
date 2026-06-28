@@ -1,0 +1,57 @@
+{
+    "name": "@sagifire/ioc",
+    "version": "0.0.0",
+    "type": "module",
+    "sideEffects": false,
+    "license": "UNLICENSED",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        },
+        "./tokens": {
+            "types": "./dist/tokens.d.ts",
+            "import": "./dist/tokens.js"
+        },
+        "./container": {
+            "types": "./dist/container.d.ts",
+            "import": "./dist/container.js"
+        },
+        "./context": {
+            "types": "./dist/context.d.ts",
+            "import": "./dist/context.js"
+        },
+        "./composer": {
+            "types": "./dist/composer.d.ts",
+            "import": "./dist/composer.js"
+        },
+        "./dsl": {
+            "types": "./dist/dsl.d.ts",
+            "import": "./dist/dsl.js"
+        },
+        "./diagnostics": {
+            "types": "./dist/diagnostics.d.ts",
+            "import": "./dist/diagnostics.js"
+        },
+        "./lifecycle": {
+            "types": "./dist/lifecycle.d.ts",
+            "import": "./dist/lifecycle.js"
+        },
+        "./package.json": "./package.json"
+    },
+    "files": [
+        "dist",
+        "README.md",
+        "LICENSE",
+        "NOTICE"
+    ],
+    "scripts": {
+        "build": "tsup",
+        "clean": "rimraf dist",
+        "lint": "eslint .",
+        "test": "vitest run --passWithNoTests",
+        "typecheck": "tsc -p tsconfig.json --noEmit"
+    }
+}

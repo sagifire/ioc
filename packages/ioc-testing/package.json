@@ -1,0 +1,32 @@
+{
+    "name": "@sagifire/ioc-testing",
+    "version": "0.0.0",
+    "type": "module",
+    "sideEffects": false,
+    "license": "UNLICENSED",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        },
+        "./package.json": "./package.json"
+    },
+    "files": [
+        "dist",
+        "README.md",
+        "LICENSE",
+        "NOTICE"
+    ],
+    "dependencies": {
+        "@sagifire/ioc": "workspace:*"
+    },
+    "scripts": {
+        "build": "tsup",
+        "clean": "rimraf dist",
+        "lint": "eslint .",
+        "test": "vitest run --passWithNoTests",
+        "typecheck": "tsc -p tsconfig.json --noEmit"
+    }
+}

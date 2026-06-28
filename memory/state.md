@@ -19,11 +19,13 @@ Project Memory тепер містить canonical контекст для:
 - trace mapping від root source documents до canonical memory;
 - historical immutable source snapshot `memory/sources/SPEC.md`.
 
-Поточний фокус - запуск реалізаційної задачі Stage 2 repository/build foundation:
+Поточний фокус - Stage 2 repository/build foundation завершено після task-level human
+review approval:
 
 - [TASK-06.26-0004-stage-2-repository-build-foundation](tasks/plan/TASK-06.26-0004-stage-2-repository-build-foundation/index.md)
 
-Stage 2 не повинен реалізовувати container logic або будь-яку Stage 3+ runtime behavior.
+Stage 2 agent run створив monorepo/package/build foundation і не реалізовував container
+logic або будь-яку Stage 3+ runtime behavior.
 
 ## Active Tasks
 
@@ -45,7 +47,7 @@ Stage 2 не повинен реалізовувати container logic або б
   - Status: done
   - Summary: Stage 2 implementation planning.
 - [TASK-06.26-0004-stage-2-repository-build-foundation](tasks/plan/TASK-06.26-0004-stage-2-repository-build-foundation/index.md)
-  - Status: backlog
+  - Status: done
   - Summary: Stage 2 repository/build foundation implementation task.
 
 ## Recent Decisions
@@ -68,6 +70,8 @@ Stage 2 не повинен реалізовувати container logic або б
 - Stage 2 implementation зафіксована окремою backlog-задачею `TASK-06.26-0004`.
 - `TASK-06.26-0003-stage-2-implementation-planning` завершена після task-level human
   review approval.
+- `TASK-06.26-0004-stage-2-repository-build-foundation` завершена після task-level human
+  review approval.
 
 ## Current Risks
 
@@ -79,14 +83,12 @@ Stage 2 не повинен реалізовувати container logic або б
 - Root `SPEC.md` лишається source reference і може дублювати canonical memory; для
   operational рішень використовувати `memory/product/`, `memory/domain/` і
   `memory/technical/`.
-- `pnpm install` під час Stage 2 може потребувати network permission.
+- `pnpm install` під час Stage 2 потребував network permission для першої інсталяції
+  залежностей; фінальний synced `pnpm install` проходить без мережі.
 
 ## Next Steps
 
-- Запустити `TASK-06.26-0004-stage-2-repository-build-foundation`.
-- Під час Stage 2 створити тільки monorepo foundation: workspace, package structure,
-  TypeScript, ESLint, Prettier, Vitest, build scripts, package export placeholders,
-  README/docs skeleton і CI-ready scripts.
+- Планувати наступну roadmap stage відповідно до `memory/product/roadmap.md`.
 
 ## Open Questions
 

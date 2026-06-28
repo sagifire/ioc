@@ -1,0 +1,14 @@
+{
+    "files": [],
+    "references": [
+        {
+            "path": "./packages/ioc"
+        },
+        {
+            "path": "./packages/ioc-next"
+        },
+        {
+            "path": "./packages/ioc-testing"
+        }
+    ]
+}

@@ -1,0 +1,31 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "lib": ["ES2022"],
+        "strict": true,
+        "noImplicitOverride": true,
+        "noUncheckedIndexedAccess": true,
+        "exactOptionalPropertyTypes": true,
+        "verbatimModuleSyntax": true,
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "isolatedModules": true,
+        "paths": {
+            "@sagifire/ioc": ["./packages/ioc/src/index.ts"],
+            "@sagifire/ioc/tokens": ["./packages/ioc/src/tokens.ts"],
+            "@sagifire/ioc/container": ["./packages/ioc/src/container.ts"],
+            "@sagifire/ioc/context": ["./packages/ioc/src/context.ts"],
+            "@sagifire/ioc/composer": ["./packages/ioc/src/composer.ts"],
+            "@sagifire/ioc/dsl": ["./packages/ioc/src/dsl.ts"],
+            "@sagifire/ioc/diagnostics": ["./packages/ioc/src/diagnostics.ts"],
+            "@sagifire/ioc/lifecycle": ["./packages/ioc/src/lifecycle.ts"],
+            "@sagifire/ioc-next": ["./packages/ioc-next/src/index.ts"],
+            "@sagifire/ioc-testing": ["./packages/ioc-testing/src/index.ts"]
+        }
+    }
+}

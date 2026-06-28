@@ -1,0 +1,7 @@
+node_modules/
+dist/
+coverage/
+memory/
+SPEC.md
+AGENTS.md
+pnpm-lock.yaml

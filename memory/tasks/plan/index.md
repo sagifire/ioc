@@ -17,7 +17,7 @@
   - Purpose: Планування реалізації Stage 2 repository/build foundation.
 - [TASK-06.26-0004-stage-2-repository-build-foundation](TASK-06.26-0004-stage-2-repository-build-foundation/index.md)
   - Type: folder
-  - Purpose: Backlog-задача реалізації Stage 2 repository/build foundation.
+  - Purpose: Завершена задача реалізації Stage 2 repository/build foundation.
 
 ## Files
 
