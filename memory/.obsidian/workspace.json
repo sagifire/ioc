@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "domain/open-questions.md",
+                "file": "tasks/plan/TASK-06.26-0006-stage-3-tokens/runs/RUN-001/index.md",
                 "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "open-questions"
+              "title": "index"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "domain/open-questions.md",
+                "file": "tasks/plan/TASK-06.26-0006-stage-3-tokens/runs/RUN-001/index.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Зворотні посилання для open-questions"
+              "title": "Зворотні посилання для index"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "domain/open-questions.md",
+                "file": "tasks/plan/TASK-06.26-0006-stage-3-tokens/runs/RUN-001/index.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Вихідні посилання з open-questions"
+              "title": "Вихідні посилання з index"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "domain/open-questions.md",
+                "file": "tasks/plan/TASK-06.26-0006-stage-3-tokens/runs/RUN-001/index.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Вміст open-questions"
+              "title": "Вміст index"
             }
           }
         ]
@@ -186,12 +186,14 @@
   "active": "eda4bb9c85689afd",
   "lastOpenFiles": [
     "tasks/plan/TASK-06.26-0006-stage-3-tokens/runs/RUN-001/result.md",
+    "tasks/plan/TASK-06.26-0006-stage-3-tokens/runs/RUN-001/index.md",
     "tasks/plan/TASK-06.26-0006-stage-3-tokens/runs/RUN-001/context.md",
     "tasks/plan/TASK-06.26-0006-stage-3-tokens/runs/RUN-001/requirements.md",
-    "tasks/plan/TASK-06.26-0006-stage-3-tokens/runs/RUN-001/index.md",
     "tasks/plan/TASK-06.26-0006-stage-3-tokens/runs/index.md",
-    "tasks/plan/TASK-06.26-0006-stage-3-tokens/task.md",
     "tasks/plan/TASK-06.26-0006-stage-3-tokens/index.md",
+    "tasks/plan/index.md",
+    "domain/open-questions.md",
+    "tasks/plan/TASK-06.26-0006-stage-3-tokens/task.md",
     "tasks/plan/TASK-06.26-0005-stage-3-implementation-planning/fixations/FIX-001.md",
     "tasks/plan/TASK-06.26-0005-stage-3-implementation-planning/fixations/index.md",
     "tasks/plan/TASK-06.26-0005-stage-3-implementation-planning/worklog.md",
@@ -214,8 +216,6 @@
     "tasks/plan/TASK-06.26-0004-stage-2-repository-build-foundation/runs/RUN-001/requirements.md",
     "tasks/plan/TASK-06.26-0004-stage-2-repository-build-foundation/runs/RUN-001/index.md",
     "tasks/plan/TASK-06.26-0004-stage-2-repository-build-foundation/runs/index.md",
-    "tasks/plan/TASK-06.26-0003-stage-2-implementation-planning/fixations/FIX-001.md",
-    "tasks/plan/TASK-06.26-0003-stage-2-implementation-planning/fixations/index.md",
     "tasks/plan/TASK-06.26-0004-stage-2-repository-build-foundation/runs/RUN-001",
     "tasks/plan/TASK-06.26-0004-stage-2-repository-build-foundation/runs",
     "tasks/plan/TASK-06.26-0004-stage-2-repository-build-foundation",
