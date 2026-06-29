@@ -131,5 +131,25 @@ Stage 5 may introduce minimal multi-provider-specific typed errors with stable l
 and readable messages. It must not implement the full diagnostics layer, diagnostic reports
 or diagnostic formatting.
 
-Scopes, async providers/resources, composer, DSL, diagnostics behavior and adapters start
-only at their respective stages.
+For Stage 6, allowed implementation scope is limited to sync scopes and scoped lifetime:
+`runtime.createScope()`, `runtime.withScope()`, sync `Scope.get()` / `Scope.tryGet()` /
+`Scope.getAll()`, `scope.dispose()`, `.scoped()` lifetime for sync factory/class
+providers and multi-provider factory contributions, scope-local single values,
+scope-local multi values, scope-bound factory resolution context, invalid scope usage
+errors, root/subpath exports and tests.
+
+Stage 6 scope-local precedence is explicit: scope-local single values override runtime
+single-provider resolution for the same token ID inside that scope; scope-local multi
+values extend runtime multi-provider collections in runtime-first, scope-local-after
+order; single/multi token kind conflicts must fail instead of silently converting token
+kind.
+
+Stage 6 must not expose public mutable APIs for adding or replacing scope-local values after
+scope creation.
+
+Stage 6 may introduce minimal scope-specific typed errors with stable local codes and
+readable messages. It must not implement the full diagnostics layer, diagnostic reports or
+diagnostic formatting.
+
+Async providers/resources, composer, DSL, diagnostics behavior and adapters start only at
+their respective stages.

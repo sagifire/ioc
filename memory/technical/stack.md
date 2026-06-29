@@ -1,6 +1,6 @@
 # Stack
 
-Source trace: `SPEC.md` sections 4-6 and 32-35.
+Source trace: `SPEC.md` sections 4-6 and 32-36.
 
 ## Product Stack
 
@@ -139,6 +139,10 @@ Stage 4 container inference assertions use Vitest `expectTypeOf` for `runtime.ge
 
 Stage 5 multi-provider inference assertions use Vitest `expectTypeOf` for `add()`,
 `runtime.getAll()` and factory context `getAll()` inference.
+
+Stage 6 scopes inference assertions use Vitest `expectTypeOf` for
+`runtime.createScope()`, `Scope.get()`, `Scope.tryGet()`, `Scope.getAll()`,
+`runtime.withScope()` callback inference and scope-bound factory context inference.
 
 Broader type-level test tooling remains open for later stages if Vitest assertions are not
 enough for more complex public API inference.

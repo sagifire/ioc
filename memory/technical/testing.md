@@ -88,3 +88,14 @@ arrays, strict single vs multi-provider validation, multi-provider factory lifet
 provider cycles through `get()` / `getAll()` and configuration immutability after
 `freeze()`. Stage 5 must also add Vitest `expectTypeOf` assertions for `add()`,
 `runtime.getAll()` and sync factory context `getAll()` inference.
+
+Stage 6 must add runtime tests for `runtime.createScope()`, `runtime.withScope()`,
+`Scope.get()`, `Scope.tryGet()`, `Scope.getAll()`, scope-local single value overrides,
+scope-local multi value extensions, single/multi scope-local conflict validation, scoped
+factory/class lifetimes, scoped multi-provider factory lifetimes, runtime-level scoped
+provider rejection, scope-bound factory context resolution, provider cycles through scoped
+resolution, idempotent `scope.dispose()`, disposed scope rejection, `withScope()` disposal
+on success and failure, fresh scope `getAll()` arrays and configuration immutability after
+`freeze()`. Stage 6 must also add Vitest `expectTypeOf` assertions for `Scope` resolution
+APIs, `runtime.createScope()`, `runtime.withScope()` and scope-bound factory context
+inference.

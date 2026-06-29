@@ -18,6 +18,8 @@ Root source trace:
 - `TASK-06.29-0008` - Stage 4 container sync providers implementation task.
 - `TASK-06.29-0009` - Stage 5 implementation planning task.
 - `TASK-06.29-0010` - Stage 5 multi-provider implementation task.
+- `TASK-06.29-0011` - Stage 6 implementation planning task.
+- `TASK-06.29-0012` - Stage 6 scopes implementation task.
 
 ## Completed
 
@@ -208,15 +210,78 @@ Root source trace:
 ## Next
 
 - Stage 6: Scopes.
+  - Status: planned.
   - Source: `SPEC.md` section 36.
-  - Implement: `runtime.createScope()`, scope resolution APIs, scoped lifetime,
-    scope-local values, `scope.dispose()`, `runtime.withScope()` and `InvalidScopeError`.
+  - Planning Task: `TASK-06.29-0011-stage-6-implementation-planning`.
+  - Implementation Task: `TASK-06.29-0012-stage-6-scopes`.
+  - Type-Level Test Approach: Vitest `expectTypeOf` for `runtime.createScope()`,
+    `Scope.get()`, `Scope.tryGet()`, `Scope.getAll()`, `runtime.withScope()` callback
+    inference and scope-bound factory context inference.
+  - API Decisions:
+    - Stage 6 is implemented as one implementation task because `Scope`, scoped lifetime,
+      scope-local values and `withScope()` share one active-scope resolution model.
+    - `runtime.createScope(options?)` creates an explicit request/operation/task-local
+      resolution boundary.
+    - `runtime.withScope(callback)` and `runtime.withScope(options, callback)` create a
+      scope and dispose it automatically.
+    - `Scope` exposes sync `get()`, `tryGet()`, `getAll()` and `dispose()`.
+    - `scope.dispose()` returns `Promise<void>` for forward compatibility with Stage 7
+      resource disposal, even though Stage 6 only marks sync scope invalid.
+    - `LifetimeBinding` adds `.scoped()`.
+    - `.scoped()` applies to sync single-provider `toFactory()` / `toClass()` and
+      multi-provider `toFactory()` contributions.
+    - `toValue()` remains singleton by definition.
+    - Scope-local values are supplied at scope creation time and are not mutated through
+      public scope APIs after scope creation.
+    - Scope-local single values override runtime single-provider resolution for the same
+      token ID inside that scope.
+    - Scope-local multi values extend runtime multi-provider collections in runtime-first,
+      scope-local-after order.
+    - Runtime/local single/multi kind conflicts fail instead of silently converting token
+      kind.
+  - Implement:
+    - `runtime.createScope()`;
+    - `runtime.withScope()`;
+    - `Scope.get()`;
+    - `Scope.tryGet()`;
+    - `Scope.getAll()`;
+    - `scope.dispose()`;
+    - scoped lifetime for sync single-provider factory/class providers;
+    - scoped lifetime for multi-provider factory contributions;
+    - scope-local single values;
+    - scope-local multi values;
+    - scope-bound factory `ResolutionContext`;
+    - invalid scope usage errors;
+    - root, `./container` and `./context` public exports where tree-shaking boundary
+      allows;
+    - runtime tests and type-level assertions.
   - Acceptance:
     - scoped provider has one instance per scope;
     - scoped provider cannot be resolved without scope;
-    - scope-local values override or extend runtime values according to documented rules;
+    - scope-local single values override runtime single providers inside one scope;
+    - scope-local multi values extend runtime multi-provider collections in documented
+      order;
+    - single/multi conflicts between runtime and scope-local values fail;
+    - duplicate local single values fail;
+    - multiple local multi values are allowed;
     - disposed scope cannot resolve values;
-    - `withScope()` disposes scope automatically.
+    - `withScope()` disposes scope automatically on success and failure;
+    - scope-bound factory context resolves scoped dependencies and scope-local values;
+    - provider cycles through scoped resolution fail with readable token ID path;
+    - Stage 6 does not implement async providers/resources, `getAsync()`, runtime disposal,
+      composer, DSL, diagnostics report/formatter, Next.js adapters or testing helpers;
+    - `pnpm build`, `pnpm test`, `pnpm typecheck` and `pnpm lint` pass.
+  - Guardrails:
+    - не реалізовувати `scope.getAsync()`, `runtime.getAsync()` або
+      `runtime.tryGetAsync()`;
+    - не реалізовувати async providers, async resources або runtime resource disposal;
+    - не реалізовувати composer, modules, capabilities, required ports або bindings;
+    - не реалізовувати DSL, Next.js adapters або testing helpers;
+    - не реалізовувати full diagnostics layer: `SagifireIocError`,
+      `DiagnosticReport` або `formatDiagnostics()`;
+    - не додавати mutable public API for adding/replacing scope-local values after scope
+      creation;
+    - не додавати global mutable container або provider registry.
 
 - Stage 7: Async providers and resources.
   - Source: `SPEC.md` section 37.

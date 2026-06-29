@@ -42,6 +42,12 @@
   - Summary: Планування реалізації Stage 5 multi-provider і підготовка implementation
     task.
   - Current: FIX-001
+- [TASK-06.29-0011-stage-6-implementation-planning](TASK-06.29-0011-stage-6-implementation-planning/index.md)
+  - Status: done
+  - Type: memory-update
+  - Execution Mode: interactive-memory-update
+  - Summary: Планування реалізації Stage 6 scopes і підготовка implementation task.
+  - Current: FIX-001
 
 ## Stage 2 Implementation
 
@@ -80,6 +86,16 @@
   - Execution Mode: autonomous-implementation
   - Summary: Stage 5 multi-provider `add()`, sync value/factory contributions,
     `getAll()` and strict single vs multi-provider validation.
+  - Current: RUN-001
+
+## Stage 6 Implementation
+
+- [TASK-06.29-0012-stage-6-scopes](TASK-06.29-0012-stage-6-scopes/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 6 scopes, scoped lifetime, scope-local values, scope disposal and
+    `withScope()`.
   - Current: RUN-001
 
 ## Format

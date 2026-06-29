@@ -69,6 +69,21 @@ registration order, strict single/multi-provider validation і tests. Stage 5 н
 реалізовував scopes, async providers/resources, composer, DSL, diagnostics framework,
 Next.js adapters або testing helpers.
 
+Stage 6 implementation planning завершено після task-level human review approval:
+
+- [TASK-06.29-0011-stage-6-implementation-planning](tasks/plan/TASK-06.29-0011-stage-6-implementation-planning/index.md)
+
+Stage 6 scopes implementation зафіксована окремою backlog-задачею:
+
+- [TASK-06.29-0012-stage-6-scopes](tasks/plan/TASK-06.29-0012-stage-6-scopes/index.md)
+
+Stage 6 plan обмежує implementation sync scopes behavior: `runtime.createScope()`,
+`runtime.withScope()`, sync `Scope.get()` / `Scope.tryGet()` / `Scope.getAll()`,
+scoped lifetime, scope-local values, idempotent `scope.dispose()`, scope-bound factory
+context and invalid scope usage errors. Stage 6 не реалізує async providers/resources,
+`getAsync()`, runtime disposal, composer, DSL, diagnostics framework, Next.js adapters або
+testing helpers.
+
 ## Active Tasks
 
 Немає задач у статусі `active`.
@@ -109,6 +124,12 @@ Next.js adapters або testing helpers.
 - [TASK-06.29-0010-stage-5-multi-provider](tasks/plan/TASK-06.29-0010-stage-5-multi-provider/index.md)
   - Status: done
   - Summary: Stage 5 multi-provider implementation task.
+- [TASK-06.29-0011-stage-6-implementation-planning](tasks/plan/TASK-06.29-0011-stage-6-implementation-planning/index.md)
+  - Status: done
+  - Summary: Stage 6 implementation planning.
+- [TASK-06.29-0012-stage-6-scopes](tasks/plan/TASK-06.29-0012-stage-6-scopes/index.md)
+  - Status: backlog
+  - Summary: Stage 6 scopes implementation task.
 
 ## Recent Decisions
 
@@ -175,13 +196,31 @@ Next.js adapters або testing helpers.
   `review`.
 - `TASK-06.29-0010-stage-5-multi-provider` завершена після task-level human review
   approval.
+- `TASK-06.29-0011-stage-6-implementation-planning` створена як окрема
+  interactive-memory-update задача для планування Stage 6.
+- `TASK-06.29-0011-stage-6-implementation-planning` завершена після task-level human
+  review approval.
+- Stage 6 implementation зафіксована окремою backlog-задачею
+  `TASK-06.29-0012-stage-6-scopes`.
+- Stage 6 буде реалізовуватись однією implementation task, бо `Scope`, scoped lifetime,
+  scope-local values і `withScope()` мають спільну active-scope resolution model.
+- Для Stage 6 прийнято scope-local precedence model: single values override runtime
+  single-provider resolution inside scope; multi values extend runtime multi-provider
+  collections after runtime values; single/multi conflicts fail.
+- Stage 6 scope-local values задаються під час `createScope()` / `withScope()` і не
+  мутуються через public scope API після створення scope.
+- Stage 6 додає `.scoped()` для sync factory/class providers і multi-provider factory
+  contributions; `toValue()` лишається singleton.
+- Stage 6 не додає `getAsync()`, async providers/resources або runtime disposal.
 
 ## Current Risks
 
-- Stage 6 scopes не має починатися без окремого planning/implementation task і
-  acceptance criteria.
-- Stage 6 не має реалізовувати async providers/resources, composer, DSL, diagnostics
-  framework, Next.js adapters або testing helpers раніше відповідних roadmap stages.
+- Stage 6 не має реалізовувати async providers/resources, `getAsync()`, runtime disposal,
+  composer, DSL, diagnostics framework, Next.js adapters або testing helpers раніше
+  відповідних roadmap stages.
+- Scope-local values можуть випадково розмити strict single/multi-provider model, тому
+  implementation має fail on kind conflicts rather than silently convert token behavior.
+- Scoped lifetime має кешувати provider values per scope, not per runtime.
 - Root `SPEC.md` лишається source reference і може дублювати canonical memory; для
   operational рішень використовувати `memory/product/`, `memory/domain/` і
   `memory/technical/`.
@@ -190,9 +229,13 @@ Next.js adapters або testing helpers.
 
 ## Next Steps
 
-- Підготувати Stage 6 scopes implementation planning task.
+- Запустити
+  [TASK-06.29-0012-stage-6-scopes](tasks/plan/TASK-06.29-0012-stage-6-scopes/index.md)
+  як autonomous implementation task.
 
 ## Open Questions
 
+- Для Stage 8 треба зафіксувати error code naming convention перед масовим додаванням
+  typed errors.
 - Для Stage 14 треба обрати остаточний інструмент type-level tests, якщо Vitest
   `expectTypeOf` стане недостатнім для складніших public API inference contracts.

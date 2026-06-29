@@ -213,6 +213,32 @@ Stage 5 multi-provider baseline:
 - `add().toFactory()` is transient by default and supports `.singleton()` /
   `.transient()`.
 
+Stage 6 scopes baseline:
+
+- Stage 6 implements `runtime.createScope()`, `runtime.withScope()`, sync `Scope.get()`,
+  `Scope.tryGet()`, `Scope.getAll()`, `scope.dispose()` and scoped lifetime for sync
+  providers.
+- Stage 6 extends `LifetimeBinding` with `.scoped()`.
+- `.scoped()` applies to sync single-provider `toFactory()` / `toClass()` and
+  multi-provider `toFactory()` contributions.
+- `toValue()` remains singleton by definition and does not get a scoped variant.
+- Scoped providers create one value per scope and cannot be resolved through runtime-level
+  APIs without active scope.
+- Factory `ResolutionContext` is scope-bound when the provider is resolved through a
+  `Scope`, so scoped dependencies and scope-local values are visible only through active
+  scope resolution.
+- Scope-local values are supplied when creating the scope and are not mutable through public
+  scope APIs after scope creation.
+- Scope-local single values override runtime single-provider resolution for the same token
+  ID within that scope.
+- Scope-local multi values extend runtime multi-provider collections in runtime-first,
+  scope-local-after order.
+- Single/multi kind conflicts fail; scope-local values must not silently convert token kind.
+- `scope.dispose()` is idempotent. After disposal, sync scope resolution fails with a
+  readable typed error.
+- Stage 6 does not implement `getAsync()`, async providers/resources, runtime disposal or
+  resource disposal.
+
 Lifetimes:
 
 - `singleton` - one instance per frozen runtime.
@@ -251,6 +277,12 @@ Runtime resolution API:
 runtime.get<TValue>(token: Token<TValue>): TValue
 runtime.tryGet<TValue>(token: Token<TValue>): TValue | undefined
 runtime.getAll<TValue>(token: Token<TValue>): TValue[]
+runtime.createScope(options?: CreateScopeOptions): Scope
+runtime.withScope<TValue>(callback: ScopeCallback<TValue>): Promise<TValue>
+runtime.withScope<TValue>(
+    options: CreateScopeOptions,
+    callback: ScopeCallback<TValue>
+): Promise<TValue>
 runtime.getAsync<TValue>(token: Token<TValue>): Promise<TValue>
 runtime.tryGetAsync<TValue>(token: Token<TValue>): Promise<TValue | undefined>
 ```
@@ -326,7 +358,7 @@ Scope disposal:
 
 Scopes represent request, operation or task-local resolution context.
 
-Required scope APIs include:
+Long-term scope APIs include:
 
 - `scope.get()`
 - `scope.tryGet()`
@@ -338,6 +370,48 @@ Required scope APIs include:
 
 Context must not become a service locator. Application APIs should receive scope/context
 explicitly where needed.
+
+Stage 6 implements the sync subset:
+
+```ts
+const scope = runtime.createScope({
+    values: [
+        [REQUEST_ID, requestId]
+    ],
+    multiValues: [
+        [REQUEST_HANDLERS, requestHandler]
+    ]
+})
+
+const value = scope.get(SOME_TOKEN)
+const values = scope.getAll(SOME_COLLECTION)
+
+await scope.dispose()
+```
+
+`CreateScopeOptions` exact shape may use tuple entries, object entries or helper functions,
+but it must preserve explicit token/value pairing and avoid filesystem or framework
+discovery.
+
+Stage 6 precedence rules:
+
+- local single value + runtime single provider: local value wins inside that scope;
+- local multi values + runtime multi providers: runtime values resolve first, then local
+  values in declaration order;
+- local single value + runtime multi provider: invalid;
+- local multi values + runtime single provider: invalid;
+- local single and local multi entries for same token ID: invalid;
+- duplicate local single values for same token ID: invalid;
+- multiple local multi values for same token ID: valid.
+
+Stage 6 sync scope APIs:
+
+- `scope.get()`
+- `scope.tryGet()`
+- `scope.getAll()`
+- `scope.dispose()`
+
+`scope.getAsync()` starts with Stage 7 async providers/resources.
 
 ## Composer And Modules
 
