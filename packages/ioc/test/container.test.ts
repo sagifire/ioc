@@ -304,7 +304,10 @@ describe('container sync providers', () => {
             expectTypeOf(context).toEqualTypeOf<ResolutionContext>()
             expectTypeOf(context.getAll(PLUGINS)).toEqualTypeOf<Plugin[]>()
 
-            return context.getAll(PLUGINS).map((plugin) => plugin.name).join(',')
+            return context
+                .getAll(PLUGINS)
+                .map((plugin) => plugin.name)
+                .join(',')
         })
 
         const runtime = await container.freeze()
@@ -430,6 +433,7 @@ describe('container sync providers', () => {
         expect(() => container.add(MISSING)).toThrow(ContainerFrozenError)
         expect(() => binding.toValue(createLogger())).toThrow(ContainerFrozenError)
         expect(() => lifetime.singleton()).toThrow(ContainerFrozenError)
+        expect(() => lifetime.scoped()).toThrow(ContainerFrozenError)
         expect(() =>
             multiBinding.toValue({
                 logger: createLogger(),
@@ -437,6 +441,7 @@ describe('container sync providers', () => {
             })
         ).toThrow(ContainerFrozenError)
         expect(() => multiLifetime.singleton()).toThrow(ContainerFrozenError)
+        expect(() => multiLifetime.scoped()).toThrow(ContainerFrozenError)
     })
 
     test('preserves runtime get and tryGet inference', async () => {
@@ -465,7 +470,7 @@ describe('container sync providers', () => {
         expectTypeOf(runtime.getAll(PLUGINS)).toEqualTypeOf<Plugin[]>()
     })
 
-    test('does not expose Stage 6 or later APIs', async () => {
+    test('exposes Stage 6 scope APIs and does not expose Stage 7 or later APIs', async () => {
         const container = createContainer()
         const multiBinding = container.add(LOGGER)
         const runtime = await container.freeze()
@@ -475,8 +480,8 @@ describe('container sync providers', () => {
         expect('getAll' in runtime).toBe(true)
         expect('getAsync' in runtime).toBe(false)
         expect('tryGetAsync' in runtime).toBe(false)
-        expect('createScope' in runtime).toBe(false)
-        expect('withScope' in runtime).toBe(false)
+        expect('createScope' in runtime).toBe(true)
+        expect('withScope' in runtime).toBe(true)
         expect('dispose' in runtime).toBe(false)
     })
 })

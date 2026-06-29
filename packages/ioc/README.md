@@ -9,8 +9,10 @@ Implemented in the current stage:
 - token ID validation;
 - sync single-provider container bindings;
 - sync multi-provider container contributions;
-- singleton and transient provider lifetimes;
-- immutable runtime `get()` / `tryGet()` / `getAll()`.
+- singleton, transient and scoped provider lifetimes;
+- immutable runtime `get()` / `tryGet()` / `getAll()`;
+- sync scope API: `createScope()`, `withScope()`, `Scope.get()`, `Scope.tryGet()`,
+  `Scope.getAll()` and `Scope.dispose()`.
 
-Context, composer, DSL, diagnostics and lifecycle APIs are planned for later roadmap
-stages.
+Async providers/resources, composer, DSL, diagnostics and lifecycle APIs are planned for
+later roadmap stages.

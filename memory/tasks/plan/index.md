@@ -41,7 +41,7 @@
   - Purpose: Планування реалізації Stage 6 scopes.
 - [TASK-06.29-0012-stage-6-scopes](TASK-06.29-0012-stage-6-scopes/index.md)
   - Type: folder
-  - Purpose: Backlog задача реалізації Stage 6 scopes.
+  - Purpose: Завершена задача реалізації Stage 6 scopes.
 
 ## Files
 

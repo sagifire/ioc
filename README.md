@@ -4,9 +4,9 @@ Staged implementation of the planned `@sagifire/ioc` package family.
 
 This repository currently provides workspace structure, package manifests, TypeScript
 configuration, build/test/lint/format tooling, documentation skeletons and the Stage 3 core
-token API plus the Stage 4/5 sync container API for single-provider and multi-provider
-registrations. Scopes, async providers, composer, DSL, diagnostics and framework adapter
-behavior are planned for later roadmap stages.
+token API plus the Stage 4/5/6 sync container API for single-provider registrations,
+multi-provider contributions and scopes. Async providers, composer, DSL, diagnostics and
+framework adapter behavior are planned for later roadmap stages.
 
 ## Packages
 

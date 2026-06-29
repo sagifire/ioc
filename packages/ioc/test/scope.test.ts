@@ -1,0 +1,411 @@
+import { describe, expect, expectTypeOf, test } from 'vitest'
+
+import {
+    DuplicateScopeLocalValueError,
+    InvalidScopeError,
+    ProviderCycleError,
+    ProviderKindMismatchError,
+    ProviderNotFoundError,
+    createContainer,
+    scopeMultiValue,
+    scopeValue,
+    type ContainerRuntime,
+    type CreateScopeOptions,
+    type LifetimeBinding,
+    type ResolutionContext,
+    type Scope
+} from '../src/container.js'
+import { token } from '../src/tokens.js'
+
+interface Counter {
+    readonly value: number
+}
+
+interface Logger {
+    readonly name: string
+}
+
+interface Missing {
+    readonly value: string
+}
+
+interface Plugin {
+    readonly name: string
+}
+
+interface RequestService {
+    readonly requestId: string
+    readonly counter: Counter
+    readonly missing: Missing | undefined
+    readonly plugins: Plugin[]
+}
+
+const REQUEST_ID = token<string>('scope.request-id')
+const LOGGER = token<Logger>('scope.logger')
+const COUNTER = token<Counter>('scope.counter')
+const CLASS_COUNTER = token<Counter>('scope.class-counter')
+const MISSING = token<Missing>('scope.missing')
+const PLUGINS = token<Plugin>('scope.plugins')
+const REQUEST_SERVICE = token<RequestService>('scope.request-service')
+
+describe('container scopes', () => {
+    test('resolves scope-local single values before runtime single providers', async () => {
+        const container = createContainer()
+        const runtimeLogger = createLogger('runtime')
+        const localLogger = createLogger('local')
+
+        container.bind(LOGGER).toValue(runtimeLogger)
+
+        const runtime = await container.freeze()
+        const scope = runtime.createScope({
+            values: [scopeValue(LOGGER, localLogger)]
+        })
+
+        expect(scope.get(LOGGER)).toBe(localLogger)
+        expect(scope.tryGet(LOGGER)).toBe(localLogger)
+        expect(runtime.get(LOGGER)).toBe(runtimeLogger)
+        expect(scope.tryGet(MISSING)).toBeUndefined()
+        expect(() => scope.get(MISSING)).toThrow(ProviderNotFoundError)
+    })
+
+    test('extends runtime multi-provider values with scope-local multi values', async () => {
+        const container = createContainer()
+        const runtimePlugin = createPlugin('runtime')
+        const localPlugin = createPlugin('local')
+        const tupleLocalPlugin = createPlugin('tuple-local')
+
+        container.add(PLUGINS).toValue(runtimePlugin)
+
+        const runtime = await container.freeze()
+        const scope = runtime.createScope({
+            multiValues: [scopeMultiValue(PLUGINS, localPlugin), [PLUGINS, tupleLocalPlugin]]
+        })
+        const localOnly = runtime.createScope({
+            multiValues: [[MISSING, { value: 'local-only' }]]
+        })
+        const firstResult = scope.getAll(PLUGINS)
+        const missingResult = scope.getAll(MISSING)
+
+        firstResult.push(createPlugin('mutated'))
+        missingResult.push({
+            value: 'mutated'
+        })
+
+        expect(scope.getAll(PLUGINS)).toEqual([runtimePlugin, localPlugin, tupleLocalPlugin])
+        expect(localOnly.getAll(MISSING)).toEqual([
+            {
+                value: 'local-only'
+            }
+        ])
+        expect(scope.getAll(MISSING)).toEqual([])
+        expect(scope.getAll(PLUGINS)).not.toBe(scope.getAll(PLUGINS))
+        expect(scope.getAll(MISSING)).not.toBe(scope.getAll(MISSING))
+    })
+
+    test('rejects scope-local single and multi kind conflicts', async () => {
+        const container = createContainer()
+        const localOnly = token<string>('scope.local-only')
+        const duplicateAlias = token<Logger>('scope.duplicate-local')
+        const duplicateOriginal = token<Logger>('scope.duplicate-local')
+        const multiOnly = token<string>('scope.multi-only')
+
+        container.bind(LOGGER).toValue(createLogger('runtime'))
+        container.add(PLUGINS).toValue(createPlugin('runtime'))
+
+        const runtime = await container.freeze()
+
+        expect(() =>
+            runtime.createScope({
+                values: [scopeValue(PLUGINS, createPlugin('invalid'))]
+            })
+        ).toThrow(ProviderKindMismatchError)
+        expect(() =>
+            runtime.createScope({
+                multiValues: [scopeMultiValue(LOGGER, createLogger('invalid'))]
+            })
+        ).toThrow(ProviderKindMismatchError)
+        expect(() =>
+            runtime.createScope({
+                values: [[localOnly, 'single']],
+                multiValues: [[localOnly, 'multi']]
+            })
+        ).toThrow(ProviderKindMismatchError)
+        expect(() =>
+            runtime.createScope({
+                values: [
+                    scopeValue(duplicateOriginal, createLogger('first')),
+                    scopeValue(duplicateAlias, createLogger('second'))
+                ]
+            })
+        ).toThrow(DuplicateScopeLocalValueError)
+
+        const scope = runtime.createScope({
+            multiValues: [
+                [multiOnly, 'first'],
+                [multiOnly, 'second']
+            ]
+        })
+
+        expect(scope.getAll(multiOnly)).toEqual(['first', 'second'])
+        expect(() => scope.get(multiOnly)).toThrow(ProviderKindMismatchError)
+        expect(() => scope.tryGet(multiOnly)).toThrow(ProviderKindMismatchError)
+    })
+
+    test('caches scoped single factory and class providers per scope', async () => {
+        const container = createContainer()
+        let nextClassCounter = 0
+
+        class ScopedCounter {
+            readonly value = (nextClassCounter += 1)
+        }
+
+        container.bind(COUNTER).toFactory(createCounterFactory()).scoped()
+        container.bind(CLASS_COUNTER).toClass(ScopedCounter).scoped()
+
+        const runtime = await container.freeze()
+        const firstScope = runtime.createScope()
+        const secondScope = runtime.createScope()
+
+        expect(() => runtime.get(COUNTER)).toThrow(InvalidScopeError)
+        expect(() => runtime.tryGet(COUNTER)).toThrow(InvalidScopeError)
+        expect(firstScope.get(COUNTER)).toBe(firstScope.get(COUNTER))
+        expect(firstScope.get(COUNTER)).not.toBe(secondScope.get(COUNTER))
+        expect(firstScope.get(CLASS_COUNTER)).toBe(firstScope.get(CLASS_COUNTER))
+        expect(firstScope.get(CLASS_COUNTER)).not.toBe(secondScope.get(CLASS_COUNTER))
+    })
+
+    test('caches scoped multi-provider factory contributions per scope', async () => {
+        const container = createContainer()
+
+        container.add(COUNTER).toFactory(createCounterFactory()).scoped()
+        container.add(COUNTER).toFactory(createCounterFactory()).scoped()
+
+        const runtime = await container.freeze()
+        const firstScope = runtime.createScope()
+        const secondScope = runtime.createScope()
+        const firstValues = firstScope.getAll(COUNTER)
+        const secondValues = firstScope.getAll(COUNTER)
+        const otherScopeValues = secondScope.getAll(COUNTER)
+
+        expect(() => runtime.getAll(COUNTER)).toThrow(InvalidScopeError)
+        expect(firstValues).toHaveLength(2)
+        expect(firstValues[0]).toBe(secondValues[0])
+        expect(firstValues[1]).toBe(secondValues[1])
+        expect(firstValues[0]).not.toBe(otherScopeValues[0])
+        expect(firstValues[1]).not.toBe(otherScopeValues[1])
+    })
+
+    test('passes a scope-bound resolution context to providers resolved through scopes', async () => {
+        const container = createContainer()
+
+        container.add(PLUGINS).toValue(createPlugin('runtime'))
+        container.bind(COUNTER).toFactory(createCounterFactory()).scoped()
+        container.bind(REQUEST_SERVICE).toFactory((context) => {
+            expectTypeOf(context).toEqualTypeOf<ResolutionContext>()
+            expectTypeOf(context.get(REQUEST_ID)).toEqualTypeOf<string>()
+            expectTypeOf(context.get(COUNTER)).toEqualTypeOf<Counter>()
+            expectTypeOf(context.tryGet(MISSING)).toEqualTypeOf<Missing | undefined>()
+            expectTypeOf(context.getAll(PLUGINS)).toEqualTypeOf<Plugin[]>()
+
+            return {
+                requestId: context.get(REQUEST_ID),
+                counter: context.get(COUNTER),
+                missing: context.tryGet(MISSING),
+                plugins: context.getAll(PLUGINS)
+            }
+        })
+
+        const runtime = await container.freeze()
+        const scope = runtime.createScope({
+            values: [[REQUEST_ID, 'request-1']],
+            multiValues: [[PLUGINS, createPlugin('local')]]
+        })
+        const service = scope.get(REQUEST_SERVICE)
+
+        expect(service.requestId).toBe('request-1')
+        expect(service.counter).toBe(scope.get(COUNTER))
+        expect(service.missing).toBeUndefined()
+        expect(service.plugins).toEqual([createPlugin('runtime'), createPlugin('local')])
+    })
+
+    test('detects provider cycles through scope-bound get and getAll', async () => {
+        const first = token<string>('scope.cycle.first')
+        const second = token<string>('scope.cycle.second')
+        const multi = token<string>('scope.cycle.multi')
+        const multiDependency = token<string>('scope.cycle.multi-dependency')
+        const container = createContainer()
+
+        container
+            .bind(first)
+            .toFactory(({ get }) => get(second))
+            .scoped()
+        container
+            .bind(second)
+            .toFactory(({ get }) => get(first))
+            .scoped()
+        container
+            .add(multi)
+            .toFactory(({ get }) => get(multiDependency))
+            .scoped()
+        container
+            .bind(multiDependency)
+            .toFactory(({ getAll }) => getAll(multi)[0] ?? 'missing')
+            .scoped()
+
+        const runtime = await container.freeze()
+        const scope = runtime.createScope()
+
+        expect(() => scope.get(first)).toThrow(ProviderCycleError)
+        expect(() => scope.getAll(multi)).toThrow(ProviderCycleError)
+    })
+
+    test('makes dispose idempotent and rejects disposed scope resolution', async () => {
+        const container = createContainer()
+
+        container.bind(LOGGER).toValue(createLogger('runtime'))
+
+        const runtime = await container.freeze()
+        const scope = runtime.createScope({
+            values: [[REQUEST_ID, 'request-1']]
+        })
+
+        await scope.dispose()
+        await scope.dispose()
+
+        expect(() => scope.get(REQUEST_ID)).toThrow(InvalidScopeError)
+        expect(() => scope.tryGet(LOGGER)).toThrow(InvalidScopeError)
+        expect(() => scope.getAll(PLUGINS)).toThrow(InvalidScopeError)
+    })
+
+    test('disposes withScope scopes after sync, async and failing callbacks', async () => {
+        const container = createContainer()
+        const runtime = await container.freeze()
+        let syncScope: Scope | undefined
+        let asyncScope: Scope | undefined
+        let thrownScope: Scope | undefined
+        let rejectedScope: Scope | undefined
+
+        const syncResult = await runtime.withScope(
+            {
+                values: [[REQUEST_ID, 'sync']]
+            },
+            (scope) => {
+                syncScope = scope
+
+                return scope.get(REQUEST_ID)
+            }
+        )
+        const asyncResult = await runtime.withScope(
+            {
+                values: [[REQUEST_ID, 'async']]
+            },
+            async (scope) => {
+                asyncScope = scope
+
+                return scope.get(REQUEST_ID)
+            }
+        )
+
+        await expect(
+            runtime.withScope(
+                {
+                    values: [[REQUEST_ID, 'thrown']]
+                },
+                (scope) => {
+                    thrownScope = scope
+
+                    throw new Error('sync failure')
+                }
+            )
+        ).rejects.toThrow('sync failure')
+        await expect(
+            runtime.withScope(
+                {
+                    values: [[REQUEST_ID, 'rejected']]
+                },
+                async (scope) => {
+                    rejectedScope = scope
+
+                    throw new Error('async failure')
+                }
+            )
+        ).rejects.toThrow('async failure')
+
+        expect(syncResult).toBe('sync')
+        expect(asyncResult).toBe('async')
+        expectScopeDisposed(syncScope)
+        expectScopeDisposed(asyncScope)
+        expectScopeDisposed(thrownScope)
+        expectScopeDisposed(rejectedScope)
+    })
+
+    test('preserves Stage 6 type inference and does not expose Stage 7 APIs', async () => {
+        const container = createContainer()
+        const options: CreateScopeOptions = {
+            values: [scopeValue(REQUEST_ID, 'typed')],
+            multiValues: [scopeMultiValue(PLUGINS, createPlugin('typed'))]
+        }
+        const lifetime = container.bind(COUNTER).toFactory(() => ({
+            value: 1
+        }))
+
+        expectTypeOf(scopeValue(LOGGER, createLogger('typed')).value).toEqualTypeOf<Logger>()
+        expectTypeOf(scopeMultiValue(PLUGINS, createPlugin('typed')).value).toEqualTypeOf<Plugin>()
+        expectTypeOf(lifetime).toEqualTypeOf<LifetimeBinding>()
+
+        lifetime.scoped()
+
+        const runtime = await container.freeze()
+        const scope = runtime.createScope(options)
+        const inferredWithScope = runtime.withScope((callbackScope) => callbackScope.get(COUNTER))
+        const inferredWithOptions = runtime.withScope(options, (callbackScope) =>
+            callbackScope.get(COUNTER)
+        )
+
+        expectTypeOf(runtime).toEqualTypeOf<ContainerRuntime>()
+        expectTypeOf(scope).toEqualTypeOf<Scope>()
+        expectTypeOf(scope.get(COUNTER)).toEqualTypeOf<Counter>()
+        expectTypeOf(scope.tryGet(COUNTER)).toEqualTypeOf<Counter | undefined>()
+        expectTypeOf(scope.getAll(PLUGINS)).toEqualTypeOf<Plugin[]>()
+        expectTypeOf(inferredWithScope).toEqualTypeOf<Promise<Counter>>()
+        expectTypeOf(inferredWithOptions).toEqualTypeOf<Promise<Counter>>()
+
+        await inferredWithScope
+        await inferredWithOptions
+
+        expect('getAsync' in scope).toBe(false)
+        expect('getAsync' in runtime).toBe(false)
+        expect('tryGetAsync' in runtime).toBe(false)
+        expect('dispose' in runtime).toBe(false)
+    })
+})
+
+function createLogger(name: string): Logger {
+    return {
+        name
+    }
+}
+
+function createPlugin(name: string): Plugin {
+    return {
+        name
+    }
+}
+
+function createCounterFactory(): () => Counter {
+    let nextValue = 0
+
+    return () => ({
+        value: (nextValue += 1)
+    })
+}
+
+function expectScopeDisposed(scope: Scope | undefined): void {
+    expect(scope).toBeDefined()
+
+    if (scope === undefined) {
+        return
+    }
+
+    expect(() => scope.get(REQUEST_ID)).toThrow(InvalidScopeError)
+}

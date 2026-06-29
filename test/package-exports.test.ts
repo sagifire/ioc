@@ -32,6 +32,10 @@ describe('package export placeholders', () => {
         expect(module.ProviderKindMismatchError).toBeTypeOf('function')
         expect(module.ProviderCycleError).toBeTypeOf('function')
         expect(module.ContainerFrozenError).toBeTypeOf('function')
+        expect(module.InvalidScopeError).toBeTypeOf('function')
+        expect(module.DuplicateScopeLocalValueError).toBeTypeOf('function')
+        expect(module.scopeValue).toBeTypeOf('function')
+        expect(module.scopeMultiValue).toBeTypeOf('function')
     })
 
     test('tokens subpath exposes token API', async () => {
@@ -51,5 +55,18 @@ describe('package export placeholders', () => {
         expect(module.ProviderKindMismatchError).toBeTypeOf('function')
         expect(module.ProviderCycleError).toBeTypeOf('function')
         expect(module.ContainerFrozenError).toBeTypeOf('function')
+        expect(module.InvalidScopeError).toBeTypeOf('function')
+        expect(module.DuplicateScopeLocalValueError).toBeTypeOf('function')
+        expect(module.scopeValue).toBeTypeOf('function')
+        expect(module.scopeMultiValue).toBeTypeOf('function')
+    })
+
+    test('context subpath exposes scope API', async () => {
+        const module = await import('@sagifire/ioc/context')
+
+        expect(module.InvalidScopeError).toBeTypeOf('function')
+        expect(module.DuplicateScopeLocalValueError).toBeTypeOf('function')
+        expect(module.scopeValue).toBeTypeOf('function')
+        expect(module.scopeMultiValue).toBeTypeOf('function')
     })
 })

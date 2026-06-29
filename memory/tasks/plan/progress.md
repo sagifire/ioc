@@ -91,7 +91,7 @@
 ## Stage 6 Implementation
 
 - [TASK-06.29-0012-stage-6-scopes](TASK-06.29-0012-stage-6-scopes/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Stage 6 scopes, scoped lifetime, scope-local values, scope disposal and

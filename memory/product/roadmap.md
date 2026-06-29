@@ -207,10 +207,8 @@ Root source trace:
       `DiagnosticReport` або `formatDiagnostics()`;
     - не додавати global mutable container або provider registry.
 
-## Next
-
 - Stage 6: Scopes.
-  - Status: planned.
+  - Status: done.
   - Source: `SPEC.md` section 36.
   - Planning Task: `TASK-06.29-0011-stage-6-implementation-planning`.
   - Implementation Task: `TASK-06.29-0012-stage-6-scopes`.
@@ -239,7 +237,7 @@ Root source trace:
       scope-local-after order.
     - Runtime/local single/multi kind conflicts fail instead of silently converting token
       kind.
-  - Implement:
+  - Implemented:
     - `runtime.createScope()`;
     - `runtime.withScope()`;
     - `Scope.get()`;
@@ -282,6 +280,8 @@ Root source trace:
     - не додавати mutable public API for adding/replacing scope-local values after scope
       creation;
     - не додавати global mutable container або provider registry.
+
+## Next
 
 - Stage 7: Async providers and resources.
   - Source: `SPEC.md` section 37.

@@ -1,6 +1,23 @@
 import type { Token } from './tokens'
+import { DuplicateScopeLocalValueError, InvalidScopeError } from './context'
+import type { CreateScopeOptions, Scope, ScopeCallback, ScopeLocalValue } from './context'
 
-export type ProviderLifetime = 'singleton' | 'transient'
+export {
+    DuplicateScopeLocalValueError,
+    InvalidScopeError,
+    scopeMultiValue,
+    scopeValue
+} from './context'
+export type {
+    CreateScopeOptions,
+    InvalidScopeReason,
+    Scope,
+    ScopeCallback,
+    ScopeLocalValue,
+    ScopeLocalValueObject
+} from './context'
+
+export type ProviderLifetime = 'singleton' | 'transient' | 'scoped'
 
 export type ProviderRegistrationKind = 'single' | 'multi'
 
@@ -28,12 +45,16 @@ export interface MultiBindingBuilder<TValue> {
 export interface LifetimeBinding {
     singleton(): void
     transient(): void
+    scoped(): void
 }
 
 export interface ContainerRuntime {
     get<TValue>(token: Token<TValue>): TValue
     tryGet<TValue>(token: Token<TValue>): TValue | undefined
     getAll<TValue>(token: Token<TValue>): TValue[]
+    createScope(options?: CreateScopeOptions): Scope
+    withScope<TValue>(callback: ScopeCallback<TValue>): Promise<TValue>
+    withScope<TValue>(options: CreateScopeOptions, callback: ScopeCallback<TValue>): Promise<TValue>
 }
 
 export interface ResolutionContext {
@@ -153,6 +174,18 @@ interface MultiProviderRegistration {
 }
 
 type ProviderRegistration = SingleProviderRegistration | MultiProviderRegistration
+
+interface ScopeState {
+    readonly localSingles: ReadonlyMap<string, unknown>
+    readonly localMultis: ReadonlyMap<string, readonly unknown[]>
+    readonly scopedCache: Map<ProviderRecord<unknown>, unknown>
+    disposed: boolean
+}
+
+interface NormalizedScopeLocalValue {
+    readonly tokenId: string
+    readonly value: unknown
+}
 
 type AssertMutable = (action: string) => void
 
@@ -319,6 +352,12 @@ function createLifetimeBinding<TValue>(
             assertMutable(`change lifetime for token "${tokenId}"`)
 
             provider.lifetime = 'transient'
+        },
+
+        scoped(): void {
+            assertMutable(`change lifetime for token "${tokenId}"`)
+
+            provider.lifetime = 'scoped'
         }
     }
 }
@@ -350,7 +389,12 @@ function assertCanAddMulti(
         return
     }
 
-    throw new ProviderKindMismatchError(tokenId, 'multi', 'single', 'add multi-provider contribution')
+    throw new ProviderKindMismatchError(
+        tokenId,
+        'multi',
+        'single',
+        'add multi-provider contribution'
+    )
 }
 
 function addSingleProvider<TValue>(
@@ -450,12 +494,37 @@ function cloneCache<TValue>(cache: SingletonCache<TValue>): SingletonCache<TValu
     }
 }
 
-function createRuntime(
-    registrations: ReadonlyMap<string, ProviderRegistration>
-): ContainerRuntime {
+function createRuntime(registrations: ReadonlyMap<string, ProviderRegistration>): ContainerRuntime {
+    const assertScopeIsActive = (scopeState: ScopeState): void => {
+        if (scopeState.disposed) {
+            throw new InvalidScopeError('Scope has been disposed and cannot resolve providers', {
+                reason: 'scope-disposed'
+            })
+        }
+    }
+
+    const createResolutionContext = (
+        stack: readonly string[],
+        scopeState: ScopeState | undefined
+    ): ResolutionContext =>
+        Object.freeze({
+            get<TResolved>(token: Token<TResolved>): TResolved {
+                return resolveRequired(token, stack, scopeState)
+            },
+
+            tryGet<TResolved>(token: Token<TResolved>): TResolved | undefined {
+                return resolveOptional(token, stack, scopeState)
+            },
+
+            getAll<TResolved>(token: Token<TResolved>): TResolved[] {
+                return resolveAll(token, stack, scopeState)
+            }
+        })
+
     const resolveProvider = <TValue>(
         provider: ProviderRecord<TValue>,
-        stack: readonly string[]
+        stack: readonly string[],
+        scopeState: ScopeState | undefined
     ): TValue => {
         const cycleStart = stack.indexOf(provider.tokenId)
 
@@ -463,24 +532,30 @@ function createRuntime(
             throw new ProviderCycleError([...stack.slice(cycleStart), provider.tokenId])
         }
 
+        if (provider.lifetime === 'scoped') {
+            if (scopeState === undefined) {
+                throw new InvalidScopeError(
+                    `Cannot resolve scoped provider for token "${provider.tokenId}" without an active scope`,
+                    {
+                        reason: 'scoped-provider-without-scope',
+                        tokenId: provider.tokenId
+                    }
+                )
+            }
+
+            const scopedCacheKey = provider as ProviderRecord<unknown>
+
+            if (scopeState.scopedCache.has(scopedCacheKey)) {
+                return scopeState.scopedCache.get(scopedCacheKey) as TValue
+            }
+        }
+
         if (provider.lifetime === 'singleton' && provider.cache.state === 'ready') {
             return provider.cache.value
         }
 
         const nextStack = [...stack, provider.tokenId]
-        const context: ResolutionContext = Object.freeze({
-            get<TResolved>(token: Token<TResolved>): TResolved {
-                return resolveRequired(token, nextStack)
-            },
-
-            tryGet<TResolved>(token: Token<TResolved>): TResolved | undefined {
-                return resolveOptional(token, nextStack)
-            },
-
-            getAll<TResolved>(token: Token<TResolved>): TResolved[] {
-                return resolveAll(token, nextStack)
-            }
-        })
+        const context = createResolutionContext(nextStack, scopeState)
 
         const value = provider.create(context)
 
@@ -491,10 +566,35 @@ function createRuntime(
             }
         }
 
+        if (provider.lifetime === 'scoped' && scopeState !== undefined) {
+            scopeState.scopedCache.set(provider as ProviderRecord<unknown>, value)
+        }
+
         return value
     }
 
-    const resolveRequired = <TValue>(token: Token<TValue>, stack: readonly string[]): TValue => {
+    const resolveRequired = <TValue>(
+        token: Token<TValue>,
+        stack: readonly string[],
+        scopeState: ScopeState | undefined
+    ): TValue => {
+        if (scopeState !== undefined) {
+            assertScopeIsActive(scopeState)
+
+            if (scopeState.localSingles.has(token.id)) {
+                return scopeState.localSingles.get(token.id) as TValue
+            }
+
+            if (scopeState.localMultis.has(token.id)) {
+                throw new ProviderKindMismatchError(
+                    token.id,
+                    'single',
+                    'multi',
+                    'resolve single provider'
+                )
+            }
+        }
+
         const registration = registrations.get(token.id)
 
         if (registration === undefined) {
@@ -502,16 +602,39 @@ function createRuntime(
         }
 
         if (registration.kind === 'multi') {
-            throw new ProviderKindMismatchError(token.id, 'single', 'multi', 'resolve single provider')
+            throw new ProviderKindMismatchError(
+                token.id,
+                'single',
+                'multi',
+                'resolve single provider'
+            )
         }
 
-        return resolveProvider(registration.provider as ProviderRecord<TValue>, stack)
+        return resolveProvider(registration.provider as ProviderRecord<TValue>, stack, scopeState)
     }
 
     const resolveOptional = <TValue>(
         token: Token<TValue>,
-        stack: readonly string[]
+        stack: readonly string[],
+        scopeState: ScopeState | undefined
     ): TValue | undefined => {
+        if (scopeState !== undefined) {
+            assertScopeIsActive(scopeState)
+
+            if (scopeState.localSingles.has(token.id)) {
+                return scopeState.localSingles.get(token.id) as TValue
+            }
+
+            if (scopeState.localMultis.has(token.id)) {
+                throw new ProviderKindMismatchError(
+                    token.id,
+                    'single',
+                    'multi',
+                    'resolve single provider'
+                )
+            }
+        }
+
         const registration = registrations.get(token.id)
 
         if (registration === undefined) {
@@ -519,17 +642,47 @@ function createRuntime(
         }
 
         if (registration.kind === 'multi') {
-            throw new ProviderKindMismatchError(token.id, 'single', 'multi', 'resolve single provider')
+            throw new ProviderKindMismatchError(
+                token.id,
+                'single',
+                'multi',
+                'resolve single provider'
+            )
         }
 
-        return resolveProvider(registration.provider as ProviderRecord<TValue>, stack)
+        return resolveProvider(registration.provider as ProviderRecord<TValue>, stack, scopeState)
     }
 
-    const resolveAll = <TValue>(token: Token<TValue>, stack: readonly string[]): TValue[] => {
+    const resolveAll = <TValue>(
+        token: Token<TValue>,
+        stack: readonly string[],
+        scopeState: ScopeState | undefined
+    ): TValue[] => {
+        let localMultiValues: readonly unknown[] | undefined
+
+        if (scopeState !== undefined) {
+            assertScopeIsActive(scopeState)
+
+            if (scopeState.localSingles.has(token.id)) {
+                throw new ProviderKindMismatchError(
+                    token.id,
+                    'multi',
+                    'single',
+                    'resolve multi-provider collection'
+                )
+            }
+
+            localMultiValues = scopeState.localMultis.get(token.id)
+        }
+
         const registration = registrations.get(token.id)
 
         if (registration === undefined) {
-            return []
+            if (localMultiValues === undefined) {
+                return []
+            }
+
+            return [...localMultiValues] as TValue[]
         }
 
         if (registration.kind === 'single') {
@@ -541,24 +694,197 @@ function createRuntime(
             )
         }
 
-        return registration.providers.map((provider) =>
-            resolveProvider(provider as ProviderRecord<TValue>, stack)
+        const runtimeValues = registration.providers.map((provider) =>
+            resolveProvider(provider as ProviderRecord<TValue>, stack, scopeState)
         )
+
+        if (localMultiValues === undefined) {
+            return runtimeValues
+        }
+
+        return [...runtimeValues, ...localMultiValues] as TValue[]
+    }
+
+    const createScope = (options?: CreateScopeOptions): Scope => {
+        const scopeState = createScopeState(options, registrations)
+        const scope: Scope = {
+            get<TValue>(token: Token<TValue>): TValue {
+                return resolveRequired(token, [], scopeState)
+            },
+
+            tryGet<TValue>(token: Token<TValue>): TValue | undefined {
+                return resolveOptional(token, [], scopeState)
+            },
+
+            getAll<TValue>(token: Token<TValue>): TValue[] {
+                return resolveAll(token, [], scopeState)
+            },
+
+            dispose(): Promise<void> {
+                if (scopeState.disposed) {
+                    return Promise.resolve()
+                }
+
+                scopeState.disposed = true
+                scopeState.scopedCache.clear()
+
+                return Promise.resolve()
+            }
+        }
+
+        return Object.freeze(scope)
+    }
+
+    function withScope<TValue>(callback: ScopeCallback<TValue>): Promise<TValue>
+    function withScope<TValue>(
+        options: CreateScopeOptions,
+        callback: ScopeCallback<TValue>
+    ): Promise<TValue>
+    async function withScope<TValue>(
+        optionsOrCallback: CreateScopeOptions | ScopeCallback<TValue>,
+        callback?: ScopeCallback<TValue>
+    ): Promise<TValue> {
+        let options: CreateScopeOptions | undefined
+        let scopeCallback: ScopeCallback<TValue>
+
+        if (typeof optionsOrCallback === 'function') {
+            scopeCallback = optionsOrCallback
+        } else {
+            options = optionsOrCallback
+
+            if (callback === undefined) {
+                throw new InvalidScopeError('withScope(options, callback) requires a callback', {
+                    reason: 'invalid-with-scope-callback'
+                })
+            }
+
+            scopeCallback = callback
+        }
+
+        const scope = createScope(options)
+
+        try {
+            return await scopeCallback(scope)
+        } finally {
+            await scope.dispose()
+        }
     }
 
     const runtime: ContainerRuntime = {
         get<TValue>(token: Token<TValue>): TValue {
-            return resolveRequired(token, [])
+            return resolveRequired(token, [], undefined)
         },
 
         tryGet<TValue>(token: Token<TValue>): TValue | undefined {
-            return resolveOptional(token, [])
+            return resolveOptional(token, [], undefined)
         },
 
         getAll<TValue>(token: Token<TValue>): TValue[] {
-            return resolveAll(token, [])
-        }
+            return resolveAll(token, [], undefined)
+        },
+
+        createScope,
+        withScope
     }
 
     return Object.freeze(runtime)
+}
+
+function createScopeState(
+    options: CreateScopeOptions | undefined,
+    registrations: ReadonlyMap<string, ProviderRegistration>
+): ScopeState {
+    const localSingles = new Map<string, unknown>()
+    const localMultis = new Map<string, unknown[]>()
+
+    for (const entry of options?.values ?? []) {
+        const localValue = normalizeScopeLocalValue(entry)
+
+        if (localSingles.has(localValue.tokenId)) {
+            throw new DuplicateScopeLocalValueError(localValue.tokenId)
+        }
+
+        if (localMultis.has(localValue.tokenId)) {
+            throw new ProviderKindMismatchError(
+                localValue.tokenId,
+                'single',
+                'multi',
+                'create scope-local single value'
+            )
+        }
+
+        const registration = registrations.get(localValue.tokenId)
+
+        if (registration?.kind === 'multi') {
+            throw new ProviderKindMismatchError(
+                localValue.tokenId,
+                'single',
+                'multi',
+                'create scope-local single value'
+            )
+        }
+
+        localSingles.set(localValue.tokenId, localValue.value)
+    }
+
+    for (const entry of options?.multiValues ?? []) {
+        const localValue = normalizeScopeLocalValue(entry)
+
+        if (localSingles.has(localValue.tokenId)) {
+            throw new ProviderKindMismatchError(
+                localValue.tokenId,
+                'multi',
+                'single',
+                'create scope-local multi value'
+            )
+        }
+
+        const registration = registrations.get(localValue.tokenId)
+
+        if (registration?.kind === 'single') {
+            throw new ProviderKindMismatchError(
+                localValue.tokenId,
+                'multi',
+                'single',
+                'create scope-local multi value'
+            )
+        }
+
+        const values = localMultis.get(localValue.tokenId)
+
+        if (values === undefined) {
+            localMultis.set(localValue.tokenId, [localValue.value])
+        } else {
+            values.push(localValue.value)
+        }
+    }
+
+    return {
+        localSingles,
+        localMultis,
+        scopedCache: new Map<ProviderRecord<unknown>, unknown>(),
+        disposed: false
+    }
+}
+
+function normalizeScopeLocalValue(entry: ScopeLocalValue): NormalizedScopeLocalValue {
+    if (isScopeLocalTuple(entry)) {
+        const [localToken, value] = entry
+
+        return {
+            tokenId: localToken.id,
+            value
+        }
+    }
+
+    return {
+        tokenId: entry.token.id,
+        value: entry.value
+    }
+}
+
+function isScopeLocalTuple(
+    entry: ScopeLocalValue
+): entry is readonly [token: Token<unknown>, value: unknown] {
+    return Array.isArray(entry)
 }

@@ -73,16 +73,16 @@ Stage 6 implementation planning завершено після task-level human r
 
 - [TASK-06.29-0011-stage-6-implementation-planning](tasks/plan/TASK-06.29-0011-stage-6-implementation-planning/index.md)
 
-Stage 6 scopes implementation зафіксована окремою backlog-задачею:
+Stage 6 scopes implementation завершено після task-level human review approval:
 
 - [TASK-06.29-0012-stage-6-scopes](tasks/plan/TASK-06.29-0012-stage-6-scopes/index.md)
 
-Stage 6 plan обмежує implementation sync scopes behavior: `runtime.createScope()`,
-`runtime.withScope()`, sync `Scope.get()` / `Scope.tryGet()` / `Scope.getAll()`,
-scoped lifetime, scope-local values, idempotent `scope.dispose()`, scope-bound factory
-context and invalid scope usage errors. Stage 6 не реалізує async providers/resources,
-`getAsync()`, runtime disposal, composer, DSL, diagnostics framework, Next.js adapters або
-testing helpers.
+RUN-001 реалізував sync scopes behavior: `runtime.createScope()`, `runtime.withScope()`,
+sync `Scope.get()` / `Scope.tryGet()` / `Scope.getAll()`, scoped lifetime,
+scope-local values, idempotent `scope.dispose()`, scope-bound factory context and invalid
+scope usage errors. Stage 6 не реалізував async providers/resources, `getAsync()`,
+runtime disposal, composer, DSL, diagnostics framework, Next.js adapters або testing
+helpers.
 
 ## Active Tasks
 
@@ -128,7 +128,7 @@ testing helpers.
   - Status: done
   - Summary: Stage 6 implementation planning.
 - [TASK-06.29-0012-stage-6-scopes](tasks/plan/TASK-06.29-0012-stage-6-scopes/index.md)
-  - Status: backlog
+  - Status: done
   - Summary: Stage 6 scopes implementation task.
 
 ## Recent Decisions
@@ -212,15 +212,18 @@ testing helpers.
 - Stage 6 додає `.scoped()` для sync factory/class providers і multi-provider factory
   contributions; `toValue()` лишається singleton.
 - Stage 6 не додає `getAsync()`, async providers/resources або runtime disposal.
+- `TASK-06.29-0012-stage-6-scopes` RUN-001 виконаний агентом, переведений у `review`
+  і approved після task-level human review.
+- Stage 6 реалізував `Scope`, `CreateScopeOptions`, scope-local values, `.scoped()`,
+  `createScope()`, `withScope()` і мінімальні scope-specific typed errors без full
+  diagnostics layer.
+- `TASK-06.29-0012-stage-6-scopes` завершена після task-level human review approval.
 
 ## Current Risks
 
-- Stage 6 не має реалізовувати async providers/resources, `getAsync()`, runtime disposal,
-  composer, DSL, diagnostics framework, Next.js adapters або testing helpers раніше
-  відповідних roadmap stages.
-- Scope-local values можуть випадково розмити strict single/multi-provider model, тому
-  implementation має fail on kind conflicts rather than silently convert token behavior.
-- Scoped lifetime має кешувати provider values per scope, not per runtime.
+- Async providers/resources, `getAsync()`, runtime disposal, composer, DSL, diagnostics
+  framework, Next.js adapters і testing helpers залишаються out of scope до відповідних
+  roadmap stages.
 - Root `SPEC.md` лишається source reference і може дублювати canonical memory; для
   operational рішень використовувати `memory/product/`, `memory/domain/` і
   `memory/technical/`.
@@ -229,9 +232,7 @@ testing helpers.
 
 ## Next Steps
 
-- Запустити
-  [TASK-06.29-0012-stage-6-scopes](tasks/plan/TASK-06.29-0012-stage-6-scopes/index.md)
-  як autonomous implementation task.
+- Підготувати planning task для Stage 7 async providers/resources.
 
 ## Open Questions
 

@@ -1,6 +1,6 @@
 # TASK-06.29-0012: Stage 6 scopes
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-06-29
@@ -174,9 +174,9 @@ Scope є явною lifecycle boundary: він не мутує frozen runtime, �
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: planned
+  - Status: completed
   - Purpose: Початковий autonomous implementation run для Stage 6 scopes.
-  - Result: n/a
+  - Result: Stage 6 scopes реалізовано й завершено після human review approval.
 
 ## Research
 

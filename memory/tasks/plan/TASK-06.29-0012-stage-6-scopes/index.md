@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Backlog implementation task для Stage 6 scopes.
+Завершена implementation task для Stage 6 scopes.
 
 ## Files
 
