@@ -14,6 +14,10 @@ Root source trace:
 - `TASK-06.26-0004` - Stage 2 repository/build foundation implementation task.
 - `TASK-06.26-0005` - Stage 3 implementation planning task.
 - `TASK-06.26-0006` - Stage 3 tokens implementation task.
+- `TASK-06.29-0007` - Stage 4 implementation planning task.
+- `TASK-06.29-0008` - Stage 4 container sync providers implementation task.
+- `TASK-06.29-0009` - Stage 5 implementation planning task.
+- `TASK-06.29-0010` - Stage 5 multi-provider implementation task.
 
 ## Completed
 
@@ -58,15 +62,13 @@ Root source trace:
     - не реалізовувати tokens, composer, DSL, diagnostics behavior або adapters;
     - не заявляти в README/docs, що unimplemented runtime API вже працює.
 
-## Now
-
 - Stage 3: Tokens.
-  - Status: planned; planning task done, implementation task у backlog.
+  - Status: done.
   - Source: `SPEC.md` section 33.
   - Planning Task: `TASK-06.26-0005-stage-3-implementation-planning`.
   - Implementation Task: `TASK-06.26-0006-stage-3-tokens`.
   - Type-Level Test Approach: Vitest `expectTypeOf` for Stage 3 token inference.
-  - Implement:
+  - Implemented:
     - `Token<TValue>`;
     - `token<TValue>(id, options?)`;
     - `namespace(id)` helper for stable prefixed IDs;
@@ -82,38 +84,128 @@ Root source trace:
     - `@sagifire/ioc/tokens` remains independent from container/composer/DSL/adapters;
     - `pnpm build`, `pnpm test`, `pnpm typecheck` and `pnpm lint` pass.
   - Guardrails:
-    - не реалізовувати container, providers, lifetimes, scopes або async model;
+    - container, providers, lifetimes, scopes і async model не реалізовувались;
+    - composer, modules, capabilities, required ports і bindings не реалізовувались;
+    - DSL, Next.js adapters і testing helpers не реалізовувались;
+    - full diagnostics layer не реалізовувався;
+    - global mutable token registry не створювався;
+    - token object identity не став canonical runtime identity.
+
+## Recently Completed
+
+- Stage 4: Container sync providers.
+  - Status: done.
+  - Source: `SPEC.md` section 34.
+  - Planning Task: `TASK-06.29-0007-stage-4-implementation-planning`.
+  - Implementation Task: `TASK-06.29-0008-stage-4-container-sync-providers`.
+  - Type-Level Test Approach: Vitest `expectTypeOf` for `runtime.get()`,
+    `runtime.tryGet()` and factory context inference.
+  - API Decisions:
+    - `freeze()` returns `Promise<ContainerRuntime>` even for sync-only Stage 4;
+    - `toValue` is singleton;
+    - `toFactory` is transient by default;
+    - `toClass` is transient by default;
+    - `toClass()` accepts no-argument constructors only and does not use decorators,
+      `reflect-metadata`, parameter names or constructor metadata;
+    - classes with dependencies must be wired through explicit `toFactory()`;
+    - token ID is the provider key; token object identity is not used for matching;
+    - `tryGet()` returns `undefined` only for missing providers and still throws provider
+      cycles or provider execution errors.
+  - Implement:
+    - `createContainer()`;
+    - `bind().toValue()`;
+    - `bind().toFactory()`;
+    - `bind().toClass()`;
+    - singleton and transient lifetimes;
+    - async-compatible `freeze()`;
+    - immutable `runtime.get()`;
+    - immutable `runtime.tryGet()`;
+    - provider cycle detection;
+    - duplicate single-provider token detection;
+    - minimal container-specific typed errors without full diagnostics layer;
+    - root and `./container` public exports where tree-shaking boundary allows;
+    - runtime tests and type-level assertions.
+  - Acceptance:
+    - sync value, factory and no-argument class providers resolve correctly;
+    - singleton returns same instance/value per frozen runtime;
+    - transient returns new instance/value per resolution;
+    - duplicate single-provider token fails;
+    - provider cycles fail with readable error and token ID path;
+    - runtime is immutable after freeze;
+    - `runtime.get()` and factory context preserve token value inference;
+    - `@sagifire/ioc/container` remains independent from composer/DSL/adapters;
+    - `pnpm build`, `pnpm test`, `pnpm typecheck` and `pnpm lint` pass.
+  - Guardrails:
+    - не реалізовувати multi-provider `add()` або `getAll()`;
+    - не реалізовувати scopes, scoped lifetime, scope-local values або disposal;
+    - не реалізовувати async providers, async resources, `getAsync()` або
+      `tryGetAsync()`;
     - не реалізовувати composer, modules, capabilities, required ports або bindings;
     - не реалізовувати DSL, Next.js adapters або testing helpers;
     - не реалізовувати full diagnostics layer: `SagifireIocError`,
       `DiagnosticReport` або `formatDiagnostics()`;
-    - не додавати global mutable token registry;
-    - не покладатися на object identity як canonical token identity.
-
-## Next
-
-- Stage 4: Container sync providers.
-  - Source: `SPEC.md` section 34.
-  - Implement: `createContainer()`, `bind().toValue()`, `bind().toFactory()`,
-    `bind().toClass()`, `singleton`, `transient`, `freeze()`, `runtime.get()`,
-    `runtime.tryGet()`, provider cycle detection and duplicate token detection.
-  - Acceptance:
-    - sync providers resolve correctly;
-    - singleton returns same instance;
-    - transient returns new instance;
-    - duplicate single-provider token fails;
-    - provider cycles fail with readable error;
-    - runtime is immutable after freeze.
+    - не додавати global mutable container або provider registry;
+    - не використовувати decorators, `reflect-metadata` або constructor metadata.
 
 - Stage 5: Multi-provider.
+  - Status: done.
   - Source: `SPEC.md` section 35.
-  - Implement: `add().toValue()`, `add().toFactory()`, `runtime.getAll()` and
-    single vs multi-provider validation.
+  - Planning Task: `TASK-06.29-0009-stage-5-implementation-planning`.
+  - Implementation Task: `TASK-06.29-0010-stage-5-multi-provider`.
+  - Type-Level Test Approach: Vitest `expectTypeOf` for `add()`, `runtime.getAll()` and
+    factory context `getAll()` inference.
+  - API Decisions:
+    - `bind(token)` is for single-provider tokens;
+    - `add(token)` is for multi-provider tokens;
+    - `bind()` and `add()` cannot be mixed for the same token ID;
+    - `get()` fails for multi-provider token even if only one provider was registered;
+    - `getAll()` fails for token registered through `bind()`;
+    - `getAll()` returns empty array for completely missing token;
+    - `getAll()` returns public type `TValue[]`, with a fresh array per call in
+      registration order;
+    - `ResolutionContext` includes sync `getAll()` in Stage 5;
+    - `add().toValue()` is singleton by definition;
+    - `add().toFactory()` is transient by default and supports `.singleton()` /
+      `.transient()`.
+  - Implement:
+    - `ContainerBuilder.add()`;
+    - `add().toValue()`;
+    - `add().toFactory()`;
+    - multi-provider factory singleton/transient lifetimes;
+    - `runtime.getAll()`;
+    - `ResolutionContext.getAll()`;
+    - single vs multi-provider validation;
+    - minimal multi-provider-specific typed errors without full diagnostics layer;
+    - root and `./container` public exports where tree-shaking boundary allows;
+    - runtime tests and type-level assertions.
   - Acceptance:
     - multiple providers can be registered for same token via `add()`;
-    - `getAll()` returns all values;
+    - `getAll()` returns all values in registration order;
+    - `getAll()` returns a fresh array per call;
+    - `getAll()` returns empty array for missing token;
     - `get()` fails for multi-provider token;
-    - `bind()` duplicate still fails.
+    - `getAll()` fails for single-provider token;
+    - `bind()` duplicate still fails;
+    - `bind()` and `add()` cannot be mixed for same token ID;
+    - multi-provider factory lifetimes work;
+    - provider cycles through `get()` / `getAll()` fail with readable error and token ID
+      path;
+    - `runtime.getAll()` and factory context `getAll()` preserve token value inference;
+    - Stage 5 does not implement scopes, async providers/resources, composer, DSL,
+      diagnostics report/formatter, Next.js adapters or testing helpers;
+    - `pnpm build`, `pnpm test`, `pnpm typecheck` and `pnpm lint` pass.
+  - Guardrails:
+    - не реалізовувати `add().toClass()` без окремого Stage 5 decision;
+    - не реалізовувати scopes, scoped lifetime, scope-local values або disposal;
+    - не реалізовувати async providers, async resources, `getAsync()` або
+      `tryGetAsync()`;
+    - не реалізовувати composer, modules, capabilities, required ports або bindings;
+    - не реалізовувати DSL, Next.js adapters або testing helpers;
+    - не реалізовувати full diagnostics layer: `SagifireIocError`,
+      `DiagnosticReport` або `formatDiagnostics()`;
+    - не додавати global mutable container або provider registry.
+
+## Next
 
 - Stage 6: Scopes.
   - Source: `SPEC.md` section 36.

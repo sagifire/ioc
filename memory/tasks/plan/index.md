@@ -24,6 +24,18 @@
 - [TASK-06.26-0006-stage-3-tokens](TASK-06.26-0006-stage-3-tokens/index.md)
   - Type: folder
   - Purpose: Завершена задача реалізації Stage 3 tokens.
+- [TASK-06.29-0007-stage-4-implementation-planning](TASK-06.29-0007-stage-4-implementation-planning/index.md)
+  - Type: folder
+  - Purpose: Планування реалізації Stage 4 container sync providers.
+- [TASK-06.29-0008-stage-4-container-sync-providers](TASK-06.29-0008-stage-4-container-sync-providers/index.md)
+  - Type: folder
+  - Purpose: Завершена задача реалізації Stage 4 container sync providers.
+- [TASK-06.29-0009-stage-5-implementation-planning](TASK-06.29-0009-stage-5-implementation-planning/index.md)
+  - Type: folder
+  - Purpose: Планування реалізації Stage 5 multi-provider.
+- [TASK-06.29-0010-stage-5-multi-provider](TASK-06.29-0010-stage-5-multi-provider/index.md)
+  - Type: folder
+  - Purpose: Завершена задача реалізації Stage 5 multi-provider.
 
 ## Files
 

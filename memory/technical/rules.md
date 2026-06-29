@@ -104,5 +104,32 @@ Stage 3 may introduce a minimal token-specific invalid ID error with a stable co
 readable message. It must not implement the full diagnostics layer, diagnostic reports or
 diagnostic formatting.
 
-Container, composer, DSL, diagnostics behavior and adapters start only at their respective
-stages.
+For Stage 4, allowed implementation scope is limited to sync single-provider container
+behavior: `createContainer()`, `bind().toValue()`, `bind().toFactory()`,
+`bind().toClass()`, singleton/transient lifetimes, async-compatible `freeze()`,
+immutable `runtime.get()` / `runtime.tryGet()`, duplicate single-provider token detection,
+provider cycle detection, root/subpath exports and tests.
+
+Stage 4 `toClass()` must stay explicit and no-magic: no decorators, no
+`reflect-metadata`, no constructor parameter names and no constructor metadata. Use
+`toFactory()` for classes that need dependencies.
+
+Stage 4 may introduce minimal container-specific typed errors with stable local codes and
+readable messages. It must not implement the full diagnostics layer, diagnostic reports or
+diagnostic formatting.
+
+For Stage 5, allowed implementation scope is limited to multi-provider container behavior:
+`ContainerBuilder.add()`, `add().toValue()`, `add().toFactory()`, multi-provider factory
+singleton/transient lifetimes, immutable `runtime.getAll()`, sync
+`ResolutionContext.getAll()`, deterministic registration order, fresh `getAll()` result
+arrays, strict single vs multi-provider validation, root/subpath exports and tests.
+
+Stage 5 `getAll()` returns public type `TValue[]`, not `readonly TValue[]`, but each call
+must return a fresh array so caller mutation cannot mutate runtime provider storage.
+
+Stage 5 may introduce minimal multi-provider-specific typed errors with stable local codes
+and readable messages. It must not implement the full diagnostics layer, diagnostic reports
+or diagnostic formatting.
+
+Scopes, async providers/resources, composer, DSL, diagnostics behavior and adapters start
+only at their respective stages.

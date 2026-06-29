@@ -26,6 +26,12 @@ describe('package export placeholders', () => {
         expect(module.token).toBeTypeOf('function')
         expect(module.namespace).toBeTypeOf('function')
         expect(module.InvalidTokenIdError).toBeTypeOf('function')
+        expect(module.createContainer).toBeTypeOf('function')
+        expect(module.ProviderNotFoundError).toBeTypeOf('function')
+        expect(module.DuplicateProviderError).toBeTypeOf('function')
+        expect(module.ProviderKindMismatchError).toBeTypeOf('function')
+        expect(module.ProviderCycleError).toBeTypeOf('function')
+        expect(module.ContainerFrozenError).toBeTypeOf('function')
     })
 
     test('tokens subpath exposes token API', async () => {
@@ -34,5 +40,16 @@ describe('package export placeholders', () => {
         expect(module.token).toBeTypeOf('function')
         expect(module.namespace).toBeTypeOf('function')
         expect(module.InvalidTokenIdError).toBeTypeOf('function')
+    })
+
+    test('container subpath exposes container API', async () => {
+        const module = await import('@sagifire/ioc/container')
+
+        expect(module.createContainer).toBeTypeOf('function')
+        expect(module.ProviderNotFoundError).toBeTypeOf('function')
+        expect(module.DuplicateProviderError).toBeTypeOf('function')
+        expect(module.ProviderKindMismatchError).toBeTypeOf('function')
+        expect(module.ProviderCycleError).toBeTypeOf('function')
+        expect(module.ContainerFrozenError).toBeTypeOf('function')
     })
 })

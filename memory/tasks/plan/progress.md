@@ -28,6 +28,20 @@
   - Execution Mode: interactive-memory-update
   - Summary: Планування реалізації Stage 3 tokens і підготовка implementation task.
   - Current: FIX-001
+- [TASK-06.29-0007-stage-4-implementation-planning](TASK-06.29-0007-stage-4-implementation-planning/index.md)
+  - Status: done
+  - Type: memory-update
+  - Execution Mode: interactive-memory-update
+  - Summary: Планування реалізації Stage 4 container sync providers і підготовка
+    implementation task.
+  - Current: FIX-001
+- [TASK-06.29-0009-stage-5-implementation-planning](TASK-06.29-0009-stage-5-implementation-planning/index.md)
+  - Status: done
+  - Type: memory-update
+  - Execution Mode: interactive-memory-update
+  - Summary: Планування реалізації Stage 5 multi-provider і підготовка implementation
+    task.
+  - Current: FIX-001
 
 ## Stage 2 Implementation
 
@@ -45,6 +59,27 @@
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Stage 3 typed tokens, namespace helper, token ID validation and tests.
+  - Current: RUN-001
+
+## Stage 4 Implementation
+
+- [TASK-06.29-0008-stage-4-container-sync-providers](TASK-06.29-0008-stage-4-container-sync-providers/index.md)
+  - Status: done
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 4 mutable container builder, sync single-provider bindings,
+    singleton/transient lifetimes, immutable runtime, duplicate detection and provider
+    cycle detection.
+  - Current: RUN-001
+
+## Stage 5 Implementation
+
+- [TASK-06.29-0010-stage-5-multi-provider](TASK-06.29-0010-stage-5-multi-provider/index.md)
+  - Status: done
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 5 multi-provider `add()`, sync value/factory contributions,
+    `getAll()` and strict single vs multi-provider validation.
   - Current: RUN-001
 
 ## Format

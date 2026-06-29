@@ -1,6 +1,6 @@
 # Stack
 
-Source trace: `SPEC.md` sections 4-6, 32 and 33.
+Source trace: `SPEC.md` sections 4-6 and 32-35.
 
 ## Product Stack
 
@@ -133,6 +133,12 @@ build tooling silently.
 Use Vitest for runtime tests.
 
 Stage 3 token inference assertions use Vitest `expectTypeOf`.
+
+Stage 4 container inference assertions use Vitest `expectTypeOf` for `runtime.get()`,
+`runtime.tryGet()` and factory context `get()` / `tryGet()` inference.
+
+Stage 5 multi-provider inference assertions use Vitest `expectTypeOf` for `add()`,
+`runtime.getAll()` and factory context `getAll()` inference.
 
 Broader type-level test tooling remains open for later stages if Vitest assertions are not
 enough for more complex public API inference.

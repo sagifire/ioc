@@ -194,9 +194,24 @@ Multi-provider support:
 
 - `bind(token)` is for single provider tokens.
 - `add(token)` is for multi-provider tokens.
-- `get(token)` fails if token has multiple providers.
-- `getAll(token)` returns all providers for a token.
-- `getAll(token)` returns an empty array if token has no providers.
+- `get(token)` resolves single-provider tokens and fails for multi-provider tokens.
+- `getAll(token)` resolves multi-provider collections.
+- `getAll(token)` returns an empty array if token has no provider registration.
+
+Stage 5 multi-provider baseline:
+
+- Stage 5 implements `add().toValue()`, `add().toFactory()`, `runtime.getAll()` and
+  `ResolutionContext.getAll()`.
+- Single-provider and multi-provider registrations are strict modes for a token ID:
+  `bind()` and `add()` must not be mixed for the same token ID.
+- `get()` fails for a multi-provider token even if only one provider was registered.
+- `getAll()` fails for a token registered through `bind()`.
+- `getAll()` returns an empty array for a token with no provider registration.
+- `getAll()` returns a fresh `TValue[]` in registration order; mutating the returned array
+  does not mutate runtime provider storage.
+- `add().toValue()` is singleton by definition.
+- `add().toFactory()` is transient by default and supports `.singleton()` /
+  `.transient()`.
 
 Lifetimes:
 
@@ -211,6 +226,24 @@ Recommended defaults:
 - `toClass`: transient by default.
 - `toAsyncFactory`: transient by default unless `singleton()` is specified.
 - `toAsyncResource`: singleton or scoped must be explicit.
+
+Stage 4 sync container baseline:
+
+- Stage 4 implements only single-provider sync bindings.
+- `freeze()` uses the async-compatible public contract:
+  `Promise<ContainerRuntime>`, even before async providers exist.
+- Stage 4 `ResolutionContext` exposes only `get()` and `tryGet()`.
+- `toValue` is singleton by definition.
+- `toFactory` is transient by default and can be changed with `.singleton()` or
+  `.transient()`.
+- `toClass` is transient by default and can be changed with `.singleton()` or
+  `.transient()`.
+- `toClass()` accepts no-argument class constructors only (`new () => TValue`).
+- Classes with dependencies must be wired explicitly through `toFactory(({ get }) => ...)`.
+- `toClass()` must not use decorators, `reflect-metadata`, constructor parameter names or
+  constructor metadata.
+- Multi-provider, scopes, async providers/resources and disposal start only at later
+  roadmap stages.
 
 Runtime resolution API:
 

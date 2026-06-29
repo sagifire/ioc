@@ -6,7 +6,11 @@ Implemented in the current stage:
 
 - typed tokens;
 - token namespaces;
-- token ID validation.
+- token ID validation;
+- sync single-provider container bindings;
+- sync multi-provider container contributions;
+- singleton and transient provider lifetimes;
+- immutable runtime `get()` / `tryGet()` / `getAll()`.
 
-Container, context, composer, DSL, diagnostics and lifecycle APIs are planned for later
-roadmap stages.
+Context, composer, DSL, diagnostics and lifecycle APIs are planned for later roadmap
+stages.

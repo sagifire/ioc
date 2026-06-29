@@ -1,6 +1,6 @@
 # State
 
-Updated: 2026-06-28
+Updated: 2026-06-29
 Starter Kit Version: 3.0
 PDADM MVP Version: 0.3
 
@@ -38,6 +38,37 @@ RUN-001 реалізував тільки core token API: `Token<TValue>`, `toke
 token ID validation, public exports і tests. Container/composer/DSL/diagnostics framework
 behavior не реалізовувався.
 
+Stage 4 implementation planning завершено після task-level human review approval:
+
+- [TASK-06.29-0007-stage-4-implementation-planning](tasks/plan/TASK-06.29-0007-stage-4-implementation-planning/index.md)
+
+Stage 4 container sync providers implementation завершено після task-level human review
+approval:
+
+- [TASK-06.29-0008-stage-4-container-sync-providers](tasks/plan/TASK-06.29-0008-stage-4-container-sync-providers/index.md)
+
+RUN-001 реалізував тільки sync single-provider container foundation:
+`createContainer()`, `bind().toValue()`, `bind().toFactory()`, `bind().toClass()`,
+singleton/transient lifetimes, async-compatible `freeze()`, immutable runtime
+`get()` / `tryGet()`, duplicate token detection і provider cycle detection.
+
+Stage 4 не реалізовував multi-provider, scopes, async providers/resources, composer, DSL,
+diagnostics framework, Next.js adapters або testing helpers.
+
+Stage 5 implementation planning завершено після task-level human review approval:
+
+- [TASK-06.29-0009-stage-5-implementation-planning](tasks/plan/TASK-06.29-0009-stage-5-implementation-planning/index.md)
+
+Stage 5 multi-provider implementation завершено після task-level human review approval:
+
+- [TASK-06.29-0010-stage-5-multi-provider](tasks/plan/TASK-06.29-0010-stage-5-multi-provider/index.md)
+
+RUN-001 реалізував тільки multi-provider container behavior: `add().toValue()`,
+`add().toFactory()`, `runtime.getAll()`, `ResolutionContext.getAll()`, deterministic
+registration order, strict single/multi-provider validation і tests. Stage 5 не
+реалізовував scopes, async providers/resources, composer, DSL, diagnostics framework,
+Next.js adapters або testing helpers.
+
 ## Active Tasks
 
 Немає задач у статусі `active`.
@@ -66,6 +97,18 @@ behavior не реалізовувався.
 - [TASK-06.26-0006-stage-3-tokens](tasks/plan/TASK-06.26-0006-stage-3-tokens/index.md)
   - Status: done
   - Summary: Stage 3 tokens implementation task.
+- [TASK-06.29-0007-stage-4-implementation-planning](tasks/plan/TASK-06.29-0007-stage-4-implementation-planning/index.md)
+  - Status: done
+  - Summary: Stage 4 implementation planning.
+- [TASK-06.29-0008-stage-4-container-sync-providers](tasks/plan/TASK-06.29-0008-stage-4-container-sync-providers/index.md)
+  - Status: done
+  - Summary: Stage 4 container sync providers implementation task.
+- [TASK-06.29-0009-stage-5-implementation-planning](tasks/plan/TASK-06.29-0009-stage-5-implementation-planning/index.md)
+  - Status: done
+  - Summary: Stage 5 implementation planning.
+- [TASK-06.29-0010-stage-5-multi-provider](tasks/plan/TASK-06.29-0010-stage-5-multi-provider/index.md)
+  - Status: done
+  - Summary: Stage 5 multi-provider implementation task.
 
 ## Recent Decisions
 
@@ -97,13 +140,48 @@ behavior не реалізовувався.
   diagnostics layer до Stage 8.
 - `TASK-06.26-0006-stage-3-tokens` RUN-001 виконаний агентом і переведений у `review`.
 - `TASK-06.26-0006-stage-3-tokens` завершена після task-level human review approval.
+- `TASK-06.29-0007-stage-4-implementation-planning` завершена після task-level human
+  review approval.
+- Stage 4 implementation зафіксована окремою backlog-задачею
+  `TASK-06.29-0008-stage-4-container-sync-providers`.
+- Для Stage 4 `freeze()` планується як async-compatible API:
+  `Promise<ContainerRuntime>`, навіть якщо Stage 4 реалізує лише sync providers.
+- Для Stage 4 default lifetimes: `toValue` - singleton, `toFactory` і `toClass` -
+  transient.
+- Stage 4 `toClass()` не використовує decorators, `reflect-metadata` або constructor
+  metadata; підтримується no-argument constructor, а залежності wire-яться через
+  `toFactory()`.
+- Stage 4 може додати мінімальні container-specific typed errors, але не реалізує full
+  diagnostics layer до Stage 8.
+- `TASK-06.29-0008-stage-4-container-sync-providers` RUN-001 виконаний агентом і
+  переведений у `review`.
+- `TASK-06.29-0008-stage-4-container-sync-providers` завершена після task-level human
+  review approval.
+- `TASK-06.29-0009-stage-5-implementation-planning` створена як окрема
+  interactive-memory-update задача для планування Stage 5.
+- `TASK-06.29-0009-stage-5-implementation-planning` завершена після task-level human
+  review approval.
+- Stage 5 implementation зафіксована окремою backlog-задачею
+  `TASK-06.29-0010-stage-5-multi-provider`.
+- Для Stage 5 прийнято strict single/multi-provider model: `bind()` і `add()` не
+  змішуються для одного token ID, `get()` fails для multi-provider token, `getAll()` fails
+  для single-provider token, а missing token дає empty array.
+- Для Stage 5 `getAll()` повертає public type `TValue[]`, але кожен call повертає fresh
+  array у registration order.
+- Stage 5 додає sync `ResolutionContext.getAll()` для factory providers.
+- Stage 5 `add().toFactory()` transient by default і підтримує `.singleton()` /
+  `.transient()`.
+- `TASK-06.29-0010-stage-5-multi-provider` RUN-001 виконаний агентом і переведений у
+  `review`.
+- `TASK-06.29-0010-stage-5-multi-provider` завершена після task-level human review
+  approval.
 
 ## Current Risks
 
-- Мінімальна token-specific error не має перетворитися на повний diagnostics framework
-  раніше Stage 8 у наступних задачах.
-- `@sagifire/ioc/tokens` має залишатися tree-shaking friendly і не тягнути
-  container/composer/DSL/adapters у наступних stages.
+- Stage 6 scopes не має починатися без окремого planning/implementation task і
+  acceptance criteria.
+- Stage 6 не має реалізовувати async providers/resources, composer, DSL, diagnostics
+  framework, Next.js adapters або testing helpers раніше відповідних roadmap stages.
 - Root `SPEC.md` лишається source reference і може дублювати canonical memory; для
   operational рішень використовувати `memory/product/`, `memory/domain/` і
   `memory/technical/`.
@@ -112,9 +190,9 @@ behavior не реалізовувався.
 
 ## Next Steps
 
-- Готувати наступний roadmap stage після окремого planning/implementation task.
+- Підготувати Stage 6 scopes implementation planning task.
 
 ## Open Questions
 
-- Чи вистачить Vitest `expectTypeOf` для майбутніх type-level tests після Stage 3, чи
-  пізніше знадобиться окремий tool на кшталт `tsd`.
+- Для Stage 14 треба обрати остаточний інструмент type-level tests, якщо Vitest
+  `expectTypeOf` стане недостатнім для складніших public API inference contracts.
