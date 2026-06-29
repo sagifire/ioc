@@ -1,2 +1,6 @@
-// Stage 2 placeholder. Lifecycle/resource behavior starts in later roadmap stages.
-export {}
+export type ResourceDisposer = () => void | Promise<void>
+
+export interface Resource<TValue> {
+    readonly value: TValue
+    readonly dispose?: ResourceDisposer
+}

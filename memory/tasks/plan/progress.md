@@ -48,6 +48,13 @@
   - Execution Mode: interactive-memory-update
   - Summary: Планування реалізації Stage 6 scopes і підготовка implementation task.
   - Current: FIX-001
+- [TASK-06.29-0013-stage-7-implementation-planning](TASK-06.29-0013-stage-7-implementation-planning/index.md)
+  - Status: done
+  - Type: memory-update
+  - Execution Mode: interactive-memory-update
+  - Summary: Планування реалізації Stage 7 async providers/resources і підготовка
+    implementation task.
+  - Current: FIX-001
 
 ## Stage 2 Implementation
 
@@ -96,6 +103,16 @@
   - Execution Mode: autonomous-implementation
   - Summary: Stage 6 scopes, scoped lifetime, scope-local values, scope disposal and
     `withScope()`.
+  - Current: RUN-001
+
+## Stage 7 Implementation
+
+- [TASK-06.29-0014-stage-7-async-providers-resources](TASK-06.29-0014-stage-7-async-providers-resources/index.md)
+  - Status: done
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 7 async single-provider bindings, eager/lazy async resolution,
+    runtime/scoped resources and disposal.
   - Current: RUN-001
 
 ## Format

@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "domain/open-questions.md",
+                "file": "product/roadmap.md",
                 "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "open-questions"
+              "title": "roadmap"
             }
           }
         ]
@@ -185,6 +185,10 @@
   },
   "active": "eda4bb9c85689afd",
   "lastOpenFiles": [
+    "tasks/plan/TASK-06.29-0014-stage-7-async-providers-resources/runs/RUN-001/result.md",
+    "product/vision.md",
+    "tasks/plan/progress.md",
+    "domain/open-questions.md",
     "tasks/plan/TASK-06.29-0012-stage-6-scopes/runs/RUN-001/context.md",
     "tasks/plan/TASK-06.29-0012-stage-6-scopes/runs/RUN-001/requirements.md",
     "tasks/plan/TASK-06.29-0012-stage-6-scopes/task.md",
@@ -203,8 +207,6 @@
     "tasks/plan/TASK-06.29-0011-stage-6-implementation-planning/fixations",
     "tasks/plan/TASK-06.29-0011-stage-6-implementation-planning",
     "tasks/plan/TASK-06.29-0010-stage-5-multi-provider/runs/RUN-001/result.md",
-    "tasks/plan/progress.md",
-    "domain/open-questions.md",
     "tasks/plan/TASK-06.29-0009-stage-5-implementation-planning/fixations/FIX-001.md",
     "tasks/plan/TASK-06.29-0009-stage-5-implementation-planning/worklog.md",
     "tasks/plan/TASK-06.29-0010-stage-5-multi-provider/runs/RUN-001/context.md",
@@ -214,8 +216,6 @@
     "tasks/plan/TASK-06.29-0010-stage-5-multi-provider/task.md",
     "tasks/plan/TASK-06.29-0010-stage-5-multi-provider/index.md",
     "tasks/plan/TASK-06.29-0009-stage-5-implementation-planning/fixations/index.md",
-    "tasks/plan/TASK-06.29-0009-stage-5-implementation-planning/task.md",
-    "tasks/plan/TASK-06.29-0009-stage-5-implementation-planning/index.md",
     "tasks/plan/TASK-06.29-0010-stage-5-multi-provider/runs/RUN-001",
     "tasks/plan/TASK-06.29-0010-stage-5-multi-provider/runs",
     "tasks/plan/TASK-06.29-0010-stage-5-multi-provider",

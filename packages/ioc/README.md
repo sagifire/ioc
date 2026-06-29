@@ -12,7 +12,10 @@ Implemented in the current stage:
 - singleton, transient and scoped provider lifetimes;
 - immutable runtime `get()` / `tryGet()` / `getAll()`;
 - sync scope API: `createScope()`, `withScope()`, `Scope.get()`, `Scope.tryGet()`,
-  `Scope.getAll()` and `Scope.dispose()`.
+  `Scope.getAll()` and `Scope.dispose()`;
+- async single-provider bindings through `toAsyncFactory()` and `toAsyncResource()`;
+- explicit async resolution through `runtime.getAsync()`, `runtime.tryGetAsync()` and
+  `Scope.getAsync()`;
+- async resource lifecycle through `runtime.dispose()` and scoped resource disposal.
 
-Async providers/resources, composer, DSL, diagnostics and lifecycle APIs are planned for
-later roadmap stages.
+Composer, DSL, full diagnostics and framework adapters are planned for later roadmap stages.

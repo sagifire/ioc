@@ -6,6 +6,7 @@ import {
     ProviderCycleError,
     ProviderKindMismatchError,
     ProviderNotFoundError,
+    ScopeDisposedError,
     createContainer,
     scopeMultiValue,
     scopeValue,
@@ -272,9 +273,9 @@ describe('container scopes', () => {
         await scope.dispose()
         await scope.dispose()
 
-        expect(() => scope.get(REQUEST_ID)).toThrow(InvalidScopeError)
-        expect(() => scope.tryGet(LOGGER)).toThrow(InvalidScopeError)
-        expect(() => scope.getAll(PLUGINS)).toThrow(InvalidScopeError)
+        expect(() => scope.get(REQUEST_ID)).toThrow(ScopeDisposedError)
+        expect(() => scope.tryGet(LOGGER)).toThrow(ScopeDisposedError)
+        expect(() => scope.getAll(PLUGINS)).toThrow(ScopeDisposedError)
     })
 
     test('disposes withScope scopes after sync, async and failing callbacks', async () => {
@@ -339,7 +340,7 @@ describe('container scopes', () => {
         expectScopeDisposed(rejectedScope)
     })
 
-    test('preserves Stage 6 type inference and does not expose Stage 7 APIs', async () => {
+    test('preserves Stage 7 scope type inference and does not expose async collection APIs', async () => {
         const container = createContainer()
         const options: CreateScopeOptions = {
             values: [scopeValue(REQUEST_ID, 'typed')],
@@ -367,16 +368,19 @@ describe('container scopes', () => {
         expectTypeOf(scope.get(COUNTER)).toEqualTypeOf<Counter>()
         expectTypeOf(scope.tryGet(COUNTER)).toEqualTypeOf<Counter | undefined>()
         expectTypeOf(scope.getAll(PLUGINS)).toEqualTypeOf<Plugin[]>()
+        expectTypeOf(scope.getAsync(COUNTER)).toEqualTypeOf<Promise<Counter>>()
         expectTypeOf(inferredWithScope).toEqualTypeOf<Promise<Counter>>()
         expectTypeOf(inferredWithOptions).toEqualTypeOf<Promise<Counter>>()
 
         await inferredWithScope
         await inferredWithOptions
 
-        expect('getAsync' in scope).toBe(false)
-        expect('getAsync' in runtime).toBe(false)
-        expect('tryGetAsync' in runtime).toBe(false)
-        expect('dispose' in runtime).toBe(false)
+        expect('getAsync' in scope).toBe(true)
+        expect('getAsync' in runtime).toBe(true)
+        expect('tryGetAsync' in runtime).toBe(true)
+        expect('dispose' in runtime).toBe(true)
+        expect('getAllAsync' in scope).toBe(false)
+        expect('tryGetAsync' in scope).toBe(false)
     })
 })
 
@@ -407,5 +411,5 @@ function expectScopeDisposed(scope: Scope | undefined): void {
         return
     }
 
-    expect(() => scope.get(REQUEST_ID)).toThrow(InvalidScopeError)
+    expect(() => scope.get(REQUEST_ID)).toThrow(ScopeDisposedError)
 }

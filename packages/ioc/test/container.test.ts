@@ -470,19 +470,25 @@ describe('container sync providers', () => {
         expectTypeOf(runtime.getAll(PLUGINS)).toEqualTypeOf<Plugin[]>()
     })
 
-    test('exposes Stage 6 scope APIs and does not expose Stage 7 or later APIs', async () => {
+    test('exposes Stage 7 async APIs and does not expose async multi-provider APIs', async () => {
         const container = createContainer()
+        const binding = container.bind(LOGGER)
         const multiBinding = container.add(LOGGER)
         const runtime = await container.freeze()
 
         expect('add' in container).toBe(true)
+        expect('toAsyncFactory' in binding).toBe(true)
+        expect('toAsyncResource' in binding).toBe(true)
         expect('toClass' in multiBinding).toBe(false)
+        expect('toAsyncFactory' in multiBinding).toBe(false)
+        expect('toAsyncResource' in multiBinding).toBe(false)
         expect('getAll' in runtime).toBe(true)
-        expect('getAsync' in runtime).toBe(false)
-        expect('tryGetAsync' in runtime).toBe(false)
+        expect('getAsync' in runtime).toBe(true)
+        expect('tryGetAsync' in runtime).toBe(true)
         expect('createScope' in runtime).toBe(true)
         expect('withScope' in runtime).toBe(true)
-        expect('dispose' in runtime).toBe(false)
+        expect('dispose' in runtime).toBe(true)
+        expect('getAllAsync' in runtime).toBe(false)
     })
 })
 

@@ -151,5 +151,29 @@ Stage 6 may introduce minimal scope-specific typed errors with stable local code
 readable messages. It must not implement the full diagnostics layer, diagnostic reports or
 diagnostic formatting.
 
-Async providers/resources, composer, DSL, diagnostics behavior and adapters start only at
-their respective stages.
+For Stage 7, allowed implementation scope is limited to async single-provider and resource
+behavior: `bind().toAsyncFactory()`, `bind().toAsyncResource()`, valid async lifecycle/mode
+helpers, `runtime.getAsync()`, `runtime.tryGetAsync()`, `scope.getAsync()`,
+`ResolutionContext.getAsync()`, `ResolutionContext.tryGetAsync()`, `runtime.dispose()`,
+async eager initialization during `freeze()`, async lazy initialization on `getAsync()`,
+failed lazy initialization retry behavior, singleton/scoped in-flight initialization
+de-duplication, singleton resource disposal, scoped resource disposal, disposed
+runtime/scope errors, root/subpath exports and tests.
+
+Stage 7 async support is single-provider only. It must not implement async multi-provider
+contributions through `add()`, `getAllAsync()` or `scope.getAllAsync()` without a separate
+roadmap decision.
+
+Stage 7 must keep `get()` sync. Async lazy providers/resources must not be returned from
+`get()` or `tryGet()`; invalid sync access must fail with readable typed
+`AsyncProviderAccessError` or equivalent.
+
+Stage 7 may introduce minimal async/disposal typed errors with stable local codes and
+readable messages: `AsyncProviderAccessError`, `RuntimeDisposedError` and
+`ScopeDisposedError` or equivalents. It must not implement the full diagnostics layer,
+diagnostic reports or diagnostic formatting.
+
+Stage 7 runtime disposal owns initialized singleton resources only. It must not add hidden
+runtime-owned global/live scope registry or silently dispose live scopes.
+
+Composer, DSL, diagnostics behavior and adapters start only at their respective stages.

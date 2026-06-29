@@ -20,6 +20,8 @@ Root source trace:
 - `TASK-06.29-0010` - Stage 5 multi-provider implementation task.
 - `TASK-06.29-0011` - Stage 6 implementation planning task.
 - `TASK-06.29-0012` - Stage 6 scopes implementation task.
+- `TASK-06.29-0013` - Stage 7 implementation planning task.
+- `TASK-06.29-0014` - Stage 7 async providers/resources implementation task.
 
 ## Completed
 
@@ -281,20 +283,92 @@ Root source trace:
       creation;
     - не додавати global mutable container або provider registry.
 
-## Next
-
 - Stage 7: Async providers and resources.
+  - Status: done.
   - Source: `SPEC.md` section 37.
-  - Implement: `toAsyncFactory()`, `toAsyncResource()`, `eager()`, `lazy()`,
-    `runtime.getAsync()`, `scope.getAsync()`, `runtime.dispose()`, async resource
-    disposal, `AsyncProviderAccessError`, `RuntimeDisposedError` and `ScopeDisposedError`.
+  - Planning Task: `TASK-06.29-0013-stage-7-implementation-planning`.
+  - Implementation Task: `TASK-06.29-0014-stage-7-async-providers-resources`.
+  - Review Status: RUN-001 approved after task-level human review.
+  - Type-Level Test Approach: Vitest `expectTypeOf` for `toAsyncFactory()`,
+    `toAsyncResource()`, `runtime.getAsync()`, `runtime.tryGetAsync()`,
+    `scope.getAsync()` and async factory context inference.
+  - API Decisions:
+    - Stage 7 is implemented as one implementation task because async provider access,
+      lazy/eager initialization, resource ownership and disposal share one lifecycle
+      model.
+    - Stage 7 adds async single-provider bindings through `bind()`.
+    - Stage 7 does not add async multi-provider contributions through `add()`.
+    - Stage 7 does not add `getAllAsync()` or `scope.getAllAsync()`.
+    - `get()` remains sync and never returns `Promise`.
+    - sync providers are valid through `getAsync()` / `tryGetAsync()` as resolved
+      Promises.
+    - async eager singleton providers/resources initialize during `freeze()`.
+    - async eager singleton providers/resources are available through `get()` after
+      `freeze()` and through `getAsync()`.
+    - async lazy providers/resources initialize on `getAsync()`.
+    - async lazy providers/resources are never available through `get()` / `tryGet()`,
+      even after initialization.
+    - failed lazy async initialization is not cached by default.
+    - in-flight singleton/scoped lazy initialization is de-duplicated until it resolves or
+      rejects.
+    - `toAsyncFactory()` defaults to transient lazy provider.
+    - async factory providers may be `transient`, `singleton` or `scoped`.
+    - eager async factory/resource initialization is valid only for singleton providers.
+    - `toAsyncResource()` requires explicit `singleton()` or `scoped()` ownership.
+    - async resources default to lazy initialization unless `eager()` is explicitly chosen.
+    - scoped async providers/resources initialize lazily through `scope.getAsync()`.
+    - `runtime.dispose()` owns initialized singleton resources.
+    - `scope.dispose()` owns initialized scoped resources.
+    - runtime disposal does not silently dispose live scopes or maintain a global scope
+      registry.
+  - Implement:
+    - `bind().toAsyncFactory()`;
+    - `bind().toAsyncResource()`;
+    - `Resource<TValue>` or equivalent lifecycle contract;
+    - async binding lifecycle/mode helpers for valid `singleton()`, `transient()`,
+      `scoped()`, `eager()` and `lazy()` combinations;
+    - `runtime.getAsync()`;
+    - `runtime.tryGetAsync()`;
+    - `scope.getAsync()`;
+    - `ResolutionContext.getAsync()`;
+    - `ResolutionContext.tryGetAsync()`;
+    - `runtime.dispose()`;
+    - async eager initialization during `freeze()`;
+    - async lazy initialization on `getAsync()`;
+    - retry behavior for failed lazy initialization;
+    - singleton/scoped resource disposal in reverse initialization order where possible;
+    - minimal async/disposal typed errors without full diagnostics layer:
+      `AsyncProviderAccessError`, `RuntimeDisposedError`, `ScopeDisposedError`;
+    - root, `./container`, `./context` and `./lifecycle` public exports where
+      tree-shaking boundary allows;
+    - runtime tests and type-level assertions.
   - Acceptance:
     - async eager provider initializes during `freeze()`;
     - async eager provider is available via `get()`;
     - async lazy provider initializes on `getAsync()`;
-    - `get()` on async lazy provider throws clear error;
+    - `get()` and `tryGet()` on async lazy provider throw clear error;
     - failed lazy async initialization is not cached by default;
-    - runtime and scope disposal dispose resources and are idempotent.
+    - `runtime.getAsync()` / `runtime.tryGetAsync()` preserve token value inference;
+    - `scope.getAsync()` resolves scoped async providers/resources;
+    - runtime and scope disposal dispose resources and are idempotent;
+    - runtime resolution and scope creation after `runtime.dispose()` fail with
+      `RuntimeDisposedError`;
+    - scope resolution after `scope.dispose()` fails with `ScopeDisposedError`;
+    - Stage 7 does not implement async multi-provider, `getAllAsync()`, composer, DSL,
+      diagnostics report/formatter, Next.js adapters or testing helpers;
+    - `pnpm build`, `pnpm test`, `pnpm typecheck` and `pnpm lint` pass.
+  - Guardrails:
+    - не реалізовувати async multi-provider contributions through `add()`;
+    - не реалізовувати `getAllAsync()` або `scope.getAllAsync()`;
+    - не реалізовувати `cacheFailure()` for failed lazy initialization;
+    - не створювати runtime-owned global/live scope registry;
+    - не реалізовувати composer, modules, capabilities, required ports або bindings;
+    - не реалізовувати DSL, Next.js adapters або testing helpers;
+    - не реалізовувати full diagnostics layer: `SagifireIocError`,
+      `DiagnosticReport` або `formatDiagnostics()`;
+    - не додавати global mutable container або provider registry.
+
+## Next
 
 - Stage 8: Diagnostics.
   - Source: `SPEC.md` section 38.

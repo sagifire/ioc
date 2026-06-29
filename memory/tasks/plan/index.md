@@ -42,6 +42,12 @@
 - [TASK-06.29-0012-stage-6-scopes](TASK-06.29-0012-stage-6-scopes/index.md)
   - Type: folder
   - Purpose: Завершена задача реалізації Stage 6 scopes.
+- [TASK-06.29-0013-stage-7-implementation-planning](TASK-06.29-0013-stage-7-implementation-planning/index.md)
+  - Type: folder
+  - Purpose: Планування реалізації Stage 7 async providers/resources.
+- [TASK-06.29-0014-stage-7-async-providers-resources](TASK-06.29-0014-stage-7-async-providers-resources/index.md)
+  - Type: folder
+  - Purpose: Завершена задача реалізації Stage 7 async providers/resources.
 
 ## Files
 

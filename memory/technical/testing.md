@@ -99,3 +99,16 @@ on success and failure, fresh scope `getAll()` arrays and configuration immutabi
 `freeze()`. Stage 6 must also add Vitest `expectTypeOf` assertions for `Scope` resolution
 APIs, `runtime.createScope()`, `runtime.withScope()` and scope-bound factory context
 inference.
+
+Stage 7 must add runtime tests for `toAsyncFactory()`, `toAsyncResource()`, async eager
+initialization during `freeze()`, async eager access through `get()`, async lazy access
+through `getAsync()`, invalid sync access to async lazy providers/resources,
+`runtime.getAsync()`, `runtime.tryGetAsync()`, `scope.getAsync()`, sync providers through
+async APIs, failed lazy initialization retry behavior, in-flight singleton/scoped
+initialization de-duplication, async factory lifetimes, explicit resource ownership,
+singleton resource disposal, scoped resource disposal, reverse disposal order where
+possible, idempotent runtime/scope disposal, disposed runtime/scope rejection, async and
+mixed sync/async provider cycles and Stage 4-6 regression cases affected by async
+support. Stage 7 must also add Vitest `expectTypeOf` assertions for async binding APIs,
+`runtime.getAsync()`, `runtime.tryGetAsync()`, `scope.getAsync()` and async factory context
+inference.

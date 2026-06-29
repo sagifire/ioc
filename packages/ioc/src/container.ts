@@ -1,10 +1,12 @@
+import type { Resource, ResourceDisposer } from './lifecycle'
 import type { Token } from './tokens'
-import { DuplicateScopeLocalValueError, InvalidScopeError } from './context'
+import { DuplicateScopeLocalValueError, InvalidScopeError, ScopeDisposedError } from './context'
 import type { CreateScopeOptions, Scope, ScopeCallback, ScopeLocalValue } from './context'
 
 export {
     DuplicateScopeLocalValueError,
     InvalidScopeError,
+    ScopeDisposedError,
     scopeMultiValue,
     scopeValue
 } from './context'
@@ -16,12 +18,23 @@ export type {
     ScopeLocalValue,
     ScopeLocalValueObject
 } from './context'
+export type { Resource, ResourceDisposer } from './lifecycle'
 
 export type ProviderLifetime = 'singleton' | 'transient' | 'scoped'
 
 export type ProviderRegistrationKind = 'single' | 'multi'
 
+export type AsyncProviderInitializationMode = 'lazy' | 'eager'
+
+type Awaitable<TValue> = TValue | Promise<TValue>
+
 export type SyncProviderFactory<TValue> = (context: ResolutionContext) => TValue
+
+export type AsyncProviderFactory<TValue> = (context: ResolutionContext) => Awaitable<TValue>
+
+export type AsyncResourceFactory<TValue> = (
+    context: ResolutionContext
+) => Awaitable<Resource<TValue>>
 
 export type ClassConstructor<TValue> = new () => TValue
 
@@ -35,6 +48,8 @@ export interface BindingBuilder<TValue> {
     toValue(value: TValue): void
     toFactory(factory: SyncProviderFactory<TValue>): LifetimeBinding
     toClass(classConstructor: ClassConstructor<TValue>): LifetimeBinding
+    toAsyncFactory(factory: AsyncProviderFactory<TValue>): AsyncFactoryBinding
+    toAsyncResource(factory: AsyncResourceFactory<TValue>): AsyncResourceBinding
 }
 
 export interface MultiBindingBuilder<TValue> {
@@ -48,6 +63,21 @@ export interface LifetimeBinding {
     scoped(): void
 }
 
+export interface AsyncFactoryBinding {
+    singleton(): AsyncFactoryBinding
+    transient(): AsyncFactoryBinding
+    scoped(): AsyncFactoryBinding
+    eager(): AsyncFactoryBinding
+    lazy(): AsyncFactoryBinding
+}
+
+export interface AsyncResourceBinding {
+    singleton(): AsyncResourceBinding
+    scoped(): AsyncResourceBinding
+    eager(): AsyncResourceBinding
+    lazy(): AsyncResourceBinding
+}
+
 export interface ContainerRuntime {
     get<TValue>(token: Token<TValue>): TValue
     tryGet<TValue>(token: Token<TValue>): TValue | undefined
@@ -55,12 +85,17 @@ export interface ContainerRuntime {
     createScope(options?: CreateScopeOptions): Scope
     withScope<TValue>(callback: ScopeCallback<TValue>): Promise<TValue>
     withScope<TValue>(options: CreateScopeOptions, callback: ScopeCallback<TValue>): Promise<TValue>
+    getAsync<TValue>(token: Token<TValue>): Promise<TValue>
+    tryGetAsync<TValue>(token: Token<TValue>): Promise<TValue | undefined>
+    dispose(): Promise<void>
 }
 
 export interface ResolutionContext {
     get<TValue>(token: Token<TValue>): TValue
     tryGet<TValue>(token: Token<TValue>): TValue | undefined
     getAll<TValue>(token: Token<TValue>): TValue[]
+    getAsync<TValue>(token: Token<TValue>): Promise<TValue>
+    tryGetAsync<TValue>(token: Token<TValue>): Promise<TValue | undefined>
 }
 
 export class ProviderNotFoundError extends Error {
@@ -147,20 +182,86 @@ export class ContainerFrozenError extends Error {
     }
 }
 
-type SingletonCache<TValue> =
+export class AsyncProviderAccessError extends Error {
+    override readonly name = 'AsyncProviderAccessError'
+    readonly code = 'SAGIFIRE_IOC_ASYNC_PROVIDER_ACCESS'
+    readonly tokenId: string
+    readonly accessMethod: 'get' | 'tryGet'
+
+    constructor(tokenId: string, accessMethod: 'get' | 'tryGet') {
+        super(
+            `Cannot resolve async lazy provider for token "${tokenId}" through ` +
+                `${accessMethod}(); use getAsync() instead`
+        )
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.tokenId = tokenId
+        this.accessMethod = accessMethod
+    }
+}
+
+export class RuntimeDisposedError extends Error {
+    override readonly name = 'RuntimeDisposedError'
+    readonly code = 'SAGIFIRE_IOC_RUNTIME_DISPOSED'
+    readonly action: string
+
+    constructor(action: string) {
+        super(`Runtime has been disposed and cannot ${action}`)
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.action = action
+    }
+}
+
+export class InvalidProviderLifecycleError extends Error {
+    override readonly name = 'InvalidProviderLifecycleError'
+    readonly code = 'SAGIFIRE_IOC_INVALID_PROVIDER_LIFECYCLE'
+    readonly tokenId: string
+
+    constructor(tokenId: string, message: string) {
+        super(`Invalid provider lifecycle for token "${tokenId}": ${message}`)
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.tokenId = tokenId
+    }
+}
+
+type ProviderCache<TValue> =
     | {
           readonly state: 'empty'
+      }
+    | {
+          readonly state: 'pending'
+          readonly promise: Promise<TValue>
       }
     | {
           readonly state: 'ready'
           readonly value: TValue
       }
 
+type ProviderExecution<TValue> =
+    | {
+          readonly kind: 'sync'
+          readonly create: SyncProviderFactory<TValue>
+      }
+    | {
+          readonly kind: 'async-factory'
+          readonly create: AsyncProviderFactory<TValue>
+      }
+    | {
+          readonly kind: 'async-resource'
+          readonly create: AsyncResourceFactory<TValue>
+      }
+
 interface ProviderRecord<TValue> {
     readonly tokenId: string
-    lifetime: ProviderLifetime
-    cache: SingletonCache<TValue>
-    create(context: ResolutionContext): TValue
+    lifetime: ProviderLifetime | undefined
+    initialization: AsyncProviderInitializationMode
+    cache: ProviderCache<TValue>
+    readonly execution: ProviderExecution<TValue>
 }
 
 interface SingleProviderRegistration {
@@ -175,10 +276,21 @@ interface MultiProviderRegistration {
 
 type ProviderRegistration = SingleProviderRegistration | MultiProviderRegistration
 
+interface ResourceDisposerRecord {
+    readonly tokenId: string
+    readonly dispose: ResourceDisposer
+}
+
+interface RuntimeState {
+    disposed: boolean
+    readonly singletonResourceDisposers: ResourceDisposerRecord[]
+}
+
 interface ScopeState {
     readonly localSingles: ReadonlyMap<string, unknown>
     readonly localMultis: ReadonlyMap<string, readonly unknown[]>
-    readonly scopedCache: Map<ProviderRecord<unknown>, unknown>
+    readonly scopedCache: Map<ProviderRecord<unknown>, ProviderCache<unknown>>
+    readonly scopedResourceDisposers: ResourceDisposerRecord[]
     disposed: boolean
 }
 
@@ -193,7 +305,7 @@ export function createContainer(): ContainerBuilder {
     const registrations = new Map<string, ProviderRegistration>()
 
     let isFrozen = false
-    let frozenRuntime: ContainerRuntime | undefined
+    let frozenRuntimePromise: Promise<ContainerRuntime> | undefined
 
     const assertMutable: AssertMutable = (action) => {
         if (isFrozen) {
@@ -217,14 +329,14 @@ export function createContainer(): ContainerBuilder {
         },
 
         freeze(): Promise<ContainerRuntime> {
-            if (frozenRuntime !== undefined) {
-                return Promise.resolve(frozenRuntime)
+            if (frozenRuntimePromise !== undefined) {
+                return frozenRuntimePromise
             }
 
             isFrozen = true
-            frozenRuntime = createRuntime(cloneProviderRegistrations(registrations))
+            frozenRuntimePromise = createRuntime(cloneProviderRegistrations(registrations))
 
-            return Promise.resolve(frozenRuntime)
+            return frozenRuntimePromise
         }
     }
 
@@ -243,12 +355,16 @@ function createBindingBuilder<TValue>(
             addSingleProvider(registrations, {
                 tokenId,
                 lifetime: 'singleton',
+                initialization: 'lazy',
                 cache: {
                     state: 'ready',
                     value
                 },
-                create(): TValue {
-                    return value
+                execution: {
+                    kind: 'sync',
+                    create(): TValue {
+                        return value
+                    }
                 }
             })
         },
@@ -259,11 +375,15 @@ function createBindingBuilder<TValue>(
             const provider: ProviderRecord<TValue> = {
                 tokenId,
                 lifetime: 'transient',
+                initialization: 'lazy',
                 cache: {
                     state: 'empty'
                 },
-                create(context): TValue {
-                    return factory(context)
+                execution: {
+                    kind: 'sync',
+                    create(context): TValue {
+                        return factory(context)
+                    }
                 }
             }
 
@@ -278,17 +398,67 @@ function createBindingBuilder<TValue>(
             const provider: ProviderRecord<TValue> = {
                 tokenId,
                 lifetime: 'transient',
+                initialization: 'lazy',
                 cache: {
                     state: 'empty'
                 },
-                create(): TValue {
-                    return new classConstructor()
+                execution: {
+                    kind: 'sync',
+                    create(): TValue {
+                        return new classConstructor()
+                    }
                 }
             }
 
             addSingleProvider(registrations, provider)
 
             return createLifetimeBinding(tokenId, provider, assertMutable)
+        },
+
+        toAsyncFactory(factory: AsyncProviderFactory<TValue>): AsyncFactoryBinding {
+            assertMutable(`register async factory provider for token "${tokenId}"`)
+
+            const provider: ProviderRecord<TValue> = {
+                tokenId,
+                lifetime: 'transient',
+                initialization: 'lazy',
+                cache: {
+                    state: 'empty'
+                },
+                execution: {
+                    kind: 'async-factory',
+                    create(context): Awaitable<TValue> {
+                        return factory(context)
+                    }
+                }
+            }
+
+            addSingleProvider(registrations, provider)
+
+            return createAsyncFactoryBinding(tokenId, provider, assertMutable)
+        },
+
+        toAsyncResource(factory: AsyncResourceFactory<TValue>): AsyncResourceBinding {
+            assertMutable(`register async resource provider for token "${tokenId}"`)
+
+            const provider: ProviderRecord<TValue> = {
+                tokenId,
+                lifetime: undefined,
+                initialization: 'lazy',
+                cache: {
+                    state: 'empty'
+                },
+                execution: {
+                    kind: 'async-resource',
+                    create(context): Awaitable<Resource<TValue>> {
+                        return factory(context)
+                    }
+                }
+            }
+
+            addSingleProvider(registrations, provider)
+
+            return createAsyncResourceBinding(tokenId, provider, assertMutable)
         }
     }
 }
@@ -305,12 +475,16 @@ function createMultiBindingBuilder<TValue>(
             addMultiProvider(registrations, {
                 tokenId,
                 lifetime: 'singleton',
+                initialization: 'lazy',
                 cache: {
                     state: 'ready',
                     value
                 },
-                create(): TValue {
-                    return value
+                execution: {
+                    kind: 'sync',
+                    create(): TValue {
+                        return value
+                    }
                 }
             })
         },
@@ -321,11 +495,15 @@ function createMultiBindingBuilder<TValue>(
             const provider: ProviderRecord<TValue> = {
                 tokenId,
                 lifetime: 'transient',
+                initialization: 'lazy',
                 cache: {
                     state: 'empty'
                 },
-                create(context): TValue {
-                    return factory(context)
+                execution: {
+                    kind: 'sync',
+                    create(context): TValue {
+                        return factory(context)
+                    }
                 }
             }
 
@@ -360,6 +538,98 @@ function createLifetimeBinding<TValue>(
             provider.lifetime = 'scoped'
         }
     }
+}
+
+function createAsyncFactoryBinding<TValue>(
+    tokenId: string,
+    provider: ProviderRecord<TValue>,
+    assertMutable: AssertMutable
+): AsyncFactoryBinding {
+    const binding: AsyncFactoryBinding = {
+        singleton(): AsyncFactoryBinding {
+            assertMutable(`change async factory lifetime for token "${tokenId}"`)
+
+            provider.lifetime = 'singleton'
+
+            return binding
+        },
+
+        transient(): AsyncFactoryBinding {
+            assertMutable(`change async factory lifetime for token "${tokenId}"`)
+
+            provider.lifetime = 'transient'
+
+            return binding
+        },
+
+        scoped(): AsyncFactoryBinding {
+            assertMutable(`change async factory lifetime for token "${tokenId}"`)
+
+            provider.lifetime = 'scoped'
+
+            return binding
+        },
+
+        eager(): AsyncFactoryBinding {
+            assertMutable(`change async factory initialization mode for token "${tokenId}"`)
+
+            provider.initialization = 'eager'
+
+            return binding
+        },
+
+        lazy(): AsyncFactoryBinding {
+            assertMutable(`change async factory initialization mode for token "${tokenId}"`)
+
+            provider.initialization = 'lazy'
+
+            return binding
+        }
+    }
+
+    return binding
+}
+
+function createAsyncResourceBinding<TValue>(
+    tokenId: string,
+    provider: ProviderRecord<TValue>,
+    assertMutable: AssertMutable
+): AsyncResourceBinding {
+    const binding: AsyncResourceBinding = {
+        singleton(): AsyncResourceBinding {
+            assertMutable(`change async resource ownership for token "${tokenId}"`)
+
+            provider.lifetime = 'singleton'
+
+            return binding
+        },
+
+        scoped(): AsyncResourceBinding {
+            assertMutable(`change async resource ownership for token "${tokenId}"`)
+
+            provider.lifetime = 'scoped'
+
+            return binding
+        },
+
+        eager(): AsyncResourceBinding {
+            assertMutable(`change async resource initialization mode for token "${tokenId}"`)
+
+            provider.initialization = 'eager'
+
+            return binding
+        },
+
+        lazy(): AsyncResourceBinding {
+            assertMutable(`change async resource initialization mode for token "${tokenId}"`)
+
+            provider.initialization = 'lazy'
+
+            return binding
+        }
+    }
+
+    return binding
 }
 
 function assertCanBindSingle(
@@ -476,15 +746,23 @@ function cloneProvider<TValue>(provider: ProviderRecord<TValue>): ProviderRecord
     return {
         tokenId: provider.tokenId,
         lifetime: provider.lifetime,
+        initialization: provider.initialization,
         cache: cloneCache(provider.cache),
-        create: provider.create
+        execution: provider.execution
     }
 }
 
-function cloneCache<TValue>(cache: SingletonCache<TValue>): SingletonCache<TValue> {
+function cloneCache<TValue>(cache: ProviderCache<TValue>): ProviderCache<TValue> {
     if (cache.state === 'empty') {
         return {
             state: 'empty'
+        }
+    }
+
+    if (cache.state === 'pending') {
+        return {
+            state: 'pending',
+            promise: cache.promise
         }
     }
 
@@ -494,12 +772,45 @@ function cloneCache<TValue>(cache: SingletonCache<TValue>): SingletonCache<TValu
     }
 }
 
-function createRuntime(registrations: ReadonlyMap<string, ProviderRegistration>): ContainerRuntime {
-    const assertScopeIsActive = (scopeState: ScopeState): void => {
-        if (scopeState.disposed) {
-            throw new InvalidScopeError('Scope has been disposed and cannot resolve providers', {
-                reason: 'scope-disposed'
-            })
+async function createRuntime(
+    registrations: ReadonlyMap<string, ProviderRegistration>
+): Promise<ContainerRuntime> {
+    validateProviderRegistrations(registrations)
+
+    const runtimeState: RuntimeState = {
+        disposed: false,
+        singletonResourceDisposers: []
+    }
+
+    const assertRuntimeIsActive = (action: string): void => {
+        if (runtimeState.disposed) {
+            throw new RuntimeDisposedError(action)
+        }
+    }
+
+    const assertResolutionIsActive = (
+        scopeState: ScopeState | undefined,
+        action: string
+    ): void => {
+        if (scopeState?.disposed === true) {
+            throw new ScopeDisposedError()
+        }
+
+        assertRuntimeIsActive(action)
+    }
+
+    const assertScopeForScopedProvider = (
+        provider: ProviderRecord<unknown>,
+        scopeState: ScopeState | undefined
+    ): void => {
+        if (provider.lifetime === 'scoped' && scopeState === undefined) {
+            throw new InvalidScopeError(
+                `Cannot resolve scoped provider for token "${provider.tokenId}" without an active scope`,
+                {
+                    reason: 'scoped-provider-without-scope',
+                    tokenId: provider.tokenId
+                }
+            )
         }
     }
 
@@ -518,18 +829,128 @@ function createRuntime(registrations: ReadonlyMap<string, ProviderRegistration>)
 
             getAll<TResolved>(token: Token<TResolved>): TResolved[] {
                 return resolveAll(token, stack, scopeState)
+            },
+
+            getAsync<TResolved>(token: Token<TResolved>): Promise<TResolved> {
+                return resolveRequiredAsync(token, stack, scopeState)
+            },
+
+            tryGetAsync<TResolved>(token: Token<TResolved>): Promise<TResolved | undefined> {
+                return resolveOptionalAsync(token, stack, scopeState)
             }
         })
 
-    const resolveProvider = <TValue>(
-        provider: ProviderRecord<TValue>,
-        stack: readonly string[],
-        scopeState: ScopeState | undefined
-    ): TValue => {
+    const assertProviderHasNoCycle = (
+        provider: ProviderRecord<unknown>,
+        stack: readonly string[]
+    ): void => {
         const cycleStart = stack.indexOf(provider.tokenId)
 
         if (cycleStart !== -1) {
             throw new ProviderCycleError([...stack.slice(cycleStart), provider.tokenId])
+        }
+    }
+
+    const resolveProvider = <TValue>(
+        provider: ProviderRecord<TValue>,
+        stack: readonly string[],
+        scopeState: ScopeState | undefined,
+        accessMethod: 'get' | 'tryGet'
+    ): TValue => {
+        assertProviderHasNoCycle(provider, stack)
+        assertScopeForScopedProvider(provider, scopeState)
+
+        if (provider.execution.kind !== 'sync') {
+            if (
+                provider.initialization === 'eager' &&
+                provider.lifetime === 'singleton' &&
+                provider.cache.state === 'ready'
+            ) {
+                return provider.cache.value
+            }
+
+            throw new AsyncProviderAccessError(provider.tokenId, accessMethod)
+        }
+
+        if (provider.lifetime === 'scoped' && scopeState !== undefined) {
+            const scopedCache = scopeState.scopedCache.get(provider as ProviderRecord<unknown>)
+
+            if (scopedCache?.state === 'ready') {
+                return scopedCache.value as TValue
+            }
+        }
+
+        if (provider.lifetime === 'singleton' && provider.cache.state === 'ready') {
+            return provider.cache.value
+        }
+
+        const nextStack = [...stack, provider.tokenId]
+        const context = createResolutionContext(nextStack, scopeState)
+        const value = provider.execution.create(context)
+
+        if (provider.lifetime === 'singleton') {
+            provider.cache = {
+                state: 'ready',
+                value
+            }
+        }
+
+        if (provider.lifetime === 'scoped' && scopeState !== undefined) {
+            scopeState.scopedCache.set(provider as ProviderRecord<unknown>, {
+                state: 'ready',
+                value
+            })
+        }
+
+        return value
+    }
+
+    const resolveProviderAsync = <TValue>(
+        provider: ProviderRecord<TValue>,
+        stack: readonly string[],
+        scopeState: ScopeState | undefined
+    ): Promise<TValue> => {
+        assertProviderHasNoCycle(provider, stack)
+        assertScopeForScopedProvider(provider, scopeState)
+
+        if (provider.execution.kind === 'sync') {
+            return Promise.resolve(resolveProvider(provider, stack, scopeState, 'get'))
+        }
+
+        if (provider.lifetime === 'singleton') {
+            if (provider.cache.state === 'ready') {
+                return Promise.resolve(provider.cache.value)
+            }
+
+            if (provider.cache.state === 'pending') {
+                return provider.cache.promise
+            }
+
+            const pending = initializeAsyncProvider(provider, stack, scopeState)
+                .then((value) => {
+                    provider.cache = {
+                        state: 'ready',
+                        value
+                    }
+
+                    return value
+                })
+                .catch((error: unknown) => {
+                    if (provider.cache.state === 'pending' && provider.cache.promise === pending) {
+                        provider.cache = {
+                            state: 'empty'
+                        }
+                    }
+
+                    throw error
+                })
+
+            provider.cache = {
+                state: 'pending',
+                promise: pending
+            }
+
+            return pending
         }
 
         if (provider.lifetime === 'scoped') {
@@ -544,33 +965,154 @@ function createRuntime(registrations: ReadonlyMap<string, ProviderRegistration>)
             }
 
             const scopedCacheKey = provider as ProviderRecord<unknown>
+            const scopedCache = scopeState.scopedCache.get(scopedCacheKey)
 
-            if (scopeState.scopedCache.has(scopedCacheKey)) {
-                return scopeState.scopedCache.get(scopedCacheKey) as TValue
+            if (scopedCache?.state === 'ready') {
+                return Promise.resolve(scopedCache.value as TValue)
             }
+
+            if (scopedCache?.state === 'pending') {
+                return scopedCache.promise as Promise<TValue>
+            }
+
+            const pending = initializeAsyncProvider(provider, stack, scopeState)
+                .then((value) => {
+                    scopeState.scopedCache.set(scopedCacheKey, {
+                        state: 'ready',
+                        value
+                    })
+
+                    return value
+                })
+                .catch((error: unknown) => {
+                    const currentCache = scopeState.scopedCache.get(scopedCacheKey)
+
+                    if (currentCache?.state === 'pending' && currentCache.promise === pending) {
+                        scopeState.scopedCache.delete(scopedCacheKey)
+                    }
+
+                    throw error
+                })
+
+            scopeState.scopedCache.set(scopedCacheKey, {
+                state: 'pending',
+                promise: pending
+            })
+
+            return pending
         }
 
-        if (provider.lifetime === 'singleton' && provider.cache.state === 'ready') {
-            return provider.cache.value
-        }
+        return initializeAsyncProvider(provider, stack, scopeState)
+    }
 
+    const initializeAsyncProvider = async <TValue>(
+        provider: ProviderRecord<TValue>,
+        stack: readonly string[],
+        scopeState: ScopeState | undefined
+    ): Promise<TValue> => {
         const nextStack = [...stack, provider.tokenId]
         const context = createResolutionContext(nextStack, scopeState)
 
-        const value = provider.create(context)
+        if (provider.execution.kind === 'async-factory') {
+            const value = await provider.execution.create(context)
 
-        if (provider.lifetime === 'singleton') {
-            provider.cache = {
-                state: 'ready',
-                value
-            }
+            assertResolutionIsActive(
+                scopeState,
+                `finish initializing provider for token "${provider.tokenId}"`
+            )
+
+            return value
         }
 
-        if (provider.lifetime === 'scoped' && scopeState !== undefined) {
-            scopeState.scopedCache.set(provider as ProviderRecord<unknown>, value)
+        if (provider.execution.kind === 'async-resource') {
+            const resource = await provider.execution.create(context)
+
+            return registerResourceValue(provider, resource, scopeState)
         }
+
+        const value = provider.execution.create(context)
+
+        assertResolutionIsActive(
+            scopeState,
+            `finish initializing provider for token "${provider.tokenId}"`
+        )
 
         return value
+    }
+
+    const registerResourceValue = async <TValue>(
+        provider: ProviderRecord<TValue>,
+        resource: Resource<TValue>,
+        scopeState: ScopeState | undefined
+    ): Promise<TValue> => {
+        const dispose = resource.dispose
+
+        if (dispose === undefined) {
+            assertResolutionIsActive(
+                scopeState,
+                `finish initializing resource for token "${provider.tokenId}"`
+            )
+
+            return resource.value
+        }
+
+        const disposerRecord: ResourceDisposerRecord = {
+            tokenId: provider.tokenId,
+            dispose
+        }
+
+        if (provider.lifetime === 'singleton') {
+            if (runtimeState.disposed) {
+                await dispose()
+
+                throw new RuntimeDisposedError(
+                    `finish initializing resource for token "${provider.tokenId}"`
+                )
+            }
+
+            runtimeState.singletonResourceDisposers.push(disposerRecord)
+
+            return resource.value
+        }
+
+        if (provider.lifetime === 'scoped') {
+            if (scopeState === undefined) {
+                await dispose()
+
+                throw new InvalidScopeError(
+                    `Cannot initialize scoped resource for token "${provider.tokenId}" without an active scope`,
+                    {
+                        reason: 'scoped-provider-without-scope',
+                        tokenId: provider.tokenId
+                    }
+                )
+            }
+
+            if (scopeState.disposed) {
+                await dispose()
+
+                throw new ScopeDisposedError()
+            }
+
+            if (runtimeState.disposed) {
+                await dispose()
+
+                throw new RuntimeDisposedError(
+                    `finish initializing resource for token "${provider.tokenId}"`
+                )
+            }
+
+            scopeState.scopedResourceDisposers.push(disposerRecord)
+
+            return resource.value
+        }
+
+        await dispose()
+
+        throw new InvalidProviderLifecycleError(
+            provider.tokenId,
+            'async resources require singleton or scoped ownership'
+        )
     }
 
     const resolveRequired = <TValue>(
@@ -578,9 +1120,9 @@ function createRuntime(registrations: ReadonlyMap<string, ProviderRegistration>)
         stack: readonly string[],
         scopeState: ScopeState | undefined
     ): TValue => {
-        if (scopeState !== undefined) {
-            assertScopeIsActive(scopeState)
+        assertResolutionIsActive(scopeState, `resolve provider for token "${token.id}"`)
 
+        if (scopeState !== undefined) {
             if (scopeState.localSingles.has(token.id)) {
                 return scopeState.localSingles.get(token.id) as TValue
             }
@@ -610,7 +1152,12 @@ function createRuntime(registrations: ReadonlyMap<string, ProviderRegistration>)
             )
         }
 
-        return resolveProvider(registration.provider as ProviderRecord<TValue>, stack, scopeState)
+        return resolveProvider(
+            registration.provider as ProviderRecord<TValue>,
+            stack,
+            scopeState,
+            'get'
+        )
     }
 
     const resolveOptional = <TValue>(
@@ -618,9 +1165,9 @@ function createRuntime(registrations: ReadonlyMap<string, ProviderRegistration>)
         stack: readonly string[],
         scopeState: ScopeState | undefined
     ): TValue | undefined => {
-        if (scopeState !== undefined) {
-            assertScopeIsActive(scopeState)
+        assertResolutionIsActive(scopeState, `resolve provider for token "${token.id}"`)
 
+        if (scopeState !== undefined) {
             if (scopeState.localSingles.has(token.id)) {
                 return scopeState.localSingles.get(token.id) as TValue
             }
@@ -650,7 +1197,92 @@ function createRuntime(registrations: ReadonlyMap<string, ProviderRegistration>)
             )
         }
 
-        return resolveProvider(registration.provider as ProviderRecord<TValue>, stack, scopeState)
+        return resolveProvider(
+            registration.provider as ProviderRecord<TValue>,
+            stack,
+            scopeState,
+            'tryGet'
+        )
+    }
+
+    const resolveRequiredAsync = async <TValue>(
+        token: Token<TValue>,
+        stack: readonly string[],
+        scopeState: ScopeState | undefined
+    ): Promise<TValue> => {
+        assertResolutionIsActive(scopeState, `resolve provider for token "${token.id}"`)
+
+        if (scopeState !== undefined) {
+            if (scopeState.localSingles.has(token.id)) {
+                return scopeState.localSingles.get(token.id) as TValue
+            }
+
+            if (scopeState.localMultis.has(token.id)) {
+                throw new ProviderKindMismatchError(
+                    token.id,
+                    'single',
+                    'multi',
+                    'resolve single provider'
+                )
+            }
+        }
+
+        const registration = registrations.get(token.id)
+
+        if (registration === undefined) {
+            throw new ProviderNotFoundError(token.id)
+        }
+
+        if (registration.kind === 'multi') {
+            throw new ProviderKindMismatchError(
+                token.id,
+                'single',
+                'multi',
+                'resolve single provider'
+            )
+        }
+
+        return resolveProviderAsync(registration.provider as ProviderRecord<TValue>, stack, scopeState)
+    }
+
+    const resolveOptionalAsync = async <TValue>(
+        token: Token<TValue>,
+        stack: readonly string[],
+        scopeState: ScopeState | undefined
+    ): Promise<TValue | undefined> => {
+        assertResolutionIsActive(scopeState, `resolve provider for token "${token.id}"`)
+
+        if (scopeState !== undefined) {
+            if (scopeState.localSingles.has(token.id)) {
+                return scopeState.localSingles.get(token.id) as TValue
+            }
+
+            if (scopeState.localMultis.has(token.id)) {
+                throw new ProviderKindMismatchError(
+                    token.id,
+                    'single',
+                    'multi',
+                    'resolve single provider'
+                )
+            }
+        }
+
+        const registration = registrations.get(token.id)
+
+        if (registration === undefined) {
+            return undefined
+        }
+
+        if (registration.kind === 'multi') {
+            throw new ProviderKindMismatchError(
+                token.id,
+                'single',
+                'multi',
+                'resolve single provider'
+            )
+        }
+
+        return resolveProviderAsync(registration.provider as ProviderRecord<TValue>, stack, scopeState)
     }
 
     const resolveAll = <TValue>(
@@ -658,11 +1290,11 @@ function createRuntime(registrations: ReadonlyMap<string, ProviderRegistration>)
         stack: readonly string[],
         scopeState: ScopeState | undefined
     ): TValue[] => {
+        assertResolutionIsActive(scopeState, `resolve provider collection for token "${token.id}"`)
+
         let localMultiValues: readonly unknown[] | undefined
 
         if (scopeState !== undefined) {
-            assertScopeIsActive(scopeState)
-
             if (scopeState.localSingles.has(token.id)) {
                 throw new ProviderKindMismatchError(
                     token.id,
@@ -695,7 +1327,7 @@ function createRuntime(registrations: ReadonlyMap<string, ProviderRegistration>)
         }
 
         const runtimeValues = registration.providers.map((provider) =>
-            resolveProvider(provider as ProviderRecord<TValue>, stack, scopeState)
+            resolveProvider(provider as ProviderRecord<TValue>, stack, scopeState, 'get')
         )
 
         if (localMultiValues === undefined) {
@@ -705,7 +1337,33 @@ function createRuntime(registrations: ReadonlyMap<string, ProviderRegistration>)
         return [...runtimeValues, ...localMultiValues] as TValue[]
     }
 
+    const disposeResourceRecords = async (
+        resourceDisposers: ResourceDisposerRecord[]
+    ): Promise<void> => {
+        const records = [...resourceDisposers].reverse()
+
+        resourceDisposers.length = 0
+
+        let firstError: unknown
+
+        for (const record of records) {
+            try {
+                await record.dispose()
+            } catch (error) {
+                if (firstError === undefined) {
+                    firstError = error
+                }
+            }
+        }
+
+        if (firstError !== undefined) {
+            throw firstError
+        }
+    }
+
     const createScope = (options?: CreateScopeOptions): Scope => {
+        assertRuntimeIsActive('create scope')
+
         const scopeState = createScopeState(options, registrations)
         const scope: Scope = {
             get<TValue>(token: Token<TValue>): TValue {
@@ -720,15 +1378,22 @@ function createRuntime(registrations: ReadonlyMap<string, ProviderRegistration>)
                 return resolveAll(token, [], scopeState)
             },
 
-            dispose(): Promise<void> {
+            getAsync<TValue>(token: Token<TValue>): Promise<TValue> {
+                return resolveRequiredAsync(token, [], scopeState)
+            },
+
+            async dispose(): Promise<void> {
                 if (scopeState.disposed) {
-                    return Promise.resolve()
+                    return
                 }
 
                 scopeState.disposed = true
-                scopeState.scopedCache.clear()
 
-                return Promise.resolve()
+                try {
+                    await disposeResourceRecords(scopeState.scopedResourceDisposers)
+                } finally {
+                    scopeState.scopedCache.clear()
+                }
             }
         }
 
@@ -784,10 +1449,88 @@ function createRuntime(registrations: ReadonlyMap<string, ProviderRegistration>)
         },
 
         createScope,
-        withScope
+        withScope,
+
+        getAsync<TValue>(token: Token<TValue>): Promise<TValue> {
+            return resolveRequiredAsync(token, [], undefined)
+        },
+
+        tryGetAsync<TValue>(token: Token<TValue>): Promise<TValue | undefined> {
+            return resolveOptionalAsync(token, [], undefined)
+        },
+
+        async dispose(): Promise<void> {
+            if (runtimeState.disposed) {
+                return
+            }
+
+            runtimeState.disposed = true
+            await disposeResourceRecords(runtimeState.singletonResourceDisposers)
+        }
     }
 
+    await initializeEagerSingletonProviders(registrations, resolveProviderAsync)
+
     return Object.freeze(runtime)
+}
+
+function validateProviderRegistrations(
+    registrations: ReadonlyMap<string, ProviderRegistration>
+): void {
+    for (const registration of registrations.values()) {
+        const providers =
+            registration.kind === 'single' ? [registration.provider] : registration.providers
+
+        for (const provider of providers) {
+            validateProvider(provider)
+        }
+    }
+}
+
+function validateProvider(provider: ProviderRecord<unknown>): void {
+    if (provider.execution.kind === 'async-resource' && provider.lifetime === undefined) {
+        throw new InvalidProviderLifecycleError(
+            provider.tokenId,
+            'async resources require explicit singleton() or scoped() ownership'
+        )
+    }
+
+    if (provider.execution.kind === 'async-resource' && provider.lifetime === 'transient') {
+        throw new InvalidProviderLifecycleError(
+            provider.tokenId,
+            'async resources cannot use transient ownership'
+        )
+    }
+
+    if (provider.execution.kind !== 'sync' && provider.initialization === 'eager') {
+        if (provider.lifetime !== 'singleton') {
+            throw new InvalidProviderLifecycleError(
+                provider.tokenId,
+                'eager async initialization is valid only for singleton providers'
+            )
+        }
+    }
+}
+
+async function initializeEagerSingletonProviders(
+    registrations: ReadonlyMap<string, ProviderRegistration>,
+    resolveProviderAsync: <TValue>(
+        provider: ProviderRecord<TValue>,
+        stack: readonly string[],
+        scopeState: ScopeState | undefined
+    ) => Promise<TValue>
+): Promise<void> {
+    for (const registration of registrations.values()) {
+        if (registration.kind === 'multi') {
+            continue
+        }
+
+        const provider = registration.provider
+
+        if (provider.execution.kind !== 'sync' && provider.initialization === 'eager') {
+            await resolveProviderAsync(provider, [], undefined)
+        }
+    }
 }
 
 function createScopeState(
@@ -862,7 +1605,8 @@ function createScopeState(
     return {
         localSingles,
         localMultis,
-        scopedCache: new Map<ProviderRecord<unknown>, unknown>(),
+        scopedCache: new Map<ProviderRecord<unknown>, ProviderCache<unknown>>(),
+        scopedResourceDisposers: [],
         disposed: false
     }
 }

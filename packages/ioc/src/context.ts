@@ -4,6 +4,7 @@ export interface Scope {
     get<TValue>(token: Token<TValue>): TValue
     tryGet<TValue>(token: Token<TValue>): TValue | undefined
     getAll<TValue>(token: Token<TValue>): TValue[]
+    getAsync<TValue>(token: Token<TValue>): Promise<TValue>
     dispose(): Promise<void>
 }
 
@@ -43,6 +44,17 @@ export class InvalidScopeError extends Error {
 
         this.reason = options.reason
         this.tokenId = options.tokenId
+    }
+}
+
+export class ScopeDisposedError extends Error {
+    override readonly name = 'ScopeDisposedError'
+    readonly code = 'SAGIFIRE_IOC_SCOPE_DISPOSED'
+
+    constructor() {
+        super('Scope has been disposed and cannot resolve providers')
+
+        Object.setPrototypeOf(this, new.target.prototype)
     }
 }
 

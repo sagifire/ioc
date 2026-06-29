@@ -84,6 +84,21 @@ scope usage errors. Stage 6 не реалізував async providers/resources,
 runtime disposal, composer, DSL, diagnostics framework, Next.js adapters або testing
 helpers.
 
+Stage 7 implementation planning завершено після task-level human review approval:
+
+- [TASK-06.29-0013-stage-7-implementation-planning](tasks/plan/TASK-06.29-0013-stage-7-implementation-planning/index.md)
+
+Stage 7 async providers/resources implementation завершено після task-level human review
+approval:
+
+- [TASK-06.29-0014-stage-7-async-providers-resources](tasks/plan/TASK-06.29-0014-stage-7-async-providers-resources/index.md)
+
+RUN-001 реалізував async single-provider bindings through `bind()`,
+`runtime.getAsync()` / `runtime.tryGetAsync()`, `scope.getAsync()`, async eager/lazy
+initialization, singleton/scoped resource disposal, `runtime.dispose()`, minimal
+async/disposal typed errors and Stage 7 tests. Stage 7 не реалізовував async
+multi-provider contributions або `getAllAsync()`.
+
 ## Active Tasks
 
 Немає задач у статусі `active`.
@@ -130,6 +145,12 @@ helpers.
 - [TASK-06.29-0012-stage-6-scopes](tasks/plan/TASK-06.29-0012-stage-6-scopes/index.md)
   - Status: done
   - Summary: Stage 6 scopes implementation task.
+- [TASK-06.29-0013-stage-7-implementation-planning](tasks/plan/TASK-06.29-0013-stage-7-implementation-planning/index.md)
+  - Status: done
+  - Summary: Stage 7 implementation planning.
+- [TASK-06.29-0014-stage-7-async-providers-resources](tasks/plan/TASK-06.29-0014-stage-7-async-providers-resources/index.md)
+  - Status: done
+  - Summary: Stage 7 async providers/resources implementation task.
 
 ## Recent Decisions
 
@@ -218,12 +239,39 @@ helpers.
   `createScope()`, `withScope()` і мінімальні scope-specific typed errors без full
   diagnostics layer.
 - `TASK-06.29-0012-stage-6-scopes` завершена після task-level human review approval.
+- `TASK-06.29-0013-stage-7-implementation-planning` створена як окрема
+  interactive-memory-update задача для планування Stage 7.
+- Stage 7 implementation була зафіксована окремою backlog-задачею
+  `TASK-06.29-0014-stage-7-async-providers-resources`.
+- Stage 7 реалізована однією implementation task, бо async provider access,
+  lazy/eager initialization, resource ownership and disposal мають спільну lifecycle
+  model.
+- Для Stage 7 прийнято single-provider async scope: `bind().toAsyncFactory()` і
+  `bind().toAsyncResource()` додані для single-provider tokens; async multi-provider
+  contributions and `getAllAsync()` не входять до Stage 7.
+- Для Stage 7 `toAsyncFactory()` реалізовано як transient lazy by default; async factory
+  providers можуть бути `transient`, `singleton` або `scoped`; eager initialization valid
+  only for singleton providers.
+- Для Stage 7 `toAsyncResource()` requires explicit `singleton()` або `scoped()`
+  ownership; resources are lazy by default unless `eager()` is explicitly chosen.
+- Runtime disposal owns initialized singleton resources; scope disposal owns initialized
+  scoped resources; runtime disposal не створює hidden live-scope registry.
+- `TASK-06.29-0013-stage-7-implementation-planning` завершена після task-level human
+  review approval.
+- `TASK-06.29-0014-stage-7-async-providers-resources` RUN-001 виконаний агентом,
+  переведений у `review` і approved після task-level human review.
+- Stage 7 RUN-001 реалізував async single-provider `toAsyncFactory()` /
+  `toAsyncResource()`, `getAsync()` / `tryGetAsync()`, `scope.getAsync()`, async
+  eager/lazy initialization, singleton/scoped resource disposal and runtime disposal.
+- Stage 7 RUN-001 не реалізовував async multi-provider contributions, `getAllAsync()`,
+  composer, DSL, diagnostics framework, Next.js adapters або testing helpers.
+- `TASK-06.29-0014-stage-7-async-providers-resources` завершена після task-level human
+  review approval.
 
 ## Current Risks
 
-- Async providers/resources, `getAsync()`, runtime disposal, composer, DSL, diagnostics
-  framework, Next.js adapters і testing helpers залишаються out of scope до відповідних
-  roadmap stages.
+- Composer, DSL, diagnostics framework, Next.js adapters і testing helpers залишаються out
+  of scope до відповідних roadmap stages.
 - Root `SPEC.md` лишається source reference і може дублювати canonical memory; для
   operational рішень використовувати `memory/product/`, `memory/domain/` і
   `memory/technical/`.
@@ -232,7 +280,7 @@ helpers.
 
 ## Next Steps
 
-- Підготувати planning task для Stage 7 async providers/resources.
+- Підготувати Stage 8 diagnostics planning task.
 
 ## Open Questions
 

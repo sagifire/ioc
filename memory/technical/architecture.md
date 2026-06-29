@@ -239,6 +239,32 @@ Stage 6 scopes baseline:
 - Stage 6 does not implement `getAsync()`, async providers/resources, runtime disposal or
   resource disposal.
 
+Stage 7 async providers/resources baseline:
+
+- Stage 7 implements async single-provider bindings through `bind().toAsyncFactory()` and
+  `bind().toAsyncResource()`.
+- Stage 7 does not implement async multi-provider contributions through `add()` and does
+  not add `getAllAsync()` / `scope.getAllAsync()`.
+- `runtime.getAsync()` and `runtime.tryGetAsync()` resolve sync providers and async
+  single-provider bindings.
+- `scope.getAsync()` resolves sync providers, async providers and scoped async
+  providers/resources through the active scope.
+- `ResolutionContext` exposes `getAsync()` and `tryGetAsync()` for provider factories.
+- Async eager singleton providers/resources initialize during `freeze()` and are available
+  through sync `get()` after runtime is ready.
+- Async lazy providers/resources initialize on `getAsync()` and remain inaccessible
+  through `get()` / `tryGet()`, even after initialization.
+- Failed lazy async initialization is not cached by default; a later `getAsync()` may
+  retry.
+- Singleton/scoped in-flight lazy initialization is de-duplicated until it resolves or
+  rejects.
+- `runtime.dispose()` disposes initialized singleton resources and prevents further
+  runtime resolution or scope creation.
+- `scope.dispose()` disposes initialized scoped resources and prevents further scope
+  resolution.
+- Runtime disposal does not silently dispose live scopes or maintain a global scope
+  registry.
+
 Lifetimes:
 
 - `singleton` - one instance per frozen runtime.
@@ -285,6 +311,7 @@ runtime.withScope<TValue>(
 ): Promise<TValue>
 runtime.getAsync<TValue>(token: Token<TValue>): Promise<TValue>
 runtime.tryGetAsync<TValue>(token: Token<TValue>): Promise<TValue | undefined>
+runtime.dispose(): Promise<void>
 ```
 
 Important rule: `get()` must never return `Promise`.
@@ -297,6 +324,7 @@ export interface ResolutionContext {
     tryGet<TValue>(token: Token<TValue>): TValue | undefined
     getAll<TValue>(token: Token<TValue>): TValue[]
     getAsync<TValue>(token: Token<TValue>): Promise<TValue>
+    tryGetAsync<TValue>(token: Token<TValue>): Promise<TValue | undefined>
 }
 ```
 
@@ -319,6 +347,8 @@ Rules:
 - Async eager providers are available through `get()` after compose/freeze.
 - Async lazy providers are available only through `getAsync()`.
 - Async resources can have dispose callbacks.
+- Async multi-provider resolution is not part of Stage 7 because no `getAllAsync()` API is
+  defined yet.
 
 Provider categories:
 
@@ -329,6 +359,18 @@ Provider categories:
 
 Failed lazy async initialization is not cached by default; the next `getAsync()` may retry.
 Do not implement `cacheFailure()` unless a later task explicitly includes it.
+
+Stage 7 lifecycle decisions:
+
+- `toAsyncFactory()` defaults to transient lazy provider.
+- Async factory providers may be `transient`, `singleton` or `scoped`.
+- `eager()` is valid only for singleton async providers/resources.
+- `toAsyncResource()` requires explicit `singleton()` or `scoped()` ownership.
+- Async resources default to lazy initialization unless `eager()` is explicitly chosen.
+- Scoped async providers/resources initialize lazily through `scope.getAsync()`.
+- `get()` / `tryGet()` on async lazy provider/resource throws `AsyncProviderAccessError`.
+- `tryGetAsync()` returns `undefined` only for truly missing single providers and does not
+  suppress provider/resource/disposal errors.
 
 ## Resources And Disposal
 
@@ -346,13 +388,20 @@ Runtime disposal:
 - `runtime.dispose()` disposes initialized singleton resources.
 - Disposal is idempotent.
 - Disposers are called in safe reverse initialization order when possible.
-- After disposal, `get()` / `getAsync()` fail with `RuntimeDisposedError`.
+- After disposal, runtime resolution and scope creation fail with `RuntimeDisposedError`.
+- Runtime disposal owns singleton resources only and must not create hidden global
+  ownership of live scopes.
 
 Scope disposal:
 
 - `scope.dispose()` disposes scoped resources.
 - Disposal is idempotent.
 - After disposal, scope resolution fails with `ScopeDisposedError`.
+- Scopes created before runtime disposal cannot resolve after runtime disposal, but their
+  own `scope.dispose()` remains valid and idempotent for initialized scoped resources.
+- If a disposer fails, the failure must not be hidden. Stage 7 may reject disposal with the
+  first disposer failure after best-effort cleanup of remaining initialized resources;
+  aggregate diagnostic formatting belongs to Stage 8+.
 
 ## Context And Scopes
 
@@ -411,7 +460,8 @@ Stage 6 sync scope APIs:
 - `scope.getAll()`
 - `scope.dispose()`
 
-`scope.getAsync()` starts with Stage 7 async providers/resources.
+`scope.getAsync()` starts with Stage 7 async providers/resources. `scope.getAllAsync()` is
+not part of the current public API.
 
 ## Composer And Modules
 
