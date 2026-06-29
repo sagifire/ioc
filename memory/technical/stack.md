@@ -148,5 +148,9 @@ Stage 7 async/resource inference assertions use Vitest `expectTypeOf` for
 `toAsyncFactory()`, `toAsyncResource()`, `runtime.getAsync()`, `runtime.tryGetAsync()`,
 `scope.getAsync()` and async factory context inference.
 
+Stage 8 diagnostics assertions use Vitest `expectTypeOf` for `SagifireIocError`,
+diagnostics error options/type guard, `DiagnosticSeverity`, `Diagnostic`,
+`DiagnosticReport` and `formatDiagnostics()`.
+
 Broader type-level test tooling remains open for later stages if Vitest assertions are not
 enough for more complex public API inference.

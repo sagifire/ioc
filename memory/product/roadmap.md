@@ -22,6 +22,9 @@ Root source trace:
 - `TASK-06.29-0012` - Stage 6 scopes implementation task.
 - `TASK-06.29-0013` - Stage 7 implementation planning task.
 - `TASK-06.29-0014` - Stage 7 async providers/resources implementation task.
+- `TASK-06.29-0015` - Stage 8 implementation planning task.
+- `TASK-06.29-0016` - Stage 8 diagnostics error foundation implementation task.
+- `TASK-06.29-0017` - Stage 8 diagnostic reports/formatting implementation task.
 
 ## Completed
 
@@ -371,13 +374,45 @@ Root source trace:
 ## Next
 
 - Stage 8: Diagnostics.
+  - Status: planned.
   - Source: `SPEC.md` section 38.
+  - Planning Task: `TASK-06.29-0015-stage-8-implementation-planning`.
+  - Implementation Tasks:
+    - `TASK-06.29-0016-stage-8-diagnostics-error-foundation`;
+    - `TASK-06.29-0017-stage-8-diagnostic-reports-formatting`.
+  - Implementation Decomposition:
+    - Task 1 builds the diagnostics error foundation and migrates existing Stage 3-7
+      public typed errors.
+    - Task 2 builds diagnostic report types, formatting and the minimal bridge from typed
+      errors to reports where needed.
+  - API Decisions:
+    - error code convention is `SAGIFIRE_IOC_<AREA>_<REASON>`;
+    - existing Stage 3-7 public code strings are preserved unless a direct conflict is
+      found;
+    - `SagifireIocError` becomes the shared base class for public IoC diagnostics errors;
+    - existing concrete error classes remain public and keep class-specific `instanceof`
+      behavior;
+    - `details` should contain safe structured diagnostic data such as token IDs, provider
+      kinds, actions, lifecycle modes, scope reasons and cycle paths;
+    - `details` must not expose provider values, resource instances, scope-local values or
+      private runtime internals;
+    - diagnostic formatting must be deterministic, plain text and runtime-agnostic;
+    - Stage 8 does not implement composer/module graph diagnostics because composer starts
+      in Stage 9.
   - Implement: `SagifireIocError`, typed error classes, `Diagnostic`,
     `DiagnosticReport`, `formatDiagnostics()` and detailed messages.
   - Acceptance:
     - all common failure modes produce typed errors;
     - errors include codes and useful details;
     - formatted diagnostics are readable for humans and Codex.
+  - Guardrails:
+    - не реалізовувати composer, modules, capabilities, required ports, bindings, module
+      graph validation or inspection APIs;
+    - не реалізовувати duplicate module ID, missing required port, invalid binding,
+      private provider exposure or module cycle diagnostics before Stage 9;
+    - не змінювати provider resolution, async access, scope or disposal semantics;
+    - не використовувати Node-only formatting APIs, terminal colors, Next.js, React,
+      decorators or `reflect-metadata` in core.
 
 - Stage 9: Composer and modules.
   - Source: `SPEC.md` section 39.

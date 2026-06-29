@@ -176,4 +176,34 @@ diagnostic reports or diagnostic formatting.
 Stage 7 runtime disposal owns initialized singleton resources only. It must not add hidden
 runtime-owned global/live scope registry or silently dispose live scopes.
 
-Composer, DSL, diagnostics behavior and adapters start only at their respective stages.
+For Stage 8, allowed implementation scope is limited to diagnostics behavior over the
+already implemented Stage 3-7 core surface:
+
+- diagnostics error foundation: `SagifireIocError`, constructor/options model, optional
+  `details`, optional `cause`, type guard, stable public error code convention and
+  migration of existing public token/container/context/async/scope errors to the shared
+  base class;
+- diagnostic reports and formatting: `DiagnosticSeverity`, `Diagnostic`,
+  `DiagnosticReport`, `formatDiagnostics()` and a minimal typed-error-to-diagnostic bridge
+  if needed.
+
+Stage 8 error code convention is `SAGIFIRE_IOC_<AREA>_<REASON>`. Existing Stage 3-7 public
+code strings must be preserved unless a direct conflict is found and documented in the run
+result.
+
+Stage 8 diagnostics details must be safe structured data. They may include token IDs,
+token ID paths, expected/actual provider kinds, lifecycle modes, actions and scope reasons.
+They must not expose provider values, resource instances, scope-local values or private
+runtime internals.
+
+Stage 8 must not change provider resolution semantics, async access semantics, scope
+semantics or disposal ownership while migrating error classes.
+
+Stage 8 must not implement composer/module graph diagnostics. Duplicate module IDs,
+missing required ports, invalid bindings, private provider exposure, module cycles,
+runtime inspection and graph validation start with composer stages.
+
+Stage 8 formatting must not rely on Node-only APIs, terminal colors, `process`, `Buffer`,
+Next.js, React, decorators or `reflect-metadata`.
+
+Composer, DSL and adapters start only at their respective stages.

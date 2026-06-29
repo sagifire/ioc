@@ -531,6 +531,36 @@ Diagnostic layer contains:
 All common failure modes should produce typed errors with codes, useful details and readable
 messages.
 
+Stage 8 diagnostics baseline:
+
+- Error code convention is `SAGIFIRE_IOC_<AREA>_<REASON>` in stable uppercase snake case.
+- Existing Stage 3-7 public error code strings should be preserved unless a direct conflict
+  is found.
+- `SagifireIocError` is the shared base class for public IoC diagnostics errors.
+- `SagifireIocError` exposes `code`, readable `message`, optional `details` and optional
+  `cause`.
+- Existing public typed errors from tokens, container, context, async access and disposal
+  should extend `SagifireIocError` while preserving their concrete class names and
+  `instanceof` behavior.
+- Common Stage 3-7 failures covered by Stage 8 include invalid token IDs, missing
+  providers, duplicate providers, single/multi-provider mismatches, provider cycles,
+  frozen container mutation, invalid async lazy sync access, disposed runtime, invalid
+  provider lifecycle, invalid scope, disposed scope and duplicate scope-local values.
+- `details` should contain safe structured diagnostic data such as token IDs, token ID
+  paths, expected/actual provider kinds, access methods, actions, lifecycle modes and
+  scope reasons.
+- `details` must not expose provider values, resource instances, scope-local values or
+  private runtime internals.
+- `Diagnostic` contains `code`, `severity`, `message` and optional `details`.
+- `DiagnosticReport` contains `ok` and readonly diagnostics.
+- `formatDiagnostics(report)` produces deterministic plain text output that is readable in
+  logs and useful when pasted into Codex.
+- Diagnostics formatting must stay runtime-agnostic: no Node-only APIs, terminal colors,
+  `process`, `Buffer` or framework dependencies.
+- Composer/module graph diagnostics are not part of Stage 8 because module composition
+  starts in Stage 9. Duplicate module IDs, missing required ports, invalid bindings,
+  private provider exposure and module cycles belong to composer stages.
+
 ## DSL
 
 DSL provides ergonomic configurators:

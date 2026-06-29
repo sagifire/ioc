@@ -99,6 +99,20 @@ initialization, singleton/scoped resource disposal, `runtime.dispose()`, minimal
 async/disposal typed errors and Stage 7 tests. Stage 7 не реалізовував async
 multi-provider contributions або `getAllAsync()`.
 
+Stage 8 implementation planning завершено після task-level human review approval:
+
+- [TASK-06.29-0015-stage-8-implementation-planning](tasks/plan/TASK-06.29-0015-stage-8-implementation-planning/index.md)
+
+Stage 8 diagnostics implementation заплановано як дві backlog-задачі:
+
+- [TASK-06.29-0016-stage-8-diagnostics-error-foundation](tasks/plan/TASK-06.29-0016-stage-8-diagnostics-error-foundation/index.md)
+- [TASK-06.29-0017-stage-8-diagnostic-reports-formatting](tasks/plan/TASK-06.29-0017-stage-8-diagnostic-reports-formatting/index.md)
+
+Stage 8 planning зафіксував error code naming convention
+`SAGIFIRE_IOC_<AREA>_<REASON>`, preservation of existing Stage 3-7 code strings,
+`SagifireIocError` foundation first, and diagnostic report/formatter implementation as a
+separate follow-up task.
+
 ## Active Tasks
 
 Немає задач у статусі `active`.
@@ -151,6 +165,15 @@ multi-provider contributions або `getAllAsync()`.
 - [TASK-06.29-0014-stage-7-async-providers-resources](tasks/plan/TASK-06.29-0014-stage-7-async-providers-resources/index.md)
   - Status: done
   - Summary: Stage 7 async providers/resources implementation task.
+- [TASK-06.29-0015-stage-8-implementation-planning](tasks/plan/TASK-06.29-0015-stage-8-implementation-planning/index.md)
+  - Status: done
+  - Summary: Stage 8 diagnostics implementation planning task.
+- [TASK-06.29-0016-stage-8-diagnostics-error-foundation](tasks/plan/TASK-06.29-0016-stage-8-diagnostics-error-foundation/index.md)
+  - Status: backlog
+  - Summary: Stage 8 diagnostics error foundation implementation task.
+- [TASK-06.29-0017-stage-8-diagnostic-reports-formatting](tasks/plan/TASK-06.29-0017-stage-8-diagnostic-reports-formatting/index.md)
+  - Status: backlog
+  - Summary: Stage 8 diagnostic reports and formatting implementation task.
 
 ## Recent Decisions
 
@@ -267,11 +290,30 @@ multi-provider contributions або `getAllAsync()`.
   composer, DSL, diagnostics framework, Next.js adapters або testing helpers.
 - `TASK-06.29-0014-stage-7-async-providers-resources` завершена після task-level human
   review approval.
+- `TASK-06.29-0015-stage-8-implementation-planning` створена як окрема
+  interactive-memory-update задача для планування Stage 8.
+- Stage 8 diagnostics implementation розбита на дві backlog-задачі:
+  `TASK-06.29-0016-stage-8-diagnostics-error-foundation` і
+  `TASK-06.29-0017-stage-8-diagnostic-reports-formatting`.
+- Для Stage 8 прийнято error code naming convention:
+  `SAGIFIRE_IOC_<AREA>_<REASON>`.
+- Для Stage 8 прийнято зберігати existing Stage 3-7 public error code strings, якщо
+  implementation не знайде прямий конфлікт.
+- Stage 8 спершу має реалізувати `SagifireIocError`, options/details/cause, type guard і
+  migration of existing typed errors; diagnostic reports and `formatDiagnostics()` мають
+  іти після цього окремою task.
+- Stage 8 не реалізує composer/module graph diagnostics; duplicate module IDs, missing
+  required ports, invalid bindings, private provider exposure and module cycles лишаються
+  Stage 9+ scope.
+- `TASK-06.29-0015-stage-8-implementation-planning` завершена після task-level human
+  review approval.
 
 ## Current Risks
 
-- Composer, DSL, diagnostics framework, Next.js adapters і testing helpers залишаються out
-  of scope до відповідних roadmap stages.
+- Composer, DSL, Next.js adapters і testing helpers залишаються out of scope до
+  відповідних roadmap stages.
+- Stage 8 diagnostics ще не реалізований у коді; implementation tasks перебувають у
+  backlog.
 - Root `SPEC.md` лишається source reference і може дублювати canonical memory; для
   operational рішень використовувати `memory/product/`, `memory/domain/` і
   `memory/technical/`.
@@ -280,11 +322,9 @@ multi-provider contributions або `getAllAsync()`.
 
 ## Next Steps
 
-- Підготувати Stage 8 diagnostics planning task.
+- Запустити `TASK-06.29-0016-stage-8-diagnostics-error-foundation`.
 
 ## Open Questions
 
-- Для Stage 8 треба зафіксувати error code naming convention перед масовим додаванням
-  typed errors.
 - Для Stage 14 треба обрати остаточний інструмент type-level tests, якщо Vitest
   `expectTypeOf` стане недостатнім для складніших public API inference contracts.

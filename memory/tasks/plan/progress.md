@@ -55,6 +55,13 @@
   - Summary: Планування реалізації Stage 7 async providers/resources і підготовка
     implementation task.
   - Current: FIX-001
+- [TASK-06.29-0015-stage-8-implementation-planning](TASK-06.29-0015-stage-8-implementation-planning/index.md)
+  - Status: done
+  - Type: memory-update
+  - Execution Mode: interactive-memory-update
+  - Summary: Планування реалізації Stage 8 diagnostics і підготовка декількох
+    implementation tasks.
+  - Current: FIX-001
 
 ## Stage 2 Implementation
 
@@ -113,6 +120,23 @@
   - Execution Mode: autonomous-implementation
   - Summary: Stage 7 async single-provider bindings, eager/lazy async resolution,
     runtime/scoped resources and disposal.
+  - Current: RUN-001
+
+## Stage 8 Implementation
+
+- [TASK-06.29-0016-stage-8-diagnostics-error-foundation](TASK-06.29-0016-stage-8-diagnostics-error-foundation/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 8 `SagifireIocError`, stable code contract and migration of existing
+    Stage 3-7 typed errors.
+  - Current: RUN-001
+- [TASK-06.29-0017-stage-8-diagnostic-reports-formatting](TASK-06.29-0017-stage-8-diagnostic-reports-formatting/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 8 `Diagnostic`, `DiagnosticReport`, `formatDiagnostics()` and readable
+    report formatting.
   - Current: RUN-001
 
 ## Format

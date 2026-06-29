@@ -48,6 +48,15 @@
 - [TASK-06.29-0014-stage-7-async-providers-resources](TASK-06.29-0014-stage-7-async-providers-resources/index.md)
   - Type: folder
   - Purpose: Завершена задача реалізації Stage 7 async providers/resources.
+- [TASK-06.29-0015-stage-8-implementation-planning](TASK-06.29-0015-stage-8-implementation-planning/index.md)
+  - Type: folder
+  - Purpose: Планування реалізації Stage 8 diagnostics.
+- [TASK-06.29-0016-stage-8-diagnostics-error-foundation](TASK-06.29-0016-stage-8-diagnostics-error-foundation/index.md)
+  - Type: folder
+  - Purpose: Backlog-задача реалізації Stage 8 diagnostics error foundation.
+- [TASK-06.29-0017-stage-8-diagnostic-reports-formatting](TASK-06.29-0017-stage-8-diagnostic-reports-formatting/index.md)
+  - Type: folder
+  - Purpose: Backlog-задача реалізації Stage 8 diagnostic reports and formatting.
 
 ## Files
 

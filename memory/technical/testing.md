@@ -112,3 +112,18 @@ mixed sync/async provider cycles and Stage 4-6 regression cases affected by asyn
 support. Stage 7 must also add Vitest `expectTypeOf` assertions for async binding APIs,
 `runtime.getAsync()`, `runtime.tryGetAsync()`, `scope.getAsync()` and async factory context
 inference.
+
+Stage 8 diagnostics error foundation must add runtime tests for `SagifireIocError`,
+diagnostics error options, optional `details`, optional `cause`, `isSagifireIocError()` or
+equivalent type guard, and representative migrated errors from token, container, context,
+async access and disposal layers. These tests must verify existing public code strings,
+`instanceof Error`, class-specific `instanceof`, safe structured details and unchanged
+runtime behavior for the failure modes that produce those errors. Stage 8 error foundation
+must also add Vitest `expectTypeOf` assertions for the public diagnostics foundation API.
+
+Stage 8 diagnostic reports and formatting must add runtime tests for `Diagnostic`,
+`DiagnosticReport`, `formatDiagnostics()`, ok/empty reports, single diagnostics,
+multi-diagnostic reports in input order, details rendering for Stage 3-7 errors and
+generic handling of unknown errors. Formatter tests must keep output deterministic and
+plain text. Stage 8 reports/formatter must also add Vitest `expectTypeOf` assertions for
+report and formatter public API.
