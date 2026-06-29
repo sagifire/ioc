@@ -125,14 +125,14 @@
 ## Stage 8 Implementation
 
 - [TASK-06.29-0016-stage-8-diagnostics-error-foundation](TASK-06.29-0016-stage-8-diagnostics-error-foundation/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Stage 8 `SagifireIocError`, stable code contract and migration of existing
     Stage 3-7 typed errors.
   - Current: RUN-001
 - [TASK-06.29-0017-stage-8-diagnostic-reports-formatting](TASK-06.29-0017-stage-8-diagnostic-reports-formatting/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Stage 8 `Diagnostic`, `DiagnosticReport`, `formatDiagnostics()` and readable

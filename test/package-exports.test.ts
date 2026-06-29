@@ -26,6 +26,10 @@ describe('package export placeholders', () => {
         expect(module.token).toBeTypeOf('function')
         expect(module.namespace).toBeTypeOf('function')
         expect(module.InvalidTokenIdError).toBeTypeOf('function')
+        expect(module.SagifireIocError).toBeTypeOf('function')
+        expect(module.isSagifireIocError).toBeTypeOf('function')
+        expect(module.diagnosticFromError).toBeTypeOf('function')
+        expect(module.formatDiagnostics).toBeTypeOf('function')
         expect(module.createContainer).toBeTypeOf('function')
         expect(module.ProviderNotFoundError).toBeTypeOf('function')
         expect(module.DuplicateProviderError).toBeTypeOf('function')
@@ -77,5 +81,14 @@ describe('package export placeholders', () => {
         expect(module.DuplicateScopeLocalValueError).toBeTypeOf('function')
         expect(module.scopeValue).toBeTypeOf('function')
         expect(module.scopeMultiValue).toBeTypeOf('function')
+    })
+
+    test('diagnostics subpath exposes diagnostics foundation API', async () => {
+        const module = await import('@sagifire/ioc/diagnostics')
+
+        expect(module.SagifireIocError).toBeTypeOf('function')
+        expect(module.isSagifireIocError).toBeTypeOf('function')
+        expect(module.diagnosticFromError).toBeTypeOf('function')
+        expect(module.formatDiagnostics).toBeTypeOf('function')
     })
 })

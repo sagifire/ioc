@@ -1,6 +1,6 @@
 # State
 
-Updated: 2026-06-29
+Updated: 2026-06-30
 Starter Kit Version: 3.0
 PDADM MVP Version: 0.3
 
@@ -103,7 +103,7 @@ Stage 8 implementation planning завершено після task-level human r
 
 - [TASK-06.29-0015-stage-8-implementation-planning](tasks/plan/TASK-06.29-0015-stage-8-implementation-planning/index.md)
 
-Stage 8 diagnostics implementation заплановано як дві backlog-задачі:
+Stage 8 diagnostics implementation заплановано як дві implementation-задачі:
 
 - [TASK-06.29-0016-stage-8-diagnostics-error-foundation](tasks/plan/TASK-06.29-0016-stage-8-diagnostics-error-foundation/index.md)
 - [TASK-06.29-0017-stage-8-diagnostic-reports-formatting](tasks/plan/TASK-06.29-0017-stage-8-diagnostic-reports-formatting/index.md)
@@ -112,6 +112,28 @@ Stage 8 planning зафіксував error code naming convention
 `SAGIFIRE_IOC_<AREA>_<REASON>`, preservation of existing Stage 3-7 code strings,
 `SagifireIocError` foundation first, and diagnostic report/formatter implementation as a
 separate follow-up task.
+
+Stage 8 diagnostics error foundation implementation завершено після task-level human
+review approval:
+
+- [TASK-06.29-0016-stage-8-diagnostics-error-foundation](tasks/plan/TASK-06.29-0016-stage-8-diagnostics-error-foundation/index.md)
+
+RUN-001 реалізував `SagifireIocError`, `SagifireIocErrorOptions`,
+`isSagifireIocError()`, root / `@sagifire/ioc/diagnostics` exports і migration existing
+Stage 3-7 public typed errors to shared diagnostics foundation with safe structured
+`details`. RUN-001 не реалізовував diagnostic reports, `formatDiagnostics()`,
+composer/module diagnostics, DSL, adapters або testing helpers.
+
+Stage 8 diagnostic reports and formatting implementation завершено після task-level human
+review approval:
+
+- [TASK-06.29-0017-stage-8-diagnostic-reports-formatting](tasks/plan/TASK-06.29-0017-stage-8-diagnostic-reports-formatting/index.md)
+
+RUN-001 реалізував `DiagnosticSeverity`, `Diagnostic`, `DiagnosticReport`,
+`formatDiagnostics()`, `diagnosticFromError()`, root / `@sagifire/ioc/diagnostics`
+exports, deterministic plain-text formatting, generic unknown-error conversion and tests.
+Stage 8 diagnostics scope завершено; composer/module graph diagnostics лишаються Stage 9+
+scope.
 
 ## Active Tasks
 
@@ -169,10 +191,10 @@ separate follow-up task.
   - Status: done
   - Summary: Stage 8 diagnostics implementation planning task.
 - [TASK-06.29-0016-stage-8-diagnostics-error-foundation](tasks/plan/TASK-06.29-0016-stage-8-diagnostics-error-foundation/index.md)
-  - Status: backlog
+  - Status: done
   - Summary: Stage 8 diagnostics error foundation implementation task.
 - [TASK-06.29-0017-stage-8-diagnostic-reports-formatting](tasks/plan/TASK-06.29-0017-stage-8-diagnostic-reports-formatting/index.md)
-  - Status: backlog
+  - Status: done
   - Summary: Stage 8 diagnostic reports and formatting implementation task.
 
 ## Recent Decisions
@@ -292,7 +314,7 @@ separate follow-up task.
   review approval.
 - `TASK-06.29-0015-stage-8-implementation-planning` створена як окрема
   interactive-memory-update задача для планування Stage 8.
-- Stage 8 diagnostics implementation розбита на дві backlog-задачі:
+- Stage 8 diagnostics implementation розбита на дві implementation-задачі:
   `TASK-06.29-0016-stage-8-diagnostics-error-foundation` і
   `TASK-06.29-0017-stage-8-diagnostic-reports-formatting`.
 - Для Stage 8 прийнято error code naming convention:
@@ -307,13 +329,27 @@ separate follow-up task.
   Stage 9+ scope.
 - `TASK-06.29-0015-stage-8-implementation-planning` завершена після task-level human
   review approval.
+- `TASK-06.29-0016-stage-8-diagnostics-error-foundation` RUN-001 виконаний агентом,
+  переведений у `review` і approved після task-level human review.
+- Stage 8 RUN-001 реалізував `SagifireIocError`, `SagifireIocErrorOptions`,
+  `isSagifireIocError()`, safe structured `details` for existing Stage 3-7 public typed
+  errors and root / `@sagifire/ioc/diagnostics` exports.
+- Stage 8 RUN-001 preserved existing Stage 3-7 public error code strings and did not
+  implement diagnostic reports/formatting.
+- `TASK-06.29-0016-stage-8-diagnostics-error-foundation` завершена після task-level human
+  review approval.
+- `TASK-06.29-0017-stage-8-diagnostic-reports-formatting` RUN-001 виконаний агентом,
+  переведений у `review` і approved після task-level human review.
+- Stage 8 reports/formatting RUN-001 реалізував `Diagnostic`, `DiagnosticReport`,
+  `DiagnosticSeverity`, `formatDiagnostics()` і `diagnosticFromError()` without composer,
+  DSL, adapters або testing helpers.
+- `TASK-06.29-0017-stage-8-diagnostic-reports-formatting` завершена після task-level human
+  review approval.
 
 ## Current Risks
 
 - Composer, DSL, Next.js adapters і testing helpers залишаються out of scope до
   відповідних roadmap stages.
-- Stage 8 diagnostics ще не реалізований у коді; implementation tasks перебувають у
-  backlog.
 - Root `SPEC.md` лишається source reference і може дублювати canonical memory; для
   operational рішень використовувати `memory/product/`, `memory/domain/` і
   `memory/technical/`.
@@ -322,7 +358,7 @@ separate follow-up task.
 
 ## Next Steps
 
-- Запустити `TASK-06.29-0016-stage-8-diagnostics-error-foundation`.
+- Запланувати Stage 9 composer/modules implementation planning.
 
 ## Open Questions
 

@@ -1,3 +1,5 @@
+import { SagifireIocError } from './diagnostics'
+
 export interface Token<TValue> {
     readonly id: string
     readonly description?: string
@@ -13,15 +15,27 @@ export interface TokenNamespace {
     token<TValue>(id: string, options?: TokenOptions): Token<TValue>
 }
 
-export class InvalidTokenIdError extends Error {
+export class InvalidTokenIdError extends SagifireIocError<{
+    readonly kind: 'token' | 'namespace'
+    readonly value: unknown
+    readonly reason: string
+}> {
     override readonly name = 'InvalidTokenIdError'
-    readonly code = 'SAGIFIRE_IOC_INVALID_TOKEN_ID'
+    override readonly code = 'SAGIFIRE_IOC_INVALID_TOKEN_ID'
     readonly kind: 'token' | 'namespace'
     readonly value: unknown
     readonly reason: string
 
     constructor(kind: 'token' | 'namespace', value: unknown, reason: string) {
-        super(`Invalid ${kind} id ${formatInvalidIdValue(value)}: ${reason}`)
+        super({
+            code: 'SAGIFIRE_IOC_INVALID_TOKEN_ID',
+            message: `Invalid ${kind} id ${formatInvalidIdValue(value)}: ${reason}`,
+            details: {
+                kind,
+                value,
+                reason
+            }
+        })
 
         Object.setPrototypeOf(this, new.target.prototype)
 

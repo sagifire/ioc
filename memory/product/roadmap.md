@@ -371,20 +371,20 @@ Root source trace:
       `DiagnosticReport` або `formatDiagnostics()`;
     - не додавати global mutable container або provider registry.
 
-## Next
-
 - Stage 8: Diagnostics.
-  - Status: planned.
+  - Status: done after task-level human review.
   - Source: `SPEC.md` section 38.
   - Planning Task: `TASK-06.29-0015-stage-8-implementation-planning`.
   - Implementation Tasks:
-    - `TASK-06.29-0016-stage-8-diagnostics-error-foundation`;
-    - `TASK-06.29-0017-stage-8-diagnostic-reports-formatting`.
+    - `TASK-06.29-0016-stage-8-diagnostics-error-foundation` - done after task-level
+      human review;
+    - `TASK-06.29-0017-stage-8-diagnostic-reports-formatting` - done after task-level
+      human review.
   - Implementation Decomposition:
-    - Task 1 builds the diagnostics error foundation and migrates existing Stage 3-7
+    - Task 1 built the diagnostics error foundation and migrated existing Stage 3-7
       public typed errors.
-    - Task 2 builds diagnostic report types, formatting and the minimal bridge from typed
-      errors to reports where needed.
+    - Task 2 built diagnostic report types, formatting and the minimal bridge from typed
+      errors to reports.
   - API Decisions:
     - error code convention is `SAGIFIRE_IOC_<AREA>_<REASON>`;
     - existing Stage 3-7 public code strings are preserved unless a direct conflict is
@@ -413,6 +413,8 @@ Root source trace:
     - не змінювати provider resolution, async access, scope or disposal semantics;
     - не використовувати Node-only formatting APIs, terminal colors, Next.js, React,
       decorators or `reflect-metadata` in core.
+
+## Next
 
 - Stage 9: Composer and modules.
   - Source: `SPEC.md` section 39.

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Backlog implementation task для Stage 8 diagnostics error foundation.
+Завершена implementation task для Stage 8 diagnostics error foundation.
 
 ## Files
 

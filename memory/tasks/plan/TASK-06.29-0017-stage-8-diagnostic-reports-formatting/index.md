@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Backlog implementation task для Stage 8 diagnostic reports and formatting.
+Завершена implementation task для Stage 8 diagnostic reports and formatting.
 
 ## Files
 

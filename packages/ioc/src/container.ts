@@ -2,6 +2,7 @@ import type { Resource, ResourceDisposer } from './lifecycle'
 import type { Token } from './tokens'
 import { DuplicateScopeLocalValueError, InvalidScopeError, ScopeDisposedError } from './context'
 import type { CreateScopeOptions, Scope, ScopeCallback, ScopeLocalValue } from './context'
+import { SagifireIocError } from './diagnostics'
 
 export {
     DuplicateScopeLocalValueError,
@@ -98,13 +99,21 @@ export interface ResolutionContext {
     tryGetAsync<TValue>(token: Token<TValue>): Promise<TValue | undefined>
 }
 
-export class ProviderNotFoundError extends Error {
+export class ProviderNotFoundError extends SagifireIocError<{
+    readonly tokenId: string
+}> {
     override readonly name = 'ProviderNotFoundError'
-    readonly code = 'SAGIFIRE_IOC_PROVIDER_NOT_FOUND'
+    override readonly code = 'SAGIFIRE_IOC_PROVIDER_NOT_FOUND'
     readonly tokenId: string
 
     constructor(tokenId: string) {
-        super(`Provider not found for token "${tokenId}"`)
+        super({
+            code: 'SAGIFIRE_IOC_PROVIDER_NOT_FOUND',
+            message: `Provider not found for token "${tokenId}"`,
+            details: {
+                tokenId
+            }
+        })
 
         Object.setPrototypeOf(this, new.target.prototype)
 
@@ -112,13 +121,21 @@ export class ProviderNotFoundError extends Error {
     }
 }
 
-export class DuplicateProviderError extends Error {
+export class DuplicateProviderError extends SagifireIocError<{
+    readonly tokenId: string
+}> {
     override readonly name = 'DuplicateProviderError'
-    readonly code = 'SAGIFIRE_IOC_DUPLICATE_PROVIDER'
+    override readonly code = 'SAGIFIRE_IOC_DUPLICATE_PROVIDER'
     readonly tokenId: string
 
     constructor(tokenId: string) {
-        super(`Duplicate provider for token "${tokenId}"`)
+        super({
+            code: 'SAGIFIRE_IOC_DUPLICATE_PROVIDER',
+            message: `Duplicate provider for token "${tokenId}"`,
+            details: {
+                tokenId
+            }
+        })
 
         Object.setPrototypeOf(this, new.target.prototype)
 
@@ -126,9 +143,14 @@ export class DuplicateProviderError extends Error {
     }
 }
 
-export class ProviderKindMismatchError extends Error {
+export class ProviderKindMismatchError extends SagifireIocError<{
+    readonly tokenId: string
+    readonly expectedKind: ProviderRegistrationKind
+    readonly actualKind: ProviderRegistrationKind
+    readonly action: string
+}> {
     override readonly name = 'ProviderKindMismatchError'
-    readonly code = 'SAGIFIRE_IOC_PROVIDER_KIND_MISMATCH'
+    override readonly code = 'SAGIFIRE_IOC_PROVIDER_KIND_MISMATCH'
     readonly tokenId: string
     readonly expectedKind: ProviderRegistrationKind
     readonly actualKind: ProviderRegistrationKind
@@ -140,10 +162,18 @@ export class ProviderKindMismatchError extends Error {
         actualKind: ProviderRegistrationKind,
         action: string
     ) {
-        super(
-            `Cannot ${action} for token "${tokenId}": expected ${expectedKind} provider ` +
-                `registration but found ${actualKind} provider registration`
-        )
+        super({
+            code: 'SAGIFIRE_IOC_PROVIDER_KIND_MISMATCH',
+            message:
+                `Cannot ${action} for token "${tokenId}": expected ${expectedKind} provider ` +
+                `registration but found ${actualKind} provider registration`,
+            details: {
+                tokenId,
+                expectedKind,
+                actualKind,
+                action
+            }
+        })
 
         Object.setPrototypeOf(this, new.target.prototype)
 
@@ -154,13 +184,21 @@ export class ProviderKindMismatchError extends Error {
     }
 }
 
-export class ProviderCycleError extends Error {
+export class ProviderCycleError extends SagifireIocError<{
+    readonly tokenIds: readonly string[]
+}> {
     override readonly name = 'ProviderCycleError'
-    readonly code = 'SAGIFIRE_IOC_PROVIDER_CYCLE'
+    override readonly code = 'SAGIFIRE_IOC_PROVIDER_CYCLE'
     readonly tokenIds: readonly string[]
 
     constructor(tokenIds: readonly string[]) {
-        super(`Provider cycle detected: ${tokenIds.join(' -> ')}`)
+        super({
+            code: 'SAGIFIRE_IOC_PROVIDER_CYCLE',
+            message: `Provider cycle detected: ${tokenIds.join(' -> ')}`,
+            details: {
+                tokenIds
+            }
+        })
 
         Object.setPrototypeOf(this, new.target.prototype)
 
@@ -168,13 +206,21 @@ export class ProviderCycleError extends Error {
     }
 }
 
-export class ContainerFrozenError extends Error {
+export class ContainerFrozenError extends SagifireIocError<{
+    readonly action: string
+}> {
     override readonly name = 'ContainerFrozenError'
-    readonly code = 'SAGIFIRE_IOC_CONTAINER_FROZEN'
+    override readonly code = 'SAGIFIRE_IOC_CONTAINER_FROZEN'
     readonly action: string
 
     constructor(action: string) {
-        super(`Container configuration is frozen after freeze(); cannot ${action}`)
+        super({
+            code: 'SAGIFIRE_IOC_CONTAINER_FROZEN',
+            message: `Container configuration is frozen after freeze(); cannot ${action}`,
+            details: {
+                action
+            }
+        })
 
         Object.setPrototypeOf(this, new.target.prototype)
 
@@ -182,17 +228,26 @@ export class ContainerFrozenError extends Error {
     }
 }
 
-export class AsyncProviderAccessError extends Error {
+export class AsyncProviderAccessError extends SagifireIocError<{
+    readonly tokenId: string
+    readonly accessMethod: 'get' | 'tryGet'
+}> {
     override readonly name = 'AsyncProviderAccessError'
-    readonly code = 'SAGIFIRE_IOC_ASYNC_PROVIDER_ACCESS'
+    override readonly code = 'SAGIFIRE_IOC_ASYNC_PROVIDER_ACCESS'
     readonly tokenId: string
     readonly accessMethod: 'get' | 'tryGet'
 
     constructor(tokenId: string, accessMethod: 'get' | 'tryGet') {
-        super(
-            `Cannot resolve async lazy provider for token "${tokenId}" through ` +
-                `${accessMethod}(); use getAsync() instead`
-        )
+        super({
+            code: 'SAGIFIRE_IOC_ASYNC_PROVIDER_ACCESS',
+            message:
+                `Cannot resolve async lazy provider for token "${tokenId}" through ` +
+                `${accessMethod}(); use getAsync() instead`,
+            details: {
+                tokenId,
+                accessMethod
+            }
+        })
 
         Object.setPrototypeOf(this, new.target.prototype)
 
@@ -201,13 +256,21 @@ export class AsyncProviderAccessError extends Error {
     }
 }
 
-export class RuntimeDisposedError extends Error {
+export class RuntimeDisposedError extends SagifireIocError<{
+    readonly action: string
+}> {
     override readonly name = 'RuntimeDisposedError'
-    readonly code = 'SAGIFIRE_IOC_RUNTIME_DISPOSED'
+    override readonly code = 'SAGIFIRE_IOC_RUNTIME_DISPOSED'
     readonly action: string
 
     constructor(action: string) {
-        super(`Runtime has been disposed and cannot ${action}`)
+        super({
+            code: 'SAGIFIRE_IOC_RUNTIME_DISPOSED',
+            message: `Runtime has been disposed and cannot ${action}`,
+            details: {
+                action
+            }
+        })
 
         Object.setPrototypeOf(this, new.target.prototype)
 
@@ -215,13 +278,23 @@ export class RuntimeDisposedError extends Error {
     }
 }
 
-export class InvalidProviderLifecycleError extends Error {
+export class InvalidProviderLifecycleError extends SagifireIocError<{
+    readonly tokenId: string
+    readonly reason: string
+}> {
     override readonly name = 'InvalidProviderLifecycleError'
-    readonly code = 'SAGIFIRE_IOC_INVALID_PROVIDER_LIFECYCLE'
+    override readonly code = 'SAGIFIRE_IOC_INVALID_PROVIDER_LIFECYCLE'
     readonly tokenId: string
 
     constructor(tokenId: string, message: string) {
-        super(`Invalid provider lifecycle for token "${tokenId}": ${message}`)
+        super({
+            code: 'SAGIFIRE_IOC_INVALID_PROVIDER_LIFECYCLE',
+            message: `Invalid provider lifecycle for token "${tokenId}": ${message}`,
+            details: {
+                tokenId,
+                reason: message
+            }
+        })
 
         Object.setPrototypeOf(this, new.target.prototype)
 

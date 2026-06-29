@@ -53,10 +53,10 @@
   - Purpose: Планування реалізації Stage 8 diagnostics.
 - [TASK-06.29-0016-stage-8-diagnostics-error-foundation](TASK-06.29-0016-stage-8-diagnostics-error-foundation/index.md)
   - Type: folder
-  - Purpose: Backlog-задача реалізації Stage 8 diagnostics error foundation.
+  - Purpose: Завершена задача реалізації Stage 8 diagnostics error foundation.
 - [TASK-06.29-0017-stage-8-diagnostic-reports-formatting](TASK-06.29-0017-stage-8-diagnostic-reports-formatting/index.md)
   - Type: folder
-  - Purpose: Backlog-задача реалізації Stage 8 diagnostic reports and formatting.
+  - Purpose: Завершена задача реалізації Stage 8 diagnostic reports and formatting.
 
 ## Files
 

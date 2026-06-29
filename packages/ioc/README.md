@@ -17,5 +17,9 @@ Implemented in the current stage:
 - explicit async resolution through `runtime.getAsync()`, `runtime.tryGetAsync()` and
   `Scope.getAsync()`;
 - async resource lifecycle through `runtime.dispose()` and scoped resource disposal.
+- diagnostics foundation through `SagifireIocError` and `isSagifireIocError()`;
+- diagnostic reports and plain-text formatting through `Diagnostic`, `DiagnosticReport`,
+  `diagnosticFromError()` and `formatDiagnostics()`.
 
-Composer, DSL, full diagnostics and framework adapters are planned for later roadmap stages.
+Composer, DSL, graph-aware diagnostics and framework adapters are planned for later roadmap
+stages.

@@ -1,3 +1,4 @@
+import { SagifireIocError } from './diagnostics'
 import type { Token } from './tokens'
 
 export interface Scope {
@@ -31,14 +32,24 @@ export interface InvalidScopeErrorOptions {
     readonly tokenId?: string
 }
 
-export class InvalidScopeError extends Error {
+export class InvalidScopeError extends SagifireIocError<{
+    readonly reason: InvalidScopeReason
+    readonly tokenId: string | undefined
+}> {
     override readonly name = 'InvalidScopeError'
-    readonly code = 'SAGIFIRE_IOC_INVALID_SCOPE'
+    override readonly code = 'SAGIFIRE_IOC_INVALID_SCOPE'
     readonly reason: InvalidScopeReason
     readonly tokenId: string | undefined
 
     constructor(message: string, options: InvalidScopeErrorOptions) {
-        super(message)
+        super({
+            code: 'SAGIFIRE_IOC_INVALID_SCOPE',
+            message,
+            details: {
+                reason: options.reason,
+                tokenId: options.tokenId
+            }
+        })
 
         Object.setPrototypeOf(this, new.target.prototype)
 
@@ -47,24 +58,40 @@ export class InvalidScopeError extends Error {
     }
 }
 
-export class ScopeDisposedError extends Error {
+export class ScopeDisposedError extends SagifireIocError<{
+    readonly reason: 'scope-disposed'
+}> {
     override readonly name = 'ScopeDisposedError'
-    readonly code = 'SAGIFIRE_IOC_SCOPE_DISPOSED'
+    override readonly code = 'SAGIFIRE_IOC_SCOPE_DISPOSED'
 
     constructor() {
-        super('Scope has been disposed and cannot resolve providers')
+        super({
+            code: 'SAGIFIRE_IOC_SCOPE_DISPOSED',
+            message: 'Scope has been disposed and cannot resolve providers',
+            details: {
+                reason: 'scope-disposed'
+            }
+        })
 
         Object.setPrototypeOf(this, new.target.prototype)
     }
 }
 
-export class DuplicateScopeLocalValueError extends Error {
+export class DuplicateScopeLocalValueError extends SagifireIocError<{
+    readonly tokenId: string
+}> {
     override readonly name = 'DuplicateScopeLocalValueError'
-    readonly code = 'SAGIFIRE_IOC_DUPLICATE_SCOPE_LOCAL_VALUE'
+    override readonly code = 'SAGIFIRE_IOC_DUPLICATE_SCOPE_LOCAL_VALUE'
     readonly tokenId: string
 
     constructor(tokenId: string) {
-        super(`Duplicate scope-local single value for token "${tokenId}"`)
+        super({
+            code: 'SAGIFIRE_IOC_DUPLICATE_SCOPE_LOCAL_VALUE',
+            message: `Duplicate scope-local single value for token "${tokenId}"`,
+            details: {
+                tokenId
+            }
+        })
 
         Object.setPrototypeOf(this, new.target.prototype)
 

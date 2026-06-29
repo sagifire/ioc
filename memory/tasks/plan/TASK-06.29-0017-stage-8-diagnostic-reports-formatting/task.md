@@ -1,6 +1,6 @@
 # TASK-06.29-0017: Stage 8 diagnostic reports and formatting
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-06-29
@@ -128,9 +128,9 @@ diagnostics remain out of scope until composer starts in Stage 9.
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: planned
+  - Status: completed
   - Purpose: Початковий autonomous implementation run для diagnostic reports and formatting.
-  - Result: pending
+  - Result: approved
 
 ## Research
 

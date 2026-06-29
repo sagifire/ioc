@@ -1,5 +1,12 @@
 export { InvalidTokenIdError, namespace, token } from './tokens'
 export type { Token, TokenNamespace, TokenOptions } from './tokens'
+export { SagifireIocError, diagnosticFromError, formatDiagnostics, isSagifireIocError } from './diagnostics'
+export type {
+    Diagnostic,
+    DiagnosticReport,
+    DiagnosticSeverity,
+    SagifireIocErrorOptions
+} from './diagnostics'
 export {
     AsyncProviderAccessError,
     ContainerFrozenError,
