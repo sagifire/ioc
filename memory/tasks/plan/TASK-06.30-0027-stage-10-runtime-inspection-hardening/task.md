@@ -1,6 +1,6 @@
 # TASK-06.30-0027: Stage 10 runtime inspection hardening
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-06-30
@@ -56,23 +56,23 @@ public package surface consistently reflect Stage 10 behavior.
 
 ## Acceptance Criteria
 
-- [ ] `runtime.inspect()` includes dependency edge metadata for composed acyclic runtimes.
-- [ ] Runtime inspection edge metadata matches composer graph semantics.
-- [ ] Runtime inspection remains immutable and does not expose provider values/private
+- [x] `runtime.inspect()` includes dependency edge metadata for composed acyclic runtimes.
+- [x] Runtime inspection edge metadata matches composer graph semantics.
+- [x] Runtime inspection remains immutable and does not expose provider values/private
   internals.
-- [ ] Binding-satisfied required ports are represented as binding edges and do not create
+- [x] Binding-satisfied required ports are represented as binding edges and do not create
   module cycles.
-- [ ] Binding factories are not executed during validation/inspection.
-- [ ] Provider-level cycles inside factories remain provider/container diagnostics.
-- [ ] Stage 9 no-edge/no-cycle guard assertions are replaced with Stage 10 assertions.
-- [ ] Docs/README no longer describe Stage 10 behavior as unimplemented if it is now
+- [x] Binding factories are not executed during validation/inspection.
+- [x] Provider-level cycles inside factories remain provider/container diagnostics.
+- [x] Stage 9 no-edge/no-cycle guard assertions are replaced with Stage 10 assertions.
+- [x] Docs/README no longer describe Stage 10 behavior as unimplemented if it is now
   implemented.
-- [ ] Stage 10 overall acceptance is satisfied.
-- [ ] Stage 10 task does not implement DSL, adapters or testing helpers.
-- [ ] `pnpm build` works.
-- [ ] `pnpm test` works.
-- [ ] `pnpm typecheck` works.
-- [ ] `pnpm lint` works.
+- [x] Stage 10 overall acceptance is satisfied.
+- [x] Stage 10 task does not implement DSL, adapters or testing helpers.
+- [x] `pnpm build` works.
+- [x] `pnpm test` works.
+- [x] `pnpm typecheck` works.
+- [x] `pnpm lint` works.
 
 ## Linked Memory
 
@@ -90,9 +90,9 @@ public package surface consistently reflect Stage 10 behavior.
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: planned
+  - Status: completed
   - Purpose: Початковий autonomous implementation run для runtime inspection hardening.
-  - Result: pending
+  - Result: approved
 
 ## Research
 

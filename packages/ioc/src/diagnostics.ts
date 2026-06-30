@@ -201,7 +201,7 @@ function formatDetailArray(key: string, values: readonly unknown[]): string {
         return '[]'
     }
 
-    if (key === 'tokenIds' && values.every((value) => typeof value === 'string')) {
+    if (shouldRenderStringArrayAsPath(key, values)) {
         return values.join(' -> ')
     }
 
@@ -228,6 +228,12 @@ function shouldRenderStringWithoutQuotes(key: string): boolean {
         key.endsWith('Id') ||
         key.endsWith('Ids')
     )
+}
+
+function shouldRenderStringArrayAsPath(key: string, values: readonly unknown[]): values is string[] {
+    return (key === 'tokenIds' || key.endsWith('Path')) && values.every((value) => {
+        return typeof value === 'string'
+    })
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

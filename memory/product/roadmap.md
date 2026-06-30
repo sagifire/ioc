@@ -480,10 +480,8 @@ Root source trace:
     - filesystem auto-discovery, decorators, `reflect-metadata`, Node-only APIs and
       global mutable registries were not added to core.
 
-## Next
-
 - Stage 10: Module graph cycle detection.
-  - Status: planned; implementation planning task is done after task-level human review.
+  - Status: done after task-level human review.
   - Source: `SPEC.md` section 40.
   - Planning Task: `TASK-06.30-0024-stage-10-implementation-planning`.
   - Implementation Tasks:
@@ -491,7 +489,8 @@ Root source trace:
       review;
     - `TASK-06.30-0026-stage-10-module-cycle-diagnostics` - done after task-level human
       review;
-    - `TASK-06.30-0027-stage-10-runtime-inspection-hardening` - backlog.
+    - `TASK-06.30-0027-stage-10-runtime-inspection-hardening` - done after task-level
+      human review.
   - Implementation Decomposition:
     - Task 1 adds explicit dependency edge metadata to module graph inspection.
     - Task 2 detects module cycles and emits typed diagnostics with cycle paths.
@@ -534,7 +533,7 @@ Root source trace:
     - не додавати filesystem auto-discovery, decorators, `reflect-metadata`, Node-only
       APIs or global mutable registries into core.
 
-## Later
+## Next
 
 - Stage 11: DSL.
   - Source: `SPEC.md` section 41.
@@ -542,6 +541,8 @@ Root source trace:
     config conversion.
   - Acceptance: DSL creates valid configs, requires no decorators, keeps graph visible
     and leaves object API fully usable.
+
+## Later
 
 - Stage 12: `@sagifire/ioc-testing`.
   - Source: `SPEC.md` section 42.

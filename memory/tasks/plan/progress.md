@@ -202,7 +202,7 @@
   - Summary: Stage 10 module-level cycle detection and typed diagnostics.
   - Current: RUN-001
 - [TASK-06.30-0027-stage-10-runtime-inspection-hardening](TASK-06.30-0027-stage-10-runtime-inspection-hardening/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Stage 10 composed runtime inspection, binding-edge semantics and final

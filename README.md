@@ -8,13 +8,11 @@ token API plus the Stage 4/5/6 sync container API for single-provider registrati
 multi-provider contributions and scopes. Stage 7 async single-provider bindings, explicit
 `getAsync()` resolution, async resources and runtime/scope disposal are implemented. Stage
 8 core diagnostics now include typed errors, diagnostic reports and plain-text formatting.
-Stage 9 has started with module definition foundation through `defineModule()`, composer
-builder/static validation through `createComposer()`, `use()`, `bind()` and `validate()`,
-module setup/private provider preparation through `prepare()`, and composed runtime
-capability access through `compose()`. Composer and runtime inspection are available
-through `composer.inspect()`, `composer.getGraph()` and `runtime.inspect()`. Stage 10
-dependency edges and module cycle diagnostics are implemented. DSL, testing helpers and
-framework adapter behavior are planned for later roadmap stages.
+Stage 9 composer/modules are implemented with `defineModule()`, `createComposer()`,
+`use()`, `bind()`, `validate()`, `prepare()`, `compose()` and safe inspection through
+`composer.inspect()`, `composer.getGraph()` and `runtime.inspect()`. Stage 10 dependency
+edges, binding edges and module cycle diagnostics are implemented. DSL, testing helpers
+and framework adapter behavior are planned for later roadmap stages.
 
 ## Packages
 
@@ -36,8 +34,7 @@ pnpm format
 ## Documentation
 
 The files in `docs/` are skeletons for later stages. They intentionally do not describe
-unimplemented DSL, graph validation or adapter APIs before those layers are
-implemented.
+unimplemented DSL, testing-helper or adapter APIs before those layers are implemented.
 
 ## License
 

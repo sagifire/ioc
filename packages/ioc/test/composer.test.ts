@@ -1827,6 +1827,247 @@ describe('inspection api', () => {
         await runtime.dispose()
     })
 
+    test('matches runtime inspection graph edges with composer graph for acyclic runtime', async () => {
+        const authModule = defineModule({
+            id: 'inspect-runtime-edge-auth',
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(AUTH_PUBLIC_API).toValue({
+                    requireUser(): string {
+                        return 'edge-runtime-user'
+                    }
+                })
+            }
+        })
+        const contactRequestsModule = defineModule({
+            id: 'inspect-runtime-edge-contact-requests',
+            requires: [
+                {
+                    token: AUTH_READER
+                }
+            ],
+            provides: [
+                {
+                    token: CONTACT_REQUESTS_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(CONTACT_REQUESTS_PUBLIC_API).toValue({
+                    submit(): string {
+                        return 'edge-contact-request'
+                    }
+                })
+            }
+        })
+        const notificationModule = defineModule({
+            id: 'inspect-runtime-edge-notifications',
+            requires: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'shared'
+                }
+            ],
+            provides: [
+                {
+                    token: NOTIFICATION_PUBLIC_API,
+                    kind: 'event-publisher'
+                }
+            ],
+            setup(context): void {
+                context.bind(NOTIFICATION_PUBLIC_API).toValue({
+                    notify(): string {
+                        return 'edge-notification'
+                    }
+                })
+            }
+        })
+        const composer = createComposer()
+            .use(authModule)
+            .use(contactRequestsModule)
+            .use(notificationModule)
+
+        composer.bind(AUTH_READER).toValue({
+            currentUserId(): string {
+                return 'edge-binding-user'
+            }
+        })
+
+        const graph = composer.getGraph()
+        const runtime = await composer.compose()
+        const inspection = runtime.inspect()
+
+        expect(inspection.graph).toEqual(graph)
+        expect(inspection.edges).toEqual(graph.edges)
+        expect(inspection.edges).toEqual([
+            {
+                edgeKind: 'binding',
+                consumerModuleId: 'inspect-runtime-edge-contact-requests',
+                requiredTokenId: 'composer.auth-reader',
+                dependencyKind: 'external',
+                bindingTokenId: 'composer.auth-reader',
+                bindingKind: 'value'
+            },
+            {
+                edgeKind: 'capability',
+                consumerModuleId: 'inspect-runtime-edge-notifications',
+                requiredTokenId: 'composer.auth-public-api',
+                dependencyKind: 'shared',
+                providerModuleId: 'inspect-runtime-edge-auth',
+                capabilityTokenId: 'composer.auth-public-api',
+                capabilityKind: 'public-api'
+            }
+        ])
+        expect(inspection.validation).toEqual({
+            ok: true,
+            diagnostics: []
+        })
+        expect(Object.isFrozen(inspection.graph)).toBe(true)
+        expect(Object.isFrozen(inspection.edges[0])).toBe(true)
+        expect(JSON.stringify(inspection)).not.toContain('edge-binding-user')
+
+        await runtime.dispose()
+    })
+
+    test('does not execute lazy factories or resources during runtime inspection', async () => {
+        let bindingFactoryCalls = 0
+        let providerFactoryCalls = 0
+        let resourceFactoryCalls = 0
+        const contactRequestsModule = defineModule({
+            id: 'inspect-runtime-lazy-contact-requests',
+            requires: [
+                {
+                    token: AUTH_READER
+                }
+            ],
+            provides: [
+                {
+                    token: CONTACT_REQUESTS_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(CONTACT_REQUESTS_PUBLIC_API).toFactory((providerContext) => {
+                    providerFactoryCalls += 1
+                    const authReader = providerContext.get(AUTH_READER)
+
+                    return {
+                        submit(): string {
+                            return authReader.currentUserId()
+                        }
+                    }
+                })
+            }
+        })
+        const resourceModule = defineModule({
+            id: 'inspect-runtime-lazy-resource',
+            provides: [
+                {
+                    token: RESOURCE_PUBLIC_API,
+                    kind: 'shared-service'
+                }
+            ],
+            setup(context): void {
+                context
+                    .bind(RESOURCE_PUBLIC_API)
+                    .toAsyncResource(async () => {
+                        resourceFactoryCalls += 1
+
+                        return {
+                            value: {
+                                status(): string {
+                                    return 'lazy-open'
+                                }
+                            }
+                        }
+                    })
+                    .singleton()
+            }
+        })
+        const composer = createComposer().use(contactRequestsModule).use(resourceModule)
+
+        composer.bind(AUTH_READER).toFactory(() => {
+            bindingFactoryCalls += 1
+
+            return {
+                currentUserId(): string {
+                    return 'lazy-binding-user'
+                }
+            }
+        })
+
+        expect(composer.validate()).toEqual({
+            ok: true,
+            diagnostics: []
+        })
+        expect(composer.inspect().validation.ok).toBe(true)
+        expect(composer.getGraph().edges).toEqual([
+            {
+                edgeKind: 'binding',
+                consumerModuleId: 'inspect-runtime-lazy-contact-requests',
+                requiredTokenId: 'composer.auth-reader',
+                dependencyKind: 'external',
+                bindingTokenId: 'composer.auth-reader',
+                bindingKind: 'factory'
+            }
+        ])
+        expect(bindingFactoryCalls).toBe(0)
+        expect(providerFactoryCalls).toBe(0)
+        expect(resourceFactoryCalls).toBe(0)
+
+        const runtime = await composer.compose()
+        const inspection = runtime.inspect()
+
+        expect(inspection.validation).toEqual({
+            ok: true,
+            diagnostics: []
+        })
+        expect(inspection.providerRegistrations).toEqual([
+            {
+                moduleId: 'inspect-runtime-lazy-contact-requests',
+                tokenId: 'composer.contact-requests-public-api',
+                capabilityKind: 'public-api',
+                visibility: 'exported',
+                registrationKind: 'single',
+                providers: [
+                    {
+                        providerKind: 'factory',
+                        lifetime: 'transient'
+                    }
+                ]
+            },
+            {
+                moduleId: 'inspect-runtime-lazy-resource',
+                tokenId: 'composer.resource-public-api',
+                capabilityKind: 'shared-service',
+                visibility: 'exported',
+                registrationKind: 'single',
+                providers: [
+                    {
+                        providerKind: 'async-resource',
+                        lifetime: 'singleton',
+                        initialization: 'lazy'
+                    }
+                ]
+            }
+        ])
+        expect(bindingFactoryCalls).toBe(0)
+        expect(providerFactoryCalls).toBe(0)
+        expect(resourceFactoryCalls).toBe(0)
+
+        const renderedInspection = JSON.stringify(inspection)
+
+        expect(renderedInspection).not.toContain('lazy-binding-user')
+        expect(renderedInspection).not.toContain('lazy-open')
+
+        await runtime.dispose()
+    })
+
     test('preserves inspection public API type assertions', async () => {
         const composer = createComposer()
         const composerInspection = composer.inspect()

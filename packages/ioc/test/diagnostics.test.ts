@@ -14,6 +14,7 @@ import {
     ScopeDisposedError,
     createContainer
 } from '../src/container.js'
+import { ModuleCycleError } from '../src/composer.js'
 import {
     diagnosticFromError,
     formatDiagnostics,
@@ -358,6 +359,34 @@ describe('diagnostics error foundation', () => {
                 '   Message: Second diagnostic',
                 '   Details:',
                 '     action: inspect graph'
+            ].join('\n')
+        )
+    })
+
+    test('formats module cycle diagnostic paths deterministically', () => {
+        const diagnostic = diagnosticFromError(
+            new ModuleCycleError({
+                moduleIdPath: ['cycle-a', 'cycle-b', 'cycle-a'],
+                tokenIdPath: ['cycle.b', 'cycle.a'],
+                edgeKinds: ['capability', 'capability']
+            })
+        )
+
+        expect(
+            formatDiagnostics({
+                ok: false,
+                diagnostics: [diagnostic]
+            })
+        ).toBe(
+            [
+                'Diagnostic report: failed',
+                'Diagnostics: 1',
+                '1. [error] SAGIFIRE_IOC_MODULE_CYCLE',
+                '   Message: Module dependency cycle detected: cycle-a -> cycle-b -> cycle-a',
+                '   Details:',
+                '     moduleIdPath: cycle-a -> cycle-b -> cycle-a',
+                '     tokenIdPath: cycle.b -> cycle.a',
+                '     edgeKinds: ["capability", "capability"]'
             ].join('\n')
         )
     })

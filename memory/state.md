@@ -1,6 +1,6 @@
 # State
 
-Updated: 2026-06-30
+Updated: 2026-07-01
 Starter Kit Version: 3.0
 PDADM MVP Version: 0.3
 
@@ -249,6 +249,20 @@ capability dependency edges, module/token path diagnostics, integration into
 `composer.compose()`, plus runtime/type/export tests. RUN-001 не реалізовував DSL,
 adapters, testing helpers або runtime inspection hardening task scope.
 
+Stage 10 runtime inspection hardening implementation завершено після task-level human
+review approval:
+
+- [TASK-06.30-0027-stage-10-runtime-inspection-hardening](tasks/plan/TASK-06.30-0027-stage-10-runtime-inspection-hardening/index.md)
+
+RUN-001 підсилив composed `runtime.inspect()` regression coverage for final Stage 10 graph
+shape, runtime/composer edge parity, binding-edge semantics, non-execution of lazy
+binding/provider/resource factories during validation/inspection, deterministic module
+cycle path formatting, root/composer package export smoke tests and README sync. RUN-001 не
+реалізовував DSL, adapters, testing helpers або new binding dependency declaration API.
+
+Stage 10 module graph cycle detection завершено. Stage 11 DSL лишається наступним
+roadmap-фокусом.
+
 ## Active Tasks
 
 Немає задач у статусі `active`.
@@ -338,7 +352,7 @@ adapters, testing helpers або runtime inspection hardening task scope.
   - Status: done
   - Summary: Stage 10 module cycle diagnostics implementation task.
 - [TASK-06.30-0027-stage-10-runtime-inspection-hardening](tasks/plan/TASK-06.30-0027-stage-10-runtime-inspection-hardening/index.md)
-  - Status: backlog
+  - Status: done
   - Summary: Stage 10 runtime inspection hardening implementation task.
 
 ## Recent Decisions
@@ -584,6 +598,16 @@ adapters, testing helpers або runtime inspection hardening task scope.
   integration into `validate()` / `inspect().validation` / `prepare()` / `compose()`.
 - `TASK-06.30-0026-stage-10-module-cycle-diagnostics` завершена після task-level human
   review approval.
+- `TASK-06.30-0027-stage-10-runtime-inspection-hardening` RUN-001 виконаний агентом і
+  переведений у `review`.
+- Stage 10 runtime inspection hardening RUN-001 підсилив runtime/composer edge parity,
+  binding-edge regression coverage, non-execution of lazy factories/resources during
+  validation/inspection, deterministic module cycle path formatting and package export
+  smoke tests.
+- `TASK-06.30-0027-stage-10-runtime-inspection-hardening` завершена після task-level human
+  review approval.
+- Stage 10 module graph cycle detection завершено після approval фінальної runtime
+  inspection hardening task.
 
 ## Current Risks
 
@@ -600,7 +624,7 @@ adapters, testing helpers або runtime inspection hardening task scope.
 
 ## Next Steps
 
-- Запустити `TASK-06.30-0027-stage-10-runtime-inspection-hardening`.
+- Запланувати Stage 11 DSL як наступний roadmap-фокус.
 
 ## Open Questions
 
