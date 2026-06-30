@@ -201,6 +201,16 @@ module private providers, scoped public runtime wrapping, async/resource/disposa
 pass-through through the internal container runtime and tests. RUN-001 не реалізовував
 inspection API, DSL/adapters, testing helpers або Stage 10 cycle/dependency-edge detection.
 
+Stage 9 inspection API implementation завершено після task-level human review approval:
+
+- [TASK-06.30-0023-stage-9-inspection-api](tasks/plan/TASK-06.30-0023-stage-9-inspection-api/index.md)
+
+RUN-001 реалізував `composer.inspect()`, `composer.getGraph()`, composed
+`runtime.inspect()`, public inspection types, deterministic safe module graph metadata,
+exported provider registration summaries, root / `@sagifire/ioc/composer` type exports,
+tests and docs sync. RUN-001 не реалізовував Stage 10 module cycle detection, capability
+dependency edges, binding dependency edges, DSL/adapters або testing helpers.
+
 ## Active Tasks
 
 Немає задач у статусі `active`.
@@ -278,7 +288,7 @@ inspection API, DSL/adapters, testing helpers або Stage 10 cycle/dependency-e
   - Status: done
   - Summary: Stage 9 composed runtime and capabilities implementation task.
 - [TASK-06.30-0023-stage-9-inspection-api](tasks/plan/TASK-06.30-0023-stage-9-inspection-api/index.md)
-  - Status: backlog
+  - Status: done
   - Summary: Stage 9 inspection API implementation task.
 
 ## Recent Decisions
@@ -484,11 +494,20 @@ inspection API, DSL/adapters, testing helpers або Stage 10 cycle/dependency-e
   helpers або Stage 10 cycle/dependency-edge detection.
 - `TASK-06.30-0022-stage-9-composed-runtime-capabilities` завершена після task-level
   human review approval.
+- `TASK-06.30-0023-stage-9-inspection-api` RUN-001 виконаний агентом і переведений у
+  `review` і approved після task-level human review.
+- Stage 9 inspection API RUN-001 реалізував `composer.inspect()`, `composer.getGraph()`,
+  composed `runtime.inspect()`, public inspection types, safe deterministic graph metadata
+  and exported provider registration summaries.
+- Stage 9 inspection API RUN-001 не реалізовував Stage 10 module cycle detection,
+  capability dependency edges, binding dependency edges, DSL/adapters або testing helpers.
+- `TASK-06.30-0023-stage-9-inspection-api` завершена після task-level human review
+  approval.
 
 ## Current Risks
 
-- Inspection API, DSL, Next.js adapters і testing helpers залишаються out of scope до
-  відповідних roadmap stages.
+- DSL, Next.js adapters і testing helpers залишаються out of scope до відповідних roadmap
+  stages.
 - Module-level cycle detection and dependency-edge analysis залишаються out of scope до
   Stage 10, навіть після початку Stage 9 composer work.
 - Root `SPEC.md` лишається source reference і може дублювати canonical memory; для
@@ -499,9 +518,7 @@ inspection API, DSL/adapters, testing helpers або Stage 10 cycle/dependency-e
 
 ## Next Steps
 
-- Запустити
-  [TASK-06.30-0023-stage-9-inspection-api](tasks/plan/TASK-06.30-0023-stage-9-inspection-api/index.md)
-  як наступну Stage 9 autonomous implementation task.
+- Перейти до Stage 10 module graph cycle detection planning/implementation за roadmap.
 
 ## Open Questions
 

@@ -26,6 +26,7 @@ Implemented in the current stage:
   `composer.bind()` and `composer.validate()`.
 - module setup and private provider preparation through `composer.prepare()`.
 - composed runtime capability access through `composer.compose()`.
+- safe inspection metadata through `composer.inspect()`, `composer.getGraph()` and
+  `runtime.inspect()`.
 
-DSL, graph-aware diagnostics, inspection APIs and framework adapters are planned for later
-roadmap stages.
+DSL, graph-aware diagnostics and framework adapters are planned for later roadmap stages.

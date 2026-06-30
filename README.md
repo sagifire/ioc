@@ -11,8 +11,10 @@ multi-provider contributions and scopes. Stage 7 async single-provider bindings,
 Stage 9 has started with module definition foundation through `defineModule()`, composer
 builder/static validation through `createComposer()`, `use()`, `bind()` and `validate()`,
 module setup/private provider preparation through `prepare()`, and composed runtime
-capability access through `compose()`. DSL, graph-aware diagnostics and framework adapter
-behavior are planned for later roadmap stages.
+capability access through `compose()`. Composer and runtime inspection are available
+through `composer.inspect()`, `composer.getGraph()` and `runtime.inspect()`. DSL,
+graph-aware diagnostics and framework adapter behavior are planned for later roadmap
+stages.
 
 ## Packages
 
@@ -34,7 +36,7 @@ pnpm format
 ## Documentation
 
 The files in `docs/` are skeletons for later stages. They intentionally do not describe
-unimplemented DSL, graph validation, inspection or adapter APIs before those layers are
+unimplemented DSL, graph validation or adapter APIs before those layers are
 implemented.
 
 ## License

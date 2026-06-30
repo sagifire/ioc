@@ -13,15 +13,26 @@ import {
     type ComposedRuntime,
     createComposer,
     defineModule,
+    type CapabilityMetadata,
     type Composer,
     type ComposerBindingBuilder,
     type ComposerBindingContext,
+    type ComposerInspection,
+    type CompositionBindingMetadata,
+    type InspectionProviderKind,
     type ModuleDefinition,
     type ModuleDefinitionInput,
     type ModuleDependencyDefinition,
+    type ModuleGraph,
+    type ModuleNodeMetadata,
     type ModuleSetupContext,
     type ModuleSetupResult,
-    type PreparedComposition
+    type PreparedComposition,
+    type ProviderRegistrationProviderSummary,
+    type ProviderRegistrationSummary,
+    type RequiredPortMetadata,
+    type RequiredPortSatisfaction,
+    type RuntimeInspection
 } from '../src/composer.js'
 import {
     AsyncProviderAccessError,
@@ -1093,7 +1104,7 @@ describe('module setup and private providers', () => {
         expect(preparedComposition.capabilities[0]?.tokenId).toBe('composer.auth-public-api')
     })
 
-    test('exposes composer runtime API without later inspection, Stage 10 or DSL APIs', async () => {
+    test('exposes composer runtime and inspection API without Stage 10 or DSL APIs', async () => {
         const module = await import('../src/composer.js')
         const composer = createComposer()
 
@@ -1102,16 +1113,434 @@ describe('module setup and private providers', () => {
         expect(module.PrivateProviderAccessError).toBeTypeOf('function')
         expect(module.MissingModuleProviderError).toBeTypeOf('function')
         expect(composer.validate).toBeTypeOf('function')
+        expect(composer.inspect).toBeTypeOf('function')
+        expect(composer.getGraph).toBeTypeOf('function')
         expect(composer.prepare).toBeTypeOf('function')
         expect(composer.compose).toBeTypeOf('function')
-        expect('inspect' in composer).toBe(false)
-        expect('getGraph' in composer).toBe(false)
+        expect('detectCycles' in composer).toBe(false)
+        expect('assertGraph' in module).toBe(false)
         expect('module' in module).toBe(false)
         expect('defineApp' in module).toBe(false)
         expect('adapt' in module).toBe(false)
         expect(new ComposerValidationError(composer.validate())).toBeInstanceOf(
             ComposerValidationError
         )
+    })
+})
+
+describe('inspection api', () => {
+    test('inspects composer graph metadata deterministically without exposing provider values', () => {
+        const authModule = defineModule({
+            id: 'inspect-auth',
+            version: '1.0.0',
+            metadata: {
+                secret: 'metadata-secret'
+            },
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api',
+                    description: 'Authentication public API'
+                }
+            ],
+            setup(): void {}
+        })
+        const contactRequestsModule = defineModule({
+            id: 'inspect-contact-requests',
+            metadata: 'contact-metadata',
+            requires: [
+                {
+                    token: AUTH_READER,
+                    description: 'Consumer-owned auth reader'
+                },
+                {
+                    token: OPTIONAL_AUTH_READER,
+                    required: false,
+                    kind: 'shared'
+                }
+            ],
+            provides: [
+                {
+                    token: CONTACT_REQUESTS_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(): void {}
+        })
+        const composer = createComposer().use(authModule).use(contactRequestsModule)
+
+        composer.bind(AUTH_READER).toValue({
+            currentUserId(): string {
+                return 'binding-secret-user'
+            }
+        })
+
+        const graph = composer.getGraph()
+        const inspection = composer.inspect()
+
+        expect(inspection.graph).toEqual(graph)
+        expect(inspection.modules).toEqual([
+            {
+                id: 'inspect-auth',
+                version: '1.0.0',
+                metadata: {
+                    valueType: 'object'
+                },
+                requiredPortIds: [],
+                capabilityIds: ['composer.auth-public-api']
+            },
+            {
+                id: 'inspect-contact-requests',
+                metadata: {
+                    valueType: 'string',
+                    value: 'contact-metadata'
+                },
+                requiredPortIds: [
+                    'composer.auth-reader',
+                    'composer.optional-auth-reader'
+                ],
+                capabilityIds: ['composer.contact-requests-public-api']
+            }
+        ])
+        expect(inspection.requiredPorts).toEqual([
+            {
+                moduleId: 'inspect-contact-requests',
+                tokenId: 'composer.auth-reader',
+                required: true,
+                kind: 'external',
+                description: 'Consumer-owned auth reader',
+                satisfiedBy: 'binding'
+            },
+            {
+                moduleId: 'inspect-contact-requests',
+                tokenId: 'composer.optional-auth-reader',
+                required: false,
+                kind: 'shared',
+                satisfiedBy: 'optional'
+            }
+        ])
+        expect(inspection.capabilities).toEqual([
+            {
+                moduleId: 'inspect-auth',
+                tokenId: 'composer.auth-public-api',
+                kind: 'public-api',
+                description: 'Authentication public API'
+            },
+            {
+                moduleId: 'inspect-contact-requests',
+                tokenId: 'composer.contact-requests-public-api',
+                kind: 'public-api'
+            }
+        ])
+        expect(inspection.bindings).toEqual([
+            {
+                tokenId: 'composer.auth-reader',
+                kind: 'value',
+                providerKind: 'value',
+                lifetime: 'singleton'
+            }
+        ])
+        expect(inspection.validation).toEqual({
+            ok: true,
+            diagnostics: []
+        })
+        expect(composer.inspect()).toEqual(inspection)
+        expect(composer.getGraph()).toEqual(graph)
+        expect(Object.isFrozen(inspection)).toBe(true)
+        expect(Object.isFrozen(inspection.modules)).toBe(true)
+        expect(Object.isFrozen(inspection.requiredPorts)).toBe(true)
+
+        const renderedInspection = JSON.stringify(inspection)
+
+        expect(renderedInspection).not.toContain('binding-secret-user')
+        expect(renderedInspection).not.toContain('metadata-secret')
+        expect('edges' in graph).toBe(false)
+        expect('cycles' in graph).toBe(false)
+
+        const invalidInspection = createComposer()
+            .use(
+                defineModule({
+                    id: 'inspect-missing-required-port',
+                    requires: [
+                        {
+                            token: AUTH_READER
+                        }
+                    ],
+                    setup(): void {}
+                })
+            )
+            .inspect()
+
+        expect(invalidInspection.validation.ok).toBe(false)
+        expect(invalidInspection.requiredPorts[0]?.satisfiedBy).toBe('missing')
+    })
+
+    test('inspects composed runtime exported provider registrations without private internals', async () => {
+        const authModule = defineModule({
+            id: 'inspect-runtime-auth',
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context
+                    .bind(AUTH_PUBLIC_API)
+                    .toFactory(() => {
+                        return {
+                            requireUser(): string {
+                                return 'runtime-secret-user'
+                            }
+                        }
+                    })
+                    .singleton()
+            }
+        })
+        const contactRequestsModule = defineModule({
+            id: 'inspect-runtime-contact-requests',
+            requires: [
+                {
+                    token: AUTH_READER
+                }
+            ],
+            provides: [
+                {
+                    token: CONTACT_REQUESTS_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(AUTH_SECRET).toValue({
+                    secret: 'runtime-private-secret'
+                })
+                context.bind(CONTACT_REQUESTS_PUBLIC_API).toFactory((providerContext) => {
+                    const authReader = providerContext.get(AUTH_READER)
+                    const secret = providerContext.get(AUTH_SECRET)
+
+                    return {
+                        submit(): string {
+                            return `${authReader.currentUserId()}:${secret.secret}`
+                        }
+                    }
+                })
+            }
+        })
+        const auditModule = defineModule({
+            id: 'inspect-runtime-audit',
+            provides: [
+                {
+                    token: AUDIT_EVENTS,
+                    kind: 'event-subscriber'
+                }
+            ],
+            setup(context): void {
+                context.add(AUDIT_EVENTS).toValue('created')
+                context
+                    .add(AUDIT_EVENTS)
+                    .toFactory(() => {
+                        return 'submitted'
+                    })
+                    .singleton()
+            }
+        })
+        const resourceModule = defineModule({
+            id: 'inspect-runtime-resource',
+            provides: [
+                {
+                    token: RESOURCE_PUBLIC_API,
+                    kind: 'shared-service'
+                }
+            ],
+            setup(context): void {
+                context
+                    .bind(RESOURCE_PUBLIC_API)
+                    .toAsyncResource(async () => {
+                        return {
+                            value: {
+                                status(): string {
+                                    return 'open'
+                                }
+                            }
+                        }
+                    })
+                    .singleton()
+                    .eager()
+            }
+        })
+        const composer = createComposer()
+            .use(authModule)
+            .use(contactRequestsModule)
+            .use(auditModule)
+            .use(resourceModule)
+
+        composer.bind(AUTH_READER).toFactory((context) => {
+            const auth = context.get(AUTH_PUBLIC_API)
+
+            return {
+                currentUserId(): string {
+                    return auth.requireUser()
+                }
+            }
+        })
+
+        const runtime = await composer.compose()
+        const inspection = runtime.inspect()
+
+        expect(runtime.inspect()).toBe(inspection)
+        expect(runtime.get(CONTACT_REQUESTS_PUBLIC_API).submit()).toBe(
+            'runtime-secret-user:runtime-private-secret'
+        )
+        expect(inspection.validation).toEqual({
+            ok: true,
+            diagnostics: []
+        })
+        expect(inspection.bindings).toEqual([
+            {
+                tokenId: 'composer.auth-reader',
+                kind: 'factory',
+                providerKind: 'factory',
+                lifetime: 'transient'
+            }
+        ])
+        expect(inspection.requiredPorts).toEqual([
+            {
+                moduleId: 'inspect-runtime-contact-requests',
+                tokenId: 'composer.auth-reader',
+                required: true,
+                kind: 'external',
+                satisfiedBy: 'binding'
+            }
+        ])
+        expect(inspection.providerRegistrations).toEqual([
+            {
+                moduleId: 'inspect-runtime-auth',
+                tokenId: 'composer.auth-public-api',
+                capabilityKind: 'public-api',
+                visibility: 'exported',
+                registrationKind: 'single',
+                providers: [
+                    {
+                        providerKind: 'factory',
+                        lifetime: 'singleton'
+                    }
+                ]
+            },
+            {
+                moduleId: 'inspect-runtime-contact-requests',
+                tokenId: 'composer.contact-requests-public-api',
+                capabilityKind: 'public-api',
+                visibility: 'exported',
+                registrationKind: 'single',
+                providers: [
+                    {
+                        providerKind: 'factory',
+                        lifetime: 'transient'
+                    }
+                ]
+            },
+            {
+                moduleId: 'inspect-runtime-audit',
+                tokenId: 'composer.audit-events',
+                capabilityKind: 'event-subscriber',
+                visibility: 'exported',
+                registrationKind: 'multi',
+                providers: [
+                    {
+                        providerKind: 'value',
+                        lifetime: 'singleton'
+                    },
+                    {
+                        providerKind: 'factory',
+                        lifetime: 'singleton'
+                    }
+                ]
+            },
+            {
+                moduleId: 'inspect-runtime-resource',
+                tokenId: 'composer.resource-public-api',
+                capabilityKind: 'shared-service',
+                visibility: 'exported',
+                registrationKind: 'single',
+                providers: [
+                    {
+                        providerKind: 'async-resource',
+                        lifetime: 'singleton',
+                        initialization: 'eager'
+                    }
+                ]
+            }
+        ])
+        expect(Object.isFrozen(inspection)).toBe(true)
+        expect(Object.isFrozen(inspection.providerRegistrations)).toBe(true)
+        expect(Object.isFrozen(inspection.providerRegistrations[0]?.providers)).toBe(true)
+
+        const renderedInspection = JSON.stringify(inspection)
+
+        expect(renderedInspection).not.toContain('runtime-private-secret')
+        expect(renderedInspection).not.toContain('composer.auth-secret')
+        expect(renderedInspection).not.toContain('sagifire/ioc/private')
+        expect('edges' in inspection.graph).toBe(false)
+        expect('cycles' in inspection.graph).toBe(false)
+
+        await runtime.dispose()
+    })
+
+    test('preserves inspection public API type assertions', async () => {
+        const composer = createComposer()
+        const composerInspection = composer.inspect()
+        const graph = composer.getGraph()
+
+        expectTypeOf(composerInspection).toEqualTypeOf<ComposerInspection>()
+        expectTypeOf(graph).toEqualTypeOf<ModuleGraph>()
+        expectTypeOf(composerInspection.modules[0]).toEqualTypeOf<
+            ModuleNodeMetadata | undefined
+        >()
+        expectTypeOf(composerInspection.requiredPorts[0]).toEqualTypeOf<
+            RequiredPortMetadata | undefined
+        >()
+        expectTypeOf(composerInspection.capabilities[0]).toEqualTypeOf<
+            CapabilityMetadata | undefined
+        >()
+        expectTypeOf(composerInspection.bindings[0]).toEqualTypeOf<
+            CompositionBindingMetadata | undefined
+        >()
+        expectTypeOf(composerInspection.validation.ok).toEqualTypeOf<boolean>()
+        expectTypeOf<InspectionProviderKind>().toEqualTypeOf<
+            'value' | 'factory' | 'class' | 'async-factory' | 'async-resource'
+        >()
+        expectTypeOf<RequiredPortSatisfaction>().toEqualTypeOf<
+            'binding' | 'capability' | 'optional' | 'missing'
+        >()
+
+        const module = defineModule({
+            id: 'inspect-runtime-typed',
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(AUTH_PUBLIC_API).toValue({
+                    requireUser(): string {
+                        return 'typed-user'
+                    }
+                })
+            }
+        })
+        const runtime = await createComposer().use(module).compose()
+        const runtimeInspection = runtime.inspect()
+
+        expectTypeOf(runtimeInspection).toEqualTypeOf<RuntimeInspection>()
+        expectTypeOf(runtimeInspection.providerRegistrations[0]).toEqualTypeOf<
+            ProviderRegistrationSummary | undefined
+        >()
+        expectTypeOf(runtimeInspection.providerRegistrations[0]?.providers[0]).toEqualTypeOf<
+            ProviderRegistrationProviderSummary | undefined
+        >()
+
+        await runtime.dispose()
     })
 })
 

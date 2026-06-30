@@ -7,8 +7,11 @@ import {
     type ContainerBuilder,
     type ContainerRuntime,
     type CreateScopeOptions,
+    type AsyncProviderInitializationMode,
     type LifetimeBinding,
     type MultiBindingBuilder,
+    type ProviderLifetime,
+    type ProviderRegistrationKind,
     type ResolutionContext,
     type Scope,
     type ScopeCallback,
@@ -94,6 +97,15 @@ type Awaitable<TValue> = TValue | Promise<TValue>
 
 export type ComposerBindingKind = 'value' | 'factory' | 'class' | 'async-factory'
 
+export type InspectionProviderKind =
+    | 'value'
+    | 'factory'
+    | 'class'
+    | 'async-factory'
+    | 'async-resource'
+
+export type RequiredPortSatisfaction = 'binding' | 'capability' | 'optional' | 'missing'
+
 export interface ComposerBindingContext {
     get<TValue>(token: Token<TValue>): TValue
     tryGet<TValue>(token: Token<TValue>): TValue | undefined
@@ -119,6 +131,8 @@ export interface Composer {
     use(moduleDefinition: ModuleDefinition): Composer
     bind<TValue>(token: Token<TValue>): ComposerBindingBuilder<TValue>
     validate(): DiagnosticReport
+    inspect(): ComposerInspection
+    getGraph(): ModuleGraph
     prepare(): Promise<PreparedComposition>
     compose(): Promise<ComposedRuntime>
 }
@@ -132,7 +146,78 @@ export interface ComposedRuntime {
     withScope<TValue>(options: CreateScopeOptions, callback: ScopeCallback<TValue>): Promise<TValue>
     getAsync<TValue>(token: Token<TValue>): Promise<TValue>
     tryGetAsync<TValue>(token: Token<TValue>): Promise<TValue | undefined>
+    inspect(): RuntimeInspection
     dispose(): Promise<void>
+}
+
+export interface InspectionMetadata {
+    readonly valueType: string
+    readonly value?: string | number | boolean | null
+}
+
+export interface ModuleNodeMetadata {
+    readonly id: string
+    readonly version?: string
+    readonly metadata?: InspectionMetadata
+    readonly requiredPortIds: readonly string[]
+    readonly capabilityIds: readonly string[]
+}
+
+export interface RequiredPortMetadata {
+    readonly moduleId: string
+    readonly tokenId: string
+    readonly required: boolean
+    readonly kind: ModuleDependencyKind
+    readonly description?: string
+    readonly satisfiedBy: RequiredPortSatisfaction
+}
+
+export interface CapabilityMetadata {
+    readonly moduleId: string
+    readonly tokenId: string
+    readonly kind: ModuleCapabilityKind
+    readonly description?: string
+}
+
+export interface CompositionBindingMetadata {
+    readonly tokenId: string
+    readonly kind: ComposerBindingKind
+    readonly providerKind: InspectionProviderKind
+    readonly lifetime?: ProviderLifetime
+    readonly initialization?: AsyncProviderInitializationMode
+}
+
+export interface ProviderRegistrationProviderSummary {
+    readonly providerKind: InspectionProviderKind
+    readonly lifetime?: ProviderLifetime
+    readonly initialization?: AsyncProviderInitializationMode
+}
+
+export interface ProviderRegistrationSummary {
+    readonly moduleId: string
+    readonly tokenId: string
+    readonly capabilityKind: ModuleCapabilityKind
+    readonly visibility: 'exported'
+    readonly registrationKind: ProviderRegistrationKind
+    readonly providers: readonly ProviderRegistrationProviderSummary[]
+}
+
+export interface ModuleGraph {
+    readonly modules: readonly ModuleNodeMetadata[]
+    readonly requiredPorts: readonly RequiredPortMetadata[]
+    readonly capabilities: readonly CapabilityMetadata[]
+    readonly bindings: readonly CompositionBindingMetadata[]
+}
+
+export interface ComposerInspection extends ModuleGraph {
+    readonly graph: ModuleGraph
+    readonly validation: DiagnosticReport
+}
+
+export interface RuntimeInspection extends ModuleGraph {
+    readonly graph: ModuleGraph
+    readonly validation: DiagnosticReport
+    readonly providerRegistrations: readonly ProviderRegistrationSummary[]
 }
 
 export interface PreparedCompositionModule {
@@ -494,11 +579,18 @@ type ComposerBindingRecord =
           readonly factory: ComposerAsyncBindingFactory<unknown>
       }
 
+interface ProviderRegistrationRecord {
+    readonly providerKind: InspectionProviderKind
+    lifetime: ProviderLifetime | undefined
+    initialization: AsyncProviderInitializationMode | undefined
+}
+
 interface RegisteredCapabilityProvider {
     readonly moduleId: string
     readonly tokenId: string
     readonly kind: ModuleCapabilityKind
-    readonly registrationKind: 'single' | 'multi'
+    readonly registrationKind: ProviderRegistrationKind
+    readonly providers: ProviderRegistrationRecord[]
 }
 
 interface CompositionAccessModel {
@@ -517,6 +609,7 @@ interface LiveModuleSetupContext {
 
 interface BuiltComposition {
     readonly modules: readonly ModuleDefinition[]
+    readonly bindings: readonly ComposerBindingRecord[]
     readonly access: CompositionAccessModel
     readonly runtime: ContainerRuntime
 }
@@ -597,6 +690,14 @@ export function createComposer(): Composer {
             return validateComposer(modules, bindings)
         },
 
+        inspect(): ComposerInspection {
+            return createComposerInspection(modules, bindings)
+        },
+
+        getGraph(): ModuleGraph {
+            return createModuleGraph(modules, bindings)
+        },
+
         prepare(): Promise<PreparedComposition> {
             return prepareComposition(modules, bindings)
         },
@@ -648,6 +749,88 @@ function createComposerBindingBuilder<TValue>(
     }
 }
 
+function createComposerInspection(
+    modules: readonly ModuleDefinition[],
+    bindings: readonly ComposerBindingRecord[]
+): ComposerInspection {
+    const moduleSnapshot = [...modules]
+    const bindingSnapshot = [...bindings]
+    const graph = createModuleGraph(moduleSnapshot, bindingSnapshot)
+
+    return Object.freeze({
+        modules: graph.modules,
+        requiredPorts: graph.requiredPorts,
+        capabilities: graph.capabilities,
+        bindings: graph.bindings,
+        graph,
+        validation: validateComposer(moduleSnapshot, bindingSnapshot)
+    })
+}
+
+function createRuntimeInspection(
+    modules: readonly ModuleDefinition[],
+    bindings: readonly ComposerBindingRecord[],
+    access: CompositionAccessModel
+): RuntimeInspection {
+    const graph = createModuleGraph(modules, bindings)
+
+    return Object.freeze({
+        modules: graph.modules,
+        requiredPorts: graph.requiredPorts,
+        capabilities: graph.capabilities,
+        bindings: graph.bindings,
+        graph,
+        validation: validateComposer(modules, bindings),
+        providerRegistrations: createProviderRegistrationSummaries(modules, access)
+    })
+}
+
+function createModuleGraph(
+    modules: readonly ModuleDefinition[],
+    bindings: readonly ComposerBindingRecord[]
+): ModuleGraph {
+    const moduleSnapshot = [...modules]
+    const bindingSnapshot = [...bindings]
+    const providedTokenIds = collectProvidedTokenIds(moduleSnapshot)
+    const bindingTokenIds = collectBindingTokenIds(bindingSnapshot)
+    const moduleMetadata = Object.freeze(
+        moduleSnapshot.map((moduleDefinition) => {
+            return createModuleNodeMetadata(moduleDefinition)
+        })
+    )
+    const requiredPorts = Object.freeze(
+        moduleSnapshot.flatMap((moduleDefinition) => {
+            return moduleDefinition.requires.map((dependency) => {
+                return createRequiredPortMetadata(
+                    moduleDefinition,
+                    dependency,
+                    providedTokenIds,
+                    bindingTokenIds
+                )
+            })
+        })
+    )
+    const capabilities = Object.freeze(
+        moduleSnapshot.flatMap((moduleDefinition) => {
+            return moduleDefinition.provides.map((capability) => {
+                return createCapabilityMetadata(moduleDefinition, capability)
+            })
+        })
+    )
+    const bindingMetadata = Object.freeze(
+        bindingSnapshot.map((binding) => {
+            return createCompositionBindingMetadata(binding)
+        })
+    )
+
+    return Object.freeze({
+        modules: moduleMetadata,
+        requiredPorts,
+        capabilities,
+        bindings: bindingMetadata
+    })
+}
+
 async function prepareComposition(
     modules: readonly ModuleDefinition[],
     bindings: readonly ComposerBindingRecord[]
@@ -663,7 +846,12 @@ async function composeRuntime(
 ): Promise<ComposedRuntime> {
     const composition = await buildCompositionRuntime(modules, bindings)
 
-    return createComposedRuntime(composition.runtime, composition.access)
+    return createComposedRuntime(
+        composition.runtime,
+        composition.modules,
+        composition.bindings,
+        composition.access
+    )
 }
 
 async function buildCompositionRuntime(
@@ -714,6 +902,7 @@ async function buildCompositionRuntime(
 
     return {
         modules: moduleSnapshot,
+        bindings: bindingSnapshot,
         access,
         runtime
     }
@@ -731,6 +920,249 @@ function createCompositionAccessModel(
         privateTokensByModuleId: new Map<string, Map<string, Token<unknown>>>(),
         registeredCapabilities: new Map<string, RegisteredCapabilityProvider>()
     }
+}
+
+function createModuleNodeMetadata(moduleDefinition: ModuleDefinition): ModuleNodeMetadata {
+    const requiredPortIds = Object.freeze(
+        moduleDefinition.requires.map((dependency) => {
+            return dependency.token.id
+        })
+    )
+    const capabilityIds = Object.freeze(
+        moduleDefinition.provides.map((capability) => {
+            return capability.token.id
+        })
+    )
+    const metadata = createInspectionMetadata(moduleDefinition.metadata)
+    const version = moduleDefinition.version
+    const base = {
+        id: moduleDefinition.id,
+        requiredPortIds,
+        capabilityIds
+    }
+
+    if (version === undefined) {
+        if (metadata === undefined) {
+            return Object.freeze(base)
+        }
+
+        return Object.freeze({
+            ...base,
+            metadata
+        })
+    }
+
+    if (metadata === undefined) {
+        return Object.freeze({
+            ...base,
+            version
+        })
+    }
+
+    return Object.freeze({
+        ...base,
+        version,
+        metadata
+    })
+}
+
+function createRequiredPortMetadata(
+    moduleDefinition: ModuleDefinition,
+    dependency: ModuleDependencyDefinition,
+    providedTokenIds: ReadonlySet<string>,
+    bindingTokenIds: ReadonlySet<string>
+): RequiredPortMetadata {
+    const base = {
+        moduleId: moduleDefinition.id,
+        tokenId: dependency.token.id,
+        required: dependency.required,
+        kind: dependency.kind,
+        satisfiedBy: getRequiredPortSatisfaction(dependency, providedTokenIds, bindingTokenIds)
+    }
+
+    if (dependency.description === undefined) {
+        return Object.freeze(base)
+    }
+
+    return Object.freeze({
+        ...base,
+        description: dependency.description
+    })
+}
+
+function createCapabilityMetadata(
+    moduleDefinition: ModuleDefinition,
+    capability: ModuleCapabilityDefinition
+): CapabilityMetadata {
+    const base = {
+        moduleId: moduleDefinition.id,
+        tokenId: capability.token.id,
+        kind: capability.kind
+    }
+
+    if (capability.description === undefined) {
+        return Object.freeze(base)
+    }
+
+    return Object.freeze({
+        ...base,
+        description: capability.description
+    })
+}
+
+function createCompositionBindingMetadata(
+    binding: ComposerBindingRecord
+): CompositionBindingMetadata {
+    if (binding.kind === 'value') {
+        return Object.freeze({
+            tokenId: binding.token.id,
+            kind: binding.kind,
+            providerKind: 'value',
+            lifetime: 'singleton'
+        })
+    }
+
+    if (binding.kind === 'factory') {
+        return Object.freeze({
+            tokenId: binding.token.id,
+            kind: binding.kind,
+            providerKind: 'factory',
+            lifetime: 'transient'
+        })
+    }
+
+    if (binding.kind === 'class') {
+        return Object.freeze({
+            tokenId: binding.token.id,
+            kind: binding.kind,
+            providerKind: 'class',
+            lifetime: 'transient'
+        })
+    }
+
+    return Object.freeze({
+        tokenId: binding.token.id,
+        kind: binding.kind,
+        providerKind: 'async-factory',
+        lifetime: 'transient',
+        initialization: 'lazy'
+    })
+}
+
+function createProviderRegistrationSummaries(
+    modules: readonly ModuleDefinition[],
+    access: CompositionAccessModel
+): readonly ProviderRegistrationSummary[] {
+    const summaries: ProviderRegistrationSummary[] = []
+
+    for (const moduleDefinition of modules) {
+        for (const capability of moduleDefinition.provides) {
+            const registration = access.registeredCapabilities.get(capability.token.id)
+
+            if (registration === undefined) {
+                continue
+            }
+
+            summaries.push(createProviderRegistrationSummary(registration))
+        }
+    }
+
+    return Object.freeze(summaries)
+}
+
+function createProviderRegistrationSummary(
+    registration: RegisteredCapabilityProvider
+): ProviderRegistrationSummary {
+    return Object.freeze({
+        moduleId: registration.moduleId,
+        tokenId: registration.tokenId,
+        capabilityKind: registration.kind,
+        visibility: 'exported',
+        registrationKind: registration.registrationKind,
+        providers: Object.freeze(
+            registration.providers.map((provider) => {
+                return createProviderRegistrationProviderSummary(provider)
+            })
+        )
+    })
+}
+
+function createProviderRegistrationProviderSummary(
+    provider: ProviderRegistrationRecord
+): ProviderRegistrationProviderSummary {
+    const lifetime = provider.lifetime
+    const initialization = provider.initialization
+    const base = {
+        providerKind: provider.providerKind
+    }
+
+    if (lifetime === undefined) {
+        if (initialization === undefined) {
+            return Object.freeze(base)
+        }
+
+        return Object.freeze({
+            ...base,
+            initialization
+        })
+    }
+
+    if (initialization === undefined) {
+        return Object.freeze({
+            ...base,
+            lifetime
+        })
+    }
+
+    return Object.freeze({
+        ...base,
+        lifetime,
+        initialization
+    })
+}
+
+function getRequiredPortSatisfaction(
+    dependency: ModuleDependencyDefinition,
+    providedTokenIds: ReadonlySet<string>,
+    bindingTokenIds: ReadonlySet<string>
+): RequiredPortSatisfaction {
+    if (!dependency.required) {
+        return 'optional'
+    }
+
+    if (bindingTokenIds.has(dependency.token.id)) {
+        return 'binding'
+    }
+
+    if (providedTokenIds.has(dependency.token.id)) {
+        return 'capability'
+    }
+
+    return 'missing'
+}
+
+function createInspectionMetadata(value: unknown): InspectionMetadata | undefined {
+    if (value === undefined) {
+        return undefined
+    }
+
+    const valueType = getValueType(value)
+
+    if (
+        typeof value === 'string' ||
+        typeof value === 'number' ||
+        typeof value === 'boolean' ||
+        value === null
+    ) {
+        return Object.freeze({
+            valueType,
+            value
+        })
+    }
+
+    return Object.freeze({
+        valueType
+    })
 }
 
 function applyComposerBindings(
@@ -829,45 +1261,87 @@ function createModuleBindingBuilder<TValue>(
     return {
         toValue(value: TValue): void {
             builder.toValue(value)
-            recordModuleProvider(moduleDefinition, originalToken, 'single', access)
+            recordModuleProvider(
+                moduleDefinition,
+                originalToken,
+                'single',
+                createProviderRegistrationRecord('value', 'singleton'),
+                access
+            )
         },
 
         toFactory(factory): LifetimeBinding {
+            const providerRegistration = createProviderRegistrationRecord('factory', 'transient')
             const lifetime = builder.toFactory((context) => {
                 return factory(createModuleResolutionContext(moduleDefinition, context, access))
             })
 
-            recordModuleProvider(moduleDefinition, originalToken, 'single', access)
+            recordModuleProvider(
+                moduleDefinition,
+                originalToken,
+                'single',
+                providerRegistration,
+                access
+            )
 
-            return lifetime
+            return createInspectableLifetimeBinding(lifetime, providerRegistration)
         },
 
         toClass(classConstructor: ClassConstructor<TValue>): LifetimeBinding {
+            const providerRegistration = createProviderRegistrationRecord('class', 'transient')
             const lifetime = builder.toClass(classConstructor)
 
-            recordModuleProvider(moduleDefinition, originalToken, 'single', access)
+            recordModuleProvider(
+                moduleDefinition,
+                originalToken,
+                'single',
+                providerRegistration,
+                access
+            )
 
-            return lifetime
+            return createInspectableLifetimeBinding(lifetime, providerRegistration)
         },
 
         toAsyncFactory(factory): AsyncFactoryBinding {
+            const providerRegistration = createProviderRegistrationRecord(
+                'async-factory',
+                'transient',
+                'lazy'
+            )
             const binding = builder.toAsyncFactory((context) => {
                 return factory(createModuleResolutionContext(moduleDefinition, context, access))
             })
 
-            recordModuleProvider(moduleDefinition, originalToken, 'single', access)
+            recordModuleProvider(
+                moduleDefinition,
+                originalToken,
+                'single',
+                providerRegistration,
+                access
+            )
 
-            return binding
+            return createInspectableAsyncFactoryBinding(binding, providerRegistration)
         },
 
         toAsyncResource(factory): AsyncResourceBinding {
+            const providerRegistration = createProviderRegistrationRecord(
+                'async-resource',
+                undefined,
+                'lazy'
+            )
             const binding = builder.toAsyncResource((context) => {
                 return factory(createModuleResolutionContext(moduleDefinition, context, access))
             })
 
-            recordModuleProvider(moduleDefinition, originalToken, 'single', access)
+            recordModuleProvider(
+                moduleDefinition,
+                originalToken,
+                'single',
+                providerRegistration,
+                access
+            )
 
-            return binding
+            return createInspectableAsyncResourceBinding(binding, providerRegistration)
         }
     }
 }
@@ -884,19 +1358,147 @@ function createModuleMultiBindingBuilder<TValue>(
     return {
         toValue(value: TValue): void {
             builder.toValue(value)
-            recordModuleProvider(moduleDefinition, originalToken, 'multi', access)
+            recordModuleProvider(
+                moduleDefinition,
+                originalToken,
+                'multi',
+                createProviderRegistrationRecord('value', 'singleton'),
+                access
+            )
         },
 
         toFactory(factory): LifetimeBinding {
+            const providerRegistration = createProviderRegistrationRecord('factory', 'transient')
             const lifetime = builder.toFactory((context) => {
                 return factory(createModuleResolutionContext(moduleDefinition, context, access))
             })
 
-            recordModuleProvider(moduleDefinition, originalToken, 'multi', access)
+            recordModuleProvider(
+                moduleDefinition,
+                originalToken,
+                'multi',
+                providerRegistration,
+                access
+            )
 
-            return lifetime
+            return createInspectableLifetimeBinding(lifetime, providerRegistration)
         }
     }
+}
+
+function createProviderRegistrationRecord(
+    providerKind: InspectionProviderKind,
+    lifetime: ProviderLifetime | undefined,
+    initialization?: AsyncProviderInitializationMode
+): ProviderRegistrationRecord {
+    return {
+        providerKind,
+        lifetime,
+        initialization
+    }
+}
+
+function createInspectableLifetimeBinding(
+    binding: LifetimeBinding,
+    providerRegistration: ProviderRegistrationRecord
+): LifetimeBinding {
+    return {
+        singleton(): void {
+            binding.singleton()
+            providerRegistration.lifetime = 'singleton'
+        },
+
+        transient(): void {
+            binding.transient()
+            providerRegistration.lifetime = 'transient'
+        },
+
+        scoped(): void {
+            binding.scoped()
+            providerRegistration.lifetime = 'scoped'
+        }
+    }
+}
+
+function createInspectableAsyncFactoryBinding(
+    binding: AsyncFactoryBinding,
+    providerRegistration: ProviderRegistrationRecord
+): AsyncFactoryBinding {
+    const inspectableBinding: AsyncFactoryBinding = {
+        singleton(): AsyncFactoryBinding {
+            binding.singleton()
+            providerRegistration.lifetime = 'singleton'
+
+            return inspectableBinding
+        },
+
+        transient(): AsyncFactoryBinding {
+            binding.transient()
+            providerRegistration.lifetime = 'transient'
+
+            return inspectableBinding
+        },
+
+        scoped(): AsyncFactoryBinding {
+            binding.scoped()
+            providerRegistration.lifetime = 'scoped'
+
+            return inspectableBinding
+        },
+
+        eager(): AsyncFactoryBinding {
+            binding.eager()
+            providerRegistration.initialization = 'eager'
+
+            return inspectableBinding
+        },
+
+        lazy(): AsyncFactoryBinding {
+            binding.lazy()
+            providerRegistration.initialization = 'lazy'
+
+            return inspectableBinding
+        }
+    }
+
+    return inspectableBinding
+}
+
+function createInspectableAsyncResourceBinding(
+    binding: AsyncResourceBinding,
+    providerRegistration: ProviderRegistrationRecord
+): AsyncResourceBinding {
+    const inspectableBinding: AsyncResourceBinding = {
+        singleton(): AsyncResourceBinding {
+            binding.singleton()
+            providerRegistration.lifetime = 'singleton'
+
+            return inspectableBinding
+        },
+
+        scoped(): AsyncResourceBinding {
+            binding.scoped()
+            providerRegistration.lifetime = 'scoped'
+
+            return inspectableBinding
+        },
+
+        eager(): AsyncResourceBinding {
+            binding.eager()
+            providerRegistration.initialization = 'eager'
+
+            return inspectableBinding
+        },
+
+        lazy(): AsyncResourceBinding {
+            binding.lazy()
+            providerRegistration.initialization = 'lazy'
+
+            return inspectableBinding
+        }
+    }
+
+    return inspectableBinding
 }
 
 function createModuleResolutionContext(
@@ -973,8 +1575,12 @@ function createComposerBindingResolutionContext(
 
 function createComposedRuntime(
     containerRuntime: ContainerRuntime,
+    modules: readonly ModuleDefinition[],
+    bindings: readonly ComposerBindingRecord[],
     access: CompositionAccessModel
 ): ComposedRuntime {
+    const inspection = createRuntimeInspection(modules, bindings, access)
+
     function withScope<TValue>(callback: ScopeCallback<TValue>): Promise<TValue>
     function withScope<TValue>(
         options: CreateScopeOptions,
@@ -1033,6 +1639,10 @@ function createComposedRuntime(
             return containerRuntime.tryGetAsync(
                 resolvePublicCapabilityToken(resolutionToken, access)
             )
+        },
+
+        inspect(): RuntimeInspection {
+            return inspection
         },
 
         dispose(): Promise<void> {
@@ -1389,7 +1999,8 @@ function createPrivateToken<TValue>(moduleId: string, originalToken: Token<TValu
 function recordModuleProvider(
     moduleDefinition: ModuleDefinition,
     originalToken: Token<unknown>,
-    registrationKind: 'single' | 'multi',
+    registrationKind: ProviderRegistrationKind,
+    providerRegistration: ProviderRegistrationRecord,
     access: CompositionAccessModel
 ): void {
     if (!moduleProvidesToken(moduleDefinition, originalToken.id, access)) {
@@ -1404,11 +2015,20 @@ function recordModuleProvider(
         return
     }
 
+    const existingRegistration = access.registeredCapabilities.get(originalToken.id)
+
+    if (existingRegistration !== undefined) {
+        existingRegistration.providers.push(providerRegistration)
+
+        return
+    }
+
     access.registeredCapabilities.set(originalToken.id, {
         moduleId: moduleDefinition.id,
         tokenId: originalToken.id,
         kind: capability.kind,
-        registrationKind
+        registrationKind,
+        providers: [providerRegistration]
     })
 }
 

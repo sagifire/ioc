@@ -173,7 +173,7 @@
   - Summary: Stage 9 `composer.compose()` and composed runtime exported capabilities.
   - Current: RUN-001
 - [TASK-06.30-0023-stage-9-inspection-api](TASK-06.30-0023-stage-9-inspection-api/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Stage 9 `composer.inspect()`, `composer.getGraph()` and `runtime.inspect()`.

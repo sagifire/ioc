@@ -1,6 +1,6 @@
 # TASK-06.30-0023: Stage 9 inspection API
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-06-30
@@ -63,22 +63,22 @@ exist. This task exposes safe metadata useful for humans, tests and Codex.
 
 ## Acceptance Criteria
 
-- [ ] `composer.inspect()` is implemented.
-- [ ] `composer.getGraph()` is implemented.
-- [ ] Composed `runtime.inspect()` is implemented.
-- [ ] Inspection includes registered modules, required ports, capabilities, bindings and
+- [x] `composer.inspect()` is implemented.
+- [x] `composer.getGraph()` is implemented.
+- [x] Composed `runtime.inspect()` is implemented.
+- [x] Inspection includes registered modules, required ports, capabilities, bindings and
   validation status.
-- [ ] Inspection is deterministic.
-- [ ] Inspection does not expose provider values or private runtime internals.
-- [ ] Inspection shows enough graph shape to debug Stage 9 composition issues.
-- [ ] Runtime tests cover inspection and privacy.
-- [ ] Type-level assertions cover inspection public API.
-- [ ] Stage 9 overall acceptance is still satisfied after this task.
-- [ ] Stage 10 cycle detection behavior is not implemented.
-- [ ] `pnpm build` works.
-- [ ] `pnpm test` works.
-- [ ] `pnpm typecheck` works.
-- [ ] `pnpm lint` works.
+- [x] Inspection is deterministic.
+- [x] Inspection does not expose provider values or private runtime internals.
+- [x] Inspection shows enough graph shape to debug Stage 9 composition issues.
+- [x] Runtime tests cover inspection and privacy.
+- [x] Type-level assertions cover inspection public API.
+- [x] Stage 9 overall acceptance is still satisfied after this task.
+- [x] Stage 10 cycle detection behavior is not implemented.
+- [x] `pnpm build` works.
+- [x] `pnpm test` works.
+- [x] `pnpm typecheck` works.
+- [x] `pnpm lint` works.
 
 ## Linked Memory
 
@@ -94,9 +94,9 @@ exist. This task exposes safe metadata useful for humans, tests and Codex.
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: planned
+  - Status: completed
   - Purpose: Початковий autonomous implementation run для inspection API.
-  - Result: pending
+  - Result: completed; prepared for review
 
 ## Research
 

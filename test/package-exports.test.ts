@@ -22,6 +22,7 @@ describe('package export placeholders', () => {
 
     test('root export exposes token API', async () => {
         const module = await import('@sagifire/ioc')
+        const composer = module.createComposer()
 
         expect(module.token).toBeTypeOf('function')
         expect(module.namespace).toBeTypeOf('function')
@@ -41,6 +42,8 @@ describe('package export placeholders', () => {
         expect(module.ComposerValidationError).toBeTypeOf('function')
         expect(module.PrivateProviderAccessError).toBeTypeOf('function')
         expect(module.MissingModuleProviderError).toBeTypeOf('function')
+        expect(composer.inspect).toBeTypeOf('function')
+        expect(composer.getGraph).toBeTypeOf('function')
         expect(module.createContainer).toBeTypeOf('function')
         expect(module.ProviderNotFoundError).toBeTypeOf('function')
         expect(module.DuplicateProviderError).toBeTypeOf('function')
@@ -105,6 +108,7 @@ describe('package export placeholders', () => {
 
     test('composer subpath exposes module definition foundation API', async () => {
         const module = await import('@sagifire/ioc/composer')
+        const composer = module.createComposer()
 
         expect(module.createComposer).toBeTypeOf('function')
         expect(module.defineModule).toBeTypeOf('function')
@@ -117,5 +121,7 @@ describe('package export placeholders', () => {
         expect(module.ComposerValidationError).toBeTypeOf('function')
         expect(module.PrivateProviderAccessError).toBeTypeOf('function')
         expect(module.MissingModuleProviderError).toBeTypeOf('function')
+        expect(composer.inspect).toBeTypeOf('function')
+        expect(composer.getGraph).toBeTypeOf('function')
     })
 })

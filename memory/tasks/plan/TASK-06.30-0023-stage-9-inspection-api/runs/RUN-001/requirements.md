@@ -1,6 +1,6 @@
 # Run Requirements: RUN-001
 
-Status: planned
+Status: completed
 Agent Role: Agent Executor
 Execution Mode: autonomous-implementation
 Created: 2026-06-30
@@ -34,15 +34,15 @@ Implement composer and composed runtime inspection APIs for Stage 9.
 
 ## Acceptance Criteria for This Run
 
-- [ ] Inspection APIs are exported.
-- [ ] Inspection metadata is deterministic and safe.
-- [ ] Runtime inspection reflects exported capability registry.
-- [ ] Tests and type assertions cover inspection APIs.
-- [ ] Stage guard checks confirm cycle detection and testing helpers were not implemented.
-- [ ] `pnpm build` works.
-- [ ] `pnpm test` works.
-- [ ] `pnpm typecheck` works.
-- [ ] `pnpm lint` works.
+- [x] Inspection APIs are exported.
+- [x] Inspection metadata is deterministic and safe.
+- [x] Runtime inspection reflects exported capability registry.
+- [x] Tests and type assertions cover inspection APIs.
+- [x] Stage guard checks confirm cycle detection and testing helpers were not implemented.
+- [x] `pnpm build` works.
+- [x] `pnpm test` works.
+- [x] `pnpm typecheck` works.
+- [x] `pnpm lint` works.
 
 ## Changes from Previous Run
 
