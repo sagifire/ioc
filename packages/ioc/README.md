@@ -25,6 +25,7 @@ Implemented in the current stage:
 - composer builder and static validation through `createComposer()`, `composer.use()`,
   `composer.bind()` and `composer.validate()`.
 - module setup and private provider preparation through `composer.prepare()`.
+- composed runtime capability access through `composer.compose()`.
 
-Composed runtime behavior, DSL, graph-aware diagnostics and framework adapters are planned
-for later roadmap stages.
+DSL, graph-aware diagnostics, inspection APIs and framework adapters are planned for later
+roadmap stages.

@@ -190,6 +190,17 @@ provider registration metadata, module-bound provider factory contexts,
 `get()` / `tryGet()` gating, inspection API, DSL/adapters або Stage 10
 cycle/dependency-edge detection.
 
+Stage 9 composed runtime and capabilities implementation завершено після task-level human
+review approval:
+
+- [TASK-06.30-0022-stage-9-composed-runtime-capabilities](tasks/plan/TASK-06.30-0022-stage-9-composed-runtime-capabilities/index.md)
+
+RUN-001 реалізував `composer.compose()`, immutable `ComposedRuntime` wrapper, public
+runtime capability gating for exported capabilities, hiding required-port-only bindings and
+module private providers, scoped public runtime wrapping, async/resource/disposal
+pass-through through the internal container runtime and tests. RUN-001 не реалізовував
+inspection API, DSL/adapters, testing helpers або Stage 10 cycle/dependency-edge detection.
+
 ## Active Tasks
 
 Немає задач у статусі `active`.
@@ -264,7 +275,7 @@ cycle/dependency-edge detection.
   - Status: done
   - Summary: Stage 9 module setup and private providers implementation task.
 - [TASK-06.30-0022-stage-9-composed-runtime-capabilities](tasks/plan/TASK-06.30-0022-stage-9-composed-runtime-capabilities/index.md)
-  - Status: backlog
+  - Status: done
   - Summary: Stage 9 composed runtime and capabilities implementation task.
 - [TASK-06.30-0023-stage-9-inspection-api](tasks/plan/TASK-06.30-0023-stage-9-inspection-api/index.md)
   - Status: backlog
@@ -463,11 +474,21 @@ cycle/dependency-edge detection.
   cycle/dependency-edge detection.
 - `TASK-06.30-0021-stage-9-module-setup-private-providers` завершена після task-level
   human review approval.
+- `TASK-06.30-0022-stage-9-composed-runtime-capabilities` RUN-001 виконаний агентом,
+  переведений у `review` і approved після task-level human review.
+- Stage 9 composed runtime RUN-001 реалізував `composer.compose()`, immutable
+  `ComposedRuntime`, public capability gating, hidden required-port-only bindings, hidden
+  module private providers, scoped public runtime wrapping, async/resource/disposal
+  pass-through and tests.
+- Stage 9 composed runtime RUN-001 не реалізовував inspection API, DSL/adapters, testing
+  helpers або Stage 10 cycle/dependency-edge detection.
+- `TASK-06.30-0022-stage-9-composed-runtime-capabilities` завершена після task-level
+  human review approval.
 
 ## Current Risks
 
-- Final composed runtime, inspection API, DSL, Next.js adapters і testing helpers
-  залишаються out of scope до відповідних roadmap stages.
+- Inspection API, DSL, Next.js adapters і testing helpers залишаються out of scope до
+  відповідних roadmap stages.
 - Module-level cycle detection and dependency-edge analysis залишаються out of scope до
   Stage 10, навіть після початку Stage 9 composer work.
 - Root `SPEC.md` лишається source reference і може дублювати canonical memory; для
@@ -479,7 +500,7 @@ cycle/dependency-edge detection.
 ## Next Steps
 
 - Запустити
-  [TASK-06.30-0022-stage-9-composed-runtime-capabilities](tasks/plan/TASK-06.30-0022-stage-9-composed-runtime-capabilities/index.md)
+  [TASK-06.30-0023-stage-9-inspection-api](tasks/plan/TASK-06.30-0023-stage-9-inspection-api/index.md)
   як наступну Stage 9 autonomous implementation task.
 
 ## Open Questions

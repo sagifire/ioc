@@ -21,6 +21,7 @@ export {
     defineModule
 } from './composer'
 export type {
+    ComposedRuntime,
     Composer,
     ComposerAsyncBindingFactory,
     ComposerBindingBuilder,

@@ -167,7 +167,7 @@
   - Summary: Stage 9 module setup context and private provider isolation.
   - Current: RUN-001
 - [TASK-06.30-0022-stage-9-composed-runtime-capabilities](TASK-06.30-0022-stage-9-composed-runtime-capabilities/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Stage 9 `composer.compose()` and composed runtime exported capabilities.

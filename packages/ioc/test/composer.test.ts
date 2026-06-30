@@ -10,6 +10,7 @@ import {
     MissingModuleProviderError,
     MissingRequiredPortError,
     PrivateProviderAccessError,
+    type ComposedRuntime,
     createComposer,
     defineModule,
     type Composer,
@@ -22,7 +23,12 @@ import {
     type ModuleSetupResult,
     type PreparedComposition
 } from '../src/composer.js'
-import type { BindingBuilder, MultiBindingBuilder } from '../src/container.js'
+import {
+    AsyncProviderAccessError,
+    InvalidScopeError,
+    RuntimeDisposedError
+} from '../src/container.js'
+import type { BindingBuilder, MultiBindingBuilder, Scope } from '../src/container.js'
 import { type Token, token } from '../src/tokens.js'
 
 interface AuthReader {
@@ -41,6 +47,10 @@ interface NotificationPublicApi {
     notify(): string
 }
 
+interface ResourcePublicApi {
+    status(): string
+}
+
 type TokenValue<TToken> = TToken extends Token<infer TValue> ? TValue : never
 
 const AUTH_READER = token<AuthReader>('composer.auth-reader')
@@ -56,6 +66,8 @@ const CLASS_AUTH_READER = token<AuthReader>('composer.class-auth-reader')
 const ASYNC_AUTH_READER = token<AuthReader>('composer.async-auth-reader')
 const AUTH_SECRET = token<{ readonly secret: string }>('composer.auth-secret')
 const AUDIT_EVENTS = token<string>('composer.audit-events')
+const SCOPED_COUNTER = token<{ read(): number }>('composer.scoped-counter')
+const RESOURCE_PUBLIC_API = token<ResourcePublicApi>('composer.resource-public-api')
 
 class ClassAuthReader implements AuthReader {
     currentUserId(): string {
@@ -1081,7 +1093,7 @@ describe('module setup and private providers', () => {
         expect(preparedComposition.capabilities[0]?.tokenId).toBe('composer.auth-public-api')
     })
 
-    test('exposes composer builder API without later composer runtime or DSL APIs', async () => {
+    test('exposes composer runtime API without later inspection, Stage 10 or DSL APIs', async () => {
         const module = await import('../src/composer.js')
         const composer = createComposer()
 
@@ -1091,7 +1103,7 @@ describe('module setup and private providers', () => {
         expect(module.MissingModuleProviderError).toBeTypeOf('function')
         expect(composer.validate).toBeTypeOf('function')
         expect(composer.prepare).toBeTypeOf('function')
-        expect('compose' in composer).toBe(false)
+        expect(composer.compose).toBeTypeOf('function')
         expect('inspect' in composer).toBe(false)
         expect('getGraph' in composer).toBe(false)
         expect('module' in module).toBe(false)
@@ -1100,5 +1112,383 @@ describe('module setup and private providers', () => {
         expect(new ComposerValidationError(composer.validate())).toBeInstanceOf(
             ComposerValidationError
         )
+    })
+})
+
+describe('composed runtime capabilities', () => {
+    test('composes modules and exposes only declared exported capabilities', async () => {
+        const authModule = defineModule({
+            id: 'runtime-auth',
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(AUTH_PUBLIC_API).toValue({
+                    requireUser(): string {
+                        return 'auth-user'
+                    }
+                })
+            }
+        })
+        const contactRequestsModule = defineModule({
+            id: 'runtime-contact-requests',
+            requires: [
+                {
+                    token: AUTH_READER
+                }
+            ],
+            provides: [
+                {
+                    token: CONTACT_REQUESTS_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(AUTH_SECRET).toValue({
+                    secret: 'module-secret'
+                })
+                context.bind(CONTACT_REQUESTS_PUBLIC_API).toFactory((providerContext) => {
+                    const authReader = providerContext.get(AUTH_READER)
+                    const secret = providerContext.get(AUTH_SECRET)
+
+                    return {
+                        submit(): string {
+                            return `${authReader.currentUserId()}:${secret.secret}`
+                        }
+                    }
+                })
+            }
+        })
+        const auditModule = defineModule({
+            id: 'runtime-audit',
+            provides: [
+                {
+                    token: AUDIT_EVENTS,
+                    kind: 'event-subscriber'
+                }
+            ],
+            setup(context): void {
+                context.add(AUDIT_EVENTS).toValue('created')
+                context.add(AUDIT_EVENTS).toFactory(() => {
+                    return 'submitted'
+                })
+            }
+        })
+        const composer = createComposer()
+            .use(authModule)
+            .use(contactRequestsModule)
+            .use(auditModule)
+
+        composer.bind(AUTH_READER).toFactory((context) => {
+            const auth = context.get(AUTH_PUBLIC_API)
+
+            return {
+                currentUserId(): string {
+                    return auth.requireUser()
+                }
+            }
+        })
+
+        const runtime = await composer.compose()
+
+        expect(Object.isFrozen(runtime)).toBe(true)
+        expect(runtime.get(AUTH_PUBLIC_API).requireUser()).toBe('auth-user')
+        expect(runtime.get(CONTACT_REQUESTS_PUBLIC_API).submit()).toBe(
+            'auth-user:module-secret'
+        )
+        expect(runtime.getAll(AUDIT_EVENTS)).toEqual(['created', 'submitted'])
+        expect(() => runtime.get(AUTH_READER)).toThrow(PrivateProviderAccessError)
+        expect(() => runtime.tryGet(AUTH_SECRET)).toThrow(PrivateProviderAccessError)
+
+        try {
+            runtime.get(AUTH_READER)
+        } catch (error) {
+            expect(error).toBeInstanceOf(PrivateProviderAccessError)
+
+            if (error instanceof PrivateProviderAccessError) {
+                expect(error.details).toEqual({
+                    moduleId: undefined,
+                    tokenId: 'composer.auth-reader',
+                    requester: 'runtime',
+                    reason: 'token-not-visible'
+                })
+            }
+        }
+    })
+
+    test('preserves scoped providers and wraps public scopes', async () => {
+        let factoryCalls = 0
+        const module = defineModule({
+            id: 'runtime-scoped',
+            provides: [
+                {
+                    token: SCOPED_COUNTER,
+                    kind: 'shared-service'
+                }
+            ],
+            setup(context): void {
+                context
+                    .bind(SCOPED_COUNTER)
+                    .toFactory(() => {
+                        factoryCalls += 1
+
+                        return {
+                            read(): number {
+                                return factoryCalls
+                            }
+                        }
+                    })
+                    .scoped()
+            }
+        })
+        const runtime = await createComposer().use(module).compose()
+
+        expect(() => runtime.get(SCOPED_COUNTER)).toThrow(InvalidScopeError)
+
+        const firstScope = runtime.createScope()
+        const firstCounter = firstScope.get(SCOPED_COUNTER)
+        const secondScope = runtime.createScope()
+
+        expect(Object.isFrozen(firstScope)).toBe(true)
+        expect(firstScope.get(SCOPED_COUNTER)).toBe(firstCounter)
+        expect(firstCounter.read()).toBe(1)
+        expect(secondScope.get(SCOPED_COUNTER).read()).toBe(2)
+        expect(() =>
+            runtime.createScope({
+                values: [
+                    [
+                        AUTH_READER,
+                        {
+                            currentUserId(): string {
+                                return 'hidden'
+                            }
+                        }
+                    ]
+                ]
+            })
+        ).toThrow(PrivateProviderAccessError)
+
+        await firstScope.dispose()
+        await secondScope.dispose()
+
+        await expect(
+            runtime.withScope((scope) => {
+                return scope.get(SCOPED_COUNTER).read()
+            })
+        ).resolves.toBe(3)
+    })
+
+    test('preserves async provider access and resource disposal', async () => {
+        let asyncFactoryCalls = 0
+        let disposed = false
+        const module = defineModule({
+            id: 'runtime-async-resource',
+            provides: [
+                {
+                    token: ASYNC_AUTH_READER,
+                    kind: 'shared-service'
+                },
+                {
+                    token: RESOURCE_PUBLIC_API,
+                    kind: 'shared-service'
+                }
+            ],
+            setup(context): void {
+                context
+                    .bind(ASYNC_AUTH_READER)
+                    .toAsyncFactory(async () => {
+                        asyncFactoryCalls += 1
+
+                        return {
+                            currentUserId(): string {
+                                return 'async-user'
+                            }
+                        }
+                    })
+                    .singleton()
+                context
+                    .bind(RESOURCE_PUBLIC_API)
+                    .toAsyncResource(async () => {
+                        return {
+                            value: {
+                                status(): string {
+                                    return disposed ? 'disposed' : 'open'
+                                }
+                            },
+                            dispose(): void {
+                                disposed = true
+                            }
+                        }
+                    })
+                    .singleton()
+                    .eager()
+            }
+        })
+        const runtime = await createComposer().use(module).compose()
+
+        expect(runtime.get(RESOURCE_PUBLIC_API).status()).toBe('open')
+        expect(() => runtime.get(ASYNC_AUTH_READER)).toThrow(AsyncProviderAccessError)
+        await expect(runtime.getAsync(ASYNC_AUTH_READER)).resolves.toMatchObject({
+            currentUserId: expect.any(Function)
+        })
+        await expect(runtime.tryGetAsync(ASYNC_AUTH_READER)).resolves.toMatchObject({
+            currentUserId: expect.any(Function)
+        })
+        expect(asyncFactoryCalls).toBe(1)
+
+        await runtime.dispose()
+
+        expect(disposed).toBe(true)
+        expect(() => runtime.get(RESOURCE_PUBLIC_API)).toThrow(RuntimeDisposedError)
+    })
+
+    test('throws typed diagnostics for invalid composed graphs', async () => {
+        const missingRequiredPortModule = defineModule({
+            id: 'compose-missing-required-port',
+            requires: [
+                {
+                    token: AUTH_READER
+                }
+            ],
+            setup(): void {}
+        })
+        const missingProviderModule = defineModule({
+            id: 'compose-missing-provider',
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(): void {}
+        })
+        const duplicateActualProviderModule = defineModule({
+            id: 'compose-duplicate-actual-provider',
+            requires: [
+                {
+                    token: AUTH_PUBLIC_API
+                }
+            ],
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(AUTH_PUBLIC_API).toValue({
+                    requireUser(): string {
+                        return 'module-user'
+                    }
+                })
+            }
+        })
+        const duplicateActualProviderComposer = createComposer().use(duplicateActualProviderModule)
+
+        duplicateActualProviderComposer.bind(AUTH_PUBLIC_API).toValue({
+            requireUser(): string {
+                return 'binding-user'
+            }
+        })
+
+        await expect(createComposer().use(missingRequiredPortModule).compose()).rejects
+            .toBeInstanceOf(ComposerValidationError)
+        await expect(createComposer().use(missingProviderModule).compose()).rejects
+            .toBeInstanceOf(ComposerValidationError)
+        await expect(duplicateActualProviderComposer.compose()).rejects.toMatchObject({
+            code: 'SAGIFIRE_IOC_DUPLICATE_PROVIDER'
+        })
+    })
+
+    test('does not implement Stage 10 module cycle detection during compose', async () => {
+        const first = defineModule({
+            id: 'compose-cycle-a',
+            requires: [
+                {
+                    token: NOTIFICATION_PUBLIC_API
+                }
+            ],
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(AUTH_PUBLIC_API).toValue({
+                    requireUser(): string {
+                        return 'cycle-user'
+                    }
+                })
+            }
+        })
+        const second = defineModule({
+            id: 'compose-cycle-b',
+            requires: [
+                {
+                    token: AUTH_PUBLIC_API
+                }
+            ],
+            provides: [
+                {
+                    token: NOTIFICATION_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(NOTIFICATION_PUBLIC_API).toValue({
+                    notify(): string {
+                        return 'notified'
+                    }
+                })
+            }
+        })
+        const runtime = await createComposer().use(first).use(second).compose()
+
+        expect(runtime.get(AUTH_PUBLIC_API).requireUser()).toBe('cycle-user')
+        expect(runtime.get(NOTIFICATION_PUBLIC_API).notify()).toBe('notified')
+    })
+
+    test('preserves composed runtime token inference', async () => {
+        const module = defineModule({
+            id: 'runtime-typed',
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                },
+                {
+                    token: AUDIT_EVENTS,
+                    kind: 'event-subscriber'
+                }
+            ],
+            setup(context): void {
+                context.bind(AUTH_PUBLIC_API).toValue({
+                    requireUser(): string {
+                        return 'typed-user'
+                    }
+                })
+                context.add(AUDIT_EVENTS).toValue('typed-event')
+            }
+        })
+        const runtime = await createComposer().use(module).compose()
+        const scope = runtime.createScope()
+
+        expectTypeOf(runtime).toEqualTypeOf<ComposedRuntime>()
+        expectTypeOf(runtime.get(AUTH_PUBLIC_API)).toEqualTypeOf<AuthPublicApi>()
+        expectTypeOf(runtime.tryGet(AUTH_PUBLIC_API)).toEqualTypeOf<AuthPublicApi | undefined>()
+        expectTypeOf(runtime.getAll(AUDIT_EVENTS)).toEqualTypeOf<string[]>()
+        expectTypeOf(runtime.getAsync(AUTH_PUBLIC_API)).toEqualTypeOf<Promise<AuthPublicApi>>()
+        expectTypeOf(runtime.tryGetAsync(AUTH_PUBLIC_API)).toEqualTypeOf<
+            Promise<AuthPublicApi | undefined>
+        >()
+        expectTypeOf(scope).toEqualTypeOf<Scope>()
+        expectTypeOf(scope.get(AUTH_PUBLIC_API)).toEqualTypeOf<AuthPublicApi>()
+        expect(runtime.get(AUTH_PUBLIC_API).requireUser()).toBe('typed-user')
+
+        await scope.dispose()
     })
 })

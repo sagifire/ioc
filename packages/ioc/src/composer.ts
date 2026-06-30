@@ -5,9 +5,14 @@ import {
     type BindingBuilder,
     type ClassConstructor,
     type ContainerBuilder,
+    type ContainerRuntime,
+    type CreateScopeOptions,
     type LifetimeBinding,
     type MultiBindingBuilder,
-    type ResolutionContext
+    type ResolutionContext,
+    type Scope,
+    type ScopeCallback,
+    type ScopeLocalValue
 } from './container'
 import { SagifireIocError, diagnosticFromError } from './diagnostics'
 import type { Diagnostic, DiagnosticReport } from './diagnostics'
@@ -115,6 +120,19 @@ export interface Composer {
     bind<TValue>(token: Token<TValue>): ComposerBindingBuilder<TValue>
     validate(): DiagnosticReport
     prepare(): Promise<PreparedComposition>
+    compose(): Promise<ComposedRuntime>
+}
+
+export interface ComposedRuntime {
+    get<TValue>(token: Token<TValue>): TValue
+    tryGet<TValue>(token: Token<TValue>): TValue | undefined
+    getAll<TValue>(token: Token<TValue>): TValue[]
+    createScope(options?: CreateScopeOptions): Scope
+    withScope<TValue>(callback: ScopeCallback<TValue>): Promise<TValue>
+    withScope<TValue>(options: CreateScopeOptions, callback: ScopeCallback<TValue>): Promise<TValue>
+    getAsync<TValue>(token: Token<TValue>): Promise<TValue>
+    tryGetAsync<TValue>(token: Token<TValue>): Promise<TValue | undefined>
+    dispose(): Promise<void>
 }
 
 export interface PreparedCompositionModule {
@@ -176,7 +194,7 @@ export type PrivateProviderAccessReason = 'composition-not-ready' | 'token-not-v
 export interface PrivateProviderAccessErrorDetails {
     readonly moduleId: string | undefined
     readonly tokenId: string
-    readonly requester: 'module' | 'composer-binding'
+    readonly requester: 'module' | 'composer-binding' | 'runtime'
     readonly reason: PrivateProviderAccessReason
 }
 
@@ -380,12 +398,12 @@ export class PrivateProviderAccessError extends SagifireIocError<PrivateProvider
     override readonly code = 'SAGIFIRE_IOC_PRIVATE_PROVIDER_ACCESS'
     readonly moduleId: string | undefined
     readonly tokenId: string
-    readonly requester: 'module' | 'composer-binding'
+    readonly requester: 'module' | 'composer-binding' | 'runtime'
     readonly reason: PrivateProviderAccessReason
 
     constructor(
         tokenId: string,
-        requester: 'module' | 'composer-binding',
+        requester: 'module' | 'composer-binding' | 'runtime',
         reason: PrivateProviderAccessReason,
         moduleId?: string
     ) {
@@ -497,6 +515,12 @@ interface LiveModuleSetupContext {
     activate(runtimeContext: ResolutionContext): void
 }
 
+interface BuiltComposition {
+    readonly modules: readonly ModuleDefinition[]
+    readonly access: CompositionAccessModel
+    readonly runtime: ContainerRuntime
+}
+
 interface InvalidModuleDefinitionErrorOptions {
     readonly moduleId?: string
     readonly value?: unknown
@@ -575,6 +599,10 @@ export function createComposer(): Composer {
 
         prepare(): Promise<PreparedComposition> {
             return prepareComposition(modules, bindings)
+        },
+
+        compose(): Promise<ComposedRuntime> {
+            return composeRuntime(modules, bindings)
         }
     }
 
@@ -624,6 +652,24 @@ async function prepareComposition(
     modules: readonly ModuleDefinition[],
     bindings: readonly ComposerBindingRecord[]
 ): Promise<PreparedComposition> {
+    const composition = await buildCompositionRuntime(modules, bindings)
+
+    return createPreparedComposition(composition.modules, composition.access)
+}
+
+async function composeRuntime(
+    modules: readonly ModuleDefinition[],
+    bindings: readonly ComposerBindingRecord[]
+): Promise<ComposedRuntime> {
+    const composition = await buildCompositionRuntime(modules, bindings)
+
+    return createComposedRuntime(composition.runtime, composition.access)
+}
+
+async function buildCompositionRuntime(
+    modules: readonly ModuleDefinition[],
+    bindings: readonly ComposerBindingRecord[]
+): Promise<BuiltComposition> {
     const moduleSnapshot = [...modules]
     const bindingSnapshot = [...bindings]
     const staticValidation = validateComposer(moduleSnapshot, bindingSnapshot)
@@ -666,7 +712,11 @@ async function prepareComposition(
         )
     }
 
-    return createPreparedComposition(moduleSnapshot, access)
+    return {
+        modules: moduleSnapshot,
+        access,
+        runtime
+    }
 }
 
 function createCompositionAccessModel(
@@ -919,6 +969,146 @@ function createComposerBindingResolutionContext(
             return context.tryGetAsync(resolveToken(resolutionToken))
         }
     }
+}
+
+function createComposedRuntime(
+    containerRuntime: ContainerRuntime,
+    access: CompositionAccessModel
+): ComposedRuntime {
+    function withScope<TValue>(callback: ScopeCallback<TValue>): Promise<TValue>
+    function withScope<TValue>(
+        options: CreateScopeOptions,
+        callback: ScopeCallback<TValue>
+    ): Promise<TValue>
+    function withScope<TValue>(
+        optionsOrCallback: CreateScopeOptions | ScopeCallback<TValue>,
+        callback?: ScopeCallback<TValue>
+    ): Promise<TValue> {
+        if (typeof optionsOrCallback === 'function') {
+            return containerRuntime.withScope((scope) => {
+                return optionsOrCallback(createComposedScope(scope, access))
+            })
+        }
+
+        if (callback === undefined) {
+            return containerRuntime.withScope(
+                optionsOrCallback,
+                callback as unknown as ScopeCallback<TValue>
+            )
+        }
+
+        assertScopeOptionsUsePublicCapabilities(optionsOrCallback, access)
+
+        return containerRuntime.withScope(optionsOrCallback, (scope) => {
+            return callback(createComposedScope(scope, access))
+        })
+    }
+
+    const runtime: ComposedRuntime = {
+        get<TValue>(resolutionToken: Token<TValue>): TValue {
+            return containerRuntime.get(resolvePublicCapabilityToken(resolutionToken, access))
+        },
+
+        tryGet<TValue>(resolutionToken: Token<TValue>): TValue | undefined {
+            return containerRuntime.tryGet(resolvePublicCapabilityToken(resolutionToken, access))
+        },
+
+        getAll<TValue>(resolutionToken: Token<TValue>): TValue[] {
+            return containerRuntime.getAll(resolvePublicCapabilityToken(resolutionToken, access))
+        },
+
+        createScope(options?: CreateScopeOptions): Scope {
+            assertScopeOptionsUsePublicCapabilities(options, access)
+
+            return createComposedScope(containerRuntime.createScope(options), access)
+        },
+
+        withScope,
+
+        getAsync<TValue>(resolutionToken: Token<TValue>): Promise<TValue> {
+            return containerRuntime.getAsync(resolvePublicCapabilityToken(resolutionToken, access))
+        },
+
+        tryGetAsync<TValue>(resolutionToken: Token<TValue>): Promise<TValue | undefined> {
+            return containerRuntime.tryGetAsync(
+                resolvePublicCapabilityToken(resolutionToken, access)
+            )
+        },
+
+        dispose(): Promise<void> {
+            return containerRuntime.dispose()
+        }
+    }
+
+    return Object.freeze(runtime)
+}
+
+function createComposedScope(containerScope: Scope, access: CompositionAccessModel): Scope {
+    const scope: Scope = {
+        get<TValue>(resolutionToken: Token<TValue>): TValue {
+            return containerScope.get(resolvePublicCapabilityToken(resolutionToken, access))
+        },
+
+        tryGet<TValue>(resolutionToken: Token<TValue>): TValue | undefined {
+            return containerScope.tryGet(resolvePublicCapabilityToken(resolutionToken, access))
+        },
+
+        getAll<TValue>(resolutionToken: Token<TValue>): TValue[] {
+            return containerScope.getAll(resolvePublicCapabilityToken(resolutionToken, access))
+        },
+
+        getAsync<TValue>(resolutionToken: Token<TValue>): Promise<TValue> {
+            return containerScope.getAsync(resolvePublicCapabilityToken(resolutionToken, access))
+        },
+
+        dispose(): Promise<void> {
+            return containerScope.dispose()
+        }
+    }
+
+    return Object.freeze(scope)
+}
+
+function resolvePublicCapabilityToken<TValue>(
+    resolutionToken: Token<TValue>,
+    access: CompositionAccessModel
+): Token<TValue> {
+    if (access.registeredCapabilities.has(resolutionToken.id)) {
+        return resolutionToken
+    }
+
+    throw new PrivateProviderAccessError(resolutionToken.id, 'runtime', 'token-not-visible')
+}
+
+function assertScopeOptionsUsePublicCapabilities(
+    options: CreateScopeOptions | undefined,
+    access: CompositionAccessModel
+): void {
+    if (options === undefined) {
+        return
+    }
+
+    for (const localValue of options.values ?? []) {
+        resolvePublicCapabilityToken(getScopeLocalValueToken(localValue), access)
+    }
+
+    for (const localValue of options.multiValues ?? []) {
+        resolvePublicCapabilityToken(getScopeLocalValueToken(localValue), access)
+    }
+}
+
+function getScopeLocalValueToken(localValue: ScopeLocalValue): Token<unknown> {
+    if (isScopeLocalTuple(localValue)) {
+        return localValue[0]
+    }
+
+    return localValue.token
+}
+
+function isScopeLocalTuple(
+    localValue: ScopeLocalValue
+): localValue is readonly [token: Token<unknown>, value: unknown] {
+    return Array.isArray(localValue)
 }
 
 function validateComposer(
@@ -1677,7 +1867,7 @@ function formatInvalidModuleDefinitionMessage(
 
 function formatPrivateProviderAccessMessage(
     tokenId: string,
-    requester: 'module' | 'composer-binding',
+    requester: 'module' | 'composer-binding' | 'runtime',
     reason: PrivateProviderAccessReason,
     moduleId: string | undefined
 ): string {
@@ -1690,6 +1880,10 @@ function formatPrivateProviderAccessMessage(
 
     if (requester === 'module' && moduleId !== undefined) {
         return `Module "${moduleId}" cannot resolve non-visible provider token "${tokenId}"`
+    }
+
+    if (requester === 'runtime') {
+        return `Composed runtime cannot resolve non-exported capability token "${tokenId}"`
     }
 
     return `Composer binding cannot resolve non-visible provider token "${tokenId}"`

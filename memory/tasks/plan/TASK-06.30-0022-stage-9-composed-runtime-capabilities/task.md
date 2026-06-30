@@ -1,6 +1,6 @@
 # TASK-06.30-0022: Stage 9 composed runtime and capabilities
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-06-30
@@ -68,24 +68,24 @@ required ports and hiding module internals become user-visible.
 
 ## Acceptance Criteria
 
-- [ ] `composer.compose()` returns an immutable runtime.
-- [ ] Multiple modules can be composed.
-- [ ] Required ports can be satisfied by explicit bindings.
-- [ ] Runtime exposes exported capabilities.
-- [ ] Runtime does not expose module private providers.
-- [ ] Required-port-only bindings are not public runtime capabilities by default.
-- [ ] Provided single tokens are unique.
-- [ ] Missing required ports fail validation before usable runtime is returned.
-- [ ] Existing container sync, async, scope and disposal behavior works through composed
+- [x] `composer.compose()` returns an immutable runtime.
+- [x] Multiple modules can be composed.
+- [x] Required ports can be satisfied by explicit bindings.
+- [x] Runtime exposes exported capabilities.
+- [x] Runtime does not expose module private providers.
+- [x] Required-port-only bindings are not public runtime capabilities by default.
+- [x] Provided single tokens are unique.
+- [x] Missing required ports fail validation before usable runtime is returned.
+- [x] Existing container sync, async, scope and disposal behavior works through composed
   runtime where applicable.
-- [ ] Invalid composed graphs throw typed diagnostics.
-- [ ] Runtime tests cover the full Stage 9 user-visible composition path.
-- [ ] Type-level assertions cover public runtime token inference.
-- [ ] Stage 10 cycle detection behavior is not implemented.
-- [ ] `pnpm build` works.
-- [ ] `pnpm test` works.
-- [ ] `pnpm typecheck` works.
-- [ ] `pnpm lint` works.
+- [x] Invalid composed graphs throw typed diagnostics.
+- [x] Runtime tests cover the full Stage 9 user-visible composition path.
+- [x] Type-level assertions cover public runtime token inference.
+- [x] Stage 10 cycle detection behavior is not implemented.
+- [x] `pnpm build` works.
+- [x] `pnpm test` works.
+- [x] `pnpm typecheck` works.
+- [x] `pnpm lint` works.
 
 ## Linked Memory
 
@@ -101,9 +101,9 @@ required ports and hiding module internals become user-visible.
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: planned
+  - Status: completed
   - Purpose: Початковий autonomous implementation run для composed runtime capabilities.
-  - Result: pending
+  - Result: completed; prepared for review
 
 ## Research
 

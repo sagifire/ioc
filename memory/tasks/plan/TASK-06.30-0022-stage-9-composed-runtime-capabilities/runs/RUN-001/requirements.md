@@ -1,6 +1,6 @@
 # Run Requirements: RUN-001
 
-Status: planned
+Status: completed
 Agent Role: Agent Executor
 Execution Mode: autonomous-implementation
 Created: 2026-06-30
@@ -34,17 +34,17 @@ Implement `composer.compose()` and the composed runtime capability registry.
 
 ## Acceptance Criteria for This Run
 
-- [ ] Compose returns a usable immutable runtime.
-- [ ] Exported capabilities resolve.
-- [ ] Private providers and required-port-only bindings are hidden from public runtime.
-- [ ] Scopes, async resolution and disposal behavior pass through correctly.
-- [ ] Invalid graphs fail with typed diagnostics.
-- [ ] Tests and type assertions cover composed runtime behavior.
-- [ ] Stage guard checks confirm out-of-scope behavior was not implemented.
-- [ ] `pnpm build` works.
-- [ ] `pnpm test` works.
-- [ ] `pnpm typecheck` works.
-- [ ] `pnpm lint` works.
+- [x] Compose returns a usable immutable runtime.
+- [x] Exported capabilities resolve.
+- [x] Private providers and required-port-only bindings are hidden from public runtime.
+- [x] Scopes, async resolution and disposal behavior pass through correctly.
+- [x] Invalid graphs fail with typed diagnostics.
+- [x] Tests and type assertions cover composed runtime behavior.
+- [x] Stage guard checks confirm out-of-scope behavior was not implemented.
+- [x] `pnpm build` works.
+- [x] `pnpm test` works.
+- [x] `pnpm typecheck` works.
+- [x] `pnpm lint` works.
 
 ## Changes from Previous Run
 
