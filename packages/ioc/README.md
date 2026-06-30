@@ -28,5 +28,7 @@ Implemented in the current stage:
 - composed runtime capability access through `composer.compose()`.
 - safe inspection metadata through `composer.inspect()`, `composer.getGraph()` and
   `runtime.inspect()`, including dependency edge metadata.
+- module cycle diagnostics through `ModuleCycleError` and `ComposerValidationError`
+  reports.
 
-DSL, graph-aware diagnostics and framework adapters are planned for later roadmap stages.
+DSL, testing helpers and framework adapters are planned for later roadmap stages.

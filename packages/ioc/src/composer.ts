@@ -295,6 +295,12 @@ export interface InvalidComposerBindingErrorDetails {
     readonly reason: 'missing-required-port'
 }
 
+export interface ModuleCycleErrorDetails {
+    readonly moduleIdPath: readonly string[]
+    readonly tokenIdPath: readonly string[]
+    readonly edgeKinds: readonly ModuleDependencyEdgeKind[]
+}
+
 export interface ComposerValidationErrorDetails {
     readonly diagnosticCount: number
 }
@@ -483,6 +489,36 @@ export class InvalidComposerBindingError extends SagifireIocError<InvalidCompose
     }
 }
 
+export class ModuleCycleError extends SagifireIocError<ModuleCycleErrorDetails> {
+    override readonly name = 'ModuleCycleError'
+    override readonly code = 'SAGIFIRE_IOC_MODULE_CYCLE'
+    readonly moduleIdPath: readonly string[]
+    readonly tokenIdPath: readonly string[]
+    readonly edgeKinds: readonly ModuleDependencyEdgeKind[]
+
+    constructor(cycle: ModuleCycleErrorDetails) {
+        const moduleIdPath = Object.freeze([...cycle.moduleIdPath])
+        const tokenIdPath = Object.freeze([...cycle.tokenIdPath])
+        const edgeKinds = Object.freeze([...cycle.edgeKinds])
+
+        super({
+            code: 'SAGIFIRE_IOC_MODULE_CYCLE',
+            message: `Module dependency cycle detected: ${moduleIdPath.join(' -> ')}`,
+            details: {
+                moduleIdPath,
+                tokenIdPath,
+                edgeKinds
+            }
+        })
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.moduleIdPath = moduleIdPath
+        this.tokenIdPath = tokenIdPath
+        this.edgeKinds = edgeKinds
+    }
+}
+
 export class ComposerValidationError extends SagifireIocError<ComposerValidationErrorDetails> {
     override readonly name = 'ComposerValidationError'
     override readonly code = 'SAGIFIRE_IOC_COMPOSER_VALIDATION_FAILED'
@@ -608,6 +644,12 @@ interface CapabilityDependencyRecord {
     readonly moduleId: string
     readonly tokenId: string
     readonly kind: ModuleCapabilityKind
+}
+
+interface ModuleCyclePath {
+    readonly moduleIdPath: readonly string[]
+    readonly tokenIdPath: readonly string[]
+    readonly edgeKinds: readonly ModuleDependencyEdgeKind[]
 }
 
 interface ProviderRegistrationRecord {
@@ -1840,6 +1882,7 @@ function validateComposer(
 
     appendMissingRequiredPortDiagnostics(diagnostics, modules, providedTokenIds, bindingTokenIds)
     appendInvalidBindingDiagnostics(diagnostics, bindings, requiredPortTokenIds)
+    appendModuleCycleDiagnostics(diagnostics, modules, bindings)
 
     return createDiagnosticReport(diagnostics)
 }
@@ -1936,6 +1979,140 @@ function appendInvalidBindingDiagnostics(
             )
         }
     }
+}
+
+function appendModuleCycleDiagnostics(
+    diagnostics: Diagnostic[],
+    modules: readonly ModuleDefinition[],
+    bindings: readonly ComposerBindingRecord[]
+): void {
+    const capabilitiesByTokenId = collectFirstCapabilityByTokenId(modules)
+    const bindingsByTokenId = collectFirstBindingByTokenId(bindings)
+    const edges = createModuleDependencyEdges(modules, capabilitiesByTokenId, bindingsByTokenId)
+    const cycles = detectModuleCycles(modules, edges)
+
+    for (const cycle of cycles) {
+        diagnostics.push(diagnosticFromError(new ModuleCycleError(cycle)))
+    }
+}
+
+function detectModuleCycles(
+    modules: readonly ModuleDefinition[],
+    edges: readonly ModuleDependencyEdge[]
+): readonly ModuleCyclePath[] {
+    const capabilityEdgesByConsumerModuleId = collectCapabilityEdgesByConsumerModuleId(edges)
+    const visitStateByModuleId = new Map<string, 'visiting' | 'visited'>()
+    const moduleIdStack: string[] = []
+    const edgeStack: CapabilityDependencyEdge[] = []
+    const cycles: ModuleCyclePath[] = []
+
+    for (const moduleDefinition of modules) {
+        if (visitStateByModuleId.has(moduleDefinition.id)) {
+            continue
+        }
+
+        visitModuleForCycles(
+            moduleDefinition.id,
+            capabilityEdgesByConsumerModuleId,
+            visitStateByModuleId,
+            moduleIdStack,
+            edgeStack,
+            cycles
+        )
+    }
+
+    return Object.freeze(cycles)
+}
+
+function visitModuleForCycles(
+    moduleId: string,
+    capabilityEdgesByConsumerModuleId: ReadonlyMap<string, readonly CapabilityDependencyEdge[]>,
+    visitStateByModuleId: Map<string, 'visiting' | 'visited'>,
+    moduleIdStack: string[],
+    edgeStack: CapabilityDependencyEdge[],
+    cycles: ModuleCyclePath[]
+): void {
+    visitStateByModuleId.set(moduleId, 'visiting')
+    moduleIdStack.push(moduleId)
+
+    for (const edge of capabilityEdgesByConsumerModuleId.get(moduleId) ?? []) {
+        const providerState = visitStateByModuleId.get(edge.providerModuleId)
+
+        if (providerState === 'visiting') {
+            cycles.push(createModuleCyclePath(edge, moduleIdStack, edgeStack))
+
+            continue
+        }
+
+        if (providerState === 'visited') {
+            continue
+        }
+
+        edgeStack.push(edge)
+        visitModuleForCycles(
+            edge.providerModuleId,
+            capabilityEdgesByConsumerModuleId,
+            visitStateByModuleId,
+            moduleIdStack,
+            edgeStack,
+            cycles
+        )
+        edgeStack.pop()
+    }
+
+    moduleIdStack.pop()
+    visitStateByModuleId.set(moduleId, 'visited')
+}
+
+function createModuleCyclePath(
+    closingEdge: CapabilityDependencyEdge,
+    moduleIdStack: readonly string[],
+    edgeStack: readonly CapabilityDependencyEdge[]
+): ModuleCyclePath {
+    const startIndex = moduleIdStack.indexOf(closingEdge.providerModuleId)
+    const cycleEdges = [...edgeStack.slice(startIndex), closingEdge]
+    const moduleIdPath = Object.freeze([
+        ...moduleIdStack.slice(startIndex),
+        closingEdge.providerModuleId
+    ])
+    const tokenIdPath = Object.freeze(
+        cycleEdges.map((edge) => {
+            return edge.requiredTokenId
+        })
+    )
+    const edgeKinds = Object.freeze(
+        cycleEdges.map((edge) => {
+            return edge.edgeKind
+        })
+    )
+
+    return Object.freeze({
+        moduleIdPath,
+        tokenIdPath,
+        edgeKinds
+    })
+}
+
+function collectCapabilityEdgesByConsumerModuleId(
+    edges: readonly ModuleDependencyEdge[]
+): ReadonlyMap<string, readonly CapabilityDependencyEdge[]> {
+    const edgesByModuleId = new Map<string, CapabilityDependencyEdge[]>()
+
+    for (const edge of edges) {
+        if (edge.edgeKind !== 'capability') {
+            continue
+        }
+
+        const moduleEdges = edgesByModuleId.get(edge.consumerModuleId)
+
+        if (moduleEdges === undefined) {
+            edgesByModuleId.set(edge.consumerModuleId, [edge])
+        } else {
+            moduleEdges.push(edge)
+        }
+    }
+
+    return edgesByModuleId
 }
 
 function collectProvidedTokenIds(modules: readonly ModuleDefinition[]): ReadonlySet<string> {

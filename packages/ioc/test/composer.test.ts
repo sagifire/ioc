@@ -9,6 +9,7 @@ import {
     InvalidModuleDefinitionError,
     MissingModuleProviderError,
     MissingRequiredPortError,
+    ModuleCycleError,
     PrivateProviderAccessError,
     type ComposedRuntime,
     createComposer,
@@ -28,6 +29,7 @@ import {
     type ModuleDependencyEdge,
     type ModuleDependencyEdgeBase,
     type ModuleDependencyEdgeKind,
+    type ModuleCycleErrorDetails,
     type ModuleGraph,
     type ModuleNodeMetadata,
     type ModuleSetupContext,
@@ -42,6 +44,7 @@ import {
 import {
     AsyncProviderAccessError,
     InvalidScopeError,
+    ProviderCycleError,
     RuntimeDisposedError
 } from '../src/container.js'
 import type { BindingBuilder, MultiBindingBuilder, Scope } from '../src/container.js'
@@ -693,7 +696,7 @@ describe('composer builder and static validation', () => {
         ])
     })
 
-    test('does not implement module cycle detection yet', () => {
+    test('detects simple module cycles with module and token paths', () => {
         const first = defineModule({
             id: 'cycle-a',
             requires: [
@@ -724,11 +727,173 @@ describe('composer builder and static validation', () => {
             ],
             setup(): void {}
         })
+        const report = createComposer().use(first).use(second).validate()
 
-        expect(createComposer().use(first).use(second).validate()).toEqual({
+        expect(report.ok).toBe(false)
+        expect(report.diagnostics).toEqual([
+            {
+                code: 'SAGIFIRE_IOC_MODULE_CYCLE',
+                severity: 'error',
+                message: 'Module dependency cycle detected: cycle-a -> cycle-b -> cycle-a',
+                details: {
+                    moduleIdPath: ['cycle-a', 'cycle-b', 'cycle-a'],
+                    tokenIdPath: [
+                        'composer.notification-public-api',
+                        'composer.auth-public-api'
+                    ],
+                    edgeKinds: ['capability', 'capability']
+                }
+            }
+        ])
+
+        const cycleError = new ModuleCycleError({
+            moduleIdPath: ['cycle-a', 'cycle-b', 'cycle-a'],
+            tokenIdPath: ['composer.notification-public-api', 'composer.auth-public-api'],
+            edgeKinds: ['capability', 'capability']
+        })
+
+        expect(cycleError).toBeInstanceOf(ModuleCycleError)
+        expect(cycleError.details).toEqual(report.diagnostics[0]?.details)
+    })
+
+    test('detects longer module cycles deterministically', () => {
+        const first = defineModule({
+            id: 'long-cycle-a',
+            requires: [
+                {
+                    token: CONTACT_REQUESTS_PUBLIC_API
+                }
+            ],
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(): void {}
+        })
+        const second = defineModule({
+            id: 'long-cycle-b',
+            requires: [
+                {
+                    token: NOTIFICATION_PUBLIC_API
+                }
+            ],
+            provides: [
+                {
+                    token: CONTACT_REQUESTS_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(): void {}
+        })
+        const third = defineModule({
+            id: 'long-cycle-c',
+            requires: [
+                {
+                    token: AUTH_PUBLIC_API
+                }
+            ],
+            provides: [
+                {
+                    token: NOTIFICATION_PUBLIC_API,
+                    kind: 'event-publisher'
+                }
+            ],
+            setup(): void {}
+        })
+        const report = createComposer().use(first).use(second).use(third).validate()
+
+        expect(report.ok).toBe(false)
+        expect(report.diagnostics).toEqual([
+            {
+                code: 'SAGIFIRE_IOC_MODULE_CYCLE',
+                severity: 'error',
+                message:
+                    'Module dependency cycle detected: ' +
+                    'long-cycle-a -> long-cycle-b -> long-cycle-c -> long-cycle-a',
+                details: {
+                    moduleIdPath: [
+                        'long-cycle-a',
+                        'long-cycle-b',
+                        'long-cycle-c',
+                        'long-cycle-a'
+                    ],
+                    tokenIdPath: [
+                        'composer.contact-requests-public-api',
+                        'composer.notification-public-api',
+                        'composer.auth-public-api'
+                    ],
+                    edgeKinds: ['capability', 'capability', 'capability']
+                }
+            }
+        ])
+    })
+
+    test('does not treat binding edges as module cycles', () => {
+        const first = defineModule({
+            id: 'binding-broken-cycle-a',
+            requires: [
+                {
+                    token: NOTIFICATION_PUBLIC_API
+                }
+            ],
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(): void {}
+        })
+        const second = defineModule({
+            id: 'binding-broken-cycle-b',
+            requires: [
+                {
+                    token: AUTH_PUBLIC_API
+                }
+            ],
+            provides: [
+                {
+                    token: NOTIFICATION_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(): void {}
+        })
+        const composer = createComposer().use(first).use(second)
+
+        composer.bind(NOTIFICATION_PUBLIC_API).toValue({
+            notify(): string {
+                return 'binding-break'
+            }
+        })
+
+        const report = composer.validate()
+
+        expect(report).toEqual({
             ok: true,
             diagnostics: []
         })
+        expect(composer.getGraph().edges).toEqual([
+            {
+                edgeKind: 'binding',
+                consumerModuleId: 'binding-broken-cycle-a',
+                requiredTokenId: 'composer.notification-public-api',
+                dependencyKind: 'external',
+                bindingTokenId: 'composer.notification-public-api',
+                bindingKind: 'value'
+            },
+            {
+                edgeKind: 'capability',
+                consumerModuleId: 'binding-broken-cycle-b',
+                requiredTokenId: 'composer.auth-public-api',
+                dependencyKind: 'external',
+                providerModuleId: 'binding-broken-cycle-a',
+                capabilityTokenId: 'composer.auth-public-api',
+                capabilityKind: 'public-api'
+            }
+        ])
     })
 
     test('preserves composer binding token and factory context inference', () => {
@@ -1109,7 +1274,7 @@ describe('module setup and private providers', () => {
         expect(preparedComposition.capabilities[0]?.tokenId).toBe('composer.auth-public-api')
     })
 
-    test('exposes composer runtime and inspection API without cycle or DSL APIs', async () => {
+    test('exposes composer runtime, inspection and cycle diagnostics API without DSL APIs', async () => {
         const module = await import('../src/composer.js')
         const composer = createComposer()
 
@@ -1117,6 +1282,7 @@ describe('module setup and private providers', () => {
         expect(module.createComposer).toBeTypeOf('function')
         expect(module.PrivateProviderAccessError).toBeTypeOf('function')
         expect(module.MissingModuleProviderError).toBeTypeOf('function')
+        expect(module.ModuleCycleError).toBeTypeOf('function')
         expect(composer.validate).toBeTypeOf('function')
         expect(composer.inspect).toBeTypeOf('function')
         expect(composer.getGraph).toBeTypeOf('function')
@@ -1696,6 +1862,19 @@ describe('inspection api', () => {
         expectTypeOf<ModuleDependencyEdge>().toMatchTypeOf<
             CapabilityDependencyEdge | BindingDependencyEdge
         >()
+        expectTypeOf<ModuleCycleErrorDetails>().toEqualTypeOf<{
+            readonly moduleIdPath: readonly string[]
+            readonly tokenIdPath: readonly string[]
+            readonly edgeKinds: readonly ModuleDependencyEdgeKind[]
+        }>()
+
+        const cycleError = new ModuleCycleError({
+            moduleIdPath: ['typed-a', 'typed-b', 'typed-a'],
+            tokenIdPath: ['typed.b', 'typed.a'],
+            edgeKinds: ['capability', 'capability']
+        })
+
+        expectTypeOf(cycleError.details).toEqualTypeOf<ModuleCycleErrorDetails | undefined>()
 
         const module = defineModule({
             id: 'inspect-runtime-typed',
@@ -2016,7 +2195,44 @@ describe('composed runtime capabilities', () => {
         })
     })
 
-    test('does not implement module cycle detection during compose', async () => {
+    test('keeps provider-level factory cycles delegated to container diagnostics', async () => {
+        const module = defineModule({
+            id: 'runtime-provider-cycle',
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(AUTH_PUBLIC_API).toFactory(({ get }) => {
+                    return {
+                        requireUser(): string {
+                            return get(AUTH_SECRET).secret
+                        }
+                    }
+                })
+                context.bind(AUTH_SECRET).toFactory(({ get }) => {
+                    return {
+                        secret: get(AUTH_PUBLIC_API).requireUser()
+                    }
+                })
+            }
+        })
+        const runtime = await createComposer().use(module).compose()
+
+        expect(runtime.inspect().validation).toEqual({
+            ok: true,
+            diagnostics: []
+        })
+        expect(() => runtime.get(AUTH_PUBLIC_API).requireUser()).toThrow(ProviderCycleError)
+        expect(() => runtime.get(AUTH_PUBLIC_API).requireUser()).not.toThrow(ModuleCycleError)
+
+        await runtime.dispose()
+    })
+
+    test('rejects module cycles during prepare and compose with validation reports', async () => {
+        let setupCalls = 0
         const first = defineModule({
             id: 'compose-cycle-a',
             requires: [
@@ -2031,6 +2247,7 @@ describe('composed runtime capabilities', () => {
                 }
             ],
             setup(context): void {
+                setupCalls += 1
                 context.bind(AUTH_PUBLIC_API).toValue({
                     requireUser(): string {
                         return 'cycle-user'
@@ -2052,6 +2269,7 @@ describe('composed runtime capabilities', () => {
                 }
             ],
             setup(context): void {
+                setupCalls += 1
                 context.bind(NOTIFICATION_PUBLIC_API).toValue({
                     notify(): string {
                         return 'notified'
@@ -2059,10 +2277,43 @@ describe('composed runtime capabilities', () => {
                 })
             }
         })
-        const runtime = await createComposer().use(first).use(second).compose()
+        const composer = createComposer().use(first).use(second)
 
-        expect(runtime.get(AUTH_PUBLIC_API).requireUser()).toBe('cycle-user')
-        expect(runtime.get(NOTIFICATION_PUBLIC_API).notify()).toBe('notified')
+        await expect(composer.prepare()).rejects.toBeInstanceOf(ComposerValidationError)
+        await expect(composer.prepare()).rejects.toMatchObject({
+            report: {
+                ok: false,
+                diagnostics: [
+                    {
+                        code: 'SAGIFIRE_IOC_MODULE_CYCLE',
+                        details: {
+                            moduleIdPath: [
+                                'compose-cycle-a',
+                                'compose-cycle-b',
+                                'compose-cycle-a'
+                            ],
+                            tokenIdPath: [
+                                'composer.notification-public-api',
+                                'composer.auth-public-api'
+                            ],
+                            edgeKinds: ['capability', 'capability']
+                        }
+                    }
+                ]
+            }
+        })
+        await expect(composer.compose()).rejects.toBeInstanceOf(ComposerValidationError)
+        await expect(composer.compose()).rejects.toMatchObject({
+            report: {
+                ok: false,
+                diagnostics: [
+                    {
+                        code: 'SAGIFIRE_IOC_MODULE_CYCLE'
+                    }
+                ]
+            }
+        })
+        expect(setupCalls).toBe(0)
     })
 
     test('preserves composed runtime token inference', async () => {

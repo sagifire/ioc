@@ -489,7 +489,8 @@ Root source trace:
   - Implementation Tasks:
     - `TASK-06.30-0025-stage-10-dependency-edge-model` - done after task-level human
       review;
-    - `TASK-06.30-0026-stage-10-module-cycle-diagnostics` - backlog;
+    - `TASK-06.30-0026-stage-10-module-cycle-diagnostics` - done after task-level human
+      review;
     - `TASK-06.30-0027-stage-10-runtime-inspection-hardening` - backlog.
   - Implementation Decomposition:
     - Task 1 adds explicit dependency edge metadata to module graph inspection.

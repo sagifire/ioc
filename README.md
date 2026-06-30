@@ -12,9 +12,9 @@ Stage 9 has started with module definition foundation through `defineModule()`, 
 builder/static validation through `createComposer()`, `use()`, `bind()` and `validate()`,
 module setup/private provider preparation through `prepare()`, and composed runtime
 capability access through `compose()`. Composer and runtime inspection are available
-through `composer.inspect()`, `composer.getGraph()` and `runtime.inspect()`. DSL,
-graph-aware diagnostics and framework adapter behavior are planned for later roadmap
-stages.
+through `composer.inspect()`, `composer.getGraph()` and `runtime.inspect()`. Stage 10
+dependency edges and module cycle diagnostics are implemented. DSL, testing helpers and
+framework adapter behavior are planned for later roadmap stages.
 
 ## Packages
 

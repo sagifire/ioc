@@ -17,5 +17,6 @@ required port metadata, capability metadata, composition binding metadata, valid
 status, dependency edge metadata and exported provider registration summaries.
 
 Stage 10 dependency edge metadata is implemented for capability-satisfied and
-binding-satisfied required ports. Module cycle detection and cycle diagnostics remain
-planned for a later Stage 10 task.
+binding-satisfied required ports. Module cycle detection is implemented over capability
+dependency edges, and cycle diagnostics include module and token paths without exposing
+provider values or private runtime internals.

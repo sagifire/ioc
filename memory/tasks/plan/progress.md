@@ -196,7 +196,7 @@
     edges.
   - Current: RUN-001
 - [TASK-06.30-0026-stage-10-module-cycle-diagnostics](TASK-06.30-0026-stage-10-module-cycle-diagnostics/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Stage 10 module-level cycle detection and typed diagnostics.

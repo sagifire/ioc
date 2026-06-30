@@ -238,6 +238,17 @@ RUN-001 реалізував public dependency edge types і deterministic `edge
 and binding dependency edges. RUN-001 не реалізовував module cycle validation, cycle
 diagnostics, DSL/adapters або testing helpers.
 
+Stage 10 module cycle diagnostics implementation завершено після task-level human review
+approval:
+
+- [TASK-06.30-0026-stage-10-module-cycle-diagnostics](tasks/plan/TASK-06.30-0026-stage-10-module-cycle-diagnostics/index.md)
+
+RUN-001 реалізував `ModuleCycleError`, `ModuleCycleErrorDetails`, cycle detection over
+capability dependency edges, module/token path diagnostics, integration into
+`composer.validate()`, `composer.inspect().validation`, `composer.prepare()` and
+`composer.compose()`, plus runtime/type/export tests. RUN-001 не реалізовував DSL,
+adapters, testing helpers або runtime inspection hardening task scope.
+
 ## Active Tasks
 
 Немає задач у статусі `active`.
@@ -324,7 +335,7 @@ diagnostics, DSL/adapters або testing helpers.
   - Status: done
   - Summary: Stage 10 dependency edge model implementation task.
 - [TASK-06.30-0026-stage-10-module-cycle-diagnostics](tasks/plan/TASK-06.30-0026-stage-10-module-cycle-diagnostics/index.md)
-  - Status: backlog
+  - Status: done
   - Summary: Stage 10 module cycle diagnostics implementation task.
 - [TASK-06.30-0027-stage-10-runtime-inspection-hardening](tasks/plan/TASK-06.30-0027-stage-10-runtime-inspection-hardening/index.md)
   - Status: backlog
@@ -566,6 +577,13 @@ diagnostics, DSL/adapters або testing helpers.
   diagnostics, DSL/adapters або testing helpers.
 - `TASK-06.30-0025-stage-10-dependency-edge-model` завершена після task-level human
   review approval.
+- `TASK-06.30-0026-stage-10-module-cycle-diagnostics` RUN-001 виконаний агентом і
+  переведений у `review`.
+- Stage 10 module cycle diagnostics RUN-001 реалізував `ModuleCycleError`,
+  `ModuleCycleErrorDetails`, cycle detection over capability dependency edges and
+  integration into `validate()` / `inspect().validation` / `prepare()` / `compose()`.
+- `TASK-06.30-0026-stage-10-module-cycle-diagnostics` завершена після task-level human
+  review approval.
 
 ## Current Risks
 
@@ -582,7 +600,7 @@ diagnostics, DSL/adapters або testing helpers.
 
 ## Next Steps
 
-- Запустити `TASK-06.30-0026-stage-10-module-cycle-diagnostics`.
+- Запустити `TASK-06.30-0027-stage-10-runtime-inspection-hardening`.
 
 ## Open Questions
 

@@ -16,6 +16,7 @@ export {
     InvalidModuleDefinitionError,
     MissingModuleProviderError,
     MissingRequiredPortError,
+    ModuleCycleError,
     PrivateProviderAccessError,
     createComposer,
     defineModule
@@ -43,6 +44,7 @@ export type {
     InvalidModuleDefinitionErrorDetails,
     MissingModuleProviderErrorDetails,
     MissingRequiredPortErrorDetails,
+    ModuleCycleErrorDetails,
     ModuleGraph,
     ModuleNodeMetadata,
     ModuleCapabilityDefinition,
