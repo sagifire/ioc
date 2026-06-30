@@ -13,7 +13,9 @@ import {
     type ComposedRuntime,
     createComposer,
     defineModule,
+    type BindingDependencyEdge,
     type CapabilityMetadata,
+    type CapabilityDependencyEdge,
     type Composer,
     type ComposerBindingBuilder,
     type ComposerBindingContext,
@@ -23,6 +25,9 @@ import {
     type ModuleDefinition,
     type ModuleDefinitionInput,
     type ModuleDependencyDefinition,
+    type ModuleDependencyEdge,
+    type ModuleDependencyEdgeBase,
+    type ModuleDependencyEdgeKind,
     type ModuleGraph,
     type ModuleNodeMetadata,
     type ModuleSetupContext,
@@ -688,7 +693,7 @@ describe('composer builder and static validation', () => {
         ])
     })
 
-    test('does not implement Stage 10 module cycle detection yet', () => {
+    test('does not implement module cycle detection yet', () => {
         const first = defineModule({
             id: 'cycle-a',
             requires: [
@@ -1104,7 +1109,7 @@ describe('module setup and private providers', () => {
         expect(preparedComposition.capabilities[0]?.tokenId).toBe('composer.auth-public-api')
     })
 
-    test('exposes composer runtime and inspection API without Stage 10 or DSL APIs', async () => {
+    test('exposes composer runtime and inspection API without cycle or DSL APIs', async () => {
         const module = await import('../src/composer.js')
         const composer = createComposer()
 
@@ -1240,6 +1245,16 @@ describe('inspection api', () => {
                 lifetime: 'singleton'
             }
         ])
+        expect(inspection.edges).toEqual([
+            {
+                edgeKind: 'binding',
+                consumerModuleId: 'inspect-contact-requests',
+                requiredTokenId: 'composer.auth-reader',
+                dependencyKind: 'external',
+                bindingTokenId: 'composer.auth-reader',
+                bindingKind: 'value'
+            }
+        ])
         expect(inspection.validation).toEqual({
             ok: true,
             diagnostics: []
@@ -1249,12 +1264,13 @@ describe('inspection api', () => {
         expect(Object.isFrozen(inspection)).toBe(true)
         expect(Object.isFrozen(inspection.modules)).toBe(true)
         expect(Object.isFrozen(inspection.requiredPorts)).toBe(true)
+        expect(Object.isFrozen(inspection.edges)).toBe(true)
 
         const renderedInspection = JSON.stringify(inspection)
 
         expect(renderedInspection).not.toContain('binding-secret-user')
         expect(renderedInspection).not.toContain('metadata-secret')
-        expect('edges' in graph).toBe(false)
+        expect('edges' in graph).toBe(true)
         expect('cycles' in graph).toBe(false)
 
         const invalidInspection = createComposer()
@@ -1273,6 +1289,155 @@ describe('inspection api', () => {
 
         expect(invalidInspection.validation.ok).toBe(false)
         expect(invalidInspection.requiredPorts[0]?.satisfiedBy).toBe('missing')
+    })
+
+    test('records deterministic capability and binding dependency edges without executing factories', () => {
+        let setupCalls = 0
+        let bindingFactoryCalls = 0
+        const authModule = defineModule({
+            id: 'edge-auth',
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(): void {
+                setupCalls += 1
+            }
+        })
+        const contactRequestsModule = defineModule({
+            id: 'edge-contact-requests',
+            requires: [
+                {
+                    token: AUTH_PUBLIC_API
+                },
+                {
+                    token: OPTIONAL_AUTH_READER,
+                    required: false
+                }
+            ],
+            setup(): void {}
+        })
+        const notificationModule = defineModule({
+            id: 'edge-notifications',
+            requires: [
+                {
+                    token: AUTH_READER,
+                    kind: 'shared'
+                }
+            ],
+            setup(): void {}
+        })
+        const composer = createComposer()
+            .use(authModule)
+            .use(contactRequestsModule)
+            .use(notificationModule)
+
+        composer.bind(AUTH_READER).toFactory(() => {
+            bindingFactoryCalls += 1
+
+            return {
+                currentUserId(): string {
+                    return 'edge-secret-user'
+                }
+            }
+        })
+
+        const graph = composer.getGraph()
+        const inspection = composer.inspect()
+
+        expect(graph.edges).toEqual([
+            {
+                edgeKind: 'capability',
+                consumerModuleId: 'edge-contact-requests',
+                requiredTokenId: 'composer.auth-public-api',
+                dependencyKind: 'external',
+                providerModuleId: 'edge-auth',
+                capabilityTokenId: 'composer.auth-public-api',
+                capabilityKind: 'public-api'
+            },
+            {
+                edgeKind: 'binding',
+                consumerModuleId: 'edge-notifications',
+                requiredTokenId: 'composer.auth-reader',
+                dependencyKind: 'shared',
+                bindingTokenId: 'composer.auth-reader',
+                bindingKind: 'factory'
+            }
+        ])
+        expect(inspection.edges).toEqual(graph.edges)
+        expect(inspection.requiredPorts).toEqual([
+            {
+                moduleId: 'edge-contact-requests',
+                tokenId: 'composer.auth-public-api',
+                required: true,
+                kind: 'external',
+                satisfiedBy: 'capability'
+            },
+            {
+                moduleId: 'edge-contact-requests',
+                tokenId: 'composer.optional-auth-reader',
+                required: false,
+                kind: 'external',
+                satisfiedBy: 'optional'
+            },
+            {
+                moduleId: 'edge-notifications',
+                tokenId: 'composer.auth-reader',
+                required: true,
+                kind: 'shared',
+                satisfiedBy: 'binding'
+            }
+        ])
+        expect(setupCalls).toBe(0)
+        expect(bindingFactoryCalls).toBe(0)
+        expect(JSON.stringify(graph)).not.toContain('edge-secret-user')
+    })
+
+    test('records binding edges instead of capability edges when a binding satisfies a port', () => {
+        const authReaderProviderModule = defineModule({
+            id: 'edge-auth-reader-provider',
+            provides: [
+                {
+                    token: AUTH_READER,
+                    kind: 'shared-service'
+                }
+            ],
+            setup(): void {}
+        })
+        const consumerModule = defineModule({
+            id: 'edge-auth-reader-consumer',
+            requires: [
+                {
+                    token: AUTH_READER
+                }
+            ],
+            setup(): void {}
+        })
+        const composer = createComposer().use(authReaderProviderModule).use(consumerModule)
+
+        composer.bind(AUTH_READER).toValue({
+            currentUserId(): string {
+                return 'binding-priority-user'
+            }
+        })
+
+        const graph = composer.getGraph()
+
+        expect(graph.requiredPorts[0]?.satisfiedBy).toBe('binding')
+        expect(graph.edges).toEqual([
+            {
+                edgeKind: 'binding',
+                consumerModuleId: 'edge-auth-reader-consumer',
+                requiredTokenId: 'composer.auth-reader',
+                dependencyKind: 'external',
+                bindingTokenId: 'composer.auth-reader',
+                bindingKind: 'value'
+            }
+        ])
+        expect(graph.edges.some((edge) => edge.edgeKind === 'capability')).toBe(false)
+        expect(JSON.stringify(graph)).not.toContain('binding-priority-user')
     })
 
     test('inspects composed runtime exported provider registrations without private internals', async () => {
@@ -1412,6 +1577,16 @@ describe('inspection api', () => {
                 satisfiedBy: 'binding'
             }
         ])
+        expect(inspection.edges).toEqual([
+            {
+                edgeKind: 'binding',
+                consumerModuleId: 'inspect-runtime-contact-requests',
+                requiredTokenId: 'composer.auth-reader',
+                dependencyKind: 'external',
+                bindingTokenId: 'composer.auth-reader',
+                bindingKind: 'factory'
+            }
+        ])
         expect(inspection.providerRegistrations).toEqual([
             {
                 moduleId: 'inspect-runtime-auth',
@@ -1480,7 +1655,7 @@ describe('inspection api', () => {
         expect(renderedInspection).not.toContain('runtime-private-secret')
         expect(renderedInspection).not.toContain('composer.auth-secret')
         expect(renderedInspection).not.toContain('sagifire/ioc/private')
-        expect('edges' in inspection.graph).toBe(false)
+        expect('edges' in inspection.graph).toBe(true)
         expect('cycles' in inspection.graph).toBe(false)
 
         await runtime.dispose()
@@ -1505,12 +1680,21 @@ describe('inspection api', () => {
         expectTypeOf(composerInspection.bindings[0]).toEqualTypeOf<
             CompositionBindingMetadata | undefined
         >()
+        expectTypeOf(composerInspection.edges[0]).toEqualTypeOf<
+            ModuleDependencyEdge | undefined
+        >()
         expectTypeOf(composerInspection.validation.ok).toEqualTypeOf<boolean>()
         expectTypeOf<InspectionProviderKind>().toEqualTypeOf<
             'value' | 'factory' | 'class' | 'async-factory' | 'async-resource'
         >()
         expectTypeOf<RequiredPortSatisfaction>().toEqualTypeOf<
             'binding' | 'capability' | 'optional' | 'missing'
+        >()
+        expectTypeOf<ModuleDependencyEdgeKind>().toEqualTypeOf<'capability' | 'binding'>()
+        expectTypeOf<CapabilityDependencyEdge>().toMatchTypeOf<ModuleDependencyEdgeBase>()
+        expectTypeOf<BindingDependencyEdge>().toMatchTypeOf<ModuleDependencyEdgeBase>()
+        expectTypeOf<ModuleDependencyEdge>().toMatchTypeOf<
+            CapabilityDependencyEdge | BindingDependencyEdge
         >()
 
         const module = defineModule({
@@ -1832,7 +2016,7 @@ describe('composed runtime capabilities', () => {
         })
     })
 
-    test('does not implement Stage 10 module cycle detection during compose', async () => {
+    test('does not implement module cycle detection during compose', async () => {
         const first = defineModule({
             id: 'compose-cycle-a',
             requires: [

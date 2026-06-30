@@ -75,6 +75,18 @@
 - [TASK-06.30-0023-stage-9-inspection-api](TASK-06.30-0023-stage-9-inspection-api/index.md)
   - Type: folder
   - Purpose: Задача реалізації Stage 9 inspection API.
+- [TASK-06.30-0024-stage-10-implementation-planning](TASK-06.30-0024-stage-10-implementation-planning/index.md)
+  - Type: folder
+  - Purpose: Планування реалізації Stage 10 module graph cycle detection.
+- [TASK-06.30-0025-stage-10-dependency-edge-model](TASK-06.30-0025-stage-10-dependency-edge-model/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 10 dependency edge model.
+- [TASK-06.30-0026-stage-10-module-cycle-diagnostics](TASK-06.30-0026-stage-10-module-cycle-diagnostics/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 10 module cycle diagnostics.
+- [TASK-06.30-0027-stage-10-runtime-inspection-hardening](TASK-06.30-0027-stage-10-runtime-inspection-hardening/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 10 runtime inspection hardening.
 
 ## Files
 

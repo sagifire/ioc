@@ -27,6 +27,6 @@ Implemented in the current stage:
 - module setup and private provider preparation through `composer.prepare()`.
 - composed runtime capability access through `composer.compose()`.
 - safe inspection metadata through `composer.inspect()`, `composer.getGraph()` and
-  `runtime.inspect()`.
+  `runtime.inspect()`, including dependency edge metadata.
 
 DSL, graph-aware diagnostics and framework adapters are planned for later roadmap stages.

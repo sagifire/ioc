@@ -211,6 +211,33 @@ exported provider registration summaries, root / `@sagifire/ioc/composer` type e
 tests and docs sync. RUN-001 не реалізовував Stage 10 module cycle detection, capability
 dependency edges, binding dependency edges, DSL/adapters або testing helpers.
 
+Stage 10 implementation planning завершено після task-level human review approval:
+
+- [TASK-06.30-0024-stage-10-implementation-planning](tasks/plan/TASK-06.30-0024-stage-10-implementation-planning/index.md)
+
+Stage 10 module graph cycle detection implementation заплановано як три послідовні
+implementation задачі:
+
+- [TASK-06.30-0025-stage-10-dependency-edge-model](tasks/plan/TASK-06.30-0025-stage-10-dependency-edge-model/index.md)
+- [TASK-06.30-0026-stage-10-module-cycle-diagnostics](tasks/plan/TASK-06.30-0026-stage-10-module-cycle-diagnostics/index.md)
+- [TASK-06.30-0027-stage-10-runtime-inspection-hardening](tasks/plan/TASK-06.30-0027-stage-10-runtime-inspection-hardening/index.md)
+
+Stage 10 planning зафіксував graph edge model, де capability dependency edges
+відображають required port -> provided capability, binding dependency edges відображають
+required port -> explicit composer binding, а module cycles detected over capability
+dependency edges. `composer.validate()` не має виконувати binding factories для hidden
+dependency inference.
+
+Stage 10 dependency edge model implementation завершено після task-level human review
+approval:
+
+- [TASK-06.30-0025-stage-10-dependency-edge-model](tasks/plan/TASK-06.30-0025-stage-10-dependency-edge-model/index.md)
+
+RUN-001 реалізував public dependency edge types і deterministic `edges` metadata у
+`ModuleGraph`, `ComposerInspection` і `RuntimeInspection` for capability dependency edges
+and binding dependency edges. RUN-001 не реалізовував module cycle validation, cycle
+diagnostics, DSL/adapters або testing helpers.
+
 ## Active Tasks
 
 Немає задач у статусі `active`.
@@ -290,6 +317,18 @@ dependency edges, binding dependency edges, DSL/adapters або testing helpers.
 - [TASK-06.30-0023-stage-9-inspection-api](tasks/plan/TASK-06.30-0023-stage-9-inspection-api/index.md)
   - Status: done
   - Summary: Stage 9 inspection API implementation task.
+- [TASK-06.30-0024-stage-10-implementation-planning](tasks/plan/TASK-06.30-0024-stage-10-implementation-planning/index.md)
+  - Status: done
+  - Summary: Stage 10 module graph cycle detection implementation planning task.
+- [TASK-06.30-0025-stage-10-dependency-edge-model](tasks/plan/TASK-06.30-0025-stage-10-dependency-edge-model/index.md)
+  - Status: done
+  - Summary: Stage 10 dependency edge model implementation task.
+- [TASK-06.30-0026-stage-10-module-cycle-diagnostics](tasks/plan/TASK-06.30-0026-stage-10-module-cycle-diagnostics/index.md)
+  - Status: backlog
+  - Summary: Stage 10 module cycle diagnostics implementation task.
+- [TASK-06.30-0027-stage-10-runtime-inspection-hardening](tasks/plan/TASK-06.30-0027-stage-10-runtime-inspection-hardening/index.md)
+  - Status: backlog
+  - Summary: Stage 10 runtime inspection hardening implementation task.
 
 ## Recent Decisions
 
@@ -503,13 +542,38 @@ dependency edges, binding dependency edges, DSL/adapters або testing helpers.
   capability dependency edges, binding dependency edges, DSL/adapters або testing helpers.
 - `TASK-06.30-0023-stage-9-inspection-api` завершена після task-level human review
   approval.
+- `TASK-06.30-0024-stage-10-implementation-planning` створена як окрема
+  interactive-memory-update задача для планування Stage 10.
+- `TASK-06.30-0024-stage-10-implementation-planning` завершена після task-level human
+  review approval.
+- Stage 10 implementation розбита на три implementation tasks: dependency edge model,
+  module cycle diagnostics and runtime inspection hardening.
+- Для Stage 10 прийнято graph edge model: capability dependency edge відображає required
+  port consumer module -> provider module capability; binding dependency edge відображає
+  required port consumer module -> explicit composition binding.
+- Для Stage 10 прийнято, що binding-satisfied required port records a binding edge and
+  does not also create a module-to-module capability edge for that required port.
+- Для Stage 10 прийнято, що module cycles are detected over module-to-module capability
+  dependency edges.
+- Для Stage 10 прийнято, що `composer.validate()` не виконує binding factories, module
+  provider factories або async resources для hidden dependency inference.
+- `TASK-06.30-0025-stage-10-dependency-edge-model` RUN-001 виконаний агентом, переведений
+  у `review` і approved після task-level human review.
+- Stage 10 dependency edge model RUN-001 реалізував public edge types,
+  `ModuleGraph.edges`, `ComposerInspection.edges`, `RuntimeInspection.edges`, deterministic
+  capability dependency edges and binding dependency edges.
+- Stage 10 dependency edge model RUN-001 не реалізовував module cycle validation, cycle
+  diagnostics, DSL/adapters або testing helpers.
+- `TASK-06.30-0025-stage-10-dependency-edge-model` завершена після task-level human
+  review approval.
 
 ## Current Risks
 
 - DSL, Next.js adapters і testing helpers залишаються out of scope до відповідних roadmap
   stages.
-- Module-level cycle detection and dependency-edge analysis залишаються out of scope до
-  Stage 10, навіть після початку Stage 9 composer work.
+- Binding factory internals не мають static dependency metadata; Stage 10 dependency edge
+  model фіксує static required-port -> binding edges only and keeps provider-level cycles
+  inside factories under existing container diagnostics.
 - Root `SPEC.md` лишається source reference і може дублювати canonical memory; для
   operational рішень використовувати `memory/product/`, `memory/domain/` і
   `memory/technical/`.
@@ -518,7 +582,7 @@ dependency edges, binding dependency edges, DSL/adapters або testing helpers.
 
 ## Next Steps
 
-- Перейти до Stage 10 module graph cycle detection planning/implementation за roadmap.
+- Запустити `TASK-06.30-0026-stage-10-module-cycle-diagnostics`.
 
 ## Open Questions
 

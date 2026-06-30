@@ -69,6 +69,13 @@
   - Summary: Планування реалізації Stage 9 composer/modules і підготовка декількох
     implementation tasks.
   - Current: FIX-001
+- [TASK-06.30-0024-stage-10-implementation-planning](TASK-06.30-0024-stage-10-implementation-planning/index.md)
+  - Status: done
+  - Type: memory-update
+  - Execution Mode: interactive-memory-update
+  - Summary: Планування реалізації Stage 10 module graph cycle detection і підготовка
+    декількох implementation tasks.
+  - Current: FIX-001
 
 ## Stage 2 Implementation
 
@@ -177,6 +184,29 @@
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Stage 9 `composer.inspect()`, `composer.getGraph()` and `runtime.inspect()`.
+  - Current: RUN-001
+
+## Stage 10 Implementation
+
+- [TASK-06.30-0025-stage-10-dependency-edge-model](TASK-06.30-0025-stage-10-dependency-edge-model/index.md)
+  - Status: done
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 10 module graph dependency edge metadata for capability and binding
+    edges.
+  - Current: RUN-001
+- [TASK-06.30-0026-stage-10-module-cycle-diagnostics](TASK-06.30-0026-stage-10-module-cycle-diagnostics/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 10 module-level cycle detection and typed diagnostics.
+  - Current: RUN-001
+- [TASK-06.30-0027-stage-10-runtime-inspection-hardening](TASK-06.30-0027-stage-10-runtime-inspection-hardening/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 10 composed runtime inspection, binding-edge semantics and final
+    regression hardening.
   - Current: RUN-001
 
 ## Format

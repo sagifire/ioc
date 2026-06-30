@@ -12,9 +12,14 @@ composition-level single bindings with `bind()`, running static validation with
 creating a capability-gated runtime with `compose()`.
 
 `composer.inspect()` and `composer.getGraph()` expose deterministic safe metadata for
-registered modules, required ports, declared capabilities, composition bindings and
-validation status.
+registered modules, required ports, declared capabilities, composition bindings,
+dependency edges and validation status.
 
 Composed runtimes expose `runtime.inspect()` with the same graph shape plus exported
 provider registration summaries. Inspection does not expose provider values, resource
 instances, scope-local values or private runtime internals.
+
+Dependency edges are inspection metadata only. Capability dependency edges connect a
+consumer module required port to the module capability that satisfies it. Binding
+dependency edges connect a consumer module required port to an explicit composition-level
+binding. Module cycle diagnostics remain planned for the next Stage 10 task.

@@ -32,6 +32,10 @@ Root source trace:
 - `TASK-06.30-0021` - Stage 9 module setup/private providers implementation task.
 - `TASK-06.30-0022` - Stage 9 composed runtime/capabilities implementation task.
 - `TASK-06.30-0023` - Stage 9 inspection API implementation task.
+- `TASK-06.30-0024` - Stage 10 implementation planning task.
+- `TASK-06.30-0025` - Stage 10 dependency edge model implementation task.
+- `TASK-06.30-0026` - Stage 10 module cycle diagnostics implementation task.
+- `TASK-06.30-0027` - Stage 10 runtime inspection hardening implementation task.
 
 ## Completed
 
@@ -421,45 +425,35 @@ Root source trace:
     - не використовувати Node-only formatting APIs, terminal colors, Next.js, React,
       decorators or `reflect-metadata` in core.
 
-## Next
-
 - Stage 9: Composer and modules.
-  - Status: planned; implementation planning task is done after task-level human review.
+  - Status: done after task-level human review.
   - Source: `SPEC.md` section 39.
   - Planning Task: `TASK-06.30-0018-stage-9-implementation-planning`.
   - Implementation Tasks:
-    - `TASK-06.30-0019-stage-9-module-definition-foundation` - backlog;
-    - `TASK-06.30-0020-stage-9-composer-builder-bindings-validation` - backlog;
-    - `TASK-06.30-0021-stage-9-module-setup-private-providers` - backlog;
-    - `TASK-06.30-0022-stage-9-composed-runtime-capabilities` - backlog;
-    - `TASK-06.30-0023-stage-9-inspection-api` - backlog.
+    - `TASK-06.30-0019-stage-9-module-definition-foundation` - done after task-level
+      human review;
+    - `TASK-06.30-0020-stage-9-composer-builder-bindings-validation` - done after
+      task-level human review;
+    - `TASK-06.30-0021-stage-9-module-setup-private-providers` - done after task-level
+      human review;
+    - `TASK-06.30-0022-stage-9-composed-runtime-capabilities` - done after task-level
+      human review;
+    - `TASK-06.30-0023-stage-9-inspection-api` - done after task-level human review.
   - Implementation Decomposition:
-    - Task 1 builds explicit module definition object API and `defineModule()`.
-    - Task 2 builds composer builder, composition binding registration and static
+    - Task 1 built explicit module definition object API and `defineModule()`.
+    - Task 2 built composer builder, composition binding registration and static
       validation.
-    - Task 3 executes module setup and enforces private provider isolation.
-    - Task 4 builds composed runtime wrapper and exported capability registry.
-    - Task 5 exposes safe composer/runtime inspection data.
-  - API Decisions:
-    - Stage 9 starts from explicit object configuration; DSL helpers remain Stage 11.
-    - `defineModule()` returns a normalized immutable module definition.
-    - Required port defaults are `required = true` and `kind = 'external'`.
-    - `composer.bind()` satisfies required ports but does not automatically expose a token
-      as a public runtime capability.
-    - Public composed runtime exposes only declared exported capabilities.
-    - Module private providers are visible only to their owning module's setup/provider
-      contexts.
-    - `composer.validate()` returns `DiagnosticReport`.
-    - `composer.compose()` validates and throws typed diagnostics error for invalid graphs.
-    - Static validation may cover definitions and composer bindings; compose-time
-      validation may add diagnostics that require setup execution.
-  - Implement:
+    - Task 3 executed module setup and enforced private provider isolation.
+    - Task 4 built composed runtime wrapper and exported capability registry.
+    - Task 5 exposed safe composer/runtime inspection data.
+  - Implemented:
     - `defineModule()`;
     - module definition/dependency/capability/setup types;
     - `createComposer()`;
     - `composer.use()`;
     - `composer.bind()`;
     - `composer.validate()`;
+    - `composer.prepare()`;
     - `composer.compose()`;
     - module private provider contexts;
     - requires/provides metadata;
@@ -477,25 +471,67 @@ Root source trace:
     - runtime exposes exported capabilities;
     - module internals are not exposed through runtime;
     - inspection returns useful module graph.
-  - Guardrails:
-    - не реалізовувати module-level cycle detection;
-    - не реалізовувати capability dependency edge detection;
-    - не реалізовувати binding dependency edge detection;
-    - не додавати cycle path diagnostics before Stage 10;
-    - не реалізовувати DSL helpers `module()`, `defineApp()` або `adapt()`;
-    - не реалізовувати `@sagifire/ioc-testing` graph assertions or module harnesses;
-    - не реалізовувати Next.js adapters;
-    - не додавати filesystem auto-discovery, decorators, `reflect-metadata`, Node-only
-      APIs or global mutable registries into core.
+  - Guardrails Preserved:
+    - module-level cycle detection was not implemented;
+    - capability dependency edge detection was not implemented;
+    - binding dependency edge detection was not implemented;
+    - cycle path diagnostics were not added before Stage 10;
+    - DSL helpers, testing helpers and Next.js adapters were not implemented;
+    - filesystem auto-discovery, decorators, `reflect-metadata`, Node-only APIs and
+      global mutable registries were not added to core.
+
+## Next
 
 - Stage 10: Module graph cycle detection.
+  - Status: planned; implementation planning task is done after task-level human review.
   - Source: `SPEC.md` section 40.
-  - Implement: module dependency graph, module cycle detection, capability dependency
-    edges and binding dependency edges.
+  - Planning Task: `TASK-06.30-0024-stage-10-implementation-planning`.
+  - Implementation Tasks:
+    - `TASK-06.30-0025-stage-10-dependency-edge-model` - done after task-level human
+      review;
+    - `TASK-06.30-0026-stage-10-module-cycle-diagnostics` - backlog;
+    - `TASK-06.30-0027-stage-10-runtime-inspection-hardening` - backlog.
+  - Implementation Decomposition:
+    - Task 1 adds explicit dependency edge metadata to module graph inspection.
+    - Task 2 detects module cycles and emits typed diagnostics with cycle paths.
+    - Task 3 hardens composed runtime inspection, binding-edge semantics and final
+      regressions/docs.
+  - API Decisions:
+    - Capability dependency edge means required port consumer module -> provider module
+      capability.
+    - Binding dependency edge means required port consumer module -> explicit composition
+      binding.
+    - If a required port is satisfied by a binding, the graph records a binding edge and
+      does not also create a module-to-module capability edge for that required port.
+    - Module cycles are detected over module-to-module capability dependency edges.
+    - Binding edges represent composition adapters and do not create module-level cycles by
+      themselves.
+    - `composer.validate()` must not execute binding factories, module provider factories
+      or async resources to infer hidden dependencies.
+    - Provider-level cycles inside factories remain existing container/runtime diagnostics.
+    - Cycle diagnostics include safe structured module ID path and token/capability path.
+  - Implement:
+    - module dependency graph edge metadata;
+    - capability dependency edges;
+    - binding dependency edges;
+    - module cycle detection;
+    - typed cycle diagnostics;
+    - cycle path details in validation reports;
+    - composer and runtime inspection sync for dependency edges.
   - Acceptance:
     - module-level cycles are detected;
     - cycle path is included in diagnostics;
-    - valid acyclic graphs compose successfully.
+    - valid acyclic graphs compose successfully;
+    - module graph inspection includes capability and binding dependency edges;
+    - binding-satisfied required ports do not create false module cycle diagnostics.
+  - Guardrails:
+    - не реалізовувати DSL helpers `module()`, `defineApp()` або `adapt()`;
+    - не реалізовувати `@sagifire/ioc-testing` graph assertions or module harnesses;
+    - не реалізовувати Next.js adapters;
+    - не виконувати factories/resources під час validation/inspection для hidden
+      dependency inference;
+    - не додавати filesystem auto-discovery, decorators, `reflect-metadata`, Node-only
+      APIs or global mutable registries into core.
 
 ## Later
 

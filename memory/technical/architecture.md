@@ -523,8 +523,42 @@ Stage 9 validation model:
 - `composer.compose()` validates and throws a typed diagnostics error when the graph is
   invalid.
 
-Stage 9 does not implement module-level cycle detection, capability dependency edges or
+Stage 9 did not implement module-level cycle detection, capability dependency edges or
 binding dependency edges. These belong to Stage 10.
+
+Stage 10 graph edge model:
+
+- dependency edges are safe inspection metadata over explicit module declarations and
+  composer bindings;
+- capability dependency edge means a consumer module required port is satisfied by another
+  module's declared provided capability;
+- binding dependency edge means a consumer module required port is satisfied by an explicit
+  composition-level binding;
+- if a required port is satisfied by an explicit binding, the graph records a binding edge
+  and does not also create a module-to-module capability edge for that required port;
+- dependency edge metadata must include module IDs, token IDs and edge kind, but must not
+  expose provider values, resource instances, scope-local values or private runtime
+  internals;
+- edge order must be deterministic and based on module/required port registration order.
+
+Stage 10 cycle model:
+
+- module cycles are detected over module-to-module capability dependency edges;
+- binding edges represent application-level composition adapters and do not create
+  module-level cycles by themselves;
+- cycle diagnostics include a module ID path and token/capability path;
+- `composer.validate()`, `composer.inspect().validation`, `composer.prepare()` and
+  `composer.compose()` all surface module cycle diagnostics consistently;
+- valid acyclic graphs compose successfully.
+
+Stage 10 binding inference boundary:
+
+- composer validation and inspection must not execute binding factories, module provider
+  factories or async resources to infer hidden dependency edges;
+- provider-level cycles discovered inside factories remain the responsibility of existing
+  container/runtime diagnostics;
+- if future stages need declarative binding-internal dependencies, they must add an
+  explicit public API rather than hidden tracing.
 
 ## Bindings
 
@@ -558,6 +592,8 @@ Stage boundary:
   tokens, invalid bindings, private provider exposure and safe inspection.
 - Stage 10 owns module-level cycles, capability dependency edges, binding dependency edges
   and cycle path diagnostics.
+- Stage 10 binding dependency edges are static required-port -> composition-binding edges;
+  binding factory internals are not inferred by executing user code during validation.
 
 ## Diagnostics
 

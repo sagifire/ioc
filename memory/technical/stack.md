@@ -1,6 +1,6 @@
 # Stack
 
-Source trace: `SPEC.md` sections 4-6 and 32-39.
+Source trace: `SPEC.md` sections 4-6 and 32-40.
 
 ## Product Stack
 
@@ -156,6 +156,11 @@ Stage 9 composer/module assertions use Vitest `expectTypeOf` for `defineModule()
 module metadata/required port/capability inference, `composer.bind()` token inference,
 module setup context resolution, composed runtime token inference and inspection public
 API.
+
+Stage 10 module graph assertions use Vitest `expectTypeOf` for dependency edge public
+types and cycle diagnostic public details where applicable. Runtime tests remain Vitest
+tests and must cover deterministic graph edges, cycle diagnostics and non-execution of
+factories during validation/inspection.
 
 Broader type-level test tooling remains open for later stages if Vitest assertions are not
 enough for more complex public API inference.

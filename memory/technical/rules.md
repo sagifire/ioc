@@ -237,4 +237,41 @@ Stage 9 validation and diagnostics:
 Stage 9 must not implement module-level cycle detection, capability dependency edges,
 binding dependency edges or cycle path diagnostics. These belong to Stage 10.
 
-Composer, DSL and adapters start only at their respective stages.
+## Stage 10 Module Graph Rules
+
+Stage 10 adds dependency-edge analysis and module cycle diagnostics to composer/module
+graphs in `@sagifire/ioc`.
+
+Stage 10 must preserve the architecture boundary:
+
+- container does not import or know about composer/modules;
+- dependency edges are composer graph metadata, not container behavior;
+- DSL remains optional and out of scope until Stage 11;
+- Next.js and React remain outside core.
+
+Stage 10 graph edge rules:
+
+- capability dependency edge represents required port consumer module -> provider module
+  capability;
+- binding dependency edge represents required port consumer module -> explicit composer
+  binding;
+- a binding-satisfied required port must not also create a module-to-module capability
+  edge for the same required port;
+- edge metadata must be deterministic and must not expose provider values, resource
+  instances, scope-local values or private runtime internals.
+
+Stage 10 cycle rules:
+
+- module cycles are detected over module-to-module capability dependency edges;
+- binding edges do not create module-level cycles by themselves;
+- cycle diagnostics must include safe structured module ID path and token/capability path;
+- valid acyclic graphs must still compose successfully.
+
+Stage 10 validation must not execute binding factories, module provider factories or async
+resources to infer hidden dependencies. Provider-level cycles inside factories remain
+container/runtime diagnostics.
+
+Stage 10 must not implement DSL helpers, `@sagifire/ioc-testing` graph assertions or
+Next.js adapters.
+
+DSL, testing helpers and adapters start only at their respective stages.

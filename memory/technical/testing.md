@@ -163,3 +163,20 @@ assertions for inspection public API.
 Stage 9 tests must explicitly guard that module-level cycle detection, capability
 dependency edge detection and binding dependency edge detection are not implemented before
 Stage 10.
+
+Stage 10 dependency edge model must add runtime tests for `composer.getGraph()`,
+`composer.inspect()` and composed runtime graph metadata where applicable. Tests must cover
+capability dependency edges, binding dependency edges, deterministic edge ordering, binding
+priority over capability satisfaction and privacy of provider values/private runtime
+internals. It must also add Vitest `expectTypeOf` assertions for public edge types.
+
+Stage 10 module cycle diagnostics must add runtime tests for simple two-module cycles,
+longer cycles, valid acyclic graphs, binding-satisfied required ports that avoid false
+module cycles and deterministic cycle diagnostics. Diagnostics tests must verify module ID
+paths and token/capability paths without exposing provider values.
+
+Stage 10 runtime inspection hardening must add regression tests that validation and
+inspection do not execute binding factories, module provider factories or async resources
+to infer dependencies. Provider-level cycles inside factories must continue to surface as
+container/provider diagnostics when resolution actually happens. Stage 9 no-edge/no-cycle
+guard assertions should be replaced with Stage 10 edge/cycle assertions.

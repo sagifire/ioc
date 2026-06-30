@@ -106,6 +106,8 @@ export type InspectionProviderKind =
 
 export type RequiredPortSatisfaction = 'binding' | 'capability' | 'optional' | 'missing'
 
+export type ModuleDependencyEdgeKind = 'capability' | 'binding'
+
 export interface ComposerBindingContext {
     get<TValue>(token: Token<TValue>): TValue
     tryGet<TValue>(token: Token<TValue>): TValue | undefined
@@ -187,6 +189,28 @@ export interface CompositionBindingMetadata {
     readonly initialization?: AsyncProviderInitializationMode
 }
 
+export interface ModuleDependencyEdgeBase {
+    readonly edgeKind: ModuleDependencyEdgeKind
+    readonly consumerModuleId: string
+    readonly requiredTokenId: string
+    readonly dependencyKind: ModuleDependencyKind
+}
+
+export interface CapabilityDependencyEdge extends ModuleDependencyEdgeBase {
+    readonly edgeKind: 'capability'
+    readonly providerModuleId: string
+    readonly capabilityTokenId: string
+    readonly capabilityKind: ModuleCapabilityKind
+}
+
+export interface BindingDependencyEdge extends ModuleDependencyEdgeBase {
+    readonly edgeKind: 'binding'
+    readonly bindingTokenId: string
+    readonly bindingKind: ComposerBindingKind
+}
+
+export type ModuleDependencyEdge = CapabilityDependencyEdge | BindingDependencyEdge
+
 export interface ProviderRegistrationProviderSummary {
     readonly providerKind: InspectionProviderKind
     readonly lifetime?: ProviderLifetime
@@ -207,6 +231,7 @@ export interface ModuleGraph {
     readonly requiredPorts: readonly RequiredPortMetadata[]
     readonly capabilities: readonly CapabilityMetadata[]
     readonly bindings: readonly CompositionBindingMetadata[]
+    readonly edges: readonly ModuleDependencyEdge[]
 }
 
 export interface ComposerInspection extends ModuleGraph {
@@ -579,6 +604,12 @@ type ComposerBindingRecord =
           readonly factory: ComposerAsyncBindingFactory<unknown>
       }
 
+interface CapabilityDependencyRecord {
+    readonly moduleId: string
+    readonly tokenId: string
+    readonly kind: ModuleCapabilityKind
+}
+
 interface ProviderRegistrationRecord {
     readonly providerKind: InspectionProviderKind
     lifetime: ProviderLifetime | undefined
@@ -762,6 +793,7 @@ function createComposerInspection(
         requiredPorts: graph.requiredPorts,
         capabilities: graph.capabilities,
         bindings: graph.bindings,
+        edges: graph.edges,
         graph,
         validation: validateComposer(moduleSnapshot, bindingSnapshot)
     })
@@ -779,6 +811,7 @@ function createRuntimeInspection(
         requiredPorts: graph.requiredPorts,
         capabilities: graph.capabilities,
         bindings: graph.bindings,
+        edges: graph.edges,
         graph,
         validation: validateComposer(modules, bindings),
         providerRegistrations: createProviderRegistrationSummaries(modules, access)
@@ -793,6 +826,8 @@ function createModuleGraph(
     const bindingSnapshot = [...bindings]
     const providedTokenIds = collectProvidedTokenIds(moduleSnapshot)
     const bindingTokenIds = collectBindingTokenIds(bindingSnapshot)
+    const capabilitiesByTokenId = collectFirstCapabilityByTokenId(moduleSnapshot)
+    const bindingsByTokenId = collectFirstBindingByTokenId(bindingSnapshot)
     const moduleMetadata = Object.freeze(
         moduleSnapshot.map((moduleDefinition) => {
             return createModuleNodeMetadata(moduleDefinition)
@@ -822,12 +857,18 @@ function createModuleGraph(
             return createCompositionBindingMetadata(binding)
         })
     )
+    const edges = createModuleDependencyEdges(
+        moduleSnapshot,
+        capabilitiesByTokenId,
+        bindingsByTokenId
+    )
 
     return Object.freeze({
         modules: moduleMetadata,
         requiredPorts,
         capabilities,
-        bindings: bindingMetadata
+        bindings: bindingMetadata,
+        edges
     })
 }
 
@@ -1046,6 +1087,69 @@ function createCompositionBindingMetadata(
         providerKind: 'async-factory',
         lifetime: 'transient',
         initialization: 'lazy'
+    })
+}
+
+function createModuleDependencyEdges(
+    modules: readonly ModuleDefinition[],
+    capabilitiesByTokenId: ReadonlyMap<string, CapabilityDependencyRecord>,
+    bindingsByTokenId: ReadonlyMap<string, ComposerBindingRecord>
+): readonly ModuleDependencyEdge[] {
+    const edges: ModuleDependencyEdge[] = []
+
+    for (const moduleDefinition of modules) {
+        for (const dependency of moduleDefinition.requires) {
+            if (!dependency.required) {
+                continue
+            }
+
+            const binding = bindingsByTokenId.get(dependency.token.id)
+
+            if (binding !== undefined) {
+                edges.push(createBindingDependencyEdge(moduleDefinition, dependency, binding))
+
+                continue
+            }
+
+            const capability = capabilitiesByTokenId.get(dependency.token.id)
+
+            if (capability !== undefined) {
+                edges.push(createCapabilityDependencyEdge(moduleDefinition, dependency, capability))
+            }
+        }
+    }
+
+    return Object.freeze(edges)
+}
+
+function createCapabilityDependencyEdge(
+    moduleDefinition: ModuleDefinition,
+    dependency: ModuleDependencyDefinition,
+    capability: CapabilityDependencyRecord
+): CapabilityDependencyEdge {
+    return Object.freeze({
+        edgeKind: 'capability',
+        consumerModuleId: moduleDefinition.id,
+        requiredTokenId: dependency.token.id,
+        dependencyKind: dependency.kind,
+        providerModuleId: capability.moduleId,
+        capabilityTokenId: capability.tokenId,
+        capabilityKind: capability.kind
+    })
+}
+
+function createBindingDependencyEdge(
+    moduleDefinition: ModuleDefinition,
+    dependency: ModuleDependencyDefinition,
+    binding: ComposerBindingRecord
+): BindingDependencyEdge {
+    return Object.freeze({
+        edgeKind: 'binding',
+        consumerModuleId: moduleDefinition.id,
+        requiredTokenId: dependency.token.id,
+        dependencyKind: dependency.kind,
+        bindingTokenId: binding.token.id,
+        bindingKind: binding.kind
     })
 }
 
@@ -1854,6 +1958,44 @@ function collectBindingTokenIds(bindings: readonly ComposerBindingRecord[]): Rea
     }
 
     return tokenIds
+}
+
+function collectFirstCapabilityByTokenId(
+    modules: readonly ModuleDefinition[]
+): ReadonlyMap<string, CapabilityDependencyRecord> {
+    const capabilitiesByTokenId = new Map<string, CapabilityDependencyRecord>()
+
+    for (const moduleDefinition of modules) {
+        for (const capability of moduleDefinition.provides) {
+            if (capabilitiesByTokenId.has(capability.token.id)) {
+                continue
+            }
+
+            capabilitiesByTokenId.set(capability.token.id, {
+                moduleId: moduleDefinition.id,
+                tokenId: capability.token.id,
+                kind: capability.kind
+            })
+        }
+    }
+
+    return capabilitiesByTokenId
+}
+
+function collectFirstBindingByTokenId(
+    bindings: readonly ComposerBindingRecord[]
+): ReadonlyMap<string, ComposerBindingRecord> {
+    const bindingsByTokenId = new Map<string, ComposerBindingRecord>()
+
+    for (const binding of bindings) {
+        if (bindingsByTokenId.has(binding.token.id)) {
+            continue
+        }
+
+        bindingsByTokenId.set(binding.token.id, binding)
+    }
+
+    return bindingsByTokenId
 }
 
 function collectRequiredPortTokenIds(modules: readonly ModuleDefinition[]): ReadonlySet<string> {

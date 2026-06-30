@@ -26,6 +26,10 @@
 | Required port | Dependency contract owned by the consumer module and satisfied by another module or explicit binding. |
 | Binding | Composition-level adapter that connects required ports to providers or public APIs. |
 | Module graph | Inspectable graph of modules, capabilities, required ports, bindings and dependency edges. |
+| Dependency edge | Safe graph metadata that explains how a required port is satisfied without exposing provider values or private runtime internals. |
+| Capability dependency edge | Module graph edge from a consumer module required port to another module's provided capability. |
+| Binding dependency edge | Module graph edge from a consumer module required port to an explicit composition-level binding. |
+| Module cycle | Directed cycle between modules through capability dependency edges; diagnostics include module ID path and token/capability path. |
 | DSL | Optional ergonomic configuration layer over explicit object-configuration API. |
 | Diagnostic | Structured error or report that explains validation or runtime failure with actionable details. |
 | Inspection API | Runtime/composer API that exposes safe graph metadata without exposing private provider values. |
