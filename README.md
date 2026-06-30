@@ -8,8 +8,11 @@ token API plus the Stage 4/5/6 sync container API for single-provider registrati
 multi-provider contributions and scopes. Stage 7 async single-provider bindings, explicit
 `getAsync()` resolution, async resources and runtime/scope disposal are implemented. Stage
 8 core diagnostics now include typed errors, diagnostic reports and plain-text formatting.
-Composer, DSL, graph-aware diagnostics and framework adapter behavior are planned for later
-roadmap stages.
+Stage 9 has started with module definition foundation through `defineModule()`, composer
+builder/static validation through `createComposer()`, `use()`, `bind()` and `validate()`,
+and module setup/private provider preparation through `prepare()`. Composed runtime
+behavior, DSL, graph-aware diagnostics and framework adapter behavior are planned for
+later roadmap stages.
 
 ## Packages
 
@@ -31,8 +34,8 @@ pnpm format
 ## Documentation
 
 The files in `docs/` are skeletons for later stages. They intentionally do not describe
-unimplemented composer, DSL, graph validation or adapter APIs before those layers are
-implemented.
+unimplemented composed runtime, DSL, graph validation or adapter APIs before those layers
+are implemented.
 
 ## License
 

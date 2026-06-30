@@ -127,3 +127,39 @@ multi-diagnostic reports in input order, details rendering for Stage 3-7 errors 
 generic handling of unknown errors. Formatter tests must keep output deterministic and
 plain text. Stage 8 reports/formatter must also add Vitest `expectTypeOf` assertions for
 report and formatter public API.
+
+Stage 9 module definition foundation must add runtime tests for `defineModule()`,
+dependency default normalization, module definition validation, duplicate
+requires/provides rejection and public definition immutability. It must also add Vitest
+`expectTypeOf` assertions for module metadata, required port token values and capability
+token values.
+
+Stage 9 composer builder/bindings/static validation must add runtime tests for
+`createComposer()`, `composer.use()`, `composer.bind()`, deterministic module order,
+duplicate module IDs, missing required ports, required ports satisfied by explicit
+bindings, invalid binding targets and duplicate statically knowable single capabilities.
+It must also add Vitest `expectTypeOf` assertions for composer binding token inference and
+binding factory context inference.
+
+Stage 9 module setup/private providers must add runtime tests for setup execution,
+private provider registration, exported provider registration, module-bound context
+resolution, declared required port resolution and rejection of another module's private
+providers. It must also add Vitest `expectTypeOf` assertions for `ModuleSetupContext`
+binding and resolution APIs.
+
+Stage 9 composed runtime/capabilities must add runtime tests for composing multiple
+modules, bindings satisfying required ports, exported capability resolution, required-port
+bindings not being public by default, private provider hiding, duplicate provided single
+tokens, missing required ports, sync/async/scoped/resource behavior through composed
+runtime and typed validation failures. It must also add Vitest `expectTypeOf` assertions
+for composed runtime token inference.
+
+Stage 9 inspection API must add runtime tests for `composer.inspect()`,
+`composer.getGraph()`, composed `runtime.inspect()`, deterministic inspection shape,
+registered modules, required ports, capabilities, bindings, validation status and privacy
+of provider values/private runtime internals. It must also add Vitest `expectTypeOf`
+assertions for inspection public API.
+
+Stage 9 tests must explicitly guard that module-level cycle detection, capability
+dependency edge detection and binding dependency edge detection are not implemented before
+Stage 10.

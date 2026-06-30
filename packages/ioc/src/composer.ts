@@ -1,2 +1,1720 @@
-// Stage 2 placeholder. Composer behavior starts in Stage 9.
-export {}
+import {
+    createContainer,
+    type AsyncFactoryBinding,
+    type AsyncResourceBinding,
+    type BindingBuilder,
+    type ClassConstructor,
+    type ContainerBuilder,
+    type LifetimeBinding,
+    type MultiBindingBuilder,
+    type ResolutionContext
+} from './container'
+import { SagifireIocError, diagnosticFromError } from './diagnostics'
+import type { Diagnostic, DiagnosticReport } from './diagnostics'
+import type { Token } from './tokens'
+
+export type ModuleDependencyKind = 'external' | 'shared'
+
+export type ModuleCapabilityKind =
+    | 'public-api'
+    | 'admin-contribution'
+    | 'event-publisher'
+    | 'event-subscriber'
+    | 'shared-service'
+    | 'custom'
+
+export interface ModuleDependencyDefinition<TValue = unknown> {
+    readonly token: Token<TValue>
+    readonly required: boolean
+    readonly kind: ModuleDependencyKind
+    readonly description?: string
+}
+
+export interface ModuleDependencyDefinitionInput<TValue = unknown> {
+    readonly token: Token<TValue>
+    readonly required?: boolean
+    readonly kind?: ModuleDependencyKind
+    readonly description?: string
+}
+
+export interface ModuleCapabilityDefinition<TValue = unknown> {
+    readonly token: Token<TValue>
+    readonly kind: ModuleCapabilityKind
+    readonly description?: string
+}
+
+export interface ModuleSetupContext extends ResolutionContext {
+    readonly moduleId: string
+
+    bind<TValue>(token: Token<TValue>): BindingBuilder<TValue>
+    add<TValue>(token: Token<TValue>): MultiBindingBuilder<TValue>
+}
+
+export interface ModuleSetupResult<TMetadata = unknown> {
+    readonly capabilities?: readonly unknown[]
+    readonly metadata?: TMetadata
+}
+
+export type ModuleSetupFunction<TMetadata = unknown> = (
+    context: ModuleSetupContext
+) => void | ModuleSetupResult<TMetadata> | Promise<void | ModuleSetupResult<TMetadata>>
+
+export interface ModuleDefinition<
+    TMetadata = unknown,
+    TRequires extends readonly ModuleDependencyDefinition[] = readonly ModuleDependencyDefinition[],
+    TProvides extends readonly ModuleCapabilityDefinition[] = readonly ModuleCapabilityDefinition[]
+> {
+    readonly id: string
+    readonly version?: string
+    readonly metadata?: TMetadata
+    readonly requires: TRequires
+    readonly provides: TProvides
+    readonly setup: ModuleSetupFunction<TMetadata>
+}
+
+export interface ModuleDefinitionInput<
+    TMetadata = unknown,
+    TRequires extends readonly ModuleDependencyDefinitionInput[] = readonly ModuleDependencyDefinitionInput[],
+    TProvides extends readonly ModuleCapabilityDefinition[] = readonly ModuleCapabilityDefinition[]
+> {
+    readonly id: string
+    readonly version?: string
+    readonly metadata?: TMetadata
+    readonly requires?: TRequires
+    readonly provides?: TProvides
+    readonly setup: ModuleSetupFunction<TMetadata>
+}
+
+type Awaitable<TValue> = TValue | Promise<TValue>
+
+export type ComposerBindingKind = 'value' | 'factory' | 'class' | 'async-factory'
+
+export interface ComposerBindingContext {
+    get<TValue>(token: Token<TValue>): TValue
+    tryGet<TValue>(token: Token<TValue>): TValue | undefined
+    getAll<TValue>(token: Token<TValue>): TValue[]
+    getAsync<TValue>(token: Token<TValue>): Promise<TValue>
+    tryGetAsync<TValue>(token: Token<TValue>): Promise<TValue | undefined>
+}
+
+export type ComposerBindingFactory<TValue> = (context: ComposerBindingContext) => TValue
+
+export type ComposerAsyncBindingFactory<TValue> = (
+    context: ComposerBindingContext
+) => Awaitable<TValue>
+
+export interface ComposerBindingBuilder<TValue> {
+    toValue(value: TValue): void
+    toFactory(factory: ComposerBindingFactory<TValue>): void
+    toClass(classConstructor: ClassConstructor<TValue>): void
+    toAsyncFactory(factory: ComposerAsyncBindingFactory<TValue>): void
+}
+
+export interface Composer {
+    use(moduleDefinition: ModuleDefinition): Composer
+    bind<TValue>(token: Token<TValue>): ComposerBindingBuilder<TValue>
+    validate(): DiagnosticReport
+    prepare(): Promise<PreparedComposition>
+}
+
+export interface PreparedCompositionModule {
+    readonly id: string
+    readonly version?: string
+}
+
+export interface PreparedCompositionCapability {
+    readonly moduleId: string
+    readonly tokenId: string
+    readonly kind: ModuleCapabilityKind
+    readonly registrationKind: 'single' | 'multi'
+}
+
+export interface PreparedComposition {
+    readonly modules: readonly PreparedCompositionModule[]
+    readonly capabilities: readonly PreparedCompositionCapability[]
+}
+
+export interface InvalidModuleDefinitionErrorDetails {
+    readonly moduleId?: string
+    readonly reason: string
+    readonly value?: string | number | boolean | null
+    readonly valueType?: string
+}
+
+export interface DuplicateModuleTokenErrorDetails {
+    readonly moduleId: string
+    readonly tokenId: string
+    readonly section: 'requires' | 'provides'
+}
+
+export interface DuplicateModuleCapabilityErrorDetails extends DuplicateModuleTokenErrorDetails {
+    readonly moduleIds?: readonly string[]
+}
+
+export interface DuplicateModuleIdErrorDetails {
+    readonly moduleId: string
+}
+
+export interface MissingRequiredPortErrorDetails {
+    readonly moduleId: string
+    readonly tokenId: string
+    readonly dependencyKind: ModuleDependencyKind
+}
+
+export interface InvalidComposerBindingErrorDetails {
+    readonly tokenId: string
+    readonly bindingKind: ComposerBindingKind
+    readonly reason: 'missing-required-port'
+}
+
+export interface ComposerValidationErrorDetails {
+    readonly diagnosticCount: number
+}
+
+export type PrivateProviderAccessReason = 'composition-not-ready' | 'token-not-visible'
+
+export interface PrivateProviderAccessErrorDetails {
+    readonly moduleId: string | undefined
+    readonly tokenId: string
+    readonly requester: 'module' | 'composer-binding'
+    readonly reason: PrivateProviderAccessReason
+}
+
+export interface MissingModuleProviderErrorDetails {
+    readonly moduleId: string
+    readonly tokenId: string
+}
+
+export class InvalidModuleDefinitionError extends SagifireIocError<InvalidModuleDefinitionErrorDetails> {
+    override readonly name = 'InvalidModuleDefinitionError'
+    override readonly code = 'SAGIFIRE_IOC_INVALID_MODULE_DEFINITION'
+    readonly moduleId: string | undefined
+    readonly reason: string
+
+    constructor(reason: string, options: InvalidModuleDefinitionErrorOptions = {}) {
+        const details = createInvalidModuleDefinitionDetails(reason, options)
+
+        super({
+            code: 'SAGIFIRE_IOC_INVALID_MODULE_DEFINITION',
+            message: formatInvalidModuleDefinitionMessage(reason, details.moduleId),
+            details
+        })
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.moduleId = details.moduleId
+        this.reason = reason
+    }
+}
+
+export class DuplicateModuleDependencyError extends SagifireIocError<DuplicateModuleTokenErrorDetails> {
+    override readonly name = 'DuplicateModuleDependencyError'
+    override readonly code = 'SAGIFIRE_IOC_DUPLICATE_MODULE_DEPENDENCY'
+    readonly moduleId: string
+    readonly tokenId: string
+
+    constructor(moduleId: string, tokenId: string) {
+        super({
+            code: 'SAGIFIRE_IOC_DUPLICATE_MODULE_DEPENDENCY',
+            message: `Duplicate required port "${tokenId}" in module "${moduleId}"`,
+            details: {
+                moduleId,
+                tokenId,
+                section: 'requires'
+            }
+        })
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.moduleId = moduleId
+        this.tokenId = tokenId
+    }
+}
+
+export class DuplicateModuleCapabilityError extends SagifireIocError<DuplicateModuleCapabilityErrorDetails> {
+    override readonly name = 'DuplicateModuleCapabilityError'
+    override readonly code = 'SAGIFIRE_IOC_DUPLICATE_MODULE_CAPABILITY'
+    readonly moduleId: string
+    readonly moduleIds: readonly string[]
+    readonly tokenId: string
+
+    constructor(moduleId: string, tokenId: string)
+    constructor(moduleIds: readonly [string, string, ...string[]], tokenId: string)
+    constructor(moduleIdOrIds: string | readonly [string, string, ...string[]], tokenId: string) {
+        const moduleId =
+            typeof moduleIdOrIds === 'string' ? moduleIdOrIds : moduleIdOrIds[0]
+        const moduleIds =
+            typeof moduleIdOrIds === 'string' ? [moduleIdOrIds] : [...moduleIdOrIds]
+        const details =
+            typeof moduleIdOrIds === 'string'
+                ? {
+                      moduleId,
+                      tokenId,
+                      section: 'provides' as const
+                  }
+                : {
+                      moduleId,
+                      moduleIds,
+                      tokenId,
+                      section: 'provides' as const
+                  }
+        const message =
+            typeof moduleIdOrIds === 'string'
+                ? `Duplicate provided capability "${tokenId}" in module "${moduleId}"`
+                : `Duplicate provided capability "${tokenId}" in modules: ${moduleIds.join(', ')}`
+
+        super({
+            code: 'SAGIFIRE_IOC_DUPLICATE_MODULE_CAPABILITY',
+            message,
+            details
+        })
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.moduleId = moduleId
+        this.moduleIds = moduleIds
+        this.tokenId = tokenId
+    }
+}
+
+export class DuplicateModuleIdError extends SagifireIocError<DuplicateModuleIdErrorDetails> {
+    override readonly name = 'DuplicateModuleIdError'
+    override readonly code = 'SAGIFIRE_IOC_DUPLICATE_MODULE_ID'
+    readonly moduleId: string
+
+    constructor(moduleId: string) {
+        super({
+            code: 'SAGIFIRE_IOC_DUPLICATE_MODULE_ID',
+            message: `Duplicate module id "${moduleId}"`,
+            details: {
+                moduleId
+            }
+        })
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.moduleId = moduleId
+    }
+}
+
+export class MissingRequiredPortError extends SagifireIocError<MissingRequiredPortErrorDetails> {
+    override readonly name = 'MissingRequiredPortError'
+    override readonly code = 'SAGIFIRE_IOC_MISSING_REQUIRED_PORT'
+    readonly moduleId: string
+    readonly tokenId: string
+    readonly dependencyKind: ModuleDependencyKind
+
+    constructor(moduleId: string, tokenId: string, dependencyKind: ModuleDependencyKind) {
+        super({
+            code: 'SAGIFIRE_IOC_MISSING_REQUIRED_PORT',
+            message: `Missing required port "${tokenId}" for module "${moduleId}"`,
+            details: {
+                moduleId,
+                tokenId,
+                dependencyKind
+            }
+        })
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.moduleId = moduleId
+        this.tokenId = tokenId
+        this.dependencyKind = dependencyKind
+    }
+}
+
+export class InvalidComposerBindingError extends SagifireIocError<InvalidComposerBindingErrorDetails> {
+    override readonly name = 'InvalidComposerBindingError'
+    override readonly code = 'SAGIFIRE_IOC_INVALID_COMPOSER_BINDING'
+    readonly tokenId: string
+    readonly bindingKind: ComposerBindingKind
+    readonly reason: 'missing-required-port'
+
+    constructor(
+        tokenId: string,
+        bindingKind: ComposerBindingKind,
+        reason: 'missing-required-port' = 'missing-required-port'
+    ) {
+        super({
+            code: 'SAGIFIRE_IOC_INVALID_COMPOSER_BINDING',
+            message:
+                `Invalid composer binding for token "${tokenId}": ` +
+                'binding target is not declared by any module required port',
+            details: {
+                tokenId,
+                bindingKind,
+                reason
+            }
+        })
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.tokenId = tokenId
+        this.bindingKind = bindingKind
+        this.reason = reason
+    }
+}
+
+export class ComposerValidationError extends SagifireIocError<ComposerValidationErrorDetails> {
+    override readonly name = 'ComposerValidationError'
+    override readonly code = 'SAGIFIRE_IOC_COMPOSER_VALIDATION_FAILED'
+    readonly report: DiagnosticReport
+
+    constructor(report: DiagnosticReport) {
+        super({
+            code: 'SAGIFIRE_IOC_COMPOSER_VALIDATION_FAILED',
+            message: `Composer validation failed with ${report.diagnostics.length} diagnostic(s)`,
+            details: {
+                diagnosticCount: report.diagnostics.length
+            }
+        })
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.report = report
+    }
+}
+
+export class PrivateProviderAccessError extends SagifireIocError<PrivateProviderAccessErrorDetails> {
+    override readonly name = 'PrivateProviderAccessError'
+    override readonly code = 'SAGIFIRE_IOC_PRIVATE_PROVIDER_ACCESS'
+    readonly moduleId: string | undefined
+    readonly tokenId: string
+    readonly requester: 'module' | 'composer-binding'
+    readonly reason: PrivateProviderAccessReason
+
+    constructor(
+        tokenId: string,
+        requester: 'module' | 'composer-binding',
+        reason: PrivateProviderAccessReason,
+        moduleId?: string
+    ) {
+        super({
+            code: 'SAGIFIRE_IOC_PRIVATE_PROVIDER_ACCESS',
+            message: formatPrivateProviderAccessMessage(tokenId, requester, reason, moduleId),
+            details: {
+                moduleId,
+                tokenId,
+                requester,
+                reason
+            }
+        })
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.moduleId = moduleId
+        this.tokenId = tokenId
+        this.requester = requester
+        this.reason = reason
+    }
+}
+
+export class MissingModuleProviderError extends SagifireIocError<MissingModuleProviderErrorDetails> {
+    override readonly name = 'MissingModuleProviderError'
+    override readonly code = 'SAGIFIRE_IOC_MISSING_MODULE_PROVIDER'
+    readonly moduleId: string
+    readonly tokenId: string
+
+    constructor(moduleId: string, tokenId: string) {
+        super({
+            code: 'SAGIFIRE_IOC_MISSING_MODULE_PROVIDER',
+            message:
+                `Module "${moduleId}" declares provided capability "${tokenId}" ` +
+                'but did not register a provider for it during setup',
+            details: {
+                moduleId,
+                tokenId
+            }
+        })
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.moduleId = moduleId
+        this.tokenId = tokenId
+    }
+}
+
+type NormalizedModuleDependencies<
+    TRequires extends readonly ModuleDependencyDefinitionInput[]
+> = {
+    readonly [TIndex in keyof TRequires]: TRequires[TIndex] extends ModuleDependencyDefinitionInput<
+        infer TValue
+    >
+        ? ModuleDependencyDefinition<TValue>
+        : never
+}
+
+type NormalizedModuleCapabilities<
+    TProvides extends readonly ModuleCapabilityDefinition[]
+> = {
+    readonly [TIndex in keyof TProvides]: TProvides[TIndex] extends ModuleCapabilityDefinition<
+        infer TValue
+    >
+        ? ModuleCapabilityDefinition<TValue>
+        : never
+}
+
+type ComposerBindingRecord =
+    | {
+          readonly kind: 'value'
+          readonly token: Token<unknown>
+          readonly value: unknown
+      }
+    | {
+          readonly kind: 'factory'
+          readonly token: Token<unknown>
+          readonly factory: ComposerBindingFactory<unknown>
+      }
+    | {
+          readonly kind: 'class'
+          readonly token: Token<unknown>
+          readonly classConstructor: ClassConstructor<unknown>
+      }
+    | {
+          readonly kind: 'async-factory'
+          readonly token: Token<unknown>
+          readonly factory: ComposerAsyncBindingFactory<unknown>
+      }
+
+interface RegisteredCapabilityProvider {
+    readonly moduleId: string
+    readonly tokenId: string
+    readonly kind: ModuleCapabilityKind
+    readonly registrationKind: 'single' | 'multi'
+}
+
+interface CompositionAccessModel {
+    readonly publicTokenIds: ReadonlySet<string>
+    readonly bindingTokenIds: ReadonlySet<string>
+    readonly requiredTokenIdsByModuleId: ReadonlyMap<string, ReadonlySet<string>>
+    readonly providedTokenIdsByModuleId: ReadonlyMap<string, ReadonlySet<string>>
+    readonly privateTokensByModuleId: Map<string, Map<string, Token<unknown>>>
+    readonly registeredCapabilities: Map<string, RegisteredCapabilityProvider>
+}
+
+interface LiveModuleSetupContext {
+    readonly context: ModuleSetupContext
+    activate(runtimeContext: ResolutionContext): void
+}
+
+interface InvalidModuleDefinitionErrorOptions {
+    readonly moduleId?: string
+    readonly value?: unknown
+}
+
+const moduleIdPattern = /^[A-Za-z0-9._:/-]+$/
+const moduleDependencyKinds: readonly ModuleDependencyKind[] = ['external', 'shared']
+const moduleCapabilityKinds: readonly ModuleCapabilityKind[] = [
+    'public-api',
+    'admin-contribution',
+    'event-publisher',
+    'event-subscriber',
+    'shared-service',
+    'custom'
+]
+
+export function defineModule<
+    TMetadata = unknown,
+    const TRequires extends readonly ModuleDependencyDefinitionInput[] = readonly ModuleDependencyDefinitionInput[],
+    const TProvides extends readonly ModuleCapabilityDefinition[] = readonly ModuleCapabilityDefinition[]
+>(
+    definition: ModuleDefinitionInput<TMetadata, TRequires, TProvides>
+): ModuleDefinition<
+    TMetadata,
+    NormalizedModuleDependencies<TRequires>,
+    NormalizedModuleCapabilities<TProvides>
+> {
+    const rawDefinition = definition as unknown
+
+    if (!isRecord(rawDefinition)) {
+        throw new InvalidModuleDefinitionError('definition must be an object', {
+            value: rawDefinition
+        })
+    }
+
+    const moduleId = validateModuleId(rawDefinition.id)
+    const version = validateOptionalString(rawDefinition.version, moduleId, 'version')
+    const setup = validateSetup<TMetadata>(rawDefinition.setup, moduleId)
+    const requiresInput = validateDefinitionArray(rawDefinition.requires, moduleId, 'requires')
+    const providesInput = validateDefinitionArray(rawDefinition.provides, moduleId, 'provides')
+    const requires = Object.freeze(
+        requiresInput.map((dependency, index) => {
+            return normalizeDependency(moduleId, dependency, index)
+        })
+    ) as unknown as NormalizedModuleDependencies<TRequires>
+    const provides = Object.freeze(
+        providesInput.map((capability, index) => {
+            return normalizeCapability(moduleId, capability, index)
+        })
+    ) as unknown as NormalizedModuleCapabilities<TProvides>
+
+    assertNoDuplicateDependencies(moduleId, requires as readonly ModuleDependencyDefinition[])
+    assertNoDuplicateCapabilities(moduleId, provides as readonly ModuleCapabilityDefinition[])
+
+    return createModuleDefinition(definition, moduleId, version, setup, requires, provides)
+}
+
+export function createComposer(): Composer {
+    const modules: ModuleDefinition[] = []
+    const bindings: ComposerBindingRecord[] = []
+
+    const composer: Composer = {
+        use(moduleDefinition: ModuleDefinition): Composer {
+            modules.push(moduleDefinition)
+
+            return composer
+        },
+
+        bind<TValue>(bindingToken: Token<TValue>): ComposerBindingBuilder<TValue> {
+            return createComposerBindingBuilder(bindingToken, bindings)
+        },
+
+        validate(): DiagnosticReport {
+            return validateComposer(modules, bindings)
+        },
+
+        prepare(): Promise<PreparedComposition> {
+            return prepareComposition(modules, bindings)
+        }
+    }
+
+    return Object.freeze(composer)
+}
+
+function createComposerBindingBuilder<TValue>(
+    bindingToken: Token<TValue>,
+    bindings: ComposerBindingRecord[]
+): ComposerBindingBuilder<TValue> {
+    return {
+        toValue(value: TValue): void {
+            bindings.push({
+                kind: 'value',
+                token: bindingToken,
+                value
+            })
+        },
+
+        toFactory(factory: ComposerBindingFactory<TValue>): void {
+            bindings.push({
+                kind: 'factory',
+                token: bindingToken,
+                factory
+            })
+        },
+
+        toClass(classConstructor: ClassConstructor<TValue>): void {
+            bindings.push({
+                kind: 'class',
+                token: bindingToken,
+                classConstructor
+            })
+        },
+
+        toAsyncFactory(factory: ComposerAsyncBindingFactory<TValue>): void {
+            bindings.push({
+                kind: 'async-factory',
+                token: bindingToken,
+                factory
+            })
+        }
+    }
+}
+
+async function prepareComposition(
+    modules: readonly ModuleDefinition[],
+    bindings: readonly ComposerBindingRecord[]
+): Promise<PreparedComposition> {
+    const moduleSnapshot = [...modules]
+    const bindingSnapshot = [...bindings]
+    const staticValidation = validateComposer(moduleSnapshot, bindingSnapshot)
+
+    if (!staticValidation.ok) {
+        throw new ComposerValidationError(staticValidation)
+    }
+
+    const container = createContainer()
+    const access = createCompositionAccessModel(moduleSnapshot, bindingSnapshot)
+    const setupContexts: {
+        readonly moduleDefinition: ModuleDefinition
+        readonly setupContext: LiveModuleSetupContext
+    }[] = []
+
+    applyComposerBindings(container, bindingSnapshot, access)
+
+    for (const moduleDefinition of moduleSnapshot) {
+        const setupContext = createLiveModuleSetupContext(moduleDefinition, container, access)
+
+        setupContexts.push({
+            moduleDefinition,
+            setupContext
+        })
+
+        await moduleDefinition.setup(setupContext.context)
+    }
+
+    const providerValidation = validateDeclaredProviderRegistrations(moduleSnapshot, access)
+
+    if (!providerValidation.ok) {
+        throw new ComposerValidationError(providerValidation)
+    }
+
+    const runtime = await container.freeze()
+
+    for (const setupContext of setupContexts) {
+        setupContext.setupContext.activate(
+            createModuleResolutionContext(setupContext.moduleDefinition, runtime, access)
+        )
+    }
+
+    return createPreparedComposition(moduleSnapshot, access)
+}
+
+function createCompositionAccessModel(
+    modules: readonly ModuleDefinition[],
+    bindings: readonly ComposerBindingRecord[]
+): CompositionAccessModel {
+    return {
+        publicTokenIds: collectProvidedTokenIds(modules),
+        bindingTokenIds: collectBindingTokenIds(bindings),
+        requiredTokenIdsByModuleId: collectRequiredTokenIdsByModuleId(modules),
+        providedTokenIdsByModuleId: collectProvidedTokenIdsByModuleId(modules),
+        privateTokensByModuleId: new Map<string, Map<string, Token<unknown>>>(),
+        registeredCapabilities: new Map<string, RegisteredCapabilityProvider>()
+    }
+}
+
+function applyComposerBindings(
+    container: ContainerBuilder,
+    bindings: readonly ComposerBindingRecord[],
+    access: CompositionAccessModel
+): void {
+    for (const binding of bindings) {
+        const builder = container.bind(binding.token)
+
+        if (binding.kind === 'value') {
+            builder.toValue(binding.value)
+        } else if (binding.kind === 'factory') {
+            builder.toFactory((context) => {
+                return binding.factory(createComposerBindingResolutionContext(context, access))
+            })
+        } else if (binding.kind === 'class') {
+            builder.toClass(binding.classConstructor)
+        } else {
+            builder.toAsyncFactory((context) => {
+                return binding.factory(createComposerBindingResolutionContext(context, access))
+            })
+        }
+    }
+}
+
+function createLiveModuleSetupContext(
+    moduleDefinition: ModuleDefinition,
+    container: ContainerBuilder,
+    access: CompositionAccessModel
+): LiveModuleSetupContext {
+    let activeContext: ResolutionContext | undefined
+
+    const getActiveContext = (token: Token<unknown>): ResolutionContext => {
+        if (activeContext === undefined) {
+            throw new PrivateProviderAccessError(
+                token.id,
+                'module',
+                'composition-not-ready',
+                moduleDefinition.id
+            )
+        }
+
+        return activeContext
+    }
+
+    const context: ModuleSetupContext = {
+        moduleId: moduleDefinition.id,
+
+        bind<TValue>(bindingToken: Token<TValue>): BindingBuilder<TValue> {
+            return createModuleBindingBuilder(moduleDefinition, bindingToken, container, access)
+        },
+
+        add<TValue>(bindingToken: Token<TValue>): MultiBindingBuilder<TValue> {
+            return createModuleMultiBindingBuilder(moduleDefinition, bindingToken, container, access)
+        },
+
+        get<TValue>(resolutionToken: Token<TValue>): TValue {
+            return getActiveContext(resolutionToken).get(resolutionToken)
+        },
+
+        tryGet<TValue>(resolutionToken: Token<TValue>): TValue | undefined {
+            return getActiveContext(resolutionToken).tryGet(resolutionToken)
+        },
+
+        getAll<TValue>(resolutionToken: Token<TValue>): TValue[] {
+            return getActiveContext(resolutionToken).getAll(resolutionToken)
+        },
+
+        getAsync<TValue>(resolutionToken: Token<TValue>): Promise<TValue> {
+            return getActiveContext(resolutionToken).getAsync(resolutionToken)
+        },
+
+        tryGetAsync<TValue>(resolutionToken: Token<TValue>): Promise<TValue | undefined> {
+            return getActiveContext(resolutionToken).tryGetAsync(resolutionToken)
+        }
+    }
+
+    return {
+        context: Object.freeze(context),
+        activate(runtimeContext: ResolutionContext): void {
+            activeContext = runtimeContext
+        }
+    }
+}
+
+function createModuleBindingBuilder<TValue>(
+    moduleDefinition: ModuleDefinition,
+    originalToken: Token<TValue>,
+    container: ContainerBuilder,
+    access: CompositionAccessModel
+): BindingBuilder<TValue> {
+    const registration = resolveModuleRegistrationToken(moduleDefinition, originalToken, access)
+    const builder = container.bind(registration.token)
+
+    return {
+        toValue(value: TValue): void {
+            builder.toValue(value)
+            recordModuleProvider(moduleDefinition, originalToken, 'single', access)
+        },
+
+        toFactory(factory): LifetimeBinding {
+            const lifetime = builder.toFactory((context) => {
+                return factory(createModuleResolutionContext(moduleDefinition, context, access))
+            })
+
+            recordModuleProvider(moduleDefinition, originalToken, 'single', access)
+
+            return lifetime
+        },
+
+        toClass(classConstructor: ClassConstructor<TValue>): LifetimeBinding {
+            const lifetime = builder.toClass(classConstructor)
+
+            recordModuleProvider(moduleDefinition, originalToken, 'single', access)
+
+            return lifetime
+        },
+
+        toAsyncFactory(factory): AsyncFactoryBinding {
+            const binding = builder.toAsyncFactory((context) => {
+                return factory(createModuleResolutionContext(moduleDefinition, context, access))
+            })
+
+            recordModuleProvider(moduleDefinition, originalToken, 'single', access)
+
+            return binding
+        },
+
+        toAsyncResource(factory): AsyncResourceBinding {
+            const binding = builder.toAsyncResource((context) => {
+                return factory(createModuleResolutionContext(moduleDefinition, context, access))
+            })
+
+            recordModuleProvider(moduleDefinition, originalToken, 'single', access)
+
+            return binding
+        }
+    }
+}
+
+function createModuleMultiBindingBuilder<TValue>(
+    moduleDefinition: ModuleDefinition,
+    originalToken: Token<TValue>,
+    container: ContainerBuilder,
+    access: CompositionAccessModel
+): MultiBindingBuilder<TValue> {
+    const registration = resolveModuleRegistrationToken(moduleDefinition, originalToken, access)
+    const builder = container.add(registration.token)
+
+    return {
+        toValue(value: TValue): void {
+            builder.toValue(value)
+            recordModuleProvider(moduleDefinition, originalToken, 'multi', access)
+        },
+
+        toFactory(factory): LifetimeBinding {
+            const lifetime = builder.toFactory((context) => {
+                return factory(createModuleResolutionContext(moduleDefinition, context, access))
+            })
+
+            recordModuleProvider(moduleDefinition, originalToken, 'multi', access)
+
+            return lifetime
+        }
+    }
+}
+
+function createModuleResolutionContext(
+    moduleDefinition: ModuleDefinition,
+    context: ResolutionContext,
+    access: CompositionAccessModel
+): ResolutionContext {
+    return {
+        get<TValue>(resolutionToken: Token<TValue>): TValue {
+            return context.get(resolveModuleAccessToken(moduleDefinition, resolutionToken, access))
+        },
+
+        tryGet<TValue>(resolutionToken: Token<TValue>): TValue | undefined {
+            return context.tryGet(resolveModuleAccessToken(moduleDefinition, resolutionToken, access))
+        },
+
+        getAll<TValue>(resolutionToken: Token<TValue>): TValue[] {
+            return context.getAll(resolveModuleAccessToken(moduleDefinition, resolutionToken, access))
+        },
+
+        getAsync<TValue>(resolutionToken: Token<TValue>): Promise<TValue> {
+            return context.getAsync(resolveModuleAccessToken(moduleDefinition, resolutionToken, access))
+        },
+
+        tryGetAsync<TValue>(resolutionToken: Token<TValue>): Promise<TValue | undefined> {
+            return context.tryGetAsync(
+                resolveModuleAccessToken(moduleDefinition, resolutionToken, access)
+            )
+        }
+    }
+}
+
+function createComposerBindingResolutionContext(
+    context: ResolutionContext,
+    access: CompositionAccessModel
+): ComposerBindingContext {
+    const resolveToken = <TValue>(resolutionToken: Token<TValue>): Token<TValue> => {
+        if (
+            access.publicTokenIds.has(resolutionToken.id) ||
+            access.bindingTokenIds.has(resolutionToken.id)
+        ) {
+            return resolutionToken
+        }
+
+        throw new PrivateProviderAccessError(
+            resolutionToken.id,
+            'composer-binding',
+            'token-not-visible'
+        )
+    }
+
+    return {
+        get<TValue>(resolutionToken: Token<TValue>): TValue {
+            return context.get(resolveToken(resolutionToken))
+        },
+
+        tryGet<TValue>(resolutionToken: Token<TValue>): TValue | undefined {
+            return context.tryGet(resolveToken(resolutionToken))
+        },
+
+        getAll<TValue>(resolutionToken: Token<TValue>): TValue[] {
+            return context.getAll(resolveToken(resolutionToken))
+        },
+
+        getAsync<TValue>(resolutionToken: Token<TValue>): Promise<TValue> {
+            return context.getAsync(resolveToken(resolutionToken))
+        },
+
+        tryGetAsync<TValue>(resolutionToken: Token<TValue>): Promise<TValue | undefined> {
+            return context.tryGetAsync(resolveToken(resolutionToken))
+        }
+    }
+}
+
+function validateComposer(
+    modules: readonly ModuleDefinition[],
+    bindings: readonly ComposerBindingRecord[]
+): DiagnosticReport {
+    const diagnostics: Diagnostic[] = []
+
+    appendDuplicateModuleIdDiagnostics(diagnostics, modules)
+    appendDuplicateCapabilityDiagnostics(diagnostics, modules)
+
+    const providedTokenIds = collectProvidedTokenIds(modules)
+    const bindingTokenIds = collectBindingTokenIds(bindings)
+    const requiredPortTokenIds = collectRequiredPortTokenIds(modules)
+
+    appendMissingRequiredPortDiagnostics(diagnostics, modules, providedTokenIds, bindingTokenIds)
+    appendInvalidBindingDiagnostics(diagnostics, bindings, requiredPortTokenIds)
+
+    return createDiagnosticReport(diagnostics)
+}
+
+function appendDuplicateModuleIdDiagnostics(
+    diagnostics: Diagnostic[],
+    modules: readonly ModuleDefinition[]
+): void {
+    const seenModuleIds = new Set<string>()
+    const reportedModuleIds = new Set<string>()
+
+    for (const moduleDefinition of modules) {
+        if (seenModuleIds.has(moduleDefinition.id)) {
+            if (!reportedModuleIds.has(moduleDefinition.id)) {
+                diagnostics.push(diagnosticFromError(new DuplicateModuleIdError(moduleDefinition.id)))
+                reportedModuleIds.add(moduleDefinition.id)
+            }
+
+            continue
+        }
+
+        seenModuleIds.add(moduleDefinition.id)
+    }
+}
+
+function appendDuplicateCapabilityDiagnostics(
+    diagnostics: Diagnostic[],
+    modules: readonly ModuleDefinition[]
+): void {
+    const moduleIdsByTokenId = new Map<string, string[]>()
+
+    for (const moduleDefinition of modules) {
+        for (const capability of moduleDefinition.provides) {
+            const moduleIds = moduleIdsByTokenId.get(capability.token.id)
+
+            if (moduleIds === undefined) {
+                moduleIdsByTokenId.set(capability.token.id, [moduleDefinition.id])
+            } else {
+                moduleIds.push(moduleDefinition.id)
+            }
+        }
+    }
+
+    for (const [tokenId, moduleIds] of moduleIdsByTokenId) {
+        const [firstModuleId, secondModuleId, ...remainingModuleIds] = moduleIds
+
+        if (firstModuleId !== undefined && secondModuleId !== undefined) {
+            diagnostics.push(
+                diagnosticFromError(
+                    new DuplicateModuleCapabilityError(
+                        [firstModuleId, secondModuleId, ...remainingModuleIds],
+                        tokenId
+                    )
+                )
+            )
+        }
+    }
+}
+
+function appendMissingRequiredPortDiagnostics(
+    diagnostics: Diagnostic[],
+    modules: readonly ModuleDefinition[],
+    providedTokenIds: ReadonlySet<string>,
+    bindingTokenIds: ReadonlySet<string>
+): void {
+    for (const moduleDefinition of modules) {
+        for (const dependency of moduleDefinition.requires) {
+            if (!dependency.required) {
+                continue
+            }
+
+            const tokenId = dependency.token.id
+
+            if (!providedTokenIds.has(tokenId) && !bindingTokenIds.has(tokenId)) {
+                diagnostics.push(
+                    diagnosticFromError(
+                        new MissingRequiredPortError(moduleDefinition.id, tokenId, dependency.kind)
+                    )
+                )
+            }
+        }
+    }
+}
+
+function appendInvalidBindingDiagnostics(
+    diagnostics: Diagnostic[],
+    bindings: readonly ComposerBindingRecord[],
+    requiredPortTokenIds: ReadonlySet<string>
+): void {
+    for (const binding of bindings) {
+        if (!requiredPortTokenIds.has(binding.token.id)) {
+            diagnostics.push(
+                diagnosticFromError(new InvalidComposerBindingError(binding.token.id, binding.kind))
+            )
+        }
+    }
+}
+
+function collectProvidedTokenIds(modules: readonly ModuleDefinition[]): ReadonlySet<string> {
+    const tokenIds = new Set<string>()
+
+    for (const moduleDefinition of modules) {
+        for (const capability of moduleDefinition.provides) {
+            tokenIds.add(capability.token.id)
+        }
+    }
+
+    return tokenIds
+}
+
+function collectBindingTokenIds(bindings: readonly ComposerBindingRecord[]): ReadonlySet<string> {
+    const tokenIds = new Set<string>()
+
+    for (const binding of bindings) {
+        tokenIds.add(binding.token.id)
+    }
+
+    return tokenIds
+}
+
+function collectRequiredPortTokenIds(modules: readonly ModuleDefinition[]): ReadonlySet<string> {
+    const tokenIds = new Set<string>()
+
+    for (const moduleDefinition of modules) {
+        for (const dependency of moduleDefinition.requires) {
+            tokenIds.add(dependency.token.id)
+        }
+    }
+
+    return tokenIds
+}
+
+function collectRequiredTokenIdsByModuleId(
+    modules: readonly ModuleDefinition[]
+): ReadonlyMap<string, ReadonlySet<string>> {
+    const tokenIdsByModuleId = new Map<string, ReadonlySet<string>>()
+
+    for (const moduleDefinition of modules) {
+        const tokenIds = new Set<string>()
+
+        for (const dependency of moduleDefinition.requires) {
+            tokenIds.add(dependency.token.id)
+        }
+
+        tokenIdsByModuleId.set(moduleDefinition.id, tokenIds)
+    }
+
+    return tokenIdsByModuleId
+}
+
+function collectProvidedTokenIdsByModuleId(
+    modules: readonly ModuleDefinition[]
+): ReadonlyMap<string, ReadonlySet<string>> {
+    const tokenIdsByModuleId = new Map<string, ReadonlySet<string>>()
+
+    for (const moduleDefinition of modules) {
+        const tokenIds = new Set<string>()
+
+        for (const capability of moduleDefinition.provides) {
+            tokenIds.add(capability.token.id)
+        }
+
+        tokenIdsByModuleId.set(moduleDefinition.id, tokenIds)
+    }
+
+    return tokenIdsByModuleId
+}
+
+function resolveModuleRegistrationToken<TValue>(
+    moduleDefinition: ModuleDefinition,
+    originalToken: Token<TValue>,
+    access: CompositionAccessModel
+): {
+    readonly token: Token<TValue>
+    readonly visibility: 'exported' | 'private'
+} {
+    if (moduleProvidesToken(moduleDefinition, originalToken.id, access)) {
+        return {
+            token: originalToken,
+            visibility: 'exported'
+        }
+    }
+
+    return {
+        token: getOrCreatePrivateToken(moduleDefinition.id, originalToken, access),
+        visibility: 'private'
+    }
+}
+
+function resolveModuleAccessToken<TValue>(
+    moduleDefinition: ModuleDefinition,
+    originalToken: Token<TValue>,
+    access: CompositionAccessModel
+): Token<TValue> {
+    const privateToken = access.privateTokensByModuleId
+        .get(moduleDefinition.id)
+        ?.get(originalToken.id)
+
+    if (privateToken !== undefined) {
+        return privateToken as Token<TValue>
+    }
+
+    if (
+        moduleProvidesToken(moduleDefinition, originalToken.id, access) ||
+        moduleRequiresToken(moduleDefinition, originalToken.id, access)
+    ) {
+        return originalToken
+    }
+
+    throw new PrivateProviderAccessError(
+        originalToken.id,
+        'module',
+        'token-not-visible',
+        moduleDefinition.id
+    )
+}
+
+function getOrCreatePrivateToken<TValue>(
+    moduleId: string,
+    originalToken: Token<TValue>,
+    access: CompositionAccessModel
+): Token<TValue> {
+    let privateTokens = access.privateTokensByModuleId.get(moduleId)
+
+    if (privateTokens === undefined) {
+        privateTokens = new Map<string, Token<unknown>>()
+        access.privateTokensByModuleId.set(moduleId, privateTokens)
+    }
+
+    const existingPrivateToken = privateTokens.get(originalToken.id)
+
+    if (existingPrivateToken !== undefined) {
+        return existingPrivateToken as Token<TValue>
+    }
+
+    const privateToken = createPrivateToken(moduleId, originalToken)
+
+    privateTokens.set(originalToken.id, privateToken)
+
+    return privateToken
+}
+
+function createPrivateToken<TValue>(moduleId: string, originalToken: Token<TValue>): Token<TValue> {
+    const description = originalToken.description
+    const tokenId =
+        `sagifire/ioc/private/${moduleId.length}:${moduleId}/` +
+        `${originalToken.id.length}:${originalToken.id}`
+    const privateToken =
+        description === undefined
+            ? {
+                  id: tokenId
+              }
+            : {
+                  id: tokenId,
+                  description
+              }
+
+    return Object.freeze(privateToken)
+}
+
+function recordModuleProvider(
+    moduleDefinition: ModuleDefinition,
+    originalToken: Token<unknown>,
+    registrationKind: 'single' | 'multi',
+    access: CompositionAccessModel
+): void {
+    if (!moduleProvidesToken(moduleDefinition, originalToken.id, access)) {
+        return
+    }
+
+    const capability = moduleDefinition.provides.find((providedCapability) => {
+        return providedCapability.token.id === originalToken.id
+    })
+
+    if (capability === undefined) {
+        return
+    }
+
+    access.registeredCapabilities.set(originalToken.id, {
+        moduleId: moduleDefinition.id,
+        tokenId: originalToken.id,
+        kind: capability.kind,
+        registrationKind
+    })
+}
+
+function validateDeclaredProviderRegistrations(
+    modules: readonly ModuleDefinition[],
+    access: CompositionAccessModel
+): DiagnosticReport {
+    const diagnostics: Diagnostic[] = []
+
+    for (const moduleDefinition of modules) {
+        for (const capability of moduleDefinition.provides) {
+            const registeredCapability = access.registeredCapabilities.get(capability.token.id)
+
+            if (registeredCapability?.moduleId !== moduleDefinition.id) {
+                diagnostics.push(
+                    diagnosticFromError(
+                        new MissingModuleProviderError(moduleDefinition.id, capability.token.id)
+                    )
+                )
+            }
+        }
+    }
+
+    return createDiagnosticReport(diagnostics)
+}
+
+function createPreparedComposition(
+    modules: readonly ModuleDefinition[],
+    access: CompositionAccessModel
+): PreparedComposition {
+    const preparedModules = Object.freeze(
+        modules.map((moduleDefinition) => {
+            return createPreparedCompositionModule(moduleDefinition)
+        })
+    )
+    const capabilities = Object.freeze(
+        [...access.registeredCapabilities.values()].map((capability) => {
+            return Object.freeze({
+                moduleId: capability.moduleId,
+                tokenId: capability.tokenId,
+                kind: capability.kind,
+                registrationKind: capability.registrationKind
+            })
+        })
+    )
+
+    return Object.freeze({
+        modules: preparedModules,
+        capabilities
+    })
+}
+
+function createPreparedCompositionModule(
+    moduleDefinition: ModuleDefinition
+): PreparedCompositionModule {
+    if (moduleDefinition.version === undefined) {
+        return Object.freeze({
+            id: moduleDefinition.id
+        })
+    }
+
+    return Object.freeze({
+        id: moduleDefinition.id,
+        version: moduleDefinition.version
+    })
+}
+
+function moduleProvidesToken(
+    moduleDefinition: ModuleDefinition,
+    tokenId: string,
+    access: CompositionAccessModel
+): boolean {
+    return access.providedTokenIdsByModuleId.get(moduleDefinition.id)?.has(tokenId) ?? false
+}
+
+function moduleRequiresToken(
+    moduleDefinition: ModuleDefinition,
+    tokenId: string,
+    access: CompositionAccessModel
+): boolean {
+    return access.requiredTokenIdsByModuleId.get(moduleDefinition.id)?.has(tokenId) ?? false
+}
+
+function createDiagnosticReport(diagnostics: readonly Diagnostic[]): DiagnosticReport {
+    const reportDiagnostics = Object.freeze([...diagnostics])
+
+    return Object.freeze({
+        ok: reportDiagnostics.length === 0,
+        diagnostics: reportDiagnostics
+    })
+}
+
+function createModuleDefinition<
+    TMetadata,
+    TRequires extends readonly ModuleDependencyDefinitionInput[],
+    TProvides extends readonly ModuleCapabilityDefinition[]
+>(
+    definition: ModuleDefinitionInput<TMetadata, TRequires, TProvides>,
+    moduleId: string,
+    version: string | undefined,
+    setup: ModuleSetupFunction<TMetadata>,
+    requires: NormalizedModuleDependencies<TRequires>,
+    provides: NormalizedModuleCapabilities<TProvides>
+): ModuleDefinition<
+    TMetadata,
+    NormalizedModuleDependencies<TRequires>,
+    NormalizedModuleCapabilities<TProvides>
+> {
+    const withVersion =
+        version === undefined
+            ? {
+                  id: moduleId,
+                  requires,
+                  provides,
+                  setup
+              }
+            : {
+                  id: moduleId,
+                  version,
+                  requires,
+                  provides,
+                  setup
+              }
+
+    const metadata = definition.metadata
+    const normalizedDefinition =
+        metadata === undefined
+            ? withVersion
+            : {
+                  ...withVersion,
+                  metadata
+              }
+
+    return Object.freeze(normalizedDefinition) as ModuleDefinition<
+        TMetadata,
+        NormalizedModuleDependencies<TRequires>,
+        NormalizedModuleCapabilities<TProvides>
+    >
+}
+
+function normalizeDependency(
+    moduleId: string,
+    dependency: unknown,
+    index: number
+): ModuleDependencyDefinition {
+    if (!isRecord(dependency)) {
+        throw new InvalidModuleDefinitionError(`requires[${index}] must be an object`, {
+            moduleId,
+            value: dependency
+        })
+    }
+
+    const dependencyToken = validateToken(dependency.token, moduleId, `requires[${index}].token`)
+    const required = validateOptionalBoolean(
+        dependency.required,
+        moduleId,
+        `requires[${index}].required`
+    )
+    const kind = validateDependencyKind(dependency.kind, moduleId, `requires[${index}].kind`)
+    const description = validateOptionalString(
+        dependency.description,
+        moduleId,
+        `requires[${index}].description`
+    )
+    const normalized =
+        description === undefined
+            ? {
+                  token: dependencyToken,
+                  required: required ?? true,
+                  kind: kind ?? 'external'
+              }
+            : {
+                  token: dependencyToken,
+                  required: required ?? true,
+                  kind: kind ?? 'external',
+                  description
+              }
+
+    return Object.freeze(normalized)
+}
+
+function normalizeCapability(
+    moduleId: string,
+    capability: unknown,
+    index: number
+): ModuleCapabilityDefinition {
+    if (!isRecord(capability)) {
+        throw new InvalidModuleDefinitionError(`provides[${index}] must be an object`, {
+            moduleId,
+            value: capability
+        })
+    }
+
+    const capabilityToken = validateToken(capability.token, moduleId, `provides[${index}].token`)
+    const kind = validateCapabilityKind(capability.kind, moduleId, `provides[${index}].kind`)
+    const description = validateOptionalString(
+        capability.description,
+        moduleId,
+        `provides[${index}].description`
+    )
+    const normalized =
+        description === undefined
+            ? {
+                  token: capabilityToken,
+                  kind
+              }
+            : {
+                  token: capabilityToken,
+                  kind,
+                  description
+              }
+
+    return Object.freeze(normalized)
+}
+
+function validateModuleId(value: unknown): string {
+    if (typeof value !== 'string') {
+        throw new InvalidModuleDefinitionError('module id must be a string', {
+            value
+        })
+    }
+
+    if (value.length === 0) {
+        throw new InvalidModuleDefinitionError('module id must not be empty', {
+            value
+        })
+    }
+
+    if (value.trim() !== value) {
+        throw new InvalidModuleDefinitionError(
+            'module id must not have leading or trailing whitespace',
+            {
+                value
+            }
+        )
+    }
+
+    if (!moduleIdPattern.test(value)) {
+        throw new InvalidModuleDefinitionError(
+            'module id may contain only ASCII letters, ASCII digits, ".", "-", "_", ":", and "/"',
+            {
+                value
+            }
+        )
+    }
+
+    return value
+}
+
+function validateSetup<TMetadata>(
+    value: unknown,
+    moduleId: string
+): ModuleSetupFunction<TMetadata> {
+    if (typeof value !== 'function') {
+        throw new InvalidModuleDefinitionError('setup must be a function', {
+            moduleId,
+            value
+        })
+    }
+
+    return value as ModuleSetupFunction<TMetadata>
+}
+
+function validateDefinitionArray(
+    value: unknown,
+    moduleId: string,
+    section: 'requires' | 'provides'
+): readonly unknown[] {
+    if (value === undefined) {
+        return []
+    }
+
+    if (!Array.isArray(value)) {
+        throw new InvalidModuleDefinitionError(`${section} must be an array when provided`, {
+            moduleId,
+            value
+        })
+    }
+
+    return value
+}
+
+function validateToken(value: unknown, moduleId: string, field: string): Token<unknown> {
+    if (!isRecord(value) || typeof value.id !== 'string' || value.id.length === 0) {
+        throw new InvalidModuleDefinitionError(`${field} must be a token with a stable id`, {
+            moduleId,
+            value
+        })
+    }
+
+    return value as unknown as Token<unknown>
+}
+
+function validateOptionalString(
+    value: unknown,
+    moduleId: string,
+    field: string
+): string | undefined {
+    if (value === undefined) {
+        return undefined
+    }
+
+    if (typeof value !== 'string') {
+        throw new InvalidModuleDefinitionError(`${field} must be a string when provided`, {
+            moduleId,
+            value
+        })
+    }
+
+    return value
+}
+
+function validateOptionalBoolean(
+    value: unknown,
+    moduleId: string,
+    field: string
+): boolean | undefined {
+    if (value === undefined) {
+        return undefined
+    }
+
+    if (typeof value !== 'boolean') {
+        throw new InvalidModuleDefinitionError(`${field} must be a boolean when provided`, {
+            moduleId,
+            value
+        })
+    }
+
+    return value
+}
+
+function validateDependencyKind(
+    value: unknown,
+    moduleId: string,
+    field: string
+): ModuleDependencyKind | undefined {
+    if (value === undefined) {
+        return undefined
+    }
+
+    if (!isModuleDependencyKind(value)) {
+        throw new InvalidModuleDefinitionError(
+            `${field} must be "external" or "shared" when provided`,
+            {
+                moduleId,
+                value
+            }
+        )
+    }
+
+    return value
+}
+
+function validateCapabilityKind(
+    value: unknown,
+    moduleId: string,
+    field: string
+): ModuleCapabilityKind {
+    if (!isModuleCapabilityKind(value)) {
+        throw new InvalidModuleDefinitionError(`${field} must be a known capability kind`, {
+            moduleId,
+            value
+        })
+    }
+
+    return value
+}
+
+function assertNoDuplicateDependencies(
+    moduleId: string,
+    dependencies: readonly ModuleDependencyDefinition[]
+): void {
+    const seenTokenIds = new Set<string>()
+
+    for (const dependency of dependencies) {
+        const tokenId = dependency.token.id
+
+        if (seenTokenIds.has(tokenId)) {
+            throw new DuplicateModuleDependencyError(moduleId, tokenId)
+        }
+
+        seenTokenIds.add(tokenId)
+    }
+}
+
+function assertNoDuplicateCapabilities(
+    moduleId: string,
+    capabilities: readonly ModuleCapabilityDefinition[]
+): void {
+    const seenTokenIds = new Set<string>()
+
+    for (const capability of capabilities) {
+        const tokenId = capability.token.id
+
+        if (seenTokenIds.has(tokenId)) {
+            throw new DuplicateModuleCapabilityError(moduleId, tokenId)
+        }
+
+        seenTokenIds.add(tokenId)
+    }
+}
+
+function createInvalidModuleDefinitionDetails(
+    reason: string,
+    options: InvalidModuleDefinitionErrorOptions
+): InvalidModuleDefinitionErrorDetails {
+    const valueDetails = createInvalidValueDetails(options.value)
+    const details =
+        options.moduleId === undefined
+            ? {
+                  reason,
+                  ...valueDetails
+              }
+            : {
+                  moduleId: options.moduleId,
+                  reason,
+                  ...valueDetails
+              }
+
+    return details
+}
+
+function createInvalidValueDetails(
+    value: unknown
+): Pick<InvalidModuleDefinitionErrorDetails, 'value' | 'valueType'> {
+    if (value === undefined) {
+        return {}
+    }
+
+    if (
+        typeof value === 'string' ||
+        typeof value === 'number' ||
+        typeof value === 'boolean' ||
+        value === null
+    ) {
+        return {
+            value
+        }
+    }
+
+    return {
+        valueType: getValueType(value)
+    }
+}
+
+function formatInvalidModuleDefinitionMessage(
+    reason: string,
+    moduleId: string | undefined
+): string {
+    if (moduleId === undefined) {
+        return `Invalid module definition: ${reason}`
+    }
+
+    return `Invalid module definition "${moduleId}": ${reason}`
+}
+
+function formatPrivateProviderAccessMessage(
+    tokenId: string,
+    requester: 'module' | 'composer-binding',
+    reason: PrivateProviderAccessReason,
+    moduleId: string | undefined
+): string {
+    if (reason === 'composition-not-ready' && moduleId !== undefined) {
+        return (
+            `Module "${moduleId}" cannot resolve token "${tokenId}" during setup registration; ` +
+            'composition is not ready yet'
+        )
+    }
+
+    if (requester === 'module' && moduleId !== undefined) {
+        return `Module "${moduleId}" cannot resolve non-visible provider token "${tokenId}"`
+    }
+
+    return `Composer binding cannot resolve non-visible provider token "${tokenId}"`
+}
+
+function isModuleDependencyKind(value: unknown): value is ModuleDependencyKind {
+    return moduleDependencyKinds.includes(value as ModuleDependencyKind)
+}
+
+function isModuleCapabilityKind(value: unknown): value is ModuleCapabilityKind {
+    return moduleCapabilityKinds.includes(value as ModuleCapabilityKind)
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function getValueType(value: unknown): string {
+    if (value === null) {
+        return 'null'
+    }
+
+    if (Array.isArray(value)) {
+        return 'array'
+    }
+
+    return typeof value
+}

@@ -20,7 +20,9 @@
 | Resource | Value with optional dispose callback, usually used for async or lifecycle-managed dependencies. |
 | Composer | Higher-level module composition layer that uses container/context to build application graph. |
 | Module definition | Explicit object definition of a module, its ID, required ports, provided capabilities and setup logic. |
+| Module private provider | Provider registered by a module for its own implementation and not exposed through composed runtime public capability access. |
 | Capability | Public API or contribution intentionally exported by a module. |
+| Capability registry | Composer-owned registry of declared exported capabilities that gates what composed runtime exposes publicly. |
 | Required port | Dependency contract owned by the consumer module and satisfied by another module or explicit binding. |
 | Binding | Composition-level adapter that connects required ports to providers or public APIs. |
 | Module graph | Inspectable graph of modules, capabilities, required ports, bindings and dependency edges. |

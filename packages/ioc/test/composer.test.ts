@@ -1,0 +1,1104 @@
+import { describe, expect, expectTypeOf, test } from 'vitest'
+
+import {
+    ComposerValidationError,
+    DuplicateModuleIdError,
+    DuplicateModuleCapabilityError,
+    DuplicateModuleDependencyError,
+    InvalidComposerBindingError,
+    InvalidModuleDefinitionError,
+    MissingModuleProviderError,
+    MissingRequiredPortError,
+    PrivateProviderAccessError,
+    createComposer,
+    defineModule,
+    type Composer,
+    type ComposerBindingBuilder,
+    type ComposerBindingContext,
+    type ModuleDefinition,
+    type ModuleDefinitionInput,
+    type ModuleDependencyDefinition,
+    type ModuleSetupContext,
+    type ModuleSetupResult,
+    type PreparedComposition
+} from '../src/composer.js'
+import type { BindingBuilder, MultiBindingBuilder } from '../src/container.js'
+import { type Token, token } from '../src/tokens.js'
+
+interface AuthReader {
+    currentUserId(): string
+}
+
+interface AuthPublicApi {
+    requireUser(): string
+}
+
+interface ContactRequestsPublicApi {
+    submit(): string
+}
+
+interface NotificationPublicApi {
+    notify(): string
+}
+
+type TokenValue<TToken> = TToken extends Token<infer TValue> ? TValue : never
+
+const AUTH_READER = token<AuthReader>('composer.auth-reader')
+const OPTIONAL_AUTH_READER = token<AuthReader>('composer.optional-auth-reader')
+const AUTH_PUBLIC_API = token<AuthPublicApi>('composer.auth-public-api')
+const CONTACT_REQUESTS_PUBLIC_API = token<ContactRequestsPublicApi>(
+    'composer.contact-requests-public-api'
+)
+const NOTIFICATION_PUBLIC_API = token<NotificationPublicApi>('composer.notification-public-api')
+const VALUE_AUTH_READER = token<AuthReader>('composer.value-auth-reader')
+const FACTORY_AUTH_READER = token<AuthReader>('composer.factory-auth-reader')
+const CLASS_AUTH_READER = token<AuthReader>('composer.class-auth-reader')
+const ASYNC_AUTH_READER = token<AuthReader>('composer.async-auth-reader')
+const AUTH_SECRET = token<{ readonly secret: string }>('composer.auth-secret')
+const AUDIT_EVENTS = token<string>('composer.audit-events')
+
+class ClassAuthReader implements AuthReader {
+    currentUserId(): string {
+        return 'class-user'
+    }
+}
+
+describe('module definition foundation', () => {
+    test('defines a module with normalized required ports and capabilities', () => {
+        const setup = (): ModuleSetupResult => {
+            return {}
+        }
+        const module = defineModule({
+            id: 'contact-requests',
+            version: '1.0.0',
+            metadata: {
+                owner: 'product'
+            },
+            requires: [
+                {
+                    token: AUTH_READER,
+                    description: 'Authentication reader'
+                },
+                {
+                    token: OPTIONAL_AUTH_READER,
+                    required: false,
+                    kind: 'shared'
+                }
+            ],
+            provides: [
+                {
+                    token: CONTACT_REQUESTS_PUBLIC_API,
+                    kind: 'public-api',
+                    description: 'Contact requests public API'
+                }
+            ],
+            setup
+        })
+
+        expect(module.id).toBe('contact-requests')
+        expect(module.version).toBe('1.0.0')
+        expect(module.metadata).toEqual({
+            owner: 'product'
+        })
+        expect(module.requires).toEqual([
+            {
+                token: AUTH_READER,
+                required: true,
+                kind: 'external',
+                description: 'Authentication reader'
+            },
+            {
+                token: OPTIONAL_AUTH_READER,
+                required: false,
+                kind: 'shared'
+            }
+        ])
+        expect(module.provides).toEqual([
+            {
+                token: CONTACT_REQUESTS_PUBLIC_API,
+                kind: 'public-api',
+                description: 'Contact requests public API'
+            }
+        ])
+        expect(module.setup).toBe(setup)
+    })
+
+    test('normalizes missing requires and provides to empty immutable arrays', () => {
+        const module = defineModule({
+            id: 'auth',
+            setup(): void {}
+        })
+
+        expect(module.requires).toEqual([])
+        expect(module.provides).toEqual([])
+        expect(Object.isFrozen(module.requires)).toBe(true)
+        expect(Object.isFrozen(module.provides)).toBe(true)
+    })
+
+    test.each(['', ' auth', 'auth ', 'auth module', 'автентифікація', 'auth#module'])(
+        'rejects invalid module id %j',
+        (id) => {
+            expect(() =>
+                defineModule({
+                    id,
+                    setup(): void {}
+                })
+            ).toThrow(InvalidModuleDefinitionError)
+            expect(() =>
+                defineModule({
+                    id,
+                    setup(): void {}
+                })
+            ).toThrow(/Invalid module definition/)
+        }
+    )
+
+    test('throws typed diagnostics for invalid JavaScript definitions', () => {
+        expect(() => defineModule(undefined as unknown as ModuleDefinitionInput)).toThrow(
+            InvalidModuleDefinitionError
+        )
+        expect(() =>
+            defineModule({
+                id: 123,
+                setup(): void {}
+            } as unknown as ModuleDefinitionInput)
+        ).toThrow(InvalidModuleDefinitionError)
+        expect(() =>
+            defineModule({
+                id: 'invalid-setup'
+            } as unknown as ModuleDefinitionInput)
+        ).toThrow(InvalidModuleDefinitionError)
+        expect(() =>
+            defineModule({
+                id: 'invalid-kind',
+                requires: [
+                    {
+                        token: AUTH_READER,
+                        kind: 'local'
+                    }
+                ],
+                setup(): void {}
+            } as unknown as ModuleDefinitionInput)
+        ).toThrow(InvalidModuleDefinitionError)
+        expect(() =>
+            defineModule({
+                id: 'invalid-capability-kind',
+                provides: [
+                    {
+                        token: AUTH_PUBLIC_API,
+                        kind: 'internal'
+                    }
+                ],
+                setup(): void {}
+            } as unknown as ModuleDefinitionInput)
+        ).toThrow(InvalidModuleDefinitionError)
+    })
+
+    test('rejects duplicate required ports by token id', () => {
+        const alias = token<AuthReader>('composer.auth-reader')
+
+        expect(() =>
+            defineModule({
+                id: 'duplicate-requires',
+                requires: [
+                    {
+                        token: AUTH_READER
+                    },
+                    {
+                        token: alias,
+                        required: false
+                    }
+                ],
+                setup(): void {}
+            })
+        ).toThrow(DuplicateModuleDependencyError)
+
+        try {
+            defineModule({
+                id: 'duplicate-requires',
+                requires: [
+                    {
+                        token: AUTH_READER
+                    },
+                    {
+                        token: alias
+                    }
+                ],
+                setup(): void {}
+            })
+        } catch (error) {
+            expect(error).toBeInstanceOf(DuplicateModuleDependencyError)
+
+            if (error instanceof DuplicateModuleDependencyError) {
+                expect(error.code).toBe('SAGIFIRE_IOC_DUPLICATE_MODULE_DEPENDENCY')
+                expect(error.details).toEqual({
+                    moduleId: 'duplicate-requires',
+                    tokenId: 'composer.auth-reader',
+                    section: 'requires'
+                })
+            }
+        }
+    })
+
+    test('rejects duplicate provided capabilities by token id', () => {
+        const alias = token<ContactRequestsPublicApi>('composer.contact-requests-public-api')
+
+        expect(() =>
+            defineModule({
+                id: 'duplicate-provides',
+                provides: [
+                    {
+                        token: CONTACT_REQUESTS_PUBLIC_API,
+                        kind: 'public-api'
+                    },
+                    {
+                        token: alias,
+                        kind: 'shared-service'
+                    }
+                ],
+                setup(): void {}
+            })
+        ).toThrow(DuplicateModuleCapabilityError)
+
+        try {
+            defineModule({
+                id: 'duplicate-provides',
+                provides: [
+                    {
+                        token: CONTACT_REQUESTS_PUBLIC_API,
+                        kind: 'public-api'
+                    },
+                    {
+                        token: alias,
+                        kind: 'shared-service'
+                    }
+                ],
+                setup(): void {}
+            })
+        } catch (error) {
+            expect(error).toBeInstanceOf(DuplicateModuleCapabilityError)
+
+            if (error instanceof DuplicateModuleCapabilityError) {
+                expect(error.code).toBe('SAGIFIRE_IOC_DUPLICATE_MODULE_CAPABILITY')
+                expect(error.details).toEqual({
+                    moduleId: 'duplicate-provides',
+                    tokenId: 'composer.contact-requests-public-api',
+                    section: 'provides'
+                })
+            }
+        }
+    })
+
+    test('freezes returned definitions at the public object boundary', () => {
+        const module = defineModule({
+            id: 'immutable',
+            requires: [
+                {
+                    token: AUTH_READER
+                }
+            ],
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(): void {}
+        })
+
+        expect(Object.isFrozen(module)).toBe(true)
+        expect(Object.isFrozen(module.requires)).toBe(true)
+        expect(Object.isFrozen(module.provides)).toBe(true)
+        expect(Object.isFrozen(module.requires[0])).toBe(true)
+        expect(Object.isFrozen(module.provides[0])).toBe(true)
+        expect(() => {
+            const mutableModule = module as { id: string }
+
+            mutableModule.id = 'changed'
+        }).toThrow(TypeError)
+        expect(() => {
+            const mutableRequires = module.requires as unknown as ModuleDependencyDefinition<AuthReader>[]
+
+            mutableRequires.push({
+                token: OPTIONAL_AUTH_READER,
+                required: true,
+                kind: 'external'
+            })
+        }).toThrow(TypeError)
+        expect(() => {
+            const mutableDependency = module.requires[0] as { required: boolean }
+
+            mutableDependency.required = false
+        }).toThrow(TypeError)
+    })
+
+    test('preserves metadata, required port and capability token inference', () => {
+        const module = defineModule({
+            id: 'typed-module',
+            metadata: {
+                feature: 'typed'
+            },
+            requires: [
+                {
+                    token: AUTH_READER
+                },
+                {
+                    token: OPTIONAL_AUTH_READER,
+                    required: false
+                }
+            ],
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context) {
+                expectTypeOf(context).toEqualTypeOf<ModuleSetupContext>()
+
+                return {
+                    metadata: {
+                        feature: 'typed'
+                    }
+                }
+            }
+        })
+        const setupResult: ModuleSetupResult<{
+            readonly feature: string
+        }> = {
+            metadata: {
+                feature: 'typed'
+            }
+        }
+
+        expect(module.id).toBe('typed-module')
+        expectTypeOf(module).toMatchTypeOf<ModuleDefinition>()
+        expectTypeOf(module.metadata).toMatchTypeOf<
+            | {
+                  readonly feature: string
+              }
+            | undefined
+        >()
+        expectTypeOf(module.requires[0]).toEqualTypeOf<ModuleDependencyDefinition<AuthReader>>()
+        expectTypeOf<TokenValue<(typeof module.requires)[0]['token']>>().toEqualTypeOf<AuthReader>()
+        expectTypeOf<TokenValue<(typeof module.requires)[1]['token']>>().toEqualTypeOf<AuthReader>()
+        expectTypeOf<TokenValue<(typeof module.provides)[0]['token']>>().toEqualTypeOf<AuthPublicApi>()
+        expectTypeOf(setupResult.metadata).toEqualTypeOf<
+            | {
+                  readonly feature: string
+              }
+            | undefined
+        >()
+    })
+
+})
+
+describe('composer builder and static validation', () => {
+    test('registers modules and validates a satisfied graph', () => {
+        const authModule = defineModule({
+            id: 'auth',
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(): void {}
+        })
+        const contactRequestsModule = defineModule({
+            id: 'contact-requests',
+            requires: [
+                {
+                    token: AUTH_READER
+                }
+            ],
+            provides: [
+                {
+                    token: CONTACT_REQUESTS_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(): void {}
+        })
+        const composer = createComposer()
+
+        expect(composer.use(authModule)).toBe(composer)
+        expect(composer.use(contactRequestsModule)).toBe(composer)
+
+        composer.bind(AUTH_READER).toFactory((context) => {
+            const auth = context.get(AUTH_PUBLIC_API)
+
+            return {
+                currentUserId(): string {
+                    return auth.requireUser()
+                }
+            }
+        })
+
+        expect(composer.validate()).toEqual({
+            ok: true,
+            diagnostics: []
+        })
+    })
+
+    test('records value, factory, class and async factory bindings without executing them', () => {
+        const module = defineModule({
+            id: 'binding-kinds',
+            requires: [
+                {
+                    token: VALUE_AUTH_READER
+                },
+                {
+                    token: FACTORY_AUTH_READER
+                },
+                {
+                    token: CLASS_AUTH_READER
+                },
+                {
+                    token: ASYNC_AUTH_READER
+                }
+            ],
+            setup(): void {}
+        })
+        const composer = createComposer().use(module)
+        let factoryCalls = 0
+        let asyncFactoryCalls = 0
+
+        composer.bind(VALUE_AUTH_READER).toValue({
+            currentUserId(): string {
+                return 'value-user'
+            }
+        })
+        composer.bind(FACTORY_AUTH_READER).toFactory(() => {
+            factoryCalls += 1
+
+            return {
+                currentUserId(): string {
+                    return 'factory-user'
+                }
+            }
+        })
+        composer.bind(CLASS_AUTH_READER).toClass(ClassAuthReader)
+        composer.bind(ASYNC_AUTH_READER).toAsyncFactory(async () => {
+            asyncFactoryCalls += 1
+
+            return {
+                currentUserId(): string {
+                    return 'async-user'
+                }
+            }
+        })
+
+        expect(composer.validate()).toEqual({
+            ok: true,
+            diagnostics: []
+        })
+        expect(factoryCalls).toBe(0)
+        expect(asyncFactoryCalls).toBe(0)
+    })
+
+    test('uses declared capabilities to satisfy required ports without explicit bindings', () => {
+        const authModule = defineModule({
+            id: 'auth-capability-provider',
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(): void {}
+        })
+        const consumerModule = defineModule({
+            id: 'auth-capability-consumer',
+            requires: [
+                {
+                    token: AUTH_PUBLIC_API
+                }
+            ],
+            setup(): void {}
+        })
+        const composer = createComposer().use(authModule).use(consumerModule)
+
+        expect(composer.validate()).toEqual({
+            ok: true,
+            diagnostics: []
+        })
+    })
+
+    test('reports duplicate module ids in registration order', () => {
+        const first = defineModule({
+            id: 'duplicate-module',
+            setup(): void {}
+        })
+        const second = defineModule({
+            id: 'duplicate-module',
+            requires: [
+                {
+                    token: AUTH_READER
+                }
+            ],
+            setup(): void {}
+        })
+        const report = createComposer().use(first).use(second).validate()
+
+        expect(report.ok).toBe(false)
+        expect(report.diagnostics[0]).toEqual({
+            code: 'SAGIFIRE_IOC_DUPLICATE_MODULE_ID',
+            severity: 'error',
+            message: 'Duplicate module id "duplicate-module"',
+            details: {
+                moduleId: 'duplicate-module'
+            }
+        })
+        expect(report.diagnostics[0]).toEqual(
+            expect.objectContaining({
+                code: new DuplicateModuleIdError('duplicate-module').code
+            })
+        )
+    })
+
+    test('reports missing required ports with requiring module and token ids', () => {
+        const module = defineModule({
+            id: 'missing-port-module',
+            requires: [
+                {
+                    token: AUTH_READER
+                },
+                {
+                    token: OPTIONAL_AUTH_READER,
+                    required: false
+                }
+            ],
+            setup(): void {}
+        })
+        const report = createComposer().use(module).validate()
+
+        expect(report.ok).toBe(false)
+        expect(report.diagnostics).toEqual([
+            {
+                code: 'SAGIFIRE_IOC_MISSING_REQUIRED_PORT',
+                severity: 'error',
+                message: 'Missing required port "composer.auth-reader" for module "missing-port-module"',
+                details: {
+                    moduleId: 'missing-port-module',
+                    tokenId: 'composer.auth-reader',
+                    dependencyKind: 'external'
+                }
+            }
+        ])
+        expect(new MissingRequiredPortError('missing-port-module', AUTH_READER.id, 'external'))
+            .toBeInstanceOf(MissingRequiredPortError)
+    })
+
+    test('reports bindings that target no declared required port without exposing values', () => {
+        const secret = {
+            secret: 'do-not-render',
+            currentUserId(): string {
+                return 'secret-user'
+            }
+        }
+        const composer = createComposer()
+
+        composer.bind(AUTH_READER).toValue(secret)
+
+        const validation = composer.validate()
+
+        expect(validation.ok).toBe(false)
+        expect(validation.diagnostics).toEqual([
+            {
+                code: 'SAGIFIRE_IOC_INVALID_COMPOSER_BINDING',
+                severity: 'error',
+                message:
+                    'Invalid composer binding for token "composer.auth-reader": ' +
+                    'binding target is not declared by any module required port',
+                details: {
+                    tokenId: 'composer.auth-reader',
+                    bindingKind: 'value',
+                    reason: 'missing-required-port'
+                }
+            }
+        ])
+        expect(JSON.stringify(validation)).not.toContain('do-not-render')
+        expect(new InvalidComposerBindingError(AUTH_READER.id, 'value')).toBeInstanceOf(
+            InvalidComposerBindingError
+        )
+    })
+
+    test('reports duplicate declared capabilities across modules', () => {
+        const first = defineModule({
+            id: 'first-capability-provider',
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(): void {}
+        })
+        const second = defineModule({
+            id: 'second-capability-provider',
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'shared-service'
+                }
+            ],
+            setup(): void {}
+        })
+        const report = createComposer().use(first).use(second).validate()
+
+        expect(report.ok).toBe(false)
+        expect(report.diagnostics).toEqual([
+            {
+                code: 'SAGIFIRE_IOC_DUPLICATE_MODULE_CAPABILITY',
+                severity: 'error',
+                message:
+                    'Duplicate provided capability "composer.auth-public-api" in modules: ' +
+                    'first-capability-provider, second-capability-provider',
+                details: {
+                    moduleId: 'first-capability-provider',
+                    moduleIds: ['first-capability-provider', 'second-capability-provider'],
+                    tokenId: 'composer.auth-public-api',
+                    section: 'provides'
+                }
+            }
+        ])
+    })
+
+    test('does not implement Stage 10 module cycle detection yet', () => {
+        const first = defineModule({
+            id: 'cycle-a',
+            requires: [
+                {
+                    token: NOTIFICATION_PUBLIC_API
+                }
+            ],
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(): void {}
+        })
+        const second = defineModule({
+            id: 'cycle-b',
+            requires: [
+                {
+                    token: AUTH_PUBLIC_API
+                }
+            ],
+            provides: [
+                {
+                    token: NOTIFICATION_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(): void {}
+        })
+
+        expect(createComposer().use(first).use(second).validate()).toEqual({
+            ok: true,
+            diagnostics: []
+        })
+    })
+
+    test('preserves composer binding token and factory context inference', () => {
+        const composer = createComposer()
+        const binding = composer.bind(AUTH_READER)
+
+        expectTypeOf(composer).toEqualTypeOf<Composer>()
+        expectTypeOf(binding).toEqualTypeOf<ComposerBindingBuilder<AuthReader>>()
+
+        binding.toFactory((context) => {
+            expectTypeOf(context).toEqualTypeOf<ComposerBindingContext>()
+            expectTypeOf(context.get(AUTH_PUBLIC_API)).toEqualTypeOf<AuthPublicApi>()
+            expectTypeOf(context.tryGet(AUTH_PUBLIC_API)).toEqualTypeOf<
+                AuthPublicApi | undefined
+            >()
+            expectTypeOf(context.getAll(AUTH_PUBLIC_API)).toEqualTypeOf<AuthPublicApi[]>()
+            expectTypeOf(context.getAsync(AUTH_PUBLIC_API)).toEqualTypeOf<
+                Promise<AuthPublicApi>
+            >()
+            expectTypeOf(context.tryGetAsync(AUTH_PUBLIC_API)).toEqualTypeOf<
+                Promise<AuthPublicApi | undefined>
+            >()
+
+            return {
+                currentUserId(): string {
+                    return 'typed-user'
+                }
+            }
+        })
+        composer.bind(AUTH_READER).toAsyncFactory(async (context) => {
+            expectTypeOf(context).toEqualTypeOf<ComposerBindingContext>()
+
+            return context.get(AUTH_READER)
+        })
+    })
+})
+
+describe('module setup and private providers', () => {
+    test('prepares modules, registers private providers and keeps public registry safe', async () => {
+        let setupCalls = 0
+        let contactSetupContext: ModuleSetupContext | undefined
+        let observedFactoryState:
+            | {
+                  readonly userId: string
+                  readonly secret: string
+                  readonly auditEvents: readonly string[]
+              }
+            | undefined
+        const authModule = defineModule({
+            id: 'setup-auth',
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                setupCalls += 1
+                context.bind(AUTH_PUBLIC_API).toValue({
+                    requireUser(): string {
+                        return 'auth-user'
+                    }
+                })
+            }
+        })
+        const contactRequestsModule = defineModule({
+            id: 'setup-contact-requests',
+            requires: [
+                {
+                    token: AUTH_PUBLIC_API
+                }
+            ],
+            provides: [
+                {
+                    token: CONTACT_REQUESTS_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                setupCalls += 1
+                contactSetupContext = context
+
+                context.bind(AUTH_SECRET).toValue({
+                    secret: 'module-secret'
+                })
+                context.add(AUDIT_EVENTS).toValue('setup-event')
+                context.add(AUDIT_EVENTS).toFactory(() => {
+                    return 'factory-event'
+                }).singleton()
+                context
+                    .bind(CONTACT_REQUESTS_PUBLIC_API)
+                    .toAsyncFactory(async (providerContext) => {
+                        const auth = providerContext.get(AUTH_PUBLIC_API)
+                        const secret = providerContext.get(AUTH_SECRET)
+                        const auditEvents = providerContext.getAll(AUDIT_EVENTS)
+
+                        observedFactoryState = {
+                            userId: auth.requireUser(),
+                            secret: secret.secret,
+                            auditEvents
+                        }
+
+                        return {
+                            submit(): string {
+                                return `${auth.requireUser()}:${secret.secret}`
+                            }
+                        }
+                    })
+                    .singleton()
+                    .eager()
+            }
+        })
+        const prepared = await createComposer()
+            .use(authModule)
+            .use(contactRequestsModule)
+            .prepare()
+
+        expect(setupCalls).toBe(2)
+        expect(prepared).toEqual({
+            modules: [
+                {
+                    id: 'setup-auth'
+                },
+                {
+                    id: 'setup-contact-requests'
+                }
+            ],
+            capabilities: [
+                {
+                    moduleId: 'setup-auth',
+                    tokenId: 'composer.auth-public-api',
+                    kind: 'public-api',
+                    registrationKind: 'single'
+                },
+                {
+                    moduleId: 'setup-contact-requests',
+                    tokenId: 'composer.contact-requests-public-api',
+                    kind: 'public-api',
+                    registrationKind: 'single'
+                }
+            ]
+        })
+        expect(observedFactoryState).toEqual({
+            userId: 'auth-user',
+            secret: 'module-secret',
+            auditEvents: ['setup-event', 'factory-event']
+        })
+        expect(contactSetupContext?.get(AUTH_SECRET)).toEqual({
+            secret: 'module-secret'
+        })
+        expect(contactSetupContext?.get(AUTH_PUBLIC_API).requireUser()).toBe('auth-user')
+        expect(contactSetupContext?.getAll(AUDIT_EVENTS)).toEqual([
+            'setup-event',
+            'factory-event'
+        ])
+        expect(JSON.stringify(prepared)).not.toContain('composer.auth-secret')
+        expect(JSON.stringify(prepared)).not.toContain('composer.audit-events')
+    })
+
+    test('keeps private providers isolated even when token ids match across modules', async () => {
+        let firstSecret: string | undefined
+        let secondSecret: string | undefined
+        const firstModule = defineModule({
+            id: 'same-private-token-first',
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(AUTH_SECRET).toValue({
+                    secret: 'first'
+                })
+                context
+                    .bind(AUTH_PUBLIC_API)
+                    .toAsyncFactory(async (providerContext) => {
+                        firstSecret = providerContext.get(AUTH_SECRET).secret
+
+                        return {
+                            requireUser(): string {
+                                return 'first-user'
+                            }
+                        }
+                    })
+                    .singleton()
+                    .eager()
+            }
+        })
+        const secondModule = defineModule({
+            id: 'same-private-token-second',
+            provides: [
+                {
+                    token: NOTIFICATION_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(AUTH_SECRET).toValue({
+                    secret: 'second'
+                })
+                context
+                    .bind(NOTIFICATION_PUBLIC_API)
+                    .toAsyncFactory(async (providerContext) => {
+                        secondSecret = providerContext.get(AUTH_SECRET).secret
+
+                        return {
+                            notify(): string {
+                                return 'notified'
+                            }
+                        }
+                    })
+                    .singleton()
+                    .eager()
+            }
+        })
+
+        await createComposer().use(firstModule).use(secondModule).prepare()
+
+        expect(firstSecret).toBe('first')
+        expect(secondSecret).toBe('second')
+    })
+
+    test('rejects access to another module private provider through provider context', async () => {
+        const privateOwner = defineModule({
+            id: 'private-owner',
+            setup(context): void {
+                context.bind(AUTH_SECRET).toValue({
+                    secret: 'hidden'
+                })
+            }
+        })
+        const foreignReader = defineModule({
+            id: 'foreign-private-reader',
+            provides: [
+                {
+                    token: NOTIFICATION_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context
+                    .bind(NOTIFICATION_PUBLIC_API)
+                    .toAsyncFactory(async (providerContext) => {
+                        providerContext.get(AUTH_SECRET)
+
+                        return {
+                            notify(): string {
+                                return 'unreachable'
+                            }
+                        }
+                    })
+                    .singleton()
+                    .eager()
+            }
+        })
+
+        await expect(createComposer().use(privateOwner).use(foreignReader).prepare()).rejects
+            .toBeInstanceOf(PrivateProviderAccessError)
+
+        try {
+            await createComposer().use(privateOwner).use(foreignReader).prepare()
+        } catch (error) {
+            expect(error).toBeInstanceOf(PrivateProviderAccessError)
+
+            if (error instanceof PrivateProviderAccessError) {
+                expect(error.code).toBe('SAGIFIRE_IOC_PRIVATE_PROVIDER_ACCESS')
+                expect(error.details).toEqual({
+                    moduleId: 'foreign-private-reader',
+                    tokenId: 'composer.auth-secret',
+                    requester: 'module',
+                    reason: 'token-not-visible'
+                })
+            }
+        }
+    })
+
+    test('validates declared capabilities are registered by module setup', async () => {
+        const module = defineModule({
+            id: 'missing-actual-provider',
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(): void {}
+        })
+
+        await expect(createComposer().use(module).prepare()).rejects.toBeInstanceOf(
+            ComposerValidationError
+        )
+
+        try {
+            await createComposer().use(module).prepare()
+        } catch (error) {
+            expect(error).toBeInstanceOf(ComposerValidationError)
+
+            if (error instanceof ComposerValidationError) {
+                expect(error.report.diagnostics).toEqual([
+                    {
+                        code: 'SAGIFIRE_IOC_MISSING_MODULE_PROVIDER',
+                        severity: 'error',
+                        message:
+                            'Module "missing-actual-provider" declares provided capability ' +
+                            '"composer.auth-public-api" but did not register a provider for it ' +
+                            'during setup',
+                        details: {
+                            moduleId: 'missing-actual-provider',
+                            tokenId: 'composer.auth-public-api'
+                        }
+                    }
+                ])
+                expect(new MissingModuleProviderError('missing-actual-provider', AUTH_PUBLIC_API.id))
+                    .toBeInstanceOf(MissingModuleProviderError)
+            }
+        }
+    })
+
+    test('rejects setup-time resolution before composition is prepared', async () => {
+        const module = defineModule({
+            id: 'early-resolution',
+            setup(context): void {
+                context.get(AUTH_SECRET)
+            }
+        })
+
+        await expect(createComposer().use(module).prepare()).rejects.toMatchObject({
+            code: 'SAGIFIRE_IOC_PRIVATE_PROVIDER_ACCESS',
+            details: {
+                moduleId: 'early-resolution',
+                tokenId: 'composer.auth-secret',
+                requester: 'module',
+                reason: 'composition-not-ready'
+            }
+        })
+    })
+
+    test('preserves module setup context binding and resolution inference', async () => {
+        const module = defineModule({
+            id: 'typed-setup-context',
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                expectTypeOf(context).toEqualTypeOf<ModuleSetupContext>()
+                expectTypeOf(context.bind(AUTH_PUBLIC_API)).toMatchTypeOf<
+                    BindingBuilder<AuthPublicApi>
+                >()
+                expectTypeOf(context.add(AUDIT_EVENTS)).toMatchTypeOf<
+                    MultiBindingBuilder<string>
+                >()
+                expectTypeOf(context.get<AuthPublicApi>).returns.toEqualTypeOf<AuthPublicApi>()
+                expectTypeOf(context.tryGet<AuthPublicApi>).returns.toEqualTypeOf<
+                    AuthPublicApi | undefined
+                >()
+                expectTypeOf(context.getAll<string>).returns.toEqualTypeOf<string[]>()
+                expectTypeOf(context.getAsync<AuthPublicApi>).returns.toEqualTypeOf<
+                    Promise<AuthPublicApi>
+                >()
+                expectTypeOf(context.tryGetAsync<AuthPublicApi>).returns.toEqualTypeOf<
+                    Promise<AuthPublicApi | undefined>
+                >()
+
+                context.bind(AUTH_PUBLIC_API).toValue({
+                    requireUser(): string {
+                        return 'typed-user'
+                    }
+                })
+            }
+        })
+
+        const preparedComposition: PreparedComposition = await createComposer().use(module).prepare()
+
+        expect(preparedComposition.capabilities[0]?.tokenId).toBe('composer.auth-public-api')
+    })
+
+    test('exposes composer builder API without later composer runtime or DSL APIs', async () => {
+        const module = await import('../src/composer.js')
+        const composer = createComposer()
+
+        expect(module.defineModule).toBeTypeOf('function')
+        expect(module.createComposer).toBeTypeOf('function')
+        expect(module.PrivateProviderAccessError).toBeTypeOf('function')
+        expect(module.MissingModuleProviderError).toBeTypeOf('function')
+        expect(composer.validate).toBeTypeOf('function')
+        expect(composer.prepare).toBeTypeOf('function')
+        expect('compose' in composer).toBe(false)
+        expect('inspect' in composer).toBe(false)
+        expect('getGraph' in composer).toBe(false)
+        expect('module' in module).toBe(false)
+        expect('defineApp' in module).toBe(false)
+        expect('adapt' in module).toBe(false)
+        expect(new ComposerValidationError(composer.validate())).toBeInstanceOf(
+            ComposerValidationError
+        )
+    })
+})

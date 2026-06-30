@@ -206,4 +206,35 @@ runtime inspection and graph validation start with composer stages.
 Stage 8 formatting must not rely on Node-only APIs, terminal colors, `process`, `Buffer`,
 Next.js, React, decorators or `reflect-metadata`.
 
+## Stage 9 Composer Rules
+
+Stage 9 starts composer/modules in `@sagifire/ioc`.
+
+Stage 9 must preserve the architecture boundary:
+
+- container does not import or know about composer/modules;
+- composer uses container/context to build application graph;
+- DSL remains optional and out of scope until Stage 11;
+- Next.js and React remain outside core.
+
+Stage 9 public runtime visibility:
+
+- `composer.bind()` satisfies required ports but does not automatically expose tokens as
+  public runtime capabilities;
+- composed runtime exposes only declared exported capabilities;
+- module private providers must not be public runtime-resolvable;
+- module-bound setup/provider contexts must not resolve another module's private
+  providers.
+
+Stage 9 validation and diagnostics:
+
+- use `SagifireIocError` and `DiagnosticReport` for composer validation failures;
+- include safe structured details such as module IDs, token IDs, dependency kind and
+  binding target;
+- do not expose provider values, resource instances, scope-local values or private runtime
+  internals.
+
+Stage 9 must not implement module-level cycle detection, capability dependency edges,
+binding dependency edges or cycle path diagnostics. These belong to Stage 10.
+
 Composer, DSL and adapters start only at their respective stages.

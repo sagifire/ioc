@@ -1,6 +1,6 @@
 # Stack
 
-Source trace: `SPEC.md` sections 4-6 and 32-37.
+Source trace: `SPEC.md` sections 4-6 and 32-39.
 
 ## Product Stack
 
@@ -151,6 +151,11 @@ Stage 7 async/resource inference assertions use Vitest `expectTypeOf` for
 Stage 8 diagnostics assertions use Vitest `expectTypeOf` for `SagifireIocError`,
 diagnostics error options/type guard, `DiagnosticSeverity`, `Diagnostic`,
 `DiagnosticReport` and `formatDiagnostics()`.
+
+Stage 9 composer/module assertions use Vitest `expectTypeOf` for `defineModule()`,
+module metadata/required port/capability inference, `composer.bind()` token inference,
+module setup context resolution, composed runtime token inference and inspection public
+API.
 
 Broader type-level test tooling remains open for later stages if Vitest assertions are not
 enough for more complex public API inference.

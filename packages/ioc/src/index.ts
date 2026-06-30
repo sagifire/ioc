@@ -8,6 +8,50 @@ export type {
     SagifireIocErrorOptions
 } from './diagnostics'
 export {
+    ComposerValidationError,
+    DuplicateModuleIdError,
+    DuplicateModuleCapabilityError,
+    DuplicateModuleDependencyError,
+    InvalidComposerBindingError,
+    InvalidModuleDefinitionError,
+    MissingModuleProviderError,
+    MissingRequiredPortError,
+    PrivateProviderAccessError,
+    createComposer,
+    defineModule
+} from './composer'
+export type {
+    Composer,
+    ComposerAsyncBindingFactory,
+    ComposerBindingBuilder,
+    ComposerBindingContext,
+    ComposerBindingFactory,
+    ComposerBindingKind,
+    ComposerValidationErrorDetails,
+    DuplicateModuleCapabilityErrorDetails,
+    DuplicateModuleIdErrorDetails,
+    DuplicateModuleTokenErrorDetails,
+    InvalidComposerBindingErrorDetails,
+    InvalidModuleDefinitionErrorDetails,
+    MissingModuleProviderErrorDetails,
+    MissingRequiredPortErrorDetails,
+    ModuleCapabilityDefinition,
+    ModuleCapabilityKind,
+    ModuleDefinition,
+    ModuleDefinitionInput,
+    ModuleDependencyDefinition,
+    ModuleDependencyDefinitionInput,
+    ModuleDependencyKind,
+    ModuleSetupContext,
+    ModuleSetupFunction,
+    ModuleSetupResult,
+    PreparedComposition,
+    PreparedCompositionCapability,
+    PreparedCompositionModule,
+    PrivateProviderAccessErrorDetails,
+    PrivateProviderAccessReason
+} from './composer'
+export {
     AsyncProviderAccessError,
     ContainerFrozenError,
     DuplicateScopeLocalValueError,

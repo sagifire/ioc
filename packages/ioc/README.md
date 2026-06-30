@@ -20,6 +20,11 @@ Implemented in the current stage:
 - diagnostics foundation through `SagifireIocError` and `isSagifireIocError()`;
 - diagnostic reports and plain-text formatting through `Diagnostic`, `DiagnosticReport`,
   `diagnosticFromError()` and `formatDiagnostics()`.
+- module definition foundation through `defineModule()` and explicit
+  `ModuleDefinition` metadata.
+- composer builder and static validation through `createComposer()`, `composer.use()`,
+  `composer.bind()` and `composer.validate()`.
+- module setup and private provider preparation through `composer.prepare()`.
 
-Composer, DSL, graph-aware diagnostics and framework adapters are planned for later roadmap
-stages.
+Composed runtime behavior, DSL, graph-aware diagnostics and framework adapters are planned
+for later roadmap stages.

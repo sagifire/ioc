@@ -492,6 +492,40 @@ Composer APIs include:
 - `composer.inspect()`
 - `runtime.inspect()`
 
+Stage 9 implementation order:
+
+- module definition foundation;
+- composer builder, bindings and static validation;
+- module setup context and private providers;
+- composed runtime and exported capability registry;
+- inspection API.
+
+Stage 9 public runtime visibility model:
+
+- module setup may register private providers;
+- declared `provides` metadata defines exported capabilities;
+- `composer.bind()` satisfies required ports but does not automatically make a token a
+  public runtime capability;
+- composed runtime public resolution is capability-gated and must not expose module
+  private providers;
+- module-bound setup/provider contexts may resolve their own private providers, declared
+  required ports and allowed public capabilities, but not another module's private
+  providers.
+
+Stage 9 validation model:
+
+- module IDs must be unique;
+- provided single tokens must be unique;
+- required ports must be satisfied by declared provided capabilities or explicit composer
+  bindings;
+- invalid binding targets must fail validation;
+- `composer.validate()` returns `DiagnosticReport`;
+- `composer.compose()` validates and throws a typed diagnostics error when the graph is
+  invalid.
+
+Stage 9 does not implement module-level cycle detection, capability dependency edges or
+binding dependency edges. These belong to Stage 10.
+
 ## Bindings
 
 Bindings connect required ports to actual providers or adapters.
@@ -517,6 +551,13 @@ Validation must detect:
 - private provider exposure.
 
 Diagnostics must include useful token IDs, module IDs and cycle paths.
+
+Stage boundary:
+
+- Stage 9 owns missing required ports, duplicate module IDs, duplicate provided single
+  tokens, invalid bindings, private provider exposure and safe inspection.
+- Stage 10 owns module-level cycles, capability dependency edges, binding dependency edges
+  and cycle path diagnostics.
 
 ## Diagnostics
 

@@ -57,6 +57,24 @@
 - [TASK-06.29-0017-stage-8-diagnostic-reports-formatting](TASK-06.29-0017-stage-8-diagnostic-reports-formatting/index.md)
   - Type: folder
   - Purpose: Завершена задача реалізації Stage 8 diagnostic reports and formatting.
+- [TASK-06.30-0018-stage-9-implementation-planning](TASK-06.30-0018-stage-9-implementation-planning/index.md)
+  - Type: folder
+  - Purpose: Планування реалізації Stage 9 composer/modules.
+- [TASK-06.30-0019-stage-9-module-definition-foundation](TASK-06.30-0019-stage-9-module-definition-foundation/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 9 module definition foundation.
+- [TASK-06.30-0020-stage-9-composer-builder-bindings-validation](TASK-06.30-0020-stage-9-composer-builder-bindings-validation/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 9 composer builder, bindings and validation.
+- [TASK-06.30-0021-stage-9-module-setup-private-providers](TASK-06.30-0021-stage-9-module-setup-private-providers/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 9 module setup and private providers.
+- [TASK-06.30-0022-stage-9-composed-runtime-capabilities](TASK-06.30-0022-stage-9-composed-runtime-capabilities/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 9 composed runtime and capabilities.
+- [TASK-06.30-0023-stage-9-inspection-api](TASK-06.30-0023-stage-9-inspection-api/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 9 inspection API.
 
 ## Files
 

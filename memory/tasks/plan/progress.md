@@ -62,6 +62,13 @@
   - Summary: Планування реалізації Stage 8 diagnostics і підготовка декількох
     implementation tasks.
   - Current: FIX-001
+- [TASK-06.30-0018-stage-9-implementation-planning](TASK-06.30-0018-stage-9-implementation-planning/index.md)
+  - Status: done
+  - Type: memory-update
+  - Execution Mode: interactive-memory-update
+  - Summary: Планування реалізації Stage 9 composer/modules і підготовка декількох
+    implementation tasks.
+  - Current: FIX-001
 
 ## Stage 2 Implementation
 
@@ -137,6 +144,39 @@
   - Execution Mode: autonomous-implementation
   - Summary: Stage 8 `Diagnostic`, `DiagnosticReport`, `formatDiagnostics()` and readable
     report formatting.
+  - Current: RUN-001
+
+## Stage 9 Implementation
+
+- [TASK-06.30-0019-stage-9-module-definition-foundation](TASK-06.30-0019-stage-9-module-definition-foundation/index.md)
+  - Status: done
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 9 module definition object API foundation and `defineModule()`.
+  - Current: RUN-001
+- [TASK-06.30-0020-stage-9-composer-builder-bindings-validation](TASK-06.30-0020-stage-9-composer-builder-bindings-validation/index.md)
+  - Status: done
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 9 `createComposer()`, `use()`, `bind()` and static validation.
+  - Current: RUN-001
+- [TASK-06.30-0021-stage-9-module-setup-private-providers](TASK-06.30-0021-stage-9-module-setup-private-providers/index.md)
+  - Status: done
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 9 module setup context and private provider isolation.
+  - Current: RUN-001
+- [TASK-06.30-0022-stage-9-composed-runtime-capabilities](TASK-06.30-0022-stage-9-composed-runtime-capabilities/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 9 `composer.compose()` and composed runtime exported capabilities.
+  - Current: RUN-001
+- [TASK-06.30-0023-stage-9-inspection-api](TASK-06.30-0023-stage-9-inspection-api/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 9 `composer.inspect()`, `composer.getGraph()` and `runtime.inspect()`.
   - Current: RUN-001
 
 ## Format

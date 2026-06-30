@@ -25,6 +25,13 @@ Root source trace:
 - `TASK-06.29-0015` - Stage 8 implementation planning task.
 - `TASK-06.29-0016` - Stage 8 diagnostics error foundation implementation task.
 - `TASK-06.29-0017` - Stage 8 diagnostic reports/formatting implementation task.
+- `TASK-06.30-0018` - Stage 9 implementation planning task.
+- `TASK-06.30-0019` - Stage 9 module definition foundation implementation task.
+- `TASK-06.30-0020` - Stage 9 composer builder/bindings/static validation implementation
+  task.
+- `TASK-06.30-0021` - Stage 9 module setup/private providers implementation task.
+- `TASK-06.30-0022` - Stage 9 composed runtime/capabilities implementation task.
+- `TASK-06.30-0023` - Stage 9 inspection API implementation task.
 
 ## Completed
 
@@ -417,10 +424,50 @@ Root source trace:
 ## Next
 
 - Stage 9: Composer and modules.
+  - Status: planned; implementation planning task is done after task-level human review.
   - Source: `SPEC.md` section 39.
-  - Implement: `defineModule()`, `createComposer()`, `composer.use()`,
-    `composer.bind()`, `composer.compose()`, private module scopes, requires/provides
-    metadata, runtime capability registry, module graph, validation and inspection.
+  - Planning Task: `TASK-06.30-0018-stage-9-implementation-planning`.
+  - Implementation Tasks:
+    - `TASK-06.30-0019-stage-9-module-definition-foundation` - backlog;
+    - `TASK-06.30-0020-stage-9-composer-builder-bindings-validation` - backlog;
+    - `TASK-06.30-0021-stage-9-module-setup-private-providers` - backlog;
+    - `TASK-06.30-0022-stage-9-composed-runtime-capabilities` - backlog;
+    - `TASK-06.30-0023-stage-9-inspection-api` - backlog.
+  - Implementation Decomposition:
+    - Task 1 builds explicit module definition object API and `defineModule()`.
+    - Task 2 builds composer builder, composition binding registration and static
+      validation.
+    - Task 3 executes module setup and enforces private provider isolation.
+    - Task 4 builds composed runtime wrapper and exported capability registry.
+    - Task 5 exposes safe composer/runtime inspection data.
+  - API Decisions:
+    - Stage 9 starts from explicit object configuration; DSL helpers remain Stage 11.
+    - `defineModule()` returns a normalized immutable module definition.
+    - Required port defaults are `required = true` and `kind = 'external'`.
+    - `composer.bind()` satisfies required ports but does not automatically expose a token
+      as a public runtime capability.
+    - Public composed runtime exposes only declared exported capabilities.
+    - Module private providers are visible only to their owning module's setup/provider
+      contexts.
+    - `composer.validate()` returns `DiagnosticReport`.
+    - `composer.compose()` validates and throws typed diagnostics error for invalid graphs.
+    - Static validation may cover definitions and composer bindings; compose-time
+      validation may add diagnostics that require setup execution.
+  - Implement:
+    - `defineModule()`;
+    - module definition/dependency/capability/setup types;
+    - `createComposer()`;
+    - `composer.use()`;
+    - `composer.bind()`;
+    - `composer.validate()`;
+    - `composer.compose()`;
+    - module private provider contexts;
+    - requires/provides metadata;
+    - runtime capability registry;
+    - module graph metadata;
+    - `composer.inspect()`;
+    - `composer.getGraph()`;
+    - `runtime.inspect()` for composed runtime.
   - Acceptance:
     - multiple modules can be composed;
     - module IDs are unique;
@@ -430,6 +477,16 @@ Root source trace:
     - runtime exposes exported capabilities;
     - module internals are not exposed through runtime;
     - inspection returns useful module graph.
+  - Guardrails:
+    - не реалізовувати module-level cycle detection;
+    - не реалізовувати capability dependency edge detection;
+    - не реалізовувати binding dependency edge detection;
+    - не додавати cycle path diagnostics before Stage 10;
+    - не реалізовувати DSL helpers `module()`, `defineApp()` або `adapt()`;
+    - не реалізовувати `@sagifire/ioc-testing` graph assertions or module harnesses;
+    - не реалізовувати Next.js adapters;
+    - не додавати filesystem auto-discovery, decorators, `reflect-metadata`, Node-only
+      APIs or global mutable registries into core.
 
 - Stage 10: Module graph cycle detection.
   - Source: `SPEC.md` section 40.

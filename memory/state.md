@@ -135,6 +135,61 @@ exports, deterministic plain-text formatting, generic unknown-error conversion a
 Stage 8 diagnostics scope завершено; composer/module graph diagnostics лишаються Stage 9+
 scope.
 
+Stage 9 implementation planning завершено після task-level human review approval:
+
+- [TASK-06.30-0018-stage-9-implementation-planning](tasks/plan/TASK-06.30-0018-stage-9-implementation-planning/index.md)
+
+Stage 9 composer/modules implementation заплановано як п'ять послідовних implementation
+задач:
+
+- [TASK-06.30-0019-stage-9-module-definition-foundation](tasks/plan/TASK-06.30-0019-stage-9-module-definition-foundation/index.md)
+- [TASK-06.30-0020-stage-9-composer-builder-bindings-validation](tasks/plan/TASK-06.30-0020-stage-9-composer-builder-bindings-validation/index.md)
+- [TASK-06.30-0021-stage-9-module-setup-private-providers](tasks/plan/TASK-06.30-0021-stage-9-module-setup-private-providers/index.md)
+- [TASK-06.30-0022-stage-9-composed-runtime-capabilities](tasks/plan/TASK-06.30-0022-stage-9-composed-runtime-capabilities/index.md)
+- [TASK-06.30-0023-stage-9-inspection-api](tasks/plan/TASK-06.30-0023-stage-9-inspection-api/index.md)
+
+Stage 9 planning зафіксував explicit object-configuration API first, private module
+provider isolation, composition bindings that satisfy required ports without automatically
+becoming public runtime capabilities, composed runtime capability gating and safe
+inspection. Module-level cycle detection, capability dependency edges and binding
+dependency edges залишаються Stage 10 scope.
+
+Stage 9 module definition foundation implementation завершено після task-level human review
+approval:
+
+- [TASK-06.30-0019-stage-9-module-definition-foundation](tasks/plan/TASK-06.30-0019-stage-9-module-definition-foundation/index.md)
+
+RUN-001 реалізував `defineModule()`, module definition public types, dependency default
+normalization, local duplicate requires/provides validation, typed module definition errors,
+immutability and package export coverage. Composer runtime behavior, setup execution,
+private providers, composed runtime, inspection API, DSL, adapters and Stage 10 cycle /
+dependency-edge detection не реалізовувались.
+
+Stage 9 composer builder, bindings and static validation implementation завершено після
+task-level human review approval:
+
+- [TASK-06.30-0020-stage-9-composer-builder-bindings-validation](tasks/plan/TASK-06.30-0020-stage-9-composer-builder-bindings-validation/index.md)
+
+RUN-001 реалізував `createComposer()`, `composer.use()`, `composer.bind()`,
+composition binding metadata, static `composer.validate()` reports, duplicate module ID
+diagnostics, duplicate provided capability diagnostics, missing required port diagnostics,
+invalid binding target diagnostics, typed composer validation errors and tests. RUN-001 не
+реалізовував module setup execution, private providers, `composer.compose()`, composed
+runtime, inspection API, DSL/adapters або Stage 10 cycle/dependency-edge detection.
+
+Stage 9 module setup and private providers implementation завершено після task-level human
+review approval:
+
+- [TASK-06.30-0021-stage-9-module-setup-private-providers](tasks/plan/TASK-06.30-0021-stage-9-module-setup-private-providers/index.md)
+
+RUN-001 реалізував `composer.prepare()`, module setup execution, module setup
+`bind()` / `add()` registration, module-private provider token isolation, exported
+provider registration metadata, module-bound provider factory contexts,
+`PrivateProviderAccessError`, `MissingModuleProviderError` and tests. RUN-001 не
+реалізовував final `composer.compose()` runtime wrapper, public runtime capability
+`get()` / `tryGet()` gating, inspection API, DSL/adapters або Stage 10
+cycle/dependency-edge detection.
+
 ## Active Tasks
 
 Немає задач у статусі `active`.
@@ -196,6 +251,24 @@ scope.
 - [TASK-06.29-0017-stage-8-diagnostic-reports-formatting](tasks/plan/TASK-06.29-0017-stage-8-diagnostic-reports-formatting/index.md)
   - Status: done
   - Summary: Stage 8 diagnostic reports and formatting implementation task.
+- [TASK-06.30-0018-stage-9-implementation-planning](tasks/plan/TASK-06.30-0018-stage-9-implementation-planning/index.md)
+  - Status: done
+  - Summary: Stage 9 composer/modules implementation planning task.
+- [TASK-06.30-0019-stage-9-module-definition-foundation](tasks/plan/TASK-06.30-0019-stage-9-module-definition-foundation/index.md)
+  - Status: done
+  - Summary: Stage 9 module definition foundation implementation task.
+- [TASK-06.30-0020-stage-9-composer-builder-bindings-validation](tasks/plan/TASK-06.30-0020-stage-9-composer-builder-bindings-validation/index.md)
+  - Status: done
+  - Summary: Stage 9 composer builder, bindings and static validation implementation task.
+- [TASK-06.30-0021-stage-9-module-setup-private-providers](tasks/plan/TASK-06.30-0021-stage-9-module-setup-private-providers/index.md)
+  - Status: done
+  - Summary: Stage 9 module setup and private providers implementation task.
+- [TASK-06.30-0022-stage-9-composed-runtime-capabilities](tasks/plan/TASK-06.30-0022-stage-9-composed-runtime-capabilities/index.md)
+  - Status: backlog
+  - Summary: Stage 9 composed runtime and capabilities implementation task.
+- [TASK-06.30-0023-stage-9-inspection-api](tasks/plan/TASK-06.30-0023-stage-9-inspection-api/index.md)
+  - Status: backlog
+  - Summary: Stage 9 inspection API implementation task.
 
 ## Recent Decisions
 
@@ -345,11 +418,58 @@ scope.
   DSL, adapters або testing helpers.
 - `TASK-06.29-0017-stage-8-diagnostic-reports-formatting` завершена після task-level human
   review approval.
+- `TASK-06.30-0018-stage-9-implementation-planning` створена як окрема
+  interactive-memory-update задача для планування Stage 9.
+- Stage 9 implementation розбита на п'ять implementation tasks: module definition
+  foundation, composer builder/bindings/static validation, module setup and private
+  providers, composed runtime capabilities, inspection API.
+- Для Stage 9 прийнято explicit object-configuration API first; DSL helpers лишаються
+  Stage 11.
+- Для Stage 9 прийнято, що `composer.bind()` satisfies required ports but does not
+  automatically expose the token as a public runtime capability.
+- Для Stage 9 прийнято, що public composed runtime exposes only declared exported
+  capabilities; module private providers must not be public runtime-resolvable.
+- Stage 9 не реалізує module-level cycle detection, capability dependency edges or binding
+  dependency edges; це Stage 10 scope.
+- `TASK-06.30-0018-stage-9-implementation-planning` завершена після task-level human
+  review approval.
+- `TASK-06.30-0019-stage-9-module-definition-foundation` RUN-001 виконаний агентом,
+  переведений у `review` і approved після task-level human review.
+- Stage 9 RUN-001 реалізував тільки module definition foundation:
+  `defineModule()`, module definition types, default normalization, local duplicate
+  requires/provides validation, typed errors, immutability and export coverage.
+- Stage 9 RUN-001 не реалізовував `createComposer()`, composer builder/bindings,
+  validation reports, setup execution, private providers, composed runtime, inspection API,
+  DSL, adapters або Stage 10 cycle/dependency-edge detection.
+- `TASK-06.30-0020-stage-9-composer-builder-bindings-validation` RUN-001 виконаний
+  агентом, переведений у `review` і approved після task-level human review.
+- Stage 9 composer builder RUN-001 реалізував `createComposer()`, `composer.use()`,
+  composition-level `composer.bind()` for value/factory/class/async factory metadata,
+  static `composer.validate()` and typed diagnostics for duplicate module IDs, duplicate
+  capabilities, missing required ports and invalid binding targets.
+- Stage 9 composer builder RUN-001 не реалізовував module setup execution, private
+  providers, `composer.compose()`, composed runtime, inspection API, DSL/adapters або Stage
+  10 cycle/dependency-edge detection.
+- `TASK-06.30-0020-stage-9-composer-builder-bindings-validation` завершена після
+  task-level human review approval.
+- `TASK-06.30-0021-stage-9-module-setup-private-providers` RUN-001 виконаний агентом,
+  переведений у `review` і approved після task-level human review.
+- Stage 9 module setup RUN-001 реалізував `composer.prepare()`, setup execution,
+  module-private provider token isolation, exported provider registration metadata,
+  module-bound provider factory contexts, `PrivateProviderAccessError` and
+  `MissingModuleProviderError`.
+- Stage 9 module setup RUN-001 не реалізовував final `composer.compose()` runtime wrapper,
+  public runtime capability gating, inspection API, DSL/adapters або Stage 10
+  cycle/dependency-edge detection.
+- `TASK-06.30-0021-stage-9-module-setup-private-providers` завершена після task-level
+  human review approval.
 
 ## Current Risks
 
-- Composer, DSL, Next.js adapters і testing helpers залишаються out of scope до
-  відповідних roadmap stages.
+- Final composed runtime, inspection API, DSL, Next.js adapters і testing helpers
+  залишаються out of scope до відповідних roadmap stages.
+- Module-level cycle detection and dependency-edge analysis залишаються out of scope до
+  Stage 10, навіть після початку Stage 9 composer work.
 - Root `SPEC.md` лишається source reference і може дублювати canonical memory; для
   operational рішень використовувати `memory/product/`, `memory/domain/` і
   `memory/technical/`.
@@ -358,7 +478,9 @@ scope.
 
 ## Next Steps
 
-- Запланувати Stage 9 composer/modules implementation planning.
+- Запустити
+  [TASK-06.30-0022-stage-9-composed-runtime-capabilities](tasks/plan/TASK-06.30-0022-stage-9-composed-runtime-capabilities/index.md)
+  як наступну Stage 9 autonomous implementation task.
 
 ## Open Questions
 
