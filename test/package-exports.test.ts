@@ -153,22 +153,45 @@ describe('package exports', () => {
                 })
             ]
         })
-        const requestScope = firstRuntime.createScope(requestContext.toScopeOptions())
+        const routeResponse = await nextAdapter.withRouteScope(
+            runtimeHelper,
+            {
+                request: {
+                    method: 'GET',
+                    url: 'https://example.test/api/export'
+                },
+                context: {
+                    params: {
+                        id: 'export'
+                    }
+                },
+                requestContext
+            },
+            ({ runtime, scope, context }) => {
+                return {
+                    value: runtime.get(value),
+                    requestId: scope.get(requestId),
+                    pluginNames: scope.getAll(requestPlugin).map((plugin) => plugin.name),
+                    routeId: context.params.id
+                }
+            }
+        )
 
         expect(nextAdapter.createNextRequestContext).toBeTypeOf('function')
         expect(nextAdapter.createNextRuntime).toBeTypeOf('function')
         expect(nextAdapter.nextRequestMultiValue).toBeTypeOf('function')
         expect(nextAdapter.nextRequestValue).toBeTypeOf('function')
+        expect(nextAdapter.withRouteScope).toBeTypeOf('function')
         expect(runtimeHelper.getRuntime).toBeTypeOf('function')
         expect(runtimeHelper.reset).toBeTypeOf('function')
         expect(firstRuntime).toBe(secondRuntime)
         expect(firstRuntime.get(value)).toBe('next-export-1')
-        expect(requestScope.get(requestId)).toBe('export-request')
-        expect(requestScope.getAll(requestPlugin)).toEqual([
-            {
-                name: 'export-plugin'
-            }
-        ])
+        expect(routeResponse).toEqual({
+            value: 'next-export-1',
+            requestId: 'export-request',
+            pluginNames: ['export-plugin'],
+            routeId: 'export'
+        })
         expect(factoryCalls).toBe(1)
 
         runtimeHelper.reset()
@@ -179,7 +202,6 @@ describe('package exports', () => {
         expect(resetRuntime.get(value)).toBe('next-export-2')
         expect(factoryCalls).toBe(2)
 
-        await requestScope.dispose()
         await resetRuntime.dispose()
         await firstRuntime.dispose()
     })

@@ -21,7 +21,8 @@ bindings, plus explicit `fakeModule()` definitions and `createModuleHarness()` f
 isolated single-module tests. Stage 12 graph and diagnostic assertion helpers are
 implemented over public inspection/diagnostic data. Stage 13 Next adapter foundation now
 includes `createNextRuntime()` for instance-local cached runtime creation and
-`createNextRequestContext()` for explicit request-scoped values.
+`createNextRequestContext()` for explicit request-scoped values plus `withRouteScope()`
+for route handler invocation scopes.
 
 ## Packages
 
@@ -53,9 +54,9 @@ Testing documentation covers isolated runtimes, overrides, test composers, fake 
 module harnesses and graph/diagnostic assertions. Overrides are applied before
 `freeze()` / `compose()` and never mutate frozen runtimes.
 
-Next integration documentation currently covers `createNextRuntime()` runtime caching and
-`createNextRequestContext()` request-scoped value declarations. Route handler scope and
-server action scope helpers remain staged follow-up work.
+Next integration documentation currently covers `createNextRuntime()` runtime caching,
+`createNextRequestContext()` request-scoped value declarations and `withRouteScope()`
+route handler scopes. Server action scope helper remains staged follow-up work.
 
 ## License
 

@@ -58,7 +58,11 @@ describe('package boundaries', () => {
         const leakedTestingHelpers = testingHelperNames.filter((exportName) => {
             return exportName in nextAdapter
         })
-        const futureStageHelperNames = ['createRouteHandlerScope', 'createServerActionScope']
+        const futureStageHelperNames = [
+            'createRouteHandlerScope',
+            'createServerActionScope',
+            'withServerActionScope'
+        ]
         const earlyFutureStageHelpers = futureStageHelperNames.filter((exportName) => {
             return exportName in nextAdapter
         })
@@ -76,12 +80,14 @@ describe('package boundaries', () => {
         expect(nextAdapter.createNextRuntime).toBeTypeOf('function')
         expect(nextAdapter.nextRequestMultiValue).toBeTypeOf('function')
         expect(nextAdapter.nextRequestValue).toBeTypeOf('function')
+        expect(nextAdapter.withRouteScope).toBeTypeOf('function')
         expect(nextExportNames.sort()).toEqual(
             [
                 'createNextRequestContext',
                 'createNextRuntime',
                 'nextRequestMultiValue',
-                'nextRequestValue'
+                'nextRequestValue',
+                'withRouteScope'
             ].sort()
         )
         expect(leakedTestingHelpers).toEqual([])

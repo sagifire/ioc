@@ -2,12 +2,17 @@
 
 Next.js App Router adapter package for `@sagifire/ioc`.
 
-Stage 13 currently provides the runtime foundation helper and explicit request context
-declarations:
+Stage 13 currently provides the runtime foundation helper, explicit request context
+declarations and a route handler scope helper:
 
 ```ts
 import { token } from '@sagifire/ioc'
-import { createNextRequestContext, createNextRuntime, nextRequestValue } from '@sagifire/ioc-next'
+import {
+    createNextRequestContext,
+    createNextRuntime,
+    nextRequestValue,
+    withRouteScope
+} from '@sagifire/ioc-next'
 
 const REQUEST_ID = token<string>('app.request-id')
 
@@ -22,6 +27,22 @@ export function createRequestContext(requestId: string) {
         values: [nextRequestValue(REQUEST_ID, requestId)]
     })
 }
+
+export function GET(request: Request, context: { params: { id: string } }) {
+    return withRouteScope(
+        appRuntime,
+        {
+            request,
+            context,
+            requestContext: createRequestContext(context.params.id)
+        },
+        async ({ scope }) => {
+            const publicApi = scope.get(PUBLIC_API)
+
+            return publicApi.handleRequest()
+        }
+    )
+}
 ```
 
 `createNextRuntime()` owns an instance-local cache, reuses successful runtime
@@ -34,4 +55,8 @@ declarations and converts them to core `CreateScopeOptions` through `toScopeOpti
 Use `nextRequestValue()` for single scope-local values and `nextRequestMultiValue()` for
 multi scope-local values.
 
-Route handler scope and server action scope helpers are planned for later Stage 13 tasks.
+`withRouteScope()` obtains the cached runtime, creates one scope for a route invocation,
+passes runtime, scope, request and route context explicitly to the callback and disposes
+the scope after success or failure.
+
+Server action scope helper is planned for a later Stage 13 task.

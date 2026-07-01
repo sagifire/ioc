@@ -306,7 +306,7 @@
   - Summary: Stage 13 request context helper and request-scoped values.
   - Current: RUN-001
 - [TASK-07.01-0042-stage-13-route-handler-scope](TASK-07.01-0042-stage-13-route-handler-scope/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Stage 13 route handler scope helper.

@@ -912,12 +912,22 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
   action scope helper, App Router examples, hidden AsyncLocalStorage/current-request
   access, filesystem discovery, route scanning, Next.js/React imports або core
   runtime/composer semantic changes.
+- `TASK-07.01-0042-stage-13-route-handler-scope` RUN-001 виконаний агентом і завершений
+  після task-level human review approval.
+- Stage 13 route handler scope RUN-001 реалізував `withRouteScope()` in
+  `@sagifire/ioc-next` with cached runtime helper integration, explicit request context
+  conversion to core scope options, one scope per route invocation, explicit runtime /
+  scope / request / route context callback data, success/failure disposal, runtime/type /
+  export tests and minimal docs sync.
+- Stage 13 route handler scope RUN-001 не реалізовував server action scope helper, full
+  App Router examples, hidden current-request APIs, filesystem discovery, route scanning,
+  Next.js/React imports або core runtime/composer semantic changes.
 
 ## Current Risks
 
-- `@sagifire/ioc-next` має runtime foundation and request context helper; route handler
-  scope, server action scope and final examples/hardening залишаються Stage 13 follow-up
-  tasks.
+- `@sagifire/ioc-next` має runtime foundation, request context helper and route handler
+  scope helper; server action scope and final examples/hardening залишаються Stage 13
+  follow-up tasks.
 - Stage 13 може потребувати Next.js/React dependency metadata або examples; якщо для цього
   потрібна dependency installation або network access, task agent має попросити дозвіл.
 - Binding factory internals не мають static dependency metadata; Stage 10 dependency edge
@@ -931,7 +941,7 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 
 ## Next Steps
 
-- Запустити `TASK-07.01-0042-stage-13-route-handler-scope`, якщо reviewer не змінить
+- Запустити `TASK-07.01-0043-stage-13-server-action-scope`, якщо reviewer не змінить
   порядок.
 
 ## Open Questions

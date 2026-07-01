@@ -1,6 +1,6 @@
 # TASK-07.01-0042: Stage 13 route handler scope
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-01
@@ -51,24 +51,24 @@ to application code and disposes the scope reliably.
 
 ## Acceptance Criteria
 
-- [ ] Route handler scope helper is implemented in `@sagifire/ioc-next`.
-- [ ] Helper obtains runtime through the Stage 13 cached runtime helper.
-- [ ] Helper creates exactly one scope per route invocation.
-- [ ] Request context values are visible inside the route scope.
-- [ ] Runtime and scope are passed explicitly to the callback.
-- [ ] Scope is disposed after successful route execution.
-- [ ] Scope is disposed after failed route execution.
-- [ ] Handler return type inference is preserved.
-- [ ] Helper can be tested with simulated request/route context without a running Next app.
-- [ ] No filesystem route scanning or hidden current request API is introduced.
-- [ ] Core package does not import Next.js, React or `@sagifire/ioc-next`.
-- [ ] Runtime tests cover route helper lifecycle.
-- [ ] Type-level assertions cover callback inference.
-- [ ] Stage 13 task does not implement server action helper.
-- [ ] `pnpm build` works.
-- [ ] `pnpm test` works.
-- [ ] `pnpm typecheck` works.
-- [ ] `pnpm lint` works.
+- [x] Route handler scope helper is implemented in `@sagifire/ioc-next`.
+- [x] Helper obtains runtime through the Stage 13 cached runtime helper.
+- [x] Helper creates exactly one scope per route invocation.
+- [x] Request context values are visible inside the route scope.
+- [x] Runtime and scope are passed explicitly to the callback.
+- [x] Scope is disposed after successful route execution.
+- [x] Scope is disposed after failed route execution.
+- [x] Handler return type inference is preserved.
+- [x] Helper can be tested with simulated request/route context without a running Next app.
+- [x] No filesystem route scanning or hidden current request API is introduced.
+- [x] Core package does not import Next.js, React or `@sagifire/ioc-next`.
+- [x] Runtime tests cover route helper lifecycle.
+- [x] Type-level assertions cover callback inference.
+- [x] Stage 13 task does not implement server action helper.
+- [x] `pnpm build` works.
+- [x] `pnpm test` works.
+- [x] `pnpm typecheck` works.
+- [x] `pnpm lint` works.
 
 ## Linked Memory
 
@@ -86,9 +86,9 @@ to application code and disposes the scope reliably.
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: planned
+  - Status: completed
   - Purpose: Початковий autonomous implementation run для route handler scope helper.
-  - Result: pending
+  - Result: approved
 
 ## Research
 

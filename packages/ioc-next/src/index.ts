@@ -3,6 +3,7 @@ import {
     scopeValue,
     type ContainerRuntime,
     type CreateScopeOptions,
+    type Scope,
     type ScopeLocalValue,
     type ScopeLocalValueObject,
     type Token
@@ -34,6 +35,31 @@ export interface NextRuntimeHelper<TRuntime extends ContainerRuntime = Container
     getRuntime(): Promise<TRuntime>
     reset(): void
 }
+
+export interface RouteHandlerScopeOptions<TRequest, TRouteContext> {
+    readonly request: TRequest
+    readonly context: TRouteContext
+    readonly requestContext?: NextRequestContext
+}
+
+export interface RouteHandlerScopeContext<
+    TRuntime extends ContainerRuntime,
+    TRequest,
+    TRouteContext
+> {
+    readonly runtime: TRuntime
+    readonly scope: Scope
+    readonly request: TRequest
+    readonly context: TRouteContext
+    readonly requestContext: NextRequestContext | undefined
+}
+
+export type RouteHandlerScopeCallback<
+    TRuntime extends ContainerRuntime,
+    TRequest,
+    TRouteContext,
+    TResult
+> = (context: RouteHandlerScopeContext<TRuntime, TRequest, TRouteContext>) => Awaitable<TResult>
 
 export function createNextRuntime<TRuntime extends ContainerRuntime>(
     factory: NextRuntimeFactory<TRuntime>
@@ -82,6 +108,35 @@ export function createNextRuntime<TRuntime extends ContainerRuntime>(
             inFlight = undefined
         }
     })
+}
+
+export async function withRouteScope<
+    TRuntime extends ContainerRuntime,
+    TRequest,
+    TRouteContext,
+    TResult
+>(
+    runtimeHelper: NextRuntimeHelper<TRuntime>,
+    options: RouteHandlerScopeOptions<TRequest, TRouteContext>,
+    callback: RouteHandlerScopeCallback<TRuntime, TRequest, TRouteContext, TResult>
+): Promise<Awaited<TResult>> {
+    const runtime = await runtimeHelper.getRuntime()
+    const requestContext = options.requestContext
+    const scopeOptions = requestContext?.toScopeOptions()
+    const scope =
+        scopeOptions === undefined ? runtime.createScope() : runtime.createScope(scopeOptions)
+
+    try {
+        return await callback({
+            runtime,
+            scope,
+            request: options.request,
+            context: options.context,
+            requestContext
+        })
+    } finally {
+        await scope.dispose()
+    }
 }
 
 export function createNextRequestContext(
