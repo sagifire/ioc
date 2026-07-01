@@ -1,6 +1,6 @@
 # TASK-07.01-0030: Stage 11 defineApp DSL
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-01
@@ -50,20 +50,20 @@ registry.
 
 ## Acceptance Criteria
 
-- [ ] `defineApp()` creates deterministic composer configuration from explicit DSL input.
-- [ ] App DSL accepts module definitions from both object API and module DSL.
-- [ ] App DSL exposes validation/inspection/compose behavior through existing composer
+- [x] `defineApp()` creates deterministic composer configuration from explicit DSL input.
+- [x] App DSL accepts module definitions from both object API and module DSL.
+- [x] App DSL exposes validation/inspection/compose behavior through existing composer
   semantics.
-- [ ] Equivalent DSL and object API configurations produce equivalent graph metadata.
-- [ ] Object API remains fully usable without DSL.
-- [ ] No global app registry or hidden framework dependency is introduced.
-- [ ] Runtime tests cover conversion, validation, inspection parity and graph visibility.
-- [ ] Type-level assertions cover app DSL inference.
-- [ ] Stage 11 task does not implement `adapt()`, testing helpers or Next.js adapters.
-- [ ] `pnpm build` works.
-- [ ] `pnpm test` works.
-- [ ] `pnpm typecheck` works.
-- [ ] `pnpm lint` works.
+- [x] Equivalent DSL and object API configurations produce equivalent graph metadata.
+- [x] Object API remains fully usable without DSL.
+- [x] No global app registry or hidden framework dependency is introduced.
+- [x] Runtime tests cover conversion, validation, inspection parity and graph visibility.
+- [x] Type-level assertions cover app DSL inference.
+- [x] Stage 11 task does not implement `adapt()`, testing helpers or Next.js adapters.
+- [x] `pnpm build` works.
+- [x] `pnpm test` works.
+- [x] `pnpm typecheck` works.
+- [x] `pnpm lint` works.
 
 ## Linked Memory
 
@@ -79,9 +79,9 @@ registry.
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: planned
+  - Status: completed
   - Purpose: Початковий autonomous implementation run для `defineApp()` DSL.
-  - Result: pending
+  - Result: approved
 
 ## Research
 

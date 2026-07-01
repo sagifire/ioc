@@ -289,6 +289,18 @@ and id shorthand, root / `@sagifire/ioc/dsl` exports, runtime/type/package-expor
 and minimal public docs sync. RUN-001 не реалізовував `defineApp()`, `adapt()`,
 composition-level bind helper DSL, testing helpers or Next.js adapters.
 
+Stage 11 `defineApp()` DSL implementation завершено після task-level human review
+approval:
+
+- [TASK-07.01-0030-stage-11-define-app-dsl](tasks/plan/TASK-07.01-0030-stage-11-define-app-dsl/index.md)
+
+RUN-001 реалізував `defineApp()` over existing composer semantics, fresh deterministic
+conversion to `createComposer()`, `composer.use()` and `composer.bind()`, validation /
+inspection / graph / prepare / compose delegation, minimal explicit app binding
+declarations, root / `@sagifire/ioc/dsl` exports, runtime/type/package-export tests and
+minimal public docs sync. RUN-001 не реалізовував `adapt()`, final bind helper DSL,
+testing helpers or Next.js adapters.
+
 ## Active Tasks
 
 Немає задач у статусі `active`.
@@ -387,7 +399,7 @@ composition-level bind helper DSL, testing helpers or Next.js adapters.
   - Status: done
   - Summary: Stage 11 module DSL foundation implementation task.
 - [TASK-07.01-0030-stage-11-define-app-dsl](tasks/plan/TASK-07.01-0030-stage-11-define-app-dsl/index.md)
-  - Status: backlog
+  - Status: done
   - Summary: Stage 11 `defineApp()` DSL implementation task.
 - [TASK-07.01-0031-stage-11-bind-adapt-dsl](tasks/plan/TASK-07.01-0031-stage-11-bind-adapt-dsl/index.md)
   - Status: backlog
@@ -691,7 +703,7 @@ composition-level bind helper DSL, testing helpers or Next.js adapters.
 ## Next Steps
 
 - Запустити
-  [TASK-07.01-0030-stage-11-define-app-dsl](tasks/plan/TASK-07.01-0030-stage-11-define-app-dsl/index.md),
+  [TASK-07.01-0031-stage-11-bind-adapt-dsl](tasks/plan/TASK-07.01-0031-stage-11-bind-adapt-dsl/index.md),
   якщо roadmap order не зміниться.
 
 ## Open Questions

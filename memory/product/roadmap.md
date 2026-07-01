@@ -547,7 +547,7 @@ Root source trace:
   - Implementation Tasks:
     - `TASK-07.01-0029-stage-11-module-dsl-foundation` - done after task-level human
       review;
-    - `TASK-07.01-0030-stage-11-define-app-dsl` - backlog;
+    - `TASK-07.01-0030-stage-11-define-app-dsl` - done after task-level human review;
     - `TASK-07.01-0031-stage-11-bind-adapt-dsl` - backlog;
     - `TASK-07.01-0032-stage-11-dsl-hardening-docs` - backlog.
   - Implementation Decomposition:

@@ -1,11 +1,22 @@
 import {
+    createComposer,
     defineModule,
+    type ComposedRuntime,
+    type Composer,
+    type ComposerAsyncBindingFactory,
+    type ComposerBindingFactory,
+    type ComposerInspection,
     type ModuleCapabilityDefinition,
     type ModuleDefinition,
     type ModuleDefinitionInput,
     type ModuleDependencyDefinition,
-    type ModuleDependencyDefinitionInput
+    type ModuleDependencyDefinitionInput,
+    type ModuleGraph,
+    type PreparedComposition
 } from './composer'
+import type { ClassConstructor } from './container'
+import type { DiagnosticReport } from './diagnostics'
+import type { Token } from './tokens'
 
 export type ModuleDslDefinitionInput<
     TMetadata = unknown,
@@ -49,6 +60,54 @@ export type ModuleDslDefinition<
     NormalizedModuleDslCapabilities<TProvides>
 >
 
+export type AppDslBindingDefinition<TValue = unknown> =
+    | AppDslValueBindingDefinition<TValue>
+    | AppDslFactoryBindingDefinition<TValue>
+    | AppDslClassBindingDefinition<TValue>
+    | AppDslAsyncFactoryBindingDefinition<TValue>
+
+export interface AppDslValueBindingDefinition<TValue = unknown> {
+    readonly token: Token<TValue>
+    readonly useValue: TValue
+}
+
+export interface AppDslFactoryBindingDefinition<TValue = unknown> {
+    readonly token: Token<TValue>
+    readonly useFactory: ComposerBindingFactory<TValue>
+}
+
+export interface AppDslClassBindingDefinition<TValue = unknown> {
+    readonly token: Token<TValue>
+    readonly useClass: ClassConstructor<TValue>
+}
+
+export interface AppDslAsyncFactoryBindingDefinition<TValue = unknown> {
+    readonly token: Token<TValue>
+    readonly useAsyncFactory: ComposerAsyncBindingFactory<TValue>
+}
+
+export interface AppDslDefinitionInput<
+    TModules extends readonly ModuleDefinition[] = readonly ModuleDefinition[],
+    TBindings extends readonly AppDslBindingDefinition[] = readonly AppDslBindingDefinition[]
+> {
+    readonly modules: TModules
+    readonly bindings?: TBindings
+}
+
+export interface AppDslDefinition<
+    TModules extends readonly ModuleDefinition[] = readonly ModuleDefinition[],
+    TBindings extends readonly AppDslBindingDefinition[] = readonly AppDslBindingDefinition[]
+> {
+    readonly modules: TModules
+    readonly bindings: TBindings
+    createComposer(): Composer
+    validate(): DiagnosticReport
+    inspect(): ComposerInspection
+    getGraph(): ModuleGraph
+    prepare(): Promise<PreparedComposition>
+    compose(): Promise<ComposedRuntime>
+}
+
 function createModuleDsl<
     TMetadata = unknown,
     const TRequires extends readonly ModuleDependencyDefinitionInput[] = readonly ModuleDependencyDefinitionInput[],
@@ -83,4 +142,82 @@ function createModuleDsl<
     return defineModule(moduleDefinition)
 }
 
+function defineAppDsl<
+    const TModules extends readonly ModuleDefinition[] = readonly ModuleDefinition[],
+    const TBindings extends readonly AppDslBindingDefinition[] = readonly AppDslBindingDefinition[]
+>(
+    definition: AppDslDefinitionInput<TModules, TBindings>
+): AppDslDefinition<TModules, TBindings> {
+    const modules = Object.freeze([...definition.modules]) as unknown as TModules
+    const bindings = Object.freeze([...(definition.bindings ?? [])]) as unknown as TBindings
+
+    const createConfiguredComposer = (): Composer => {
+        const composer = createComposer()
+
+        for (const moduleDefinition of modules) {
+            composer.use(moduleDefinition)
+        }
+
+        for (const binding of bindings) {
+            applyAppDslBinding(composer, binding)
+        }
+
+        return composer
+    }
+
+    return Object.freeze({
+        modules,
+        bindings,
+
+        createComposer(): Composer {
+            return createConfiguredComposer()
+        },
+
+        validate(): DiagnosticReport {
+            return createConfiguredComposer().validate()
+        },
+
+        inspect(): ComposerInspection {
+            return createConfiguredComposer().inspect()
+        },
+
+        getGraph(): ModuleGraph {
+            return createConfiguredComposer().getGraph()
+        },
+
+        prepare(): Promise<PreparedComposition> {
+            return createConfiguredComposer().prepare()
+        },
+
+        compose(): Promise<ComposedRuntime> {
+            return createConfiguredComposer().compose()
+        }
+    })
+}
+
+function applyAppDslBinding(composer: Composer, binding: AppDslBindingDefinition): void {
+    const builder = composer.bind(binding.token)
+
+    if ('useValue' in binding) {
+        builder.toValue(binding.useValue)
+
+        return
+    }
+
+    if ('useFactory' in binding) {
+        builder.toFactory(binding.useFactory)
+
+        return
+    }
+
+    if ('useClass' in binding) {
+        builder.toClass(binding.useClass)
+
+        return
+    }
+
+    builder.toAsyncFactory(binding.useAsyncFactory)
+}
+
 export { createModuleDsl as module }
+export { defineAppDsl as defineApp }

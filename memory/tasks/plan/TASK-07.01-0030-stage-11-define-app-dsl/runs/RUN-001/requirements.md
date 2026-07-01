@@ -1,6 +1,6 @@
 # Run Requirements: RUN-001
 
-Status: planned
+Status: completed
 Agent Role: Agent Executor
 Execution Mode: autonomous-implementation
 Created: 2026-07-01
@@ -38,16 +38,16 @@ configuration.
 
 ## Acceptance Criteria for This Run
 
-- [ ] App DSL entrypoint is implemented.
-- [ ] DSL converts to existing composer configuration.
-- [ ] Validation, inspection and compose behavior match composer semantics.
-- [ ] DSL/object API parity tests pass.
-- [ ] Type assertions cover app DSL inference.
-- [ ] Package export smoke tests cover app DSL API.
-- [ ] `pnpm build` works.
-- [ ] `pnpm test` works.
-- [ ] `pnpm typecheck` works.
-- [ ] `pnpm lint` works.
+- [x] App DSL entrypoint is implemented.
+- [x] DSL converts to existing composer configuration.
+- [x] Validation, inspection and compose behavior match composer semantics.
+- [x] DSL/object API parity tests pass.
+- [x] Type assertions cover app DSL inference.
+- [x] Package export smoke tests cover app DSL API.
+- [x] `pnpm build` works.
+- [x] `pnpm test` works.
+- [x] `pnpm typecheck` works.
+- [x] `pnpm lint` works.
 
 ## Changes from Previous Run
 

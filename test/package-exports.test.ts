@@ -34,6 +34,7 @@ describe('package exports', () => {
         expect(module.createComposer).toBeTypeOf('function')
         expect(module.defineModule).toBeTypeOf('function')
         expect(module.module).toBeTypeOf('function')
+        expect(module.defineApp).toBeTypeOf('function')
         expect(module.InvalidModuleDefinitionError).toBeTypeOf('function')
         expect(module.DuplicateModuleDependencyError).toBeTypeOf('function')
         expect(module.DuplicateModuleCapabilityError).toBeTypeOf('function')
@@ -288,15 +289,22 @@ describe('package exports', () => {
         await runtime.dispose()
     })
 
-    test('dsl subpath exposes module DSL API', async () => {
+    test('dsl subpath exposes module and app DSL API', async () => {
         const dsl = await import('@sagifire/ioc/dsl')
-        const composerApi = await import('@sagifire/ioc/composer')
         const tokens = await import('@sagifire/ioc/tokens')
         const publicApi = tokens.token<{
             ok(): boolean
         }>('exports.dsl.public-api')
+        const reader = tokens.token<{
+            read(): boolean
+        }>('exports.dsl.reader')
         const dslModule = dsl.module({
             id: 'exports-dsl-module',
+            requires: [
+                {
+                    token: reader
+                }
+            ],
             provides: [
                 {
                     token: publicApi,
@@ -311,10 +319,34 @@ describe('package exports', () => {
                 })
             }
         })
-        const runtime = await composerApi.createComposer().use(dslModule).compose()
+        const app = dsl.defineApp({
+            modules: [dslModule],
+            bindings: [
+                {
+                    token: reader,
+                    useValue: {
+                        read(): boolean {
+                            return true
+                        }
+                    }
+                }
+            ]
+        })
+        const runtime = await app.compose()
 
         expect(dsl.module).toBeTypeOf('function')
+        expect(dsl.defineApp).toBeTypeOf('function')
         expect(runtime.get(publicApi).ok()).toBe(true)
+        expect(app.inspect().edges).toEqual([
+            {
+                edgeKind: 'binding',
+                consumerModuleId: 'exports-dsl-module',
+                requiredTokenId: 'exports.dsl.reader',
+                dependencyKind: 'external',
+                bindingTokenId: 'exports.dsl.reader',
+                bindingKind: 'value'
+            }
+        ])
 
         await runtime.dispose()
     })

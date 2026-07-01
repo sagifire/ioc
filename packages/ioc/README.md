@@ -31,6 +31,8 @@ Implemented in the current stage:
 - module cycle diagnostics through `ModuleCycleError` and `ComposerValidationError`
   reports.
 - module DSL foundation through `module()` over existing `defineModule()` semantics.
+- app DSL composition through `defineApp()` over existing `createComposer()`, `use()` and
+  `bind()` semantics.
 
-App-level DSL, bind/adapt DSL, testing helpers and framework adapters are planned for
-later roadmap stages.
+Bind/adapt DSL, testing helpers and framework adapters are planned for later roadmap
+stages.

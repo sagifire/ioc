@@ -1,7 +1,18 @@
 export { InvalidTokenIdError, namespace, token } from './tokens'
 export type { Token, TokenNamespace, TokenOptions } from './tokens'
-export { module } from './dsl'
-export type { ModuleDslDefinition, ModuleDslDefinitionInput, ModuleDslDefinitionOptions } from './dsl'
+export { defineApp, module } from './dsl'
+export type {
+    AppDslAsyncFactoryBindingDefinition,
+    AppDslBindingDefinition,
+    AppDslClassBindingDefinition,
+    AppDslDefinition,
+    AppDslDefinitionInput,
+    AppDslFactoryBindingDefinition,
+    AppDslValueBindingDefinition,
+    ModuleDslDefinition,
+    ModuleDslDefinitionInput,
+    ModuleDslDefinitionOptions
+} from './dsl'
 export { SagifireIocError, diagnosticFromError, formatDiagnostics, isSagifireIocError } from './diagnostics'
 export type {
     Diagnostic,

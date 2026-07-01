@@ -1,18 +1,26 @@
 import { describe, expect, expectTypeOf, test } from 'vitest'
 
 import {
+    type ComposedRuntime,
     createComposer,
+    defineModule,
     DuplicateModuleDependencyError,
     InvalidModuleDefinitionError,
+    type ComposerBindingContext,
+    type ComposerInspection,
+    type ModuleGraph,
     type ModuleDefinition,
     type ModuleDependencyDefinition,
     type ModuleSetupContext
 } from '../src/composer.js'
 import {
+    defineApp,
     module as moduleDsl,
+    type AppDslDefinition,
     type ModuleDslDefinition,
     type ModuleDslDefinitionInput
 } from '../src/dsl.js'
+import type { DiagnosticReport } from '../src/diagnostics.js'
 import { type Token, token } from '../src/tokens.js'
 
 interface AuthReader {
@@ -35,6 +43,16 @@ const AUTH_PUBLIC_API = token<AuthPublicApi>('dsl.auth-public-api')
 const CONTACT_REQUESTS_PUBLIC_API = token<ContactRequestsPublicApi>(
     'dsl.contact-requests-public-api'
 )
+const VALUE_AUTH_READER = token<AuthReader>('dsl.value-auth-reader')
+const FACTORY_AUTH_READER = token<AuthReader>('dsl.factory-auth-reader')
+const CLASS_AUTH_READER = token<AuthReader>('dsl.class-auth-reader')
+const ASYNC_AUTH_READER = token<AuthReader>('dsl.async-auth-reader')
+
+class ClassAuthReader implements AuthReader {
+    currentUserId(): string {
+        return 'class-user'
+    }
+}
 
 describe('module DSL foundation', () => {
     test('creates module definitions through the object form', () => {
@@ -267,5 +285,299 @@ describe('module DSL foundation', () => {
         expectTypeOf<TokenValue<(typeof shorthandModule.provides)[0]['token']>>().toEqualTypeOf<
             AuthPublicApi
         >()
+    })
+})
+
+describe('defineApp DSL', () => {
+    test('converts modules and binding declarations to equivalent composer configuration', async () => {
+        const authModule = defineModule({
+            id: 'dsl-app-auth-object',
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(AUTH_PUBLIC_API).toValue({
+                    requireUser(): string {
+                        return 'app-user'
+                    }
+                })
+            }
+        })
+        const contactRequestsModule = moduleDsl('dsl-app-contact-module', {
+            requires: [
+                {
+                    token: AUTH_READER
+                }
+            ],
+            provides: [
+                {
+                    token: CONTACT_REQUESTS_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(CONTACT_REQUESTS_PUBLIC_API).toFactory((resolutionContext) => {
+                    const authReader = resolutionContext.get(AUTH_READER)
+
+                    return {
+                        submit(): string {
+                            return authReader.currentUserId()
+                        }
+                    }
+                })
+            }
+        })
+        const authReaderFactory = (context: ComposerBindingContext): AuthReader => {
+            const auth = context.get(AUTH_PUBLIC_API)
+
+            return {
+                currentUserId(): string {
+                    return auth.requireUser()
+                }
+            }
+        }
+        const objectComposer = createComposer().use(authModule).use(contactRequestsModule)
+
+        objectComposer.bind(AUTH_READER).toFactory(authReaderFactory)
+
+        const app = defineApp({
+            modules: [authModule, contactRequestsModule],
+            bindings: [
+                {
+                    token: AUTH_READER,
+                    useFactory: authReaderFactory
+                }
+            ]
+        })
+        const appRuntime = await app.compose()
+        const objectRuntime = await objectComposer.compose()
+
+        expect(app.validate()).toEqual({
+            ok: true,
+            diagnostics: []
+        })
+        expect(app.getGraph()).toEqual(objectComposer.getGraph())
+        expect(app.inspect().graph).toEqual(objectComposer.inspect().graph)
+        expect(appRuntime.inspect().graph).toEqual(objectRuntime.inspect().graph)
+        expect(appRuntime.get(CONTACT_REQUESTS_PUBLIC_API).submit()).toBe('app-user')
+        expect(Object.isFrozen(app)).toBe(true)
+        expect(Object.isFrozen(app.modules)).toBe(true)
+        expect(Object.isFrozen(app.bindings)).toBe(true)
+
+        await appRuntime.dispose()
+        await objectRuntime.dispose()
+    })
+
+    test('exposes existing composer validation and inspection semantics', () => {
+        const moduleDefinition = moduleDsl('dsl-app-missing-port', {
+            requires: [
+                {
+                    token: AUTH_READER
+                }
+            ],
+            setup(): void {}
+        })
+        const app = defineApp({
+            modules: [moduleDefinition]
+        })
+        const composer = app.createComposer()
+
+        expect(composer.validate()).toEqual(app.validate())
+        expect(composer.inspect().validation).toEqual(app.inspect().validation)
+        expect(app.validate().diagnostics).toEqual([
+            {
+                code: 'SAGIFIRE_IOC_MISSING_REQUIRED_PORT',
+                severity: 'error',
+                message: 'Missing required port "dsl.auth-reader" for module "dsl-app-missing-port"',
+                details: {
+                    moduleId: 'dsl-app-missing-port',
+                    tokenId: 'dsl.auth-reader',
+                    dependencyKind: 'external'
+                }
+            }
+        ])
+    })
+
+    test('records supported binding forms without executing factories during graph inspection', () => {
+        const moduleDefinition = moduleDsl('dsl-app-binding-forms', {
+            requires: [
+                {
+                    token: VALUE_AUTH_READER
+                },
+                {
+                    token: FACTORY_AUTH_READER
+                },
+                {
+                    token: CLASS_AUTH_READER
+                },
+                {
+                    token: ASYNC_AUTH_READER
+                }
+            ],
+            setup(): void {}
+        })
+        let factoryCalls = 0
+        let asyncFactoryCalls = 0
+        const app = defineApp({
+            modules: [moduleDefinition],
+            bindings: [
+                {
+                    token: VALUE_AUTH_READER,
+                    useValue: {
+                        currentUserId(): string {
+                            return 'value-user'
+                        }
+                    }
+                },
+                {
+                    token: FACTORY_AUTH_READER,
+                    useFactory(): AuthReader {
+                        factoryCalls += 1
+
+                        return {
+                            currentUserId(): string {
+                                return 'factory-user'
+                            }
+                        }
+                    }
+                },
+                {
+                    token: CLASS_AUTH_READER,
+                    useClass: ClassAuthReader
+                },
+                {
+                    token: ASYNC_AUTH_READER,
+                    async useAsyncFactory(): Promise<AuthReader> {
+                        asyncFactoryCalls += 1
+
+                        return {
+                            currentUserId(): string {
+                                return 'async-user'
+                            }
+                        }
+                    }
+                }
+            ]
+        })
+
+        expect(app.validate()).toEqual({
+            ok: true,
+            diagnostics: []
+        })
+        expect(app.getGraph().bindings).toEqual([
+            {
+                tokenId: 'dsl.value-auth-reader',
+                kind: 'value',
+                providerKind: 'value',
+                lifetime: 'singleton'
+            },
+            {
+                tokenId: 'dsl.factory-auth-reader',
+                kind: 'factory',
+                providerKind: 'factory',
+                lifetime: 'transient'
+            },
+            {
+                tokenId: 'dsl.class-auth-reader',
+                kind: 'class',
+                providerKind: 'class',
+                lifetime: 'transient'
+            },
+            {
+                tokenId: 'dsl.async-auth-reader',
+                kind: 'async-factory',
+                providerKind: 'async-factory',
+                lifetime: 'transient',
+                initialization: 'lazy'
+            }
+        ])
+        expect(app.inspect().edges).toEqual([
+            {
+                edgeKind: 'binding',
+                consumerModuleId: 'dsl-app-binding-forms',
+                requiredTokenId: 'dsl.value-auth-reader',
+                dependencyKind: 'external',
+                bindingTokenId: 'dsl.value-auth-reader',
+                bindingKind: 'value'
+            },
+            {
+                edgeKind: 'binding',
+                consumerModuleId: 'dsl-app-binding-forms',
+                requiredTokenId: 'dsl.factory-auth-reader',
+                dependencyKind: 'external',
+                bindingTokenId: 'dsl.factory-auth-reader',
+                bindingKind: 'factory'
+            },
+            {
+                edgeKind: 'binding',
+                consumerModuleId: 'dsl-app-binding-forms',
+                requiredTokenId: 'dsl.class-auth-reader',
+                dependencyKind: 'external',
+                bindingTokenId: 'dsl.class-auth-reader',
+                bindingKind: 'class'
+            },
+            {
+                edgeKind: 'binding',
+                consumerModuleId: 'dsl-app-binding-forms',
+                requiredTokenId: 'dsl.async-auth-reader',
+                dependencyKind: 'external',
+                bindingTokenId: 'dsl.async-auth-reader',
+                bindingKind: 'async-factory'
+            }
+        ])
+        expect(factoryCalls).toBe(0)
+        expect(asyncFactoryCalls).toBe(0)
+    })
+
+    test('preserves app DSL type inference', () => {
+        const moduleDefinition = moduleDsl('dsl-app-typed', {
+            requires: [
+                {
+                    token: AUTH_READER
+                }
+            ],
+            provides: [
+                {
+                    token: CONTACT_REQUESTS_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(): void {}
+        })
+        const authReader: AuthReader = {
+            currentUserId(): string {
+                return 'typed-user'
+            }
+        }
+        const app = defineApp({
+            modules: [moduleDefinition],
+            bindings: [
+                {
+                    token: AUTH_READER,
+                    useValue: authReader
+                }
+            ]
+        })
+
+        expectTypeOf(app).toMatchTypeOf<AppDslDefinition>()
+        expectTypeOf(app.modules[0]).toMatchTypeOf<ModuleDefinition | undefined>()
+        expectTypeOf<TokenValue<(typeof app.modules)[0]['requires'][0]['token']>>().toEqualTypeOf<
+            AuthReader
+        >()
+        expectTypeOf<TokenValue<(typeof app.modules)[0]['provides'][0]['token']>>().toEqualTypeOf<
+            ContactRequestsPublicApi
+        >()
+        expectTypeOf<TokenValue<(typeof app.bindings)[0]['token']>>().toEqualTypeOf<AuthReader>()
+        expectTypeOf<NonNullable<(typeof app.bindings)[0]>['useValue']>().toEqualTypeOf<
+            AuthReader
+        >()
+        expectTypeOf(app.createComposer()).toMatchTypeOf<ReturnType<typeof createComposer>>()
+        expectTypeOf(app.validate()).toEqualTypeOf<DiagnosticReport>()
+        expectTypeOf(app.inspect()).toEqualTypeOf<ComposerInspection>()
+        expectTypeOf(app.getGraph()).toEqualTypeOf<ModuleGraph>()
+        expectTypeOf<ReturnType<typeof app.compose>>().toEqualTypeOf<Promise<ComposedRuntime>>()
     })
 })

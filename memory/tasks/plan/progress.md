@@ -225,7 +225,7 @@
   - Summary: Stage 11 `module()` DSL foundation over existing `defineModule()` object API.
   - Current: RUN-001
 - [TASK-07.01-0030-stage-11-define-app-dsl](TASK-07.01-0030-stage-11-define-app-dsl/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Stage 11 `defineApp()` DSL and deterministic conversion to composer config.
