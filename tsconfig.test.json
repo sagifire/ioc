@@ -3,5 +3,10 @@
     "compilerOptions": {
         "noEmit": true
     },
-    "include": ["test/**/*.test.ts", "packages/*/test/**/*.test.ts"]
+    "include": [
+        "test/**/*.test.ts",
+        "test/**/*.d.ts",
+        "packages/*/test/**/*.test.ts",
+        "examples/**/*.ts"
+    ]
 }

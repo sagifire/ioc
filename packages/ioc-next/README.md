@@ -2,11 +2,25 @@
 
 Next.js App Router adapter package for `@sagifire/ioc`.
 
-Stage 13 currently provides the runtime foundation helper, explicit request/operation
-context declarations, a route handler scope helper and a server action scope helper:
+Stage 13 provides the runtime foundation helper, explicit request/operation context
+declarations, a route handler scope helper, a server action scope helper and minimal App
+Router snippets:
+
+- `createNextRuntime()`
+- `createNextRequestContext()`
+- `nextRequestValue()`
+- `nextRequestMultiValue()`
+- `withRouteScope()`
+- `withServerActionScope()`
+
+When `createNextRuntime()` wraps a composed runtime, scope-local context tokens must be
+part of the composed runtime public capability surface. The route/action invocation still
+supplies the actual request-local value through `createNextRequestContext()`.
+
+Assume `REQUEST_ID`, `PUBLIC_API` and `app` are exported by application modules and
+composition code:
 
 ```ts
-import { token } from '@sagifire/ioc'
 import {
     createNextRequestContext,
     createNextRuntime,
@@ -15,13 +29,7 @@ import {
     withServerActionScope
 } from '@sagifire/ioc-next'
 
-const REQUEST_ID = token<string>('app.request-id')
-
 const appRuntime = createNextRuntime(() => app.compose())
-
-export async function getRuntime() {
-    return appRuntime.getRuntime()
-}
 
 export function createRequestContext(requestId: string) {
     return createNextRequestContext({
@@ -40,7 +48,7 @@ export function GET(request: Request, context: { params: { id: string } }) {
         async ({ scope }) => {
             const publicApi = scope.get(PUBLIC_API)
 
-            return publicApi.handleRequest()
+            return publicApi.getContact(context.params.id)
         }
     )
 }
@@ -79,3 +87,7 @@ the scope after success or failure.
 runtime, creates one scope, passes runtime, scope and explicit action context to the
 callback and disposes the scope after success or failure. The helper preserves action
 argument and return type inference and does not use route request/response semantics.
+
+`examples/next-app-router` contains a narrow App Router-shaped skeleton. It does not add
+Next.js or React dependencies and keeps route/action files thin: they create adapter scopes
+and call a module public API instead of holding business logic in framework handlers.

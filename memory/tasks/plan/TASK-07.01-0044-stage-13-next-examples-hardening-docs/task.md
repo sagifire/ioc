@@ -1,6 +1,6 @@
 # TASK-07.01-0044: Stage 13 Next examples hardening docs
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-01
@@ -55,23 +55,23 @@ without implying broader Stage 14 documentation/example suite is complete.
 
 ## Acceptance Criteria
 
-- [ ] Final `@sagifire/ioc-next` helper surface has runtime coverage.
-- [ ] Final `@sagifire/ioc-next` helper surface has type-level coverage.
-- [ ] Package export smoke tests cover all public Next adapter helpers.
-- [ ] Boundary tests confirm core does not import Next.js, React or adapter package.
-- [ ] Boundary tests confirm testing package does not expose Next adapter helpers.
-- [ ] Docs explain cached runtime helper, request context, route scope and server action
+- [x] Final `@sagifire/ioc-next` helper surface has runtime coverage.
+- [x] Final `@sagifire/ioc-next` helper surface has type-level coverage.
+- [x] Package export smoke tests cover all public Next adapter helpers.
+- [x] Boundary tests confirm core does not import Next.js, React or adapter package.
+- [x] Boundary tests confirm testing package does not expose Next adapter helpers.
+- [x] Docs explain cached runtime helper, request context, route scope and server action
   scope.
-- [ ] Minimal App Router examples/snippets demonstrate framework-boundary integration.
-- [ ] Examples keep business logic behind module public APIs, not inside route/action
+- [x] Minimal App Router examples/snippets demonstrate framework-boundary integration.
+- [x] Examples keep business logic behind module public APIs, not inside route/action
   handlers.
-- [ ] No filesystem auto-discovery, route scanning or hidden current request/action API is
+- [x] No filesystem auto-discovery, route scanning or hidden current request/action API is
   introduced.
-- [ ] Stage 13 task does not implement broad Stage 14 docs/examples or release automation.
-- [ ] `pnpm build` works.
-- [ ] `pnpm test` works.
-- [ ] `pnpm typecheck` works.
-- [ ] `pnpm lint` works.
+- [x] Stage 13 task does not implement broad Stage 14 docs/examples or release automation.
+- [x] `pnpm build` works.
+- [x] `pnpm test` works.
+- [x] `pnpm typecheck` works.
+- [x] `pnpm lint` works.
 
 ## Linked Memory
 
@@ -91,10 +91,10 @@ without implying broader Stage 14 documentation/example suite is complete.
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: planned
+  - Status: completed
   - Purpose: Початковий autonomous implementation run для Next examples, hardening,
     exports and docs.
-  - Result: pending
+  - Result: approved after task-level human review
 
 ## Research
 

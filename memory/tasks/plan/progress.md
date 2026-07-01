@@ -318,7 +318,7 @@
   - Summary: Stage 13 server action scope helper.
   - Current: RUN-001
 - [TASK-07.01-0044-stage-13-next-examples-hardening-docs](TASK-07.01-0044-stage-13-next-examples-hardening-docs/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Stage 13 Next adapter hardening, exports and minimal docs/examples.

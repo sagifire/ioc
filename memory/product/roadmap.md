@@ -648,7 +648,7 @@ Root source trace:
 ## Next
 
 - Stage 13: `@sagifire/ioc-next`.
-  - Status: in progress.
+  - Status: done after task-level human review.
   - Source: `SPEC.md` section 43.
   - Planning Task: `TASK-07.01-0039-stage-13-implementation-planning`.
   - Implementation Tasks:
@@ -656,7 +656,7 @@ Root source trace:
     - `TASK-07.01-0041-stage-13-next-request-context` - done;
     - `TASK-07.01-0042-stage-13-route-handler-scope` - done;
     - `TASK-07.01-0043-stage-13-server-action-scope` - done;
-    - `TASK-07.01-0044-stage-13-next-examples-hardening-docs` - backlog.
+    - `TASK-07.01-0044-stage-13-next-examples-hardening-docs` - done.
   - Implementation Decomposition:
     - Task 1 replaces the placeholder package surface and builds cached runtime helper.
     - Task 2 builds request context helper over explicit scope-local values.

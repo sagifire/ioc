@@ -58,7 +58,8 @@ module harnesses and graph/diagnostic assertions. Overrides are applied before
 Next integration documentation currently covers `createNextRuntime()` runtime caching,
 `createNextRequestContext()` request/operation-scoped value declarations,
 `withRouteScope()` route handler scopes and `withServerActionScope()` server action
-scopes.
+scopes. A narrow `examples/next-app-router` skeleton demonstrates App Router-shaped route
+and action boundaries without adding a full Next.js example suite.
 
 ## License
 

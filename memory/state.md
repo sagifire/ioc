@@ -1,6 +1,6 @@
 # State
 
-Updated: 2026-07-01
+Updated: 2026-07-02
 Starter Kit Version: 3.0
 PDADM MVP Version: 0.3
 
@@ -932,14 +932,21 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 - Stage 13 server action scope RUN-001 не реалізовував full App Router examples, hidden
   current-action/current-scope APIs, filesystem discovery, route/action scanning,
   Next.js/React imports або core runtime/composer semantic changes.
+- `TASK-07.01-0044-stage-13-next-examples-hardening-docs` RUN-001 виконаний агентом і
+  завершений після task-level human review approval.
+- Stage 13 Next examples/hardening/docs RUN-001 додав final Next adapter hardening
+  coverage, static package-boundary checks, no hidden discovery/current-context regression
+  checks, minimal `examples/next-app-router` skeleton and docs sync for cached runtime,
+  request context, route scope and server action scope.
+- Stage 13 Next examples/hardening/docs RUN-001 не реалізовував broad Stage 14
+  documentation/examples, release automation, Next.js/React dependency installation,
+  filesystem auto-discovery, route/action scanning або core runtime/composer semantic
+  changes.
+- Stage 13 `@sagifire/ioc-next` завершено після approval фінальної examples/hardening/docs
+  task.
 
 ## Current Risks
 
-- `@sagifire/ioc-next` має runtime foundation, request context helper, route handler
-  scope helper and server action scope helper; final examples/hardening залишаються Stage
-  13 follow-up task.
-- Stage 13 може потребувати Next.js/React dependency metadata або examples; якщо для цього
-  потрібна dependency installation або network access, task agent має попросити дозвіл.
 - Binding factory internals не мають static dependency metadata; Stage 10 dependency edge
   model фіксує static required-port -> binding edges only and keeps provider-level cycles
   inside factories under existing container diagnostics.
@@ -951,8 +958,7 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 
 ## Next Steps
 
-- Запустити `TASK-07.01-0044-stage-13-next-examples-hardening-docs`, якщо reviewer не
-  змінить порядок.
+- Підготувати Stage 14 documentation/examples implementation planning task.
 
 ## Open Questions
 

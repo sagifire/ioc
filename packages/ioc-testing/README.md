@@ -64,9 +64,7 @@ edges in graph inspection:
 ```ts
 const composer = createTestComposer({
     modules: [moduleUnderTest],
-    overrides: [
-        override(REQUIRED_PORT).toValue(fakePort)
-    ]
+    overrides: [override(REQUIRED_PORT).toValue(fakePort)]
 })
 
 const runtime = await composer.compose()
@@ -129,5 +127,5 @@ Assertion failures throw plain deterministic `Error` subclasses, so they are usa
 Vitest without a runtime dependency on Vitest internals.
 
 This package depends on `@sagifire/ioc` and does not provide Next.js, React, route handler
-or server action adapters. Framework adapters belong to `@sagifire/ioc-next` in a later
-roadmap stage.
+or server action adapters. Framework adapters belong to the separate `@sagifire/ioc-next`
+package.
