@@ -340,7 +340,7 @@
   - Summary: Stage 14 root README, package READMEs and docs navigation.
   - Current: RUN-001
 - [TASK-07.02-0047-stage-14-core-container-async-docs](TASK-07.02-0047-stage-14-core-container-async-docs/index.md)
-  - Status: backlog
+  - Status: done
   - Type: docs
   - Execution Mode: autonomous-implementation
   - Summary: Stage 14 architecture, container and async model documentation.

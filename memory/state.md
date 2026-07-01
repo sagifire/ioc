@@ -973,6 +973,13 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
   READMEs for `@sagifire/ioc`, `@sagifire/ioc-testing`, `@sagifire/ioc-next` and
   `docs/README.md` navigation. RUN-001 не змінював runtime behavior, public API, package
   versions, release automation або Stage 14 example applications.
+- `TASK-07.02-0047-stage-14-core-container-async-docs` RUN-001 виконаний агентом і
+  завершений після task-level human review approval.
+- Stage 14 core/container/async docs RUN-001 переписав `docs/architecture.md`,
+  `docs/container.md` and `docs/async-model.md` як durable user-facing guides for package
+  boundaries, tokens, provider registration, lifetimes, scopes, scope-local values,
+  sync/async resolution, async resources, retry behavior and disposal. RUN-001 не змінював
+  runtime behavior, public API, package exports, examples або `memory/sources/SPEC.md`.
 
 ## Current Risks
 
@@ -989,7 +996,7 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 
 ## Next Steps
 
-- Запустити `TASK-07.02-0047-stage-14-core-container-async-docs`.
+- Запустити `TASK-07.02-0048-stage-14-composer-modules-diagnostics-docs`.
 
 ## Open Questions
 

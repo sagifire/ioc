@@ -1,6 +1,6 @@
 # TASK-07.02-0047: Stage 14 core, container and async docs
 
-Status: backlog
+Status: done
 Type: docs
 Execution Mode: autonomous-implementation
 Created: 2026-07-02
@@ -41,15 +41,15 @@ The core runtime behavior is implemented through Stage 13, but `docs/architectur
 
 ## Acceptance Criteria
 
-- [ ] Architecture docs explain package boundaries and layer responsibilities.
-- [ ] Container docs cover tokens, `bind()`, `add()`, lifetimes, scopes and local values.
-- [ ] Async docs cover eager/lazy providers, resources, `getAsync()`, disposal and retry
+- [x] Architecture docs explain package boundaries and layer responsibilities.
+- [x] Container docs cover tokens, `bind()`, `add()`, lifetimes, scopes and local values.
+- [x] Async docs cover eager/lazy providers, resources, `getAsync()`, disposal and retry
   behavior.
-- [ ] Docs explicitly state that `get()` remains synchronous.
-- [ ] Docs avoid Node-only assumptions for core.
-- [ ] Snippets use implemented public API and do not rely on decorators or metadata.
-- [ ] Relevant docs formatting checks pass.
-- [ ] Verification is recorded in run result.
+- [x] Docs explicitly state that `get()` remains synchronous.
+- [x] Docs avoid Node-only assumptions for core.
+- [x] Snippets use implemented public API and do not rely on decorators or metadata.
+- [x] Relevant docs formatting checks pass.
+- [x] Verification is recorded in run result.
 
 ## Linked Memory
 
@@ -62,9 +62,9 @@ The core runtime behavior is implemented through Stage 13, but `docs/architectur
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: pending
+  - Status: completed
   - Purpose: Autonomous implementation run for core/container/async docs.
-  - Result: pending
+  - Result: approved after task-level human review
 
 ## Research
 
