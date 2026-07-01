@@ -1,6 +1,6 @@
 # Run Requirements: RUN-001
 
-Status: planned
+Status: completed
 Agent Role: Agent Executor
 Execution Mode: autonomous-implementation
 Created: 2026-07-01
@@ -41,20 +41,20 @@ Implement Stage 13 server action scope helper in `@sagifire/ioc-next`.
 
 ## Acceptance Criteria for This Run
 
-- [ ] Server action helper is implemented.
-- [ ] One scope is created per action invocation.
-- [ ] Action context values are visible inside action scope.
-- [ ] Scope disposal happens on success and failure.
-- [ ] Callback argument and return type inference are preserved.
-- [ ] Simulated action tests cover helper lifecycle.
-- [ ] Helper is independent from route request/response behavior.
-- [ ] No hidden current action API is introduced.
-- [ ] Type assertions cover callback inference.
-- [ ] Package export smoke tests cover new public exports where applicable.
-- [ ] `pnpm build` works.
-- [ ] `pnpm test` works.
-- [ ] `pnpm typecheck` works.
-- [ ] `pnpm lint` works.
+- [x] Server action helper is implemented.
+- [x] One scope is created per action invocation.
+- [x] Action context values are visible inside action scope.
+- [x] Scope disposal happens on success and failure.
+- [x] Callback argument and return type inference are preserved.
+- [x] Simulated action tests cover helper lifecycle.
+- [x] Helper is independent from route request/response behavior.
+- [x] No hidden current action API is introduced.
+- [x] Type assertions cover callback inference.
+- [x] Package export smoke tests cover new public exports where applicable.
+- [x] `pnpm build` works.
+- [x] `pnpm test` works.
+- [x] `pnpm typecheck` works.
+- [x] `pnpm lint` works.
 
 ## Changes from Previous Run
 

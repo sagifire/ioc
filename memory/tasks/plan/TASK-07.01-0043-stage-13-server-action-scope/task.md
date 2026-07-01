@@ -1,6 +1,6 @@
 # TASK-07.01-0043: Stage 13 server action scope
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-01
@@ -50,24 +50,24 @@ scope helper instead of overloading the route helper.
 
 ## Acceptance Criteria
 
-- [ ] Server action scope helper is implemented in `@sagifire/ioc-next`.
-- [ ] Helper obtains runtime through the Stage 13 cached runtime helper.
-- [ ] Helper creates exactly one scope per action invocation.
-- [ ] Action context values are visible inside the action scope.
-- [ ] Runtime and scope are passed explicitly to the action callback.
-- [ ] Scope is disposed after successful action execution.
-- [ ] Scope is disposed after failed action execution.
-- [ ] Action argument and return type inference are preserved.
-- [ ] Helper is independent from route-specific request/response behavior.
-- [ ] No hidden current action/current scope API is introduced.
-- [ ] Core package does not import Next.js, React or `@sagifire/ioc-next`.
-- [ ] Runtime tests cover server action helper lifecycle.
-- [ ] Type-level assertions cover callback inference.
-- [ ] Stage 13 task does not implement broad docs/examples hardening.
-- [ ] `pnpm build` works.
-- [ ] `pnpm test` works.
-- [ ] `pnpm typecheck` works.
-- [ ] `pnpm lint` works.
+- [x] Server action scope helper is implemented in `@sagifire/ioc-next`.
+- [x] Helper obtains runtime through the Stage 13 cached runtime helper.
+- [x] Helper creates exactly one scope per action invocation.
+- [x] Action context values are visible inside the action scope.
+- [x] Runtime and scope are passed explicitly to the action callback.
+- [x] Scope is disposed after successful action execution.
+- [x] Scope is disposed after failed action execution.
+- [x] Action argument and return type inference are preserved.
+- [x] Helper is independent from route-specific request/response behavior.
+- [x] No hidden current action/current scope API is introduced.
+- [x] Core package does not import Next.js, React or `@sagifire/ioc-next`.
+- [x] Runtime tests cover server action helper lifecycle.
+- [x] Type-level assertions cover callback inference.
+- [x] Stage 13 task does not implement broad docs/examples hardening.
+- [x] `pnpm build` works.
+- [x] `pnpm test` works.
+- [x] `pnpm typecheck` works.
+- [x] `pnpm lint` works.
 
 ## Linked Memory
 
@@ -86,9 +86,9 @@ scope helper instead of overloading the route helper.
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: planned
+  - Status: completed
   - Purpose: Початковий autonomous implementation run для server action scope helper.
-  - Result: pending
+  - Result: approved
 
 ## Research
 

@@ -208,13 +208,15 @@ describe('Next runtime foundation', () => {
         expect(nextAdapter.nextRequestMultiValue).toBeTypeOf('function')
         expect(nextAdapter.nextRequestValue).toBeTypeOf('function')
         expect(nextAdapter.withRouteScope).toBeTypeOf('function')
+        expect(nextAdapter.withServerActionScope).toBeTypeOf('function')
         expect(Object.keys(nextAdapter).sort()).toEqual(
             [
                 'createNextRequestContext',
                 'createNextRuntime',
                 'nextRequestMultiValue',
                 'nextRequestValue',
-                'withRouteScope'
+                'withRouteScope',
+                'withServerActionScope'
             ].sort()
         )
     })

@@ -61,6 +61,37 @@ export type RouteHandlerScopeCallback<
     TResult
 > = (context: RouteHandlerScopeContext<TRuntime, TRequest, TRouteContext>) => Awaitable<TResult>
 
+export interface ServerActionScopeOptions<TActionContext> {
+    readonly context: TActionContext
+    readonly actionContext?: NextRequestContext
+}
+
+export type ServerActionScopeOptionsFactory<
+    TArguments extends readonly unknown[],
+    TActionContext
+> = (...args: TArguments) => Awaitable<ServerActionScopeOptions<TActionContext>>
+
+export type ServerActionScopeSetup<TArguments extends readonly unknown[], TActionContext> =
+    | ServerActionScopeOptions<TActionContext>
+    | ServerActionScopeOptionsFactory<TArguments, TActionContext>
+
+export interface ServerActionScopeContext<TRuntime extends ContainerRuntime, TActionContext> {
+    readonly runtime: TRuntime
+    readonly scope: Scope
+    readonly context: TActionContext
+    readonly actionContext: NextRequestContext | undefined
+}
+
+export type ServerActionScopeCallback<
+    TRuntime extends ContainerRuntime,
+    TActionContext,
+    TArguments extends readonly unknown[],
+    TResult
+> = (
+    context: ServerActionScopeContext<TRuntime, TActionContext>,
+    ...args: TArguments
+) => Awaitable<TResult>
+
 export function createNextRuntime<TRuntime extends ContainerRuntime>(
     factory: NextRuntimeFactory<TRuntime>
 ): NextRuntimeHelper<TRuntime> {
@@ -139,6 +170,40 @@ export async function withRouteScope<
     }
 }
 
+export function withServerActionScope<
+    TRuntime extends ContainerRuntime,
+    TActionContext,
+    TArguments extends readonly unknown[],
+    TResult
+>(
+    runtimeHelper: NextRuntimeHelper<TRuntime>,
+    setup: ServerActionScopeSetup<TArguments, TActionContext>,
+    callback: ServerActionScopeCallback<TRuntime, TActionContext, TArguments, TResult>
+): (...args: TArguments) => Promise<Awaited<TResult>> {
+    return async (...args: TArguments): Promise<Awaited<TResult>> => {
+        const runtime = await runtimeHelper.getRuntime()
+        const options = await resolveServerActionScopeOptions(setup, args)
+        const actionContext = options.actionContext
+        const scopeOptions = actionContext?.toScopeOptions()
+        const scope =
+            scopeOptions === undefined ? runtime.createScope() : runtime.createScope(scopeOptions)
+
+        try {
+            return await callback(
+                {
+                    runtime,
+                    scope,
+                    context: options.context,
+                    actionContext
+                },
+                ...args
+            )
+        } finally {
+            await scope.dispose()
+        }
+    }
+}
+
 export function createNextRequestContext(
     options: NextRequestContextOptions = {}
 ): NextRequestContext {
@@ -196,4 +261,18 @@ function isScopeLocalTuple(
     entry: ScopeLocalValue
 ): entry is readonly [token: Token<unknown>, value: unknown] {
     return Array.isArray(entry)
+}
+
+async function resolveServerActionScopeOptions<
+    TArguments extends readonly unknown[],
+    TActionContext
+>(
+    setup: ServerActionScopeSetup<TArguments, TActionContext>,
+    args: TArguments
+): Promise<ServerActionScopeOptions<TActionContext>> {
+    if (typeof setup === 'function') {
+        return setup(...args)
+    }
+
+    return setup
 }

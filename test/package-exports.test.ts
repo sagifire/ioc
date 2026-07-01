@@ -176,12 +176,45 @@ describe('package exports', () => {
                 }
             }
         )
+        const submitExport = nextAdapter.withServerActionScope(
+            runtimeHelper,
+            (input: { readonly id: string }) => {
+                return {
+                    context: {
+                        actionName: 'submit-export',
+                        actionId: input.id
+                    },
+                    actionContext: nextAdapter.createNextRequestContext({
+                        values: [nextAdapter.nextRequestValue(requestId, `action-${input.id}`)],
+                        multiValues: [
+                            nextAdapter.nextRequestMultiValue(requestPlugin, {
+                                name: 'action-plugin'
+                            })
+                        ]
+                    })
+                }
+            },
+            ({ runtime, scope, context }, input) => {
+                return {
+                    value: runtime.get(value),
+                    requestId: scope.get(requestId),
+                    pluginNames: scope.getAll(requestPlugin).map((plugin) => plugin.name),
+                    actionName: context.actionName,
+                    actionId: context.actionId,
+                    inputId: input.id
+                }
+            }
+        )
+        const actionResponse = await submitExport({
+            id: 'export-action'
+        })
 
         expect(nextAdapter.createNextRequestContext).toBeTypeOf('function')
         expect(nextAdapter.createNextRuntime).toBeTypeOf('function')
         expect(nextAdapter.nextRequestMultiValue).toBeTypeOf('function')
         expect(nextAdapter.nextRequestValue).toBeTypeOf('function')
         expect(nextAdapter.withRouteScope).toBeTypeOf('function')
+        expect(nextAdapter.withServerActionScope).toBeTypeOf('function')
         expect(runtimeHelper.getRuntime).toBeTypeOf('function')
         expect(runtimeHelper.reset).toBeTypeOf('function')
         expect(firstRuntime).toBe(secondRuntime)
@@ -191,6 +224,14 @@ describe('package exports', () => {
             requestId: 'export-request',
             pluginNames: ['export-plugin'],
             routeId: 'export'
+        })
+        expect(actionResponse).toEqual({
+            value: 'next-export-1',
+            requestId: 'action-export-action',
+            pluginNames: ['action-plugin'],
+            actionName: 'submit-export',
+            actionId: 'export-action',
+            inputId: 'export-action'
         })
         expect(factoryCalls).toBe(1)
 

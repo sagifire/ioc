@@ -655,7 +655,7 @@ Root source trace:
     - `TASK-07.01-0040-stage-13-next-runtime-foundation` - done;
     - `TASK-07.01-0041-stage-13-next-request-context` - done;
     - `TASK-07.01-0042-stage-13-route-handler-scope` - done;
-    - `TASK-07.01-0043-stage-13-server-action-scope` - backlog;
+    - `TASK-07.01-0043-stage-13-server-action-scope` - done;
     - `TASK-07.01-0044-stage-13-next-examples-hardening-docs` - backlog.
   - Implementation Decomposition:
     - Task 1 replaces the placeholder package surface and builds cached runtime helper.

@@ -1,10 +1,12 @@
 # Next.js Integration
 
-Status: Stage 13 runtime foundation, request context and route handler scope.
+Status: Stage 13 runtime foundation, request context, route handler scope and server
+action scope.
 
 `@sagifire/ioc-next` currently provides `createNextRuntime()` for application-boundary
 runtime caching, `createNextRequestContext()` for explicit request or operation scope
-values and `withRouteScope()` for route handler invocation scopes:
+values, `withRouteScope()` for route handler invocation scopes and
+`withServerActionScope()` for server action invocation scopes:
 
 ```ts
 import { token } from '@sagifire/ioc'
@@ -13,7 +15,8 @@ import {
     createNextRuntime,
     nextRequestMultiValue,
     nextRequestValue,
-    withRouteScope
+    withRouteScope,
+    withServerActionScope
 } from '@sagifire/ioc-next'
 
 interface RequestPlugin {
@@ -53,6 +56,23 @@ export function GET(request: Request, context: { params: { id: string } }) {
         }
     )
 }
+
+export const submitContact = withServerActionScope(
+    appRuntime,
+    (formData: FormData) => ({
+        context: {
+            actionName: 'submit-contact'
+        },
+        actionContext: createRequestContext(String(formData.get('requestId') ?? 'unknown'), {
+            name: 'action'
+        })
+    }),
+    async ({ scope }, formData) => {
+        const publicApi = scope.get(PUBLIC_API)
+
+        return publicApi.submitContact(formData)
+    }
+)
 ```
 
 The helper owns an instance-local cache, shares in-flight initialization, retries after
@@ -60,10 +80,15 @@ failed initialization and exposes `reset()` to clear the helper cache without mu
 disposing a frozen runtime.
 
 Request context is explicit token/value data. Call `context.toScopeOptions()` at a
-framework boundary or pass it to `withRouteScope()` as `requestContext`.
+framework boundary, pass it to `withRouteScope()` as `requestContext` or pass it to
+`withServerActionScope()` as `actionContext`.
 
 `withRouteScope()` gets the runtime through the cached helper, creates exactly one scope
 for the route invocation, passes runtime, scope, request and route context explicitly to
 the callback and disposes the scope on success or failure.
 
-Server action scope helper is still planned Stage 13 follow-up work.
+`withServerActionScope()` returns an action function. Each invocation gets the runtime
+through the cached helper, creates exactly one scope, passes runtime, scope and explicit
+action context to the callback and disposes the scope on success or failure. The helper is
+independent from route request/response semantics and preserves action argument and return
+type inference.

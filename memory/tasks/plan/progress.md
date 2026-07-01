@@ -312,7 +312,7 @@
   - Summary: Stage 13 route handler scope helper.
   - Current: RUN-001
 - [TASK-07.01-0043-stage-13-server-action-scope](TASK-07.01-0043-stage-13-server-action-scope/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Stage 13 server action scope helper.

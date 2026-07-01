@@ -2,8 +2,8 @@
 
 Next.js App Router adapter package for `@sagifire/ioc`.
 
-Stage 13 currently provides the runtime foundation helper, explicit request context
-declarations and a route handler scope helper:
+Stage 13 currently provides the runtime foundation helper, explicit request/operation
+context declarations, a route handler scope helper and a server action scope helper:
 
 ```ts
 import { token } from '@sagifire/ioc'
@@ -11,7 +11,8 @@ import {
     createNextRequestContext,
     createNextRuntime,
     nextRequestValue,
-    withRouteScope
+    withRouteScope,
+    withServerActionScope
 } from '@sagifire/ioc-next'
 
 const REQUEST_ID = token<string>('app.request-id')
@@ -43,6 +44,21 @@ export function GET(request: Request, context: { params: { id: string } }) {
         }
     )
 }
+
+export const submitContact = withServerActionScope(
+    appRuntime,
+    (formData: FormData) => ({
+        context: {
+            actionName: 'submit-contact'
+        },
+        actionContext: createRequestContext(String(formData.get('requestId') ?? 'unknown'))
+    }),
+    async ({ scope }, formData) => {
+        const publicApi = scope.get(PUBLIC_API)
+
+        return publicApi.submitContact(formData)
+    }
+)
 ```
 
 `createNextRuntime()` owns an instance-local cache, reuses successful runtime
@@ -59,4 +75,7 @@ multi scope-local values.
 passes runtime, scope, request and route context explicitly to the callback and disposes
 the scope after success or failure.
 
-Server action scope helper is planned for a later Stage 13 task.
+`withServerActionScope()` returns an action function. Each invocation obtains the cached
+runtime, creates one scope, passes runtime, scope and explicit action context to the
+callback and disposes the scope after success or failure. The helper preserves action
+argument and return type inference and does not use route request/response semantics.
