@@ -272,7 +272,7 @@
   - Summary: Stage 12 module harness and fake module helpers.
   - Current: RUN-001
 - [TASK-07.01-0037-stage-12-graph-diagnostic-assertions](TASK-07.01-0037-stage-12-graph-diagnostic-assertions/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Stage 12 graph and diagnostic assertion helpers.

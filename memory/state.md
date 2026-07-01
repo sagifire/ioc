@@ -378,6 +378,19 @@ runtime/type/export tests and minimal docs sync. RUN-001 не реалізову
 diagnostic assertions, Next.js adapters, runtime monkey-patching або core
 runtime/composer semantic changes.
 
+Stage 12 graph and diagnostic assertions implementation завершено після task-level human
+review approval:
+
+- [TASK-07.01-0037-stage-12-graph-diagnostic-assertions](tasks/plan/TASK-07.01-0037-stage-12-graph-diagnostic-assertions/index.md)
+
+RUN-001 реалізував graph assertion helpers over public `ModuleGraph`,
+`ComposerInspection` and `RuntimeInspection` data; diagnostic assertion helpers over
+public `DiagnosticReport` and typed error-derived diagnostics; deterministic plain
+`GraphAssertionError` / `DiagnosticAssertionError`; runtime/type/export tests and minimal
+docs sync. RUN-001 не реалізовував Next.js adapter assertions, runtime monkey-patching,
+private runtime internals access, hidden dependency inference або core graph/diagnostic
+semantic changes.
+
 ## Active Tasks
 
 Немає задач у статусі `active`.
@@ -497,7 +510,7 @@ runtime/composer semantic changes.
   - Status: done
   - Summary: Stage 12 module harness and fake modules implementation task.
 - [TASK-07.01-0037-stage-12-graph-diagnostic-assertions](tasks/plan/TASK-07.01-0037-stage-12-graph-diagnostic-assertions/index.md)
-  - Status: backlog
+  - Status: done
   - Summary: Stage 12 graph and diagnostic assertions implementation task.
 - [TASK-07.01-0038-stage-12-testing-hardening-docs](tasks/plan/TASK-07.01-0038-stage-12-testing-hardening-docs/index.md)
   - Status: backlog
@@ -846,7 +859,7 @@ runtime/composer semantic changes.
 ## Next Steps
 
 - Продовжити Stage 12 з
-  [TASK-07.01-0037-stage-12-graph-diagnostic-assertions](tasks/plan/TASK-07.01-0037-stage-12-graph-diagnostic-assertions/index.md),
+  [TASK-07.01-0038-stage-12-testing-hardening-docs](tasks/plan/TASK-07.01-0038-stage-12-testing-hardening-docs/index.md),
   якщо roadmap order не зміниться.
 
 ## Open Questions

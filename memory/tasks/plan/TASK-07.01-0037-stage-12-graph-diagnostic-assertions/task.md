@@ -1,6 +1,6 @@
 # TASK-07.01-0037: Stage 12 graph and diagnostic assertions
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-01
@@ -47,18 +47,18 @@ diagnostic data only.
 
 ## Acceptance Criteria
 
-- [ ] Graph assertion helpers operate on public inspection graph data.
-- [ ] Diagnostic assertion helpers operate on public diagnostics data.
-- [ ] Assertion failures produce deterministic readable messages.
-- [ ] Helpers are usable from Vitest tests.
-- [ ] Helpers do not mutate graph, inspection, runtime or diagnostic inputs.
-- [ ] Runtime tests cover passing and failing assertion paths.
-- [ ] Type-level assertions cover assertion helper input inference.
-- [ ] Stage 12 task does not implement Next.js adapter assertions or core graph changes.
-- [ ] `pnpm build` works.
-- [ ] `pnpm test` works.
-- [ ] `pnpm typecheck` works.
-- [ ] `pnpm lint` works.
+- [x] Graph assertion helpers operate on public inspection graph data.
+- [x] Diagnostic assertion helpers operate on public diagnostics data.
+- [x] Assertion failures produce deterministic readable messages.
+- [x] Helpers are usable from Vitest tests.
+- [x] Helpers do not mutate graph, inspection, runtime or diagnostic inputs.
+- [x] Runtime tests cover passing and failing assertion paths.
+- [x] Type-level assertions cover assertion helper input inference.
+- [x] Stage 12 task does not implement Next.js adapter assertions or core graph changes.
+- [x] `pnpm build` works.
+- [x] `pnpm test` works.
+- [x] `pnpm typecheck` works.
+- [x] `pnpm lint` works.
 
 ## Linked Memory
 
@@ -74,9 +74,9 @@ diagnostic data only.
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: planned
+  - Status: completed
   - Purpose: Початковий autonomous implementation run для graph and diagnostic assertions.
-  - Result: pending
+  - Result: completed, approved after task-level human review
 
 ## Research
 

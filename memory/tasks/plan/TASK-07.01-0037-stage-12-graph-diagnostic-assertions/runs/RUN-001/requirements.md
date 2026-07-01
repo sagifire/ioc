@@ -1,6 +1,6 @@
 # Run Requirements: RUN-001
 
-Status: planned
+Status: completed
 Agent Role: Agent Executor
 Execution Mode: autonomous-implementation
 Created: 2026-07-01
@@ -36,16 +36,16 @@ Implement Stage 12 graph and diagnostic assertion helpers in `@sagifire/ioc-test
 
 ## Acceptance Criteria for This Run
 
-- [ ] Graph assertion helpers are implemented.
-- [ ] Diagnostic assertion helpers are implemented.
-- [ ] Assertion failures are readable and deterministic.
-- [ ] Helpers do not mutate inputs.
-- [ ] Runtime tests cover assertion behavior.
-- [ ] Type assertions cover assertion helper inputs.
-- [ ] `pnpm build` works.
-- [ ] `pnpm test` works.
-- [ ] `pnpm typecheck` works.
-- [ ] `pnpm lint` works.
+- [x] Graph assertion helpers are implemented.
+- [x] Diagnostic assertion helpers are implemented.
+- [x] Assertion failures are readable and deterministic.
+- [x] Helpers do not mutate inputs.
+- [x] Runtime tests cover assertion behavior.
+- [x] Type assertions cover assertion helper inputs.
+- [x] `pnpm build` works.
+- [x] `pnpm test` works.
+- [x] `pnpm typecheck` works.
+- [x] `pnpm lint` works.
 
 ## Changes from Previous Run
 

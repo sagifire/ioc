@@ -1,25 +1,35 @@
 import {
     SagifireIocError,
+    diagnosticFromError,
     defineModule,
+    formatDiagnostics,
     createComposer,
     createContainer,
     type AsyncProviderFactory,
     type ClassConstructor,
     type ComposedRuntime,
     type Composer,
+    type ComposerBindingKind,
     type ComposerInspection,
     type ContainerBuilder,
     type ContainerRuntime,
+    type Diagnostic,
     type DiagnosticReport,
+    type DiagnosticSeverity,
+    type InspectionProviderKind,
     type ModuleCapabilityDefinition,
     type ModuleCapabilityKind,
     type ModuleDependencyDefinition,
     type ModuleDependencyDefinitionInput,
+    type ModuleDependencyEdge,
     type ModuleDefinition,
     type ModuleDefinitionInput,
+    type ModuleDependencyKind,
     type ModuleGraph,
     type ModuleSetupContext,
     type PreparedComposition,
+    type RequiredPortSatisfaction,
+    type RuntimeInspection,
     type SyncProviderFactory,
     type Token
 } from '@sagifire/ioc'
@@ -202,6 +212,79 @@ export interface ModuleHarness<TModule extends ModuleDefinition = ModuleDefiniti
     compose(): Promise<ComposedRuntime>
 }
 
+export type GraphAssertionInput = ModuleGraph | ComposerInspection | RuntimeInspection
+
+export interface GraphCapabilityExpectation {
+    readonly moduleId?: string
+    readonly tokenId: string
+    readonly kind?: ModuleCapabilityKind
+}
+
+export interface GraphRequiredPortExpectation {
+    readonly moduleId: string
+    readonly tokenId: string
+    readonly required?: boolean
+    readonly kind?: ModuleDependencyKind
+    readonly satisfiedBy?: RequiredPortSatisfaction
+}
+
+export interface GraphBindingExpectation {
+    readonly tokenId: string
+    readonly kind?: ComposerBindingKind
+    readonly providerKind?: InspectionProviderKind
+}
+
+export type GraphEdgeExpectation =
+    | GraphCapabilityEdgeExpectation
+    | GraphBindingEdgeExpectation
+
+export interface GraphCapabilityEdgeExpectation {
+    readonly edgeKind: 'capability'
+    readonly consumerModuleId?: string
+    readonly requiredTokenId?: string
+    readonly dependencyKind?: ModuleDependencyKind
+    readonly providerModuleId?: string
+    readonly capabilityTokenId?: string
+    readonly capabilityKind?: ModuleCapabilityKind
+}
+
+export interface GraphBindingEdgeExpectation {
+    readonly edgeKind: 'binding'
+    readonly consumerModuleId?: string
+    readonly requiredTokenId?: string
+    readonly dependencyKind?: ModuleDependencyKind
+    readonly bindingTokenId?: string
+    readonly bindingKind?: ComposerBindingKind
+}
+
+export interface DiagnosticExpectation {
+    readonly code?: string
+    readonly severity?: DiagnosticSeverity
+    readonly message?: string
+    readonly messageIncludes?: string
+    readonly details?: unknown
+}
+
+export class GraphAssertionError extends Error {
+    override readonly name = 'GraphAssertionError'
+
+    constructor(message: string) {
+        super(message)
+
+        Object.setPrototypeOf(this, new.target.prototype)
+    }
+}
+
+export class DiagnosticAssertionError extends Error {
+    override readonly name = 'DiagnosticAssertionError'
+
+    constructor(message: string) {
+        super(message)
+
+        Object.setPrototypeOf(this, new.target.prototype)
+    }
+}
+
 export function createTestRuntime(
     configure?: TestRuntimeConfigurator
 ): Promise<ContainerRuntime>
@@ -330,6 +413,186 @@ export function createModuleHarness<
             return composer.compose()
         }
     })
+}
+
+export function assertGraphHasModule(input: GraphAssertionInput, moduleId: string): void {
+    const graph = getAssertionGraph(input)
+    const matchedModule = graph.modules.find((moduleMetadata) => {
+        return moduleMetadata.id === moduleId
+    })
+
+    if (matchedModule !== undefined) {
+        return
+    }
+
+    throw new GraphAssertionError(
+        [
+            `Expected module graph to contain module "${moduleId}".`,
+            'Available modules:',
+            ...formatGraphModules(graph)
+        ].join('\n')
+    )
+}
+
+export function assertGraphHasCapability(
+    input: GraphAssertionInput,
+    expectation: GraphCapabilityExpectation
+): void {
+    const graph = getAssertionGraph(input)
+    const matchedCapability = graph.capabilities.find((capability) => {
+        return (
+            capability.tokenId === expectation.tokenId &&
+            matchesOptional(capability.moduleId, expectation.moduleId) &&
+            matchesOptional(capability.kind, expectation.kind)
+        )
+    })
+
+    if (matchedCapability !== undefined) {
+        return
+    }
+
+    throw new GraphAssertionError(
+        [
+            `Expected module graph to contain capability ${formatCapabilityExpectation(expectation)}.`,
+            'Available capabilities:',
+            ...formatGraphCapabilities(graph)
+        ].join('\n')
+    )
+}
+
+export function assertGraphHasRequiredPort(
+    input: GraphAssertionInput,
+    expectation: GraphRequiredPortExpectation
+): void {
+    const graph = getAssertionGraph(input)
+    const matchedRequiredPort = graph.requiredPorts.find((requiredPort) => {
+        return (
+            requiredPort.moduleId === expectation.moduleId &&
+            requiredPort.tokenId === expectation.tokenId &&
+            matchesOptional(requiredPort.required, expectation.required) &&
+            matchesOptional(requiredPort.kind, expectation.kind) &&
+            matchesOptional(requiredPort.satisfiedBy, expectation.satisfiedBy)
+        )
+    })
+
+    if (matchedRequiredPort !== undefined) {
+        return
+    }
+
+    throw new GraphAssertionError(
+        [
+            `Expected module graph to contain required port ${formatRequiredPortExpectation(expectation)}.`,
+            'Available required ports:',
+            ...formatGraphRequiredPorts(graph)
+        ].join('\n')
+    )
+}
+
+export function assertGraphHasBinding(
+    input: GraphAssertionInput,
+    expectation: GraphBindingExpectation
+): void {
+    const graph = getAssertionGraph(input)
+    const matchedBinding = graph.bindings.find((binding) => {
+        return (
+            binding.tokenId === expectation.tokenId &&
+            matchesOptional(binding.kind, expectation.kind) &&
+            matchesOptional(binding.providerKind, expectation.providerKind)
+        )
+    })
+
+    if (matchedBinding !== undefined) {
+        return
+    }
+
+    throw new GraphAssertionError(
+        [
+            `Expected module graph to contain binding ${formatBindingExpectation(expectation)}.`,
+            'Available bindings:',
+            ...formatGraphBindings(graph)
+        ].join('\n')
+    )
+}
+
+export function assertGraphHasEdge(
+    input: GraphAssertionInput,
+    expectation: GraphEdgeExpectation
+): void {
+    const graph = getAssertionGraph(input)
+    const matchedEdge = graph.edges.find((edge) => {
+        return matchesGraphEdge(edge, expectation)
+    })
+
+    if (matchedEdge !== undefined) {
+        return
+    }
+
+    throw new GraphAssertionError(
+        [
+            `Expected module graph to contain ${formatEdgeExpectation(expectation)}.`,
+            'Available dependency edges:',
+            ...formatGraphEdges(graph)
+        ].join('\n')
+    )
+}
+
+export function assertDiagnosticReportOk(report: DiagnosticReport): void {
+    if (report.ok && report.diagnostics.length === 0) {
+        return
+    }
+
+    throw new DiagnosticAssertionError(
+        [
+            'Expected diagnostic report to be ok with no diagnostics.',
+            'Actual report:',
+            formatDiagnostics(report)
+        ].join('\n')
+    )
+}
+
+export function assertDiagnosticReportHasDiagnostic(
+    report: DiagnosticReport,
+    expectation: DiagnosticExpectation
+): void {
+    const matchedDiagnostic = report.diagnostics.find((diagnostic) => {
+        return matchesDiagnostic(diagnostic, expectation)
+    })
+
+    if (matchedDiagnostic !== undefined) {
+        return
+    }
+
+    throw new DiagnosticAssertionError(
+        [
+            `Expected diagnostic report to contain diagnostic ${formatDiagnosticExpectation(expectation)}.`,
+            'Actual report:',
+            formatDiagnostics(report)
+        ].join('\n')
+    )
+}
+
+export function assertErrorDiagnostic(
+    error: unknown,
+    expectation: DiagnosticExpectation
+): void {
+    const diagnostic = diagnosticFromError(error)
+
+    if (matchesDiagnostic(diagnostic, expectation)) {
+        return
+    }
+
+    const report = {
+        ok: false,
+        diagnostics: [diagnostic]
+    }
+
+    throw new DiagnosticAssertionError(
+        [
+            `Expected error-derived diagnostic to match ${formatDiagnosticExpectation(expectation)}.`,
+            'Actual diagnostic:',
+            formatDiagnostics(report)
+        ].join('\n')
+    )
 }
 
 function createTestOverride<TValue>(overrideToken: Token<TValue>): TestOverrideBuilder<TValue> {
@@ -575,6 +838,309 @@ function applyTestOverridesToComposer(composer: Composer, overrides: readonly Te
             builder.toAsyncFactory(testOverride.factory)
         }
     }
+}
+
+function getAssertionGraph(input: GraphAssertionInput): ModuleGraph {
+    if (hasGraphProperty(input)) {
+        return input.graph
+    }
+
+    return input
+}
+
+function hasGraphProperty(
+    input: GraphAssertionInput
+): input is ComposerInspection | RuntimeInspection {
+    return 'graph' in input
+}
+
+function matchesOptional<TValue>(actual: TValue, expected: TValue | undefined): boolean {
+    return expected === undefined || actual === expected
+}
+
+function matchesGraphEdge(
+    edge: ModuleDependencyEdge,
+    expectation: GraphEdgeExpectation
+): boolean {
+    if (edge.edgeKind !== expectation.edgeKind) {
+        return false
+    }
+
+    if (expectation.edgeKind === 'capability') {
+        return (
+            edge.edgeKind === 'capability' &&
+            matchesOptional(edge.consumerModuleId, expectation.consumerModuleId) &&
+            matchesOptional(edge.requiredTokenId, expectation.requiredTokenId) &&
+            matchesOptional(edge.dependencyKind, expectation.dependencyKind) &&
+            matchesOptional(edge.providerModuleId, expectation.providerModuleId) &&
+            matchesOptional(edge.capabilityTokenId, expectation.capabilityTokenId) &&
+            matchesOptional(edge.capabilityKind, expectation.capabilityKind)
+        )
+    }
+
+    return (
+        edge.edgeKind === 'binding' &&
+        matchesOptional(edge.consumerModuleId, expectation.consumerModuleId) &&
+        matchesOptional(edge.requiredTokenId, expectation.requiredTokenId) &&
+        matchesOptional(edge.dependencyKind, expectation.dependencyKind) &&
+        matchesOptional(edge.bindingTokenId, expectation.bindingTokenId) &&
+        matchesOptional(edge.bindingKind, expectation.bindingKind)
+    )
+}
+
+function matchesDiagnostic(
+    diagnostic: Diagnostic,
+    expectation: DiagnosticExpectation
+): boolean {
+    if (!matchesOptional(diagnostic.code, expectation.code)) {
+        return false
+    }
+
+    if (!matchesOptional(diagnostic.severity, expectation.severity)) {
+        return false
+    }
+
+    if (!matchesOptional(diagnostic.message, expectation.message)) {
+        return false
+    }
+
+    if (
+        expectation.messageIncludes !== undefined &&
+        !diagnostic.message.includes(expectation.messageIncludes)
+    ) {
+        return false
+    }
+
+    if (
+        expectation.details !== undefined &&
+        stableFormat(diagnostic.details) !== stableFormat(expectation.details)
+    ) {
+        return false
+    }
+
+    return true
+}
+
+function formatGraphModules(graph: ModuleGraph): readonly string[] {
+    if (graph.modules.length === 0) {
+        return ['- <none>']
+    }
+
+    return graph.modules.map((moduleMetadata) => {
+        return `- "${moduleMetadata.id}"`
+    })
+}
+
+function formatGraphCapabilities(graph: ModuleGraph): readonly string[] {
+    if (graph.capabilities.length === 0) {
+        return ['- <none>']
+    }
+
+    return graph.capabilities.map((capability) => {
+        return (
+            `- module "${capability.moduleId}" provides "${capability.tokenId}" ` +
+            `(${capability.kind})`
+        )
+    })
+}
+
+function formatGraphRequiredPorts(graph: ModuleGraph): readonly string[] {
+    if (graph.requiredPorts.length === 0) {
+        return ['- <none>']
+    }
+
+    return graph.requiredPorts.map((requiredPort) => {
+        return (
+            `- module "${requiredPort.moduleId}" requires "${requiredPort.tokenId}" ` +
+            `(${requiredPort.kind}, required: ${requiredPort.required}, ` +
+            `satisfiedBy: ${requiredPort.satisfiedBy})`
+        )
+    })
+}
+
+function formatGraphBindings(graph: ModuleGraph): readonly string[] {
+    if (graph.bindings.length === 0) {
+        return ['- <none>']
+    }
+
+    return graph.bindings.map((binding) => {
+        const details = [
+            `kind: ${binding.kind}`,
+            `providerKind: ${binding.providerKind}`,
+            ...(binding.lifetime === undefined ? [] : [`lifetime: ${binding.lifetime}`]),
+            ...(binding.initialization === undefined
+                ? []
+                : [`initialization: ${binding.initialization}`])
+        ]
+
+        return `- token "${binding.tokenId}" (${details.join(', ')})`
+    })
+}
+
+function formatGraphEdges(graph: ModuleGraph): readonly string[] {
+    if (graph.edges.length === 0) {
+        return ['- <none>']
+    }
+
+    return graph.edges.map((edge) => {
+        return `- ${formatGraphEdge(edge)}`
+    })
+}
+
+function formatCapabilityExpectation(expectation: GraphCapabilityExpectation): string {
+    return formatExpectationParts([
+        `token "${expectation.tokenId}"`,
+        formatOptionalExpectationPart('module', expectation.moduleId),
+        formatOptionalExpectationPart('kind', expectation.kind)
+    ])
+}
+
+function formatRequiredPortExpectation(expectation: GraphRequiredPortExpectation): string {
+    return formatExpectationParts([
+        `module "${expectation.moduleId}"`,
+        `token "${expectation.tokenId}"`,
+        formatOptionalExpectationPart('required', expectation.required),
+        formatOptionalExpectationPart('kind', expectation.kind),
+        formatOptionalExpectationPart('satisfiedBy', expectation.satisfiedBy)
+    ])
+}
+
+function formatBindingExpectation(expectation: GraphBindingExpectation): string {
+    return formatExpectationParts([
+        `token "${expectation.tokenId}"`,
+        formatOptionalExpectationPart('kind', expectation.kind),
+        formatOptionalExpectationPart('providerKind', expectation.providerKind)
+    ])
+}
+
+function formatEdgeExpectation(expectation: GraphEdgeExpectation): string {
+    if (expectation.edgeKind === 'capability') {
+        return formatExpectationParts([
+            'capability dependency edge',
+            formatOptionalExpectationPart('consumerModuleId', expectation.consumerModuleId),
+            formatOptionalExpectationPart('requiredTokenId', expectation.requiredTokenId),
+            formatOptionalExpectationPart('dependencyKind', expectation.dependencyKind),
+            formatOptionalExpectationPart('providerModuleId', expectation.providerModuleId),
+            formatOptionalExpectationPart('capabilityTokenId', expectation.capabilityTokenId),
+            formatOptionalExpectationPart('capabilityKind', expectation.capabilityKind)
+        ])
+    }
+
+    return formatExpectationParts([
+        'binding dependency edge',
+        formatOptionalExpectationPart('consumerModuleId', expectation.consumerModuleId),
+        formatOptionalExpectationPart('requiredTokenId', expectation.requiredTokenId),
+        formatOptionalExpectationPart('dependencyKind', expectation.dependencyKind),
+        formatOptionalExpectationPart('bindingTokenId', expectation.bindingTokenId),
+        formatOptionalExpectationPart('bindingKind', expectation.bindingKind)
+    ])
+}
+
+function formatGraphEdge(edge: ModuleDependencyEdge): string {
+    if (edge.edgeKind === 'capability') {
+        return (
+            `capability: "${edge.consumerModuleId}" requires "${edge.requiredTokenId}" ` +
+            `from "${edge.providerModuleId}" capability "${edge.capabilityTokenId}" ` +
+            `(${edge.dependencyKind}, ${edge.capabilityKind})`
+        )
+    }
+
+    return (
+        `binding: "${edge.consumerModuleId}" requires "${edge.requiredTokenId}" ` +
+        `through binding "${edge.bindingTokenId}" (${edge.dependencyKind}, ` +
+        `${edge.bindingKind})`
+    )
+}
+
+function formatDiagnosticExpectation(expectation: DiagnosticExpectation): string {
+    const parts = [
+        formatOptionalExpectationPart('code', expectation.code),
+        formatOptionalExpectationPart('severity', expectation.severity),
+        formatOptionalExpectationPart('message', expectation.message),
+        formatOptionalExpectationPart('messageIncludes', expectation.messageIncludes),
+        expectation.details === undefined ? undefined : `details: ${stableFormat(expectation.details)}`
+    ].filter((part): part is string => {
+        return part !== undefined
+    })
+
+    if (parts.length === 0) {
+        return 'matching any diagnostic'
+    }
+
+    return `{ ${parts.join(', ')} }`
+}
+
+function formatExpectationParts(parts: readonly (string | undefined)[]): string {
+    return parts
+        .filter((part): part is string => {
+            return part !== undefined
+        })
+        .join(', ')
+}
+
+function formatOptionalExpectationPart(
+    label: string,
+    value: string | number | boolean | undefined
+): string | undefined {
+    if (value === undefined) {
+        return undefined
+    }
+
+    if (typeof value === 'string') {
+        return `${label}: "${value}"`
+    }
+
+    return `${label}: ${value}`
+}
+
+function stableFormat(value: unknown): string {
+    if (typeof value === 'string') {
+        return JSON.stringify(value)
+    }
+
+    if (
+        typeof value === 'number' ||
+        typeof value === 'boolean' ||
+        typeof value === 'bigint'
+    ) {
+        return String(value)
+    }
+
+    if (value === undefined) {
+        return 'undefined'
+    }
+
+    if (value === null) {
+        return 'null'
+    }
+
+    if (typeof value === 'symbol') {
+        return '[symbol]'
+    }
+
+    if (typeof value === 'function') {
+        return '[function]'
+    }
+
+    if (Array.isArray(value)) {
+        return `[${value.map((item) => stableFormat(item)).join(', ')}]`
+    }
+
+    if (isRecord(value)) {
+        const entries = Object.keys(value)
+            .sort()
+            .map((key) => {
+                return `${JSON.stringify(key)}: ${stableFormat(value[key])}`
+            })
+
+        return `{ ${entries.join(', ')} }`
+    }
+
+    return '[object]'
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
 export { createTestOverride as override }

@@ -93,7 +93,23 @@ describe('package exports', () => {
         expect(testing.override).toBeTypeOf('function')
         expect(testing.fakeModule).toBeTypeOf('function')
         expect(testing.createModuleHarness).toBeTypeOf('function')
+        expect(testing.assertGraphHasModule).toBeTypeOf('function')
+        expect(testing.assertGraphHasCapability).toBeTypeOf('function')
+        expect(testing.assertGraphHasRequiredPort).toBeTypeOf('function')
+        expect(testing.assertGraphHasBinding).toBeTypeOf('function')
+        expect(testing.assertGraphHasEdge).toBeTypeOf('function')
+        expect(testing.assertDiagnosticReportOk).toBeTypeOf('function')
+        expect(testing.assertDiagnosticReportHasDiagnostic).toBeTypeOf('function')
+        expect(testing.assertErrorDiagnostic).toBeTypeOf('function')
+        expect(testing.GraphAssertionError).toBeTypeOf('function')
+        expect(testing.DiagnosticAssertionError).toBeTypeOf('function')
         expect(testing.DuplicateTestOverrideError).toBeTypeOf('function')
+        testing.assertGraphHasModule(harness.getGraph(), 'exports-testing-module')
+        testing.assertGraphHasCapability(harness.getGraph(), {
+            tokenId: publicApi.id,
+            moduleId: 'exports-testing-module'
+        })
+        testing.assertDiagnosticReportOk(harness.validate())
         expect(runtime.get(value)).toBe('testing-export')
         expect(composedRuntime.get(publicApi).submit()).toBe('testing-composer-export')
         expect(harnessRuntime.get(publicApi).submit()).toBe('testing-harness-export')

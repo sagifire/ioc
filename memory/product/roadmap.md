@@ -598,7 +598,7 @@ Root source trace:
     - `TASK-07.01-0034-stage-12-testing-package-foundation` - done;
     - `TASK-07.01-0035-stage-12-overrides-test-composer` - done;
     - `TASK-07.01-0036-stage-12-module-harness-fake-modules` - done;
-    - `TASK-07.01-0037-stage-12-graph-diagnostic-assertions` - backlog;
+    - `TASK-07.01-0037-stage-12-graph-diagnostic-assertions` - done;
     - `TASK-07.01-0038-stage-12-testing-hardening-docs` - backlog.
   - Implementation Decomposition:
     - Task 1 replaces the placeholder package surface and builds isolated test runtime

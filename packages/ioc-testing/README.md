@@ -11,6 +11,14 @@ Current public API:
 - `createTestComposer({ modules, configure, overrides })`
 - `fakeModule(definition)` / `fakeModule(id, definition)`
 - `createModuleHarness({ module, supportModules, fakeModules, overrides })`
+- `assertGraphHasModule(graph, moduleId)`
+- `assertGraphHasCapability(graph, expectation)`
+- `assertGraphHasRequiredPort(graph, expectation)`
+- `assertGraphHasBinding(graph, expectation)`
+- `assertGraphHasEdge(graph, expectation)`
+- `assertDiagnosticReportOk(report)`
+- `assertDiagnosticReportHasDiagnostic(report, expectation)`
+- `assertErrorDiagnostic(error, expectation)`
 
 `createTestRuntime()` creates a fresh core container configuration, applies the explicit
 test configuration callback and override declarations if provided, then returns a frozen
@@ -20,7 +28,15 @@ Example:
 
 ```ts
 import { token } from '@sagifire/ioc'
-import { createTestComposer, createTestRuntime, override } from '@sagifire/ioc-testing'
+import {
+    assertDiagnosticReportOk,
+    assertErrorDiagnostic,
+    assertGraphHasEdge,
+    assertGraphHasModule,
+    createTestComposer,
+    createTestRuntime,
+    override
+} from '@sagifire/ioc-testing'
 
 const LOGGER = token<{ readonly name: string }>('test.logger')
 
@@ -78,5 +94,29 @@ const runtime = await harness.compose()
 
 These helpers do not mutate existing frozen runtimes or composed runtimes. Fake modules
 remain visible through existing composer/runtime inspection APIs, and module-private
-providers remain hidden behind normal composed runtime capability access. Graph/diagnostic
-assertions are planned for later Stage 12 tasks.
+providers remain hidden behind normal composed runtime capability access.
+
+Graph assertions read public `ModuleGraph`, `ComposerInspection` or `RuntimeInspection`
+data:
+
+```ts
+assertGraphHasModule(harness.getGraph(), 'contact-requests')
+assertGraphHasEdge(harness.getGraph(), {
+    edgeKind: 'binding',
+    requiredTokenId: AUTH_READER.id,
+    bindingTokenId: AUTH_READER.id
+})
+```
+
+Diagnostic assertions read public `DiagnosticReport` data or diagnostics derived from
+typed errors:
+
+```ts
+assertDiagnosticReportOk(harness.validate())
+assertErrorDiagnostic(error, {
+    code: 'SAGIFIRE_IOC_MISSING_REQUIRED_PORT'
+})
+```
+
+Assertion failures throw plain deterministic `Error` subclasses, so they are usable from
+Vitest without a runtime dependency on Vitest internals.
