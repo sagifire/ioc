@@ -1,6 +1,6 @@
 # Run Requirements: RUN-001
 
-Status: planned
+Status: completed
 Agent Role: Agent Executor
 Execution Mode: autonomous-implementation
 Created: 2026-07-01
@@ -40,16 +40,16 @@ helper.
 
 ## Acceptance Criteria for This Run
 
-- [ ] Testing package foundation is implemented.
-- [ ] Isolated test runtime helper creates fresh runtime per call.
-- [ ] Helper does not mutate existing frozen runtimes.
-- [ ] Runtime tests cover helper behavior.
-- [ ] Type assertions cover helper inference.
-- [ ] Package export smoke tests cover `@sagifire/ioc-testing`.
-- [ ] `pnpm build` works.
-- [ ] `pnpm test` works.
-- [ ] `pnpm typecheck` works.
-- [ ] `pnpm lint` works.
+- [x] Testing package foundation is implemented.
+- [x] Isolated test runtime helper creates fresh runtime per call.
+- [x] Helper does not mutate existing frozen runtimes.
+- [x] Runtime tests cover helper behavior.
+- [x] Type assertions cover helper inference.
+- [x] Package export smoke tests cover `@sagifire/ioc-testing`.
+- [x] `pnpm build` works.
+- [x] `pnpm test` works.
+- [x] `pnpm typecheck` works.
+- [x] `pnpm lint` works.
 
 ## Changes from Previous Run
 

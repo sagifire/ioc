@@ -1,6 +1,6 @@
 # TASK-07.01-0034: Stage 12 testing package foundation
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-01
@@ -47,20 +47,20 @@ boundaries and runtime immutability.
 
 ## Acceptance Criteria
 
-- [ ] `@sagifire/ioc-testing` exports a non-placeholder testing package foundation.
-- [ ] Isolated test runtime helper creates fresh configuration/runtime per call.
-- [ ] Helper does not mutate existing frozen runtimes.
-- [ ] Helper reuses existing core container APIs instead of duplicating resolution logic.
-- [ ] Token value inference is preserved through the public testing helper surface.
-- [ ] Runtime tests cover isolated runtime creation, provider registration and disposal.
-- [ ] Type-level assertions cover testing helper inference.
-- [ ] Package export smoke tests cover `@sagifire/ioc-testing`.
-- [ ] Stage 12 task does not implement overrides, test composer, harnesses, graph
+- [x] `@sagifire/ioc-testing` exports a non-placeholder testing package foundation.
+- [x] Isolated test runtime helper creates fresh configuration/runtime per call.
+- [x] Helper does not mutate existing frozen runtimes.
+- [x] Helper reuses existing core container APIs instead of duplicating resolution logic.
+- [x] Token value inference is preserved through the public testing helper surface.
+- [x] Runtime tests cover isolated runtime creation, provider registration and disposal.
+- [x] Type-level assertions cover testing helper inference.
+- [x] Package export smoke tests cover `@sagifire/ioc-testing`.
+- [x] Stage 12 task does not implement overrides, test composer, harnesses, graph
   assertions or Next.js adapters.
-- [ ] `pnpm build` works.
-- [ ] `pnpm test` works.
-- [ ] `pnpm typecheck` works.
-- [ ] `pnpm lint` works.
+- [x] `pnpm build` works.
+- [x] `pnpm test` works.
+- [x] `pnpm typecheck` works.
+- [x] `pnpm lint` works.
 
 ## Linked Memory
 
@@ -76,9 +76,9 @@ boundaries and runtime immutability.
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: planned
+  - Status: completed
   - Purpose: Початковий autonomous implementation run для testing package foundation.
-  - Result: pending
+  - Result: completed, prepared for review
 
 ## Research
 

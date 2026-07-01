@@ -13,7 +13,9 @@ capability access and safe inspection metadata. Stage 10 dependency edges and mo
 diagnostics are implemented. Stage 11 DSL includes `module()` for module definitions,
 `defineApp()` for deterministic conversion to existing composer configuration, bind helper
 declarations and `adapt()` for explicit composition adapters. Testing helpers and adapters
-remain planned for later roadmap stages.
+are now split into a Stage 12 testing package foundation and later helper/adapter stages.
+`@sagifire/ioc-testing` currently provides `createTestRuntime()` for isolated core
+container runtimes.
 
 ## DSL Boundary
 

@@ -344,6 +344,17 @@ Stage 12 planning зафіксував testing helper boundary: helpers live in
 overrides before `freeze()` / `compose()`, never mutate frozen runtime and use public graph
 / diagnostic data for assertions.
 
+Stage 12 testing package foundation implementation завершено після task-level human
+review approval:
+
+- [TASK-07.01-0034-stage-12-testing-package-foundation](tasks/plan/TASK-07.01-0034-stage-12-testing-package-foundation/index.md)
+
+RUN-001 реалізував `createTestRuntime()` у `@sagifire/ioc-testing` як fresh
+`createContainer()` / `freeze()` helper with explicit callback/options configuration,
+runtime/type/export tests and minimal docs sync. RUN-001 не реалізовував overrides,
+test composer, fake modules, module harnesses, graph/diagnostic assertions, Next.js
+adapters або core runtime semantic changes.
+
 ## Active Tasks
 
 Немає задач у статусі `active`.
@@ -454,7 +465,7 @@ overrides before `freeze()` / `compose()`, never mutate frozen runtime and use p
   - Status: done
   - Summary: Stage 12 `@sagifire/ioc-testing` implementation planning task.
 - [TASK-07.01-0034-stage-12-testing-package-foundation](tasks/plan/TASK-07.01-0034-stage-12-testing-package-foundation/index.md)
-  - Status: backlog
+  - Status: done
   - Summary: Stage 12 testing package foundation implementation task.
 - [TASK-07.01-0035-stage-12-overrides-test-composer](tasks/plan/TASK-07.01-0035-stage-12-overrides-test-composer/index.md)
   - Status: backlog
@@ -771,6 +782,14 @@ overrides before `freeze()` / `compose()`, never mutate frozen runtime and use p
   assertions use public inspection/diagnostics data only.
 - Stage 12 не реалізує Next.js adapters, route/action scopes, filesystem discovery,
   runtime monkey-patching or core semantic changes.
+- `TASK-07.01-0034-stage-12-testing-package-foundation` RUN-001 виконаний агентом,
+  переведений у `review` і завершений після task-level human review approval.
+- Stage 12 testing package foundation RUN-001 реалізував `createTestRuntime()` as fresh
+  `createContainer()` / `freeze()` helper in `@sagifire/ioc-testing` with explicit
+  callback/options configuration, runtime/type/export tests and minimal docs sync.
+- Stage 12 testing package foundation RUN-001 не реалізовував overrides, test composer,
+  fake modules, module harnesses, graph/diagnostic assertions, Next.js adapters або core
+  runtime semantic changes.
 
 ## Current Risks
 
@@ -786,8 +805,8 @@ overrides before `freeze()` / `compose()`, never mutate frozen runtime and use p
 
 ## Next Steps
 
-- Запустити
-  [TASK-07.01-0034-stage-12-testing-package-foundation](tasks/plan/TASK-07.01-0034-stage-12-testing-package-foundation/index.md),
+- Продовжити Stage 12 з
+  [TASK-07.01-0035-stage-12-overrides-test-composer](tasks/plan/TASK-07.01-0035-stage-12-overrides-test-composer/index.md),
   якщо roadmap order не зміниться.
 
 ## Open Questions

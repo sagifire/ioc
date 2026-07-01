@@ -35,7 +35,8 @@ Implemented in the current stage:
   `bind()` semantics.
 - bind helper DSL and `adapt()` declarations over existing composition binding semantics.
 
-Testing helpers and framework adapters are planned for later roadmap stages.
+The first testing helper foundation lives in `@sagifire/ioc-testing`. Framework adapters
+remain planned for later roadmap stages.
 
 ## Optional DSL
 

@@ -20,6 +20,21 @@ describe('package exports', () => {
         expect(module).toBeTypeOf('object')
     })
 
+    test('ioc-testing export exposes test runtime foundation API', async () => {
+        const testing = await import('@sagifire/ioc-testing')
+        const core = await import('@sagifire/ioc')
+        const value = core.token<string>('exports.testing.value')
+
+        const runtime = await testing.createTestRuntime((container) => {
+            container.bind(value).toValue('testing-export')
+        })
+
+        expect(testing.createTestRuntime).toBeTypeOf('function')
+        expect(runtime.get(value)).toBe('testing-export')
+
+        await runtime.dispose()
+    })
+
     test('root export exposes token API', async () => {
         const module = await import('@sagifire/ioc')
         const composer = module.createComposer()
