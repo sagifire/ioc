@@ -33,6 +33,6 @@ Implemented in the current stage:
 - module DSL foundation through `module()` over existing `defineModule()` semantics.
 - app DSL composition through `defineApp()` over existing `createComposer()`, `use()` and
   `bind()` semantics.
+- bind helper DSL and `adapt()` declarations over existing composition binding semantics.
 
-Bind/adapt DSL, testing helpers and framework adapters are planned for later roadmap
-stages.
+Testing helpers and framework adapters are planned for later roadmap stages.

@@ -12,8 +12,9 @@ Stage 9 composer/modules are implemented with `defineModule()`, `createComposer(
 `use()`, `bind()`, `validate()`, `prepare()`, `compose()` and safe inspection through
 `composer.inspect()`, `composer.getGraph()` and `runtime.inspect()`. Stage 10 dependency
 edges, binding edges and module cycle diagnostics are implemented. Stage 11 DSL now
-includes `module()` and `defineApp()` over existing module/composer semantics. Bind/adapt
-DSL, testing helpers and framework adapter behavior are planned for later roadmap stages.
+includes `module()`, `defineApp()`, bind helper declarations and `adapt()` over existing
+module/composer semantics. Testing helpers and framework adapter behavior are planned for
+later roadmap stages.
 
 ## Packages
 
@@ -35,8 +36,7 @@ pnpm format
 ## Documentation
 
 The files in `docs/` are skeletons for later stages. They intentionally do not describe
-unimplemented bind/adapt DSL, testing-helper or adapter APIs before those layers are
-implemented.
+unimplemented testing-helper or adapter APIs before those layers are implemented.
 
 ## License
 

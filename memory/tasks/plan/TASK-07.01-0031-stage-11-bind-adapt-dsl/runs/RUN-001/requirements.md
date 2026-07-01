@@ -1,6 +1,6 @@
 # Run Requirements: RUN-001
 
-Status: planned
+Status: completed
 Agent Role: Agent Executor
 Execution Mode: autonomous-implementation
 Created: 2026-07-01
@@ -36,17 +36,17 @@ Implement Stage 11 bind helper DSL and `adapt()` for explicit composition adapte
 
 ## Acceptance Criteria for This Run
 
-- [ ] Bind helper DSL is implemented.
-- [ ] `adapt()` is implemented.
-- [ ] Bind/adapt declarations convert to composer bindings.
-- [ ] Adapter type inference is covered.
-- [ ] Validation/inspection remain side-effect free.
-- [ ] Runtime graph behavior is tested.
-- [ ] Package export smoke tests cover bind/adapt API.
-- [ ] `pnpm build` works.
-- [ ] `pnpm test` works.
-- [ ] `pnpm typecheck` works.
-- [ ] `pnpm lint` works.
+- [x] Bind helper DSL is implemented.
+- [x] `adapt()` is implemented.
+- [x] Bind/adapt declarations convert to composer bindings.
+- [x] Adapter type inference is covered.
+- [x] Validation/inspection remain side-effect free.
+- [x] Runtime graph behavior is tested.
+- [x] Package export smoke tests cover bind/adapt API.
+- [x] `pnpm build` works.
+- [x] `pnpm test` works.
+- [x] `pnpm typecheck` works.
+- [x] `pnpm lint` works.
 
 ## Changes from Previous Run
 

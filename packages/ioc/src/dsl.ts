@@ -86,6 +86,15 @@ export interface AppDslAsyncFactoryBindingDefinition<TValue = unknown> {
     readonly useAsyncFactory: ComposerAsyncBindingFactory<TValue>
 }
 
+export interface BindDslBuilder<TValue> {
+    toValue(value: TValue): AppDslValueBindingDefinition<TValue>
+    toFactory(factory: ComposerBindingFactory<TValue>): AppDslFactoryBindingDefinition<TValue>
+    toClass(classConstructor: ClassConstructor<TValue>): AppDslClassBindingDefinition<TValue>
+    toAsyncFactory(
+        factory: ComposerAsyncBindingFactory<TValue>
+    ): AppDslAsyncFactoryBindingDefinition<TValue>
+}
+
 export interface AppDslDefinitionInput<
     TModules extends readonly ModuleDefinition[] = readonly ModuleDefinition[],
     TBindings extends readonly AppDslBindingDefinition[] = readonly AppDslBindingDefinition[]
@@ -195,6 +204,50 @@ function defineAppDsl<
     })
 }
 
+function createBindDsl<TValue>(bindingToken: Token<TValue>): BindDslBuilder<TValue> {
+    return Object.freeze({
+        toValue(value: TValue): AppDslValueBindingDefinition<TValue> {
+            return Object.freeze({
+                token: bindingToken,
+                useValue: value
+            })
+        },
+
+        toFactory(factory: ComposerBindingFactory<TValue>): AppDslFactoryBindingDefinition<TValue> {
+            return Object.freeze({
+                token: bindingToken,
+                useFactory: factory
+            })
+        },
+
+        toClass(classConstructor: ClassConstructor<TValue>): AppDslClassBindingDefinition<TValue> {
+            return Object.freeze({
+                token: bindingToken,
+                useClass: classConstructor
+            })
+        },
+
+        toAsyncFactory(
+            factory: ComposerAsyncBindingFactory<TValue>
+        ): AppDslAsyncFactoryBindingDefinition<TValue> {
+            return Object.freeze({
+                token: bindingToken,
+                useAsyncFactory: factory
+            })
+        }
+    })
+}
+
+function adaptDsl<TValue>(
+    bindingToken: Token<TValue>,
+    factory: ComposerBindingFactory<TValue>
+): AppDslFactoryBindingDefinition<TValue> {
+    return Object.freeze({
+        token: bindingToken,
+        useFactory: factory
+    })
+}
+
 function applyAppDslBinding(composer: Composer, binding: AppDslBindingDefinition): void {
     const builder = composer.bind(binding.token)
 
@@ -219,5 +272,7 @@ function applyAppDslBinding(composer: Composer, binding: AppDslBindingDefinition
     builder.toAsyncFactory(binding.useAsyncFactory)
 }
 
+export { adaptDsl as adapt }
+export { createBindDsl as bind }
 export { createModuleDsl as module }
 export { defineAppDsl as defineApp }

@@ -5,9 +5,10 @@ runtime capability access and safe inspection metadata implemented.
 
 Modules can now be described with the explicit object-configuration `defineModule()` API.
 The `module()` DSL helper is also available as an optional thin layer that produces the
-same module definition shape. The `defineApp()` DSL helper can collect module definitions
-and explicit composition binding declarations, then convert them to a fresh configured
-composer through existing `createComposer().use()` and `composer.bind()` semantics.
+same module definition shape. The `defineApp()` DSL helper can collect module definitions,
+object-form binding declarations, bind helper declarations and `adapt()` declarations,
+then convert them to a fresh configured composer through existing `createComposer().use()`
+and `composer.bind()` semantics.
 Composer configuration can register those definitions with `createComposer().use()`,
 validate declared capabilities, required ports and explicit bindings with
 `composer.validate()`, and execute setup/private provider registration with

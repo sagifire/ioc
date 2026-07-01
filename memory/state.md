@@ -301,6 +301,16 @@ declarations, root / `@sagifire/ioc/dsl` exports, runtime/type/package-export te
 minimal public docs sync. RUN-001 не реалізовував `adapt()`, final bind helper DSL,
 testing helpers or Next.js adapters.
 
+Stage 11 bind/adapt DSL implementation завершено після task-level human review approval:
+
+- [TASK-07.01-0031-stage-11-bind-adapt-dsl](tasks/plan/TASK-07.01-0031-stage-11-bind-adapt-dsl/index.md)
+
+RUN-001 реалізував `bind()` helper DSL declarations and `adapt()` over existing
+`defineApp()` / `composer.bind()` semantics, root / `@sagifire/ioc/dsl` exports,
+runtime/type/package-export tests and minimal public docs sync. RUN-001 не реалізовував
+testing helpers, graph assertion helpers, Next.js adapters, hidden dependency inference or
+changes to composer/runtime binding semantics.
+
 ## Active Tasks
 
 Немає задач у статусі `active`.
@@ -402,7 +412,7 @@ testing helpers or Next.js adapters.
   - Status: done
   - Summary: Stage 11 `defineApp()` DSL implementation task.
 - [TASK-07.01-0031-stage-11-bind-adapt-dsl](tasks/plan/TASK-07.01-0031-stage-11-bind-adapt-dsl/index.md)
-  - Status: backlog
+  - Status: done
   - Summary: Stage 11 bind helper DSL and `adapt()` implementation task.
 - [TASK-07.01-0032-stage-11-dsl-hardening-docs](tasks/plan/TASK-07.01-0032-stage-11-dsl-hardening-docs/index.md)
   - Status: backlog
@@ -703,7 +713,7 @@ testing helpers or Next.js adapters.
 ## Next Steps
 
 - Запустити
-  [TASK-07.01-0031-stage-11-bind-adapt-dsl](tasks/plan/TASK-07.01-0031-stage-11-bind-adapt-dsl/index.md),
+  [TASK-07.01-0032-stage-11-dsl-hardening-docs](tasks/plan/TASK-07.01-0032-stage-11-dsl-hardening-docs/index.md),
   якщо roadmap order не зміниться.
 
 ## Open Questions

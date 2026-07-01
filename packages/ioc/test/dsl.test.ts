@@ -7,6 +7,7 @@ import {
     DuplicateModuleDependencyError,
     InvalidModuleDefinitionError,
     type ComposerBindingContext,
+    type ComposerBindingFactory,
     type ComposerInspection,
     type ModuleGraph,
     type ModuleDefinition,
@@ -14,9 +15,15 @@ import {
     type ModuleSetupContext
 } from '../src/composer.js'
 import {
+    adapt,
+    bind,
     defineApp,
     module as moduleDsl,
+    type AppDslAsyncFactoryBindingDefinition,
     type AppDslDefinition,
+    type AppDslFactoryBindingDefinition,
+    type AppDslValueBindingDefinition,
+    type BindDslBuilder,
     type ModuleDslDefinition,
     type ModuleDslDefinitionInput
 } from '../src/dsl.js'
@@ -579,5 +586,344 @@ describe('defineApp DSL', () => {
         expectTypeOf(app.inspect()).toEqualTypeOf<ComposerInspection>()
         expectTypeOf(app.getGraph()).toEqualTypeOf<ModuleGraph>()
         expectTypeOf<ReturnType<typeof app.compose>>().toEqualTypeOf<Promise<ComposedRuntime>>()
+    })
+})
+
+describe('bind/adapt DSL', () => {
+    test('converts bind helper declarations through defineApp for supported binding forms', async () => {
+        const moduleDefinition = moduleDsl('dsl-bind-helper-forms', {
+            requires: [
+                {
+                    token: VALUE_AUTH_READER
+                },
+                {
+                    token: FACTORY_AUTH_READER
+                },
+                {
+                    token: CLASS_AUTH_READER
+                },
+                {
+                    token: ASYNC_AUTH_READER
+                }
+            ],
+            provides: [
+                {
+                    token: CONTACT_REQUESTS_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(CONTACT_REQUESTS_PUBLIC_API).toAsyncFactory(async (resolutionContext) => {
+                    const valueReader = resolutionContext.get(VALUE_AUTH_READER)
+                    const factoryReader = resolutionContext.get(FACTORY_AUTH_READER)
+                    const classReader = resolutionContext.get(CLASS_AUTH_READER)
+                    const asyncReader = await resolutionContext.getAsync(ASYNC_AUTH_READER)
+
+                    return {
+                        submit(): string {
+                            return [
+                                valueReader.currentUserId(),
+                                factoryReader.currentUserId(),
+                                classReader.currentUserId(),
+                                asyncReader.currentUserId()
+                            ].join('|')
+                        }
+                    }
+                })
+            }
+        })
+        let factoryCalls = 0
+        let asyncFactoryCalls = 0
+        const app = defineApp({
+            modules: [moduleDefinition],
+            bindings: [
+                bind(VALUE_AUTH_READER).toValue({
+                    currentUserId(): string {
+                        return 'value-user'
+                    }
+                }),
+                bind(FACTORY_AUTH_READER).toFactory(() => {
+                    factoryCalls += 1
+
+                    return {
+                        currentUserId(): string {
+                            return 'factory-user'
+                        }
+                    }
+                }),
+                bind(CLASS_AUTH_READER).toClass(ClassAuthReader),
+                bind(ASYNC_AUTH_READER).toAsyncFactory(async () => {
+                    asyncFactoryCalls += 1
+
+                    return {
+                        currentUserId(): string {
+                            return 'async-user'
+                        }
+                    }
+                })
+            ]
+        })
+
+        expect(app.validate()).toEqual({
+            ok: true,
+            diagnostics: []
+        })
+        expect(app.getGraph().bindings).toEqual([
+            {
+                tokenId: 'dsl.value-auth-reader',
+                kind: 'value',
+                providerKind: 'value',
+                lifetime: 'singleton'
+            },
+            {
+                tokenId: 'dsl.factory-auth-reader',
+                kind: 'factory',
+                providerKind: 'factory',
+                lifetime: 'transient'
+            },
+            {
+                tokenId: 'dsl.class-auth-reader',
+                kind: 'class',
+                providerKind: 'class',
+                lifetime: 'transient'
+            },
+            {
+                tokenId: 'dsl.async-auth-reader',
+                kind: 'async-factory',
+                providerKind: 'async-factory',
+                lifetime: 'transient',
+                initialization: 'lazy'
+            }
+        ])
+        expect(app.inspect().edges).toEqual([
+            {
+                edgeKind: 'binding',
+                consumerModuleId: 'dsl-bind-helper-forms',
+                requiredTokenId: 'dsl.value-auth-reader',
+                dependencyKind: 'external',
+                bindingTokenId: 'dsl.value-auth-reader',
+                bindingKind: 'value'
+            },
+            {
+                edgeKind: 'binding',
+                consumerModuleId: 'dsl-bind-helper-forms',
+                requiredTokenId: 'dsl.factory-auth-reader',
+                dependencyKind: 'external',
+                bindingTokenId: 'dsl.factory-auth-reader',
+                bindingKind: 'factory'
+            },
+            {
+                edgeKind: 'binding',
+                consumerModuleId: 'dsl-bind-helper-forms',
+                requiredTokenId: 'dsl.class-auth-reader',
+                dependencyKind: 'external',
+                bindingTokenId: 'dsl.class-auth-reader',
+                bindingKind: 'class'
+            },
+            {
+                edgeKind: 'binding',
+                consumerModuleId: 'dsl-bind-helper-forms',
+                requiredTokenId: 'dsl.async-auth-reader',
+                dependencyKind: 'external',
+                bindingTokenId: 'dsl.async-auth-reader',
+                bindingKind: 'async-factory'
+            }
+        ])
+        expect(factoryCalls).toBe(0)
+        expect(asyncFactoryCalls).toBe(0)
+
+        const runtime = await app.compose()
+
+        expect(factoryCalls).toBe(0)
+        expect(asyncFactoryCalls).toBe(0)
+        const publicApi = await runtime.getAsync(CONTACT_REQUESTS_PUBLIC_API)
+
+        expect(publicApi.submit()).toBe('value-user|factory-user|class-user|async-user')
+        expect(factoryCalls).toBe(1)
+        expect(asyncFactoryCalls).toBe(1)
+
+        await runtime.dispose()
+    })
+
+    test('adapts a required port from explicit context access without hidden graph edges', async () => {
+        const authModule = moduleDsl('dsl-adapt-auth', {
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(AUTH_PUBLIC_API).toValue({
+                    requireUser(): string {
+                        return 'adapted-user'
+                    }
+                })
+            }
+        })
+        const contactRequestsModule = moduleDsl('dsl-adapt-contact-requests', {
+            requires: [
+                {
+                    token: AUTH_READER
+                }
+            ],
+            provides: [
+                {
+                    token: CONTACT_REQUESTS_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(CONTACT_REQUESTS_PUBLIC_API).toFactory((resolutionContext) => {
+                    const authReader = resolutionContext.get(AUTH_READER)
+
+                    return {
+                        submit(): string {
+                            return authReader.currentUserId()
+                        }
+                    }
+                })
+            }
+        })
+        let adapterCalls = 0
+        const app = defineApp({
+            modules: [authModule, contactRequestsModule],
+            bindings: [
+                adapt(AUTH_READER, (context) => {
+                    adapterCalls += 1
+
+                    const auth = context.get(AUTH_PUBLIC_API)
+
+                    return {
+                        currentUserId(): string {
+                            return auth.requireUser()
+                        }
+                    }
+                })
+            ]
+        })
+
+        expect(app.validate()).toEqual({
+            ok: true,
+            diagnostics: []
+        })
+        expect(app.inspect().edges).toEqual([
+            {
+                edgeKind: 'binding',
+                consumerModuleId: 'dsl-adapt-contact-requests',
+                requiredTokenId: 'dsl.auth-reader',
+                dependencyKind: 'external',
+                bindingTokenId: 'dsl.auth-reader',
+                bindingKind: 'factory'
+            }
+        ])
+        expect(JSON.stringify(app.inspect().edges)).not.toContain('dsl.auth-public-api')
+        expect(adapterCalls).toBe(0)
+
+        const runtime = await app.compose()
+
+        expect(runtime.get(CONTACT_REQUESTS_PUBLIC_API).submit()).toBe('adapted-user')
+        expect(adapterCalls).toBe(1)
+
+        await runtime.dispose()
+    })
+
+    test('uses adapt declarations as explicit binding priority metadata', () => {
+        const authReaderProviderModule = moduleDsl('dsl-bind-priority-provider', {
+            provides: [
+                {
+                    token: AUTH_READER,
+                    kind: 'shared-service'
+                }
+            ],
+            setup(): void {}
+        })
+        const consumerModule = moduleDsl('dsl-bind-priority-consumer', {
+            requires: [
+                {
+                    token: AUTH_READER
+                }
+            ],
+            setup(): void {}
+        })
+        const app = defineApp({
+            modules: [authReaderProviderModule, consumerModule],
+            bindings: [
+                adapt(AUTH_READER, () => {
+                    return {
+                        currentUserId(): string {
+                            return 'binding-priority-user'
+                        }
+                    }
+                })
+            ]
+        })
+        const graph = app.getGraph()
+
+        expect(graph.requiredPorts[0]?.satisfiedBy).toBe('binding')
+        expect(graph.edges).toEqual([
+            {
+                edgeKind: 'binding',
+                consumerModuleId: 'dsl-bind-priority-consumer',
+                requiredTokenId: 'dsl.auth-reader',
+                dependencyKind: 'external',
+                bindingTokenId: 'dsl.auth-reader',
+                bindingKind: 'factory'
+            }
+        ])
+        expect(graph.edges.some((edge) => edge.edgeKind === 'capability')).toBe(false)
+        expect(JSON.stringify(graph)).not.toContain('binding-priority-user')
+    })
+
+    test('preserves bind and adapt type inference', () => {
+        const bindBuilder = bind(AUTH_READER)
+        const valueBinding = bindBuilder.toValue({
+            currentUserId(): string {
+                return 'typed-value-user'
+            }
+        })
+        const factoryBinding = bind(AUTH_READER).toFactory((context) => {
+            const auth = context.get(AUTH_PUBLIC_API)
+
+            expectTypeOf(auth).toEqualTypeOf<AuthPublicApi>()
+
+            return {
+                currentUserId(): string {
+                    return auth.requireUser()
+                }
+            }
+        })
+        const asyncFactoryBinding = bind(AUTH_READER).toAsyncFactory(async (context) => {
+            const auth = await context.getAsync(AUTH_PUBLIC_API)
+
+            expectTypeOf(auth).toEqualTypeOf<AuthPublicApi>()
+
+            return {
+                currentUserId(): string {
+                    return auth.requireUser()
+                }
+            }
+        })
+        const adapterBinding = adapt(AUTH_READER, (context) => {
+            const auth = context.get(AUTH_PUBLIC_API)
+
+            expectTypeOf(auth).toEqualTypeOf<AuthPublicApi>()
+
+            return {
+                currentUserId(): string {
+                    return auth.requireUser()
+                }
+            }
+        })
+
+        expectTypeOf(bindBuilder).toEqualTypeOf<BindDslBuilder<AuthReader>>()
+        expectTypeOf(valueBinding).toEqualTypeOf<AppDslValueBindingDefinition<AuthReader>>()
+        expectTypeOf(factoryBinding).toEqualTypeOf<AppDslFactoryBindingDefinition<AuthReader>>()
+        expectTypeOf(asyncFactoryBinding).toEqualTypeOf<
+            AppDslAsyncFactoryBindingDefinition<AuthReader>
+        >()
+        expectTypeOf(adapterBinding).toEqualTypeOf<AppDslFactoryBindingDefinition<AuthReader>>()
+        expectTypeOf(adapterBinding.useFactory).toEqualTypeOf<ComposerBindingFactory<AuthReader>>()
+        expectTypeOf<TokenValue<typeof adapterBinding.token>>().toEqualTypeOf<AuthReader>()
     })
 })

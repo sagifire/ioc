@@ -35,6 +35,8 @@ describe('package exports', () => {
         expect(module.defineModule).toBeTypeOf('function')
         expect(module.module).toBeTypeOf('function')
         expect(module.defineApp).toBeTypeOf('function')
+        expect(module.bind).toBeTypeOf('function')
+        expect(module.adapt).toBeTypeOf('function')
         expect(module.InvalidModuleDefinitionError).toBeTypeOf('function')
         expect(module.DuplicateModuleDependencyError).toBeTypeOf('function')
         expect(module.DuplicateModuleCapabilityError).toBeTypeOf('function')
@@ -322,20 +324,31 @@ describe('package exports', () => {
         const app = dsl.defineApp({
             modules: [dslModule],
             bindings: [
-                {
-                    token: reader,
-                    useValue: {
+                dsl.bind(reader).toValue({
+                    read(): boolean {
+                        return true
+                    }
+                })
+            ]
+        })
+        const adapterApp = dsl.defineApp({
+            modules: [dslModule],
+            bindings: [
+                dsl.adapt(reader, () => {
+                    return {
                         read(): boolean {
                             return true
                         }
                     }
-                }
+                })
             ]
         })
         const runtime = await app.compose()
 
         expect(dsl.module).toBeTypeOf('function')
         expect(dsl.defineApp).toBeTypeOf('function')
+        expect(dsl.bind).toBeTypeOf('function')
+        expect(dsl.adapt).toBeTypeOf('function')
         expect(runtime.get(publicApi).ok()).toBe(true)
         expect(app.inspect().edges).toEqual([
             {
@@ -347,6 +360,7 @@ describe('package exports', () => {
                 bindingKind: 'value'
             }
         ])
+        expect(adapterApp.getGraph().bindings[0]?.kind).toBe('factory')
 
         await runtime.dispose()
     })

@@ -1,6 +1,6 @@
 # TASK-07.01-0031: Stage 11 bind and adapt DSL
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-01
@@ -51,19 +51,19 @@ public capabilities or other context-accessible dependencies.
 
 ## Acceptance Criteria
 
-- [ ] Bind helper DSL compiles to existing composition bindings.
-- [ ] `adapt()` supports explicit adapter declarations for required ports.
-- [ ] Adapter output type matches required port token value.
-- [ ] Adapter dependencies stay explicit in code and do not become hidden graph magic.
-- [ ] Validation/inspection do not execute binding or adapter factories.
-- [ ] Binding dependency edges remain deterministic and visible.
-- [ ] Runtime tests cover supported bind/adapt conversions and graph behavior.
-- [ ] Type-level assertions cover bind/adapt inference.
-- [ ] Stage 11 task does not implement testing helpers or Next.js adapters.
-- [ ] `pnpm build` works.
-- [ ] `pnpm test` works.
-- [ ] `pnpm typecheck` works.
-- [ ] `pnpm lint` works.
+- [x] Bind helper DSL compiles to existing composition bindings.
+- [x] `adapt()` supports explicit adapter declarations for required ports.
+- [x] Adapter output type matches required port token value.
+- [x] Adapter dependencies stay explicit in code and do not become hidden graph magic.
+- [x] Validation/inspection do not execute binding or adapter factories.
+- [x] Binding dependency edges remain deterministic and visible.
+- [x] Runtime tests cover supported bind/adapt conversions and graph behavior.
+- [x] Type-level assertions cover bind/adapt inference.
+- [x] Stage 11 task does not implement testing helpers or Next.js adapters.
+- [x] `pnpm build` works.
+- [x] `pnpm test` works.
+- [x] `pnpm typecheck` works.
+- [x] `pnpm lint` works.
 
 ## Linked Memory
 
@@ -79,9 +79,9 @@ public capabilities or other context-accessible dependencies.
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: planned
+  - Status: completed
   - Purpose: Початковий autonomous implementation run для bind/adapt DSL.
-  - Result: pending
+  - Result: [result.md](runs/RUN-001/result.md)
 
 ## Research
 

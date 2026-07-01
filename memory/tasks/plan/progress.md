@@ -231,7 +231,7 @@
   - Summary: Stage 11 `defineApp()` DSL and deterministic conversion to composer config.
   - Current: RUN-001
 - [TASK-07.01-0031-stage-11-bind-adapt-dsl](TASK-07.01-0031-stage-11-bind-adapt-dsl/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Stage 11 bind helper DSL and `adapt()` for explicit composition adapters.

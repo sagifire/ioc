@@ -1,6 +1,6 @@
 export { InvalidTokenIdError, namespace, token } from './tokens'
 export type { Token, TokenNamespace, TokenOptions } from './tokens'
-export { defineApp, module } from './dsl'
+export { adapt, bind, defineApp, module } from './dsl'
 export type {
     AppDslAsyncFactoryBindingDefinition,
     AppDslBindingDefinition,
@@ -9,6 +9,7 @@ export type {
     AppDslDefinitionInput,
     AppDslFactoryBindingDefinition,
     AppDslValueBindingDefinition,
+    BindDslBuilder,
     ModuleDslDefinition,
     ModuleDslDefinitionInput,
     ModuleDslDefinitionOptions
