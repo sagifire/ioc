@@ -2,52 +2,64 @@
 
 Testing helpers for `@sagifire/ioc`.
 
-Current public API:
+This package creates fresh test-only container/composer configuration before
+`freeze()` or `compose()`. It never patches an existing frozen `ContainerRuntime` or
+`ComposedRuntime`.
 
-- `createTestRuntime(configure?)`
-- `createTestRuntime({ configure, overrides })`
-- `override(token)`
-- `createTestComposer(configure?)`
-- `createTestComposer({ modules, configure, overrides })`
-- `fakeModule(definition)` / `fakeModule(id, definition)`
-- `createModuleHarness({ module, supportModules, fakeModules, overrides })`
-- `assertGraphHasModule(graph, moduleId)`
-- `assertGraphHasCapability(graph, expectation)`
-- `assertGraphHasRequiredPort(graph, expectation)`
-- `assertGraphHasBinding(graph, expectation)`
-- `assertGraphHasEdge(graph, expectation)`
-- `assertDiagnosticReportOk(report)`
-- `assertDiagnosticReportHasDiagnostic(report, expectation)`
-- `assertErrorDiagnostic(error, expectation)`
-- `DuplicateTestOverrideError`
-- `GraphAssertionError`
-- `DiagnosticAssertionError`
+The package is currently used from the workspace. The manifest is `0.0.0` and
+`UNLICENSED`; release packaging and publishing are not implemented yet.
 
-`createTestRuntime()` creates a fresh core container configuration, applies the explicit
-test configuration callback and override declarations if provided, then returns a frozen
-`ContainerRuntime`. Overrides are applied before `freeze()`; they are not patches to an
-existing runtime.
+## Imports
 
-Example:
+```ts
+import {
+    assertDiagnosticReportHasDiagnostic,
+    assertDiagnosticReportOk,
+    assertErrorDiagnostic,
+    assertGraphHasBinding,
+    assertGraphHasCapability,
+    assertGraphHasEdge,
+    assertGraphHasModule,
+    assertGraphHasRequiredPort,
+    createModuleHarness,
+    createTestComposer,
+    createTestRuntime,
+    fakeModule,
+    override
+} from '@sagifire/ioc-testing'
+```
+
+The package exposes a root export only and depends on `@sagifire/ioc`.
+
+## Public Surface
+
+- Runtime helpers: `createTestRuntime(configure?)` and
+  `createTestRuntime({ configure, overrides })`.
+- Override declarations: `override(token).toValue()`, `toFactory()`, `toClass()` and
+  `toAsyncFactory()`.
+- Composer helpers: `createTestComposer(configure?)` and
+  `createTestComposer({ modules, configure, overrides })`.
+- Fake modules: `fakeModule(definition)` and `fakeModule(id, definition)`.
+- Module harnesses: `createModuleHarness({ module, supportModules, fakeModules, overrides })`.
+- Graph assertions: `assertGraphHasModule()`, `assertGraphHasCapability()`,
+  `assertGraphHasRequiredPort()`, `assertGraphHasBinding()` and `assertGraphHasEdge()`.
+- Diagnostic assertions: `assertDiagnosticReportOk()`,
+  `assertDiagnosticReportHasDiagnostic()` and `assertErrorDiagnostic()`.
+- Error classes: `DuplicateTestOverrideError`, `GraphAssertionError` and
+  `DiagnosticAssertionError`.
+
+## Test Runtime
 
 ```ts
 import { token } from '@sagifire/ioc'
-import {
-    assertDiagnosticReportOk,
-    assertErrorDiagnostic,
-    assertGraphHasEdge,
-    assertGraphHasModule,
-    createTestComposer,
-    createTestRuntime,
-    override
-} from '@sagifire/ioc-testing'
+import { createTestRuntime, override } from '@sagifire/ioc-testing'
 
-const LOGGER = token<{ readonly name: string }>('test.logger')
+const LOGGER = token<{ info(message: string): void }>('test.logger')
 
 const runtime = await createTestRuntime({
     overrides: [
         override(LOGGER).toValue({
-            name: 'test'
+            info(): void {}
         })
     ]
 })
@@ -56,76 +68,107 @@ runtime.get(LOGGER)
 await runtime.dispose()
 ```
 
+Overrides are explicit token-level declarations. Duplicate override declarations fail
+deterministically.
+
+## Test Composer
+
 `createTestComposer()` creates a fresh core composer configuration, applies modules,
-explicit composer configuration and test overrides before validation, inspection or
-composition. Overrides are applied before `compose()` and are visible as explicit binding
-edges in graph inspection:
+explicit configuration and overrides, then returns the normal composer API:
 
 ```ts
 const composer = createTestComposer({
-    modules: [moduleUnderTest],
-    overrides: [override(REQUIRED_PORT).toValue(fakePort)]
+    modules: [contactRequestsModule],
+    overrides: [
+        override(CONTACT_AUTH_READER).toValue({
+            currentUserId(): string {
+                return 'test-user'
+            }
+        })
+    ]
 })
+
+assertDiagnosticReportOk(composer.validate())
 
 const runtime = await composer.compose()
 ```
 
-`fakeModule()` creates a normal explicit module definition for tests:
+Composer overrides are visible as explicit binding edges in inspection data.
+
+## Fake Modules And Harnesses
+
+Fake modules are normal explicit module definitions:
 
 ```ts
 const fakeAuthModule = fakeModule('test-auth', {
     provides: [
         {
-            token: REQUIRED_PORT,
-            useValue: fakePort
+            token: CONTACT_AUTH_READER,
+            useValue: {
+                currentUserId(): string {
+                    return 'test-user'
+                }
+            }
         }
     ]
 })
 ```
 
-`createModuleHarness()` composes one module under test with support modules, fake modules
-or explicit required-port overrides:
+Module harnesses compose one module under test with support modules, fake modules or
+explicit required-port overrides:
 
 ```ts
 const harness = createModuleHarness({
-    module: moduleUnderTest,
+    module: contactRequestsModule,
     fakeModules: [fakeAuthModule]
 })
 
+const graph = harness.getGraph()
 const runtime = await harness.compose()
 ```
 
-These helpers do not mutate existing frozen runtimes or composed runtimes. Fake modules
-remain visible through existing composer/runtime inspection APIs, and module-private
-providers remain hidden behind normal composed runtime capability access. Replacing a
-module-level public capability should be modeled with a fake or support module rather than
-patching a composed runtime.
+Fake modules remain visible through public graph inspection, and module-private providers
+remain hidden behind normal composed runtime capability access.
 
-Graph assertions read public `ModuleGraph`, `ComposerInspection` or `RuntimeInspection`
-data:
+## Assertions
+
+Graph assertions read `ModuleGraph`, `ComposerInspection` or `RuntimeInspection` data:
 
 ```ts
 assertGraphHasModule(harness.getGraph(), 'contact-requests')
-assertGraphHasEdge(harness.getGraph(), {
+assertGraphHasEdge(harness.inspect(), {
     edgeKind: 'binding',
-    requiredTokenId: AUTH_READER.id,
-    bindingTokenId: AUTH_READER.id
+    requiredTokenId: CONTACT_AUTH_READER.id,
+    bindingTokenId: CONTACT_AUTH_READER.id
 })
 ```
 
-Diagnostic assertions read public `DiagnosticReport` data or diagnostics derived from
-typed errors:
+Diagnostic assertions read `DiagnosticReport` data or diagnostics derived from typed
+errors:
 
 ```ts
 assertDiagnosticReportOk(harness.validate())
-assertErrorDiagnostic(error, {
+assertDiagnosticReportHasDiagnostic(harness.validate(), {
     code: 'SAGIFIRE_IOC_MISSING_REQUIRED_PORT'
+})
+assertErrorDiagnostic(error, {
+    code: 'SAGIFIRE_IOC_DUPLICATE_MODULE_ID'
 })
 ```
 
-Assertion failures throw plain deterministic `Error` subclasses, so they are usable from
-Vitest without a runtime dependency on Vitest internals.
+Assertion failures throw deterministic plain `Error` subclasses and do not require a
+runtime dependency on Vitest internals.
 
-This package depends on `@sagifire/ioc` and does not provide Next.js, React, route handler
-or server action adapters. Framework adapters belong to the separate `@sagifire/ioc-next`
-package.
+## Boundaries
+
+- `@sagifire/ioc-testing` may depend on `@sagifire/ioc`.
+- `@sagifire/ioc` must not import this package.
+- Testing helpers must not use filesystem or fixture auto-discovery.
+- Next.js, React, route handler helpers and server action helpers belong to
+  `@sagifire/ioc-next`.
+
+## More Documentation
+
+- [Testing guide](../../docs/testing.md)
+- [Diagnostics](../../docs/diagnostics.md)
+- [Composer](../../docs/composer.md)

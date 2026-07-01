@@ -1,0 +1,39 @@
+# Documentation
+
+This directory is the repository documentation map for the implemented workspace API.
+Stage 14 is expanding the deep guides in sequence, so some pages still carry skeleton
+status text. Package README files and this map are the current entry points.
+
+## Start Here
+
+- [Root README](../README.md) - product overview, package roles and quickstart.
+- [Core package README](../packages/ioc/README.md) - core imports, APIs and boundaries.
+- [Testing package README](../packages/ioc-testing/README.md) - test helpers and
+  assertions.
+- [Next package README](../packages/ioc-next/README.md) - App Router boundary helpers.
+
+## Guides
+
+- [Architecture](architecture.md) - package boundaries, explicit composition model and
+  object API / DSL relationship.
+- [Container](container.md) - tokens, providers, lifetimes, scopes and sync resolution.
+- [Async model](async-model.md) - async providers, async resources, `getAsync()` and
+  disposal.
+- [Composer](composer.md) - composer builder, validation, inspection and dependency edges.
+- [Modules](modules.md) - module definitions, capabilities, required ports and isolation.
+- [Diagnostics](diagnostics.md) - typed errors, diagnostic reports, formatting and
+  diagnostic assertions.
+- [Testing](testing.md) - isolated test runtimes, overrides, test composers, fake modules,
+  module harnesses and assertions.
+- [Next.js integration](next-integration.md) - cached runtimes, explicit request context,
+  route scopes and server action scopes.
+- [Migration from DI containers](migration-from-di-container.md) - migration notes from
+  common DI container patterns.
+
+## Examples
+
+- [Next App Router skeleton](../examples/next-app-router/README.md) - current narrow
+  workspace example for `@sagifire/ioc-next`.
+
+Additional Stage 14 example folders are planned for basic Node usage, module composition,
+async resources and testing overrides. They are not present in this repository yet.

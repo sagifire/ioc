@@ -1,6 +1,6 @@
 # TASK-07.02-0046: Stage 14 README and package docs
 
-Status: backlog
+Status: done
 Type: docs
 Execution Mode: autonomous-implementation
 Created: 2026-07-02
@@ -45,16 +45,16 @@ automation or future runtime behavior.
 
 ## Acceptance Criteria
 
-- [ ] Root README explains what `@sagifire/ioc` is and which packages exist.
-- [ ] README includes a minimal quickstart that uses implemented public API.
-- [ ] Package READMEs describe each package's current public API and boundaries.
-- [ ] Docs navigation points users to architecture, container, async, composer, modules,
+- [x] Root README explains what `@sagifire/ioc` is and which packages exist.
+- [x] README includes a minimal quickstart that uses implemented public API.
+- [x] Package READMEs describe each package's current public API and boundaries.
+- [x] Docs navigation points users to architecture, container, async, composer, modules,
   diagnostics, testing, Next integration and migration docs.
-- [ ] Documentation does not claim Stage 15 release automation is implemented.
-- [ ] Documentation does not describe unimplemented APIs as available.
-- [ ] Links are relative and resolve inside the repository.
-- [ ] Relevant docs formatting checks pass.
-- [ ] `pnpm build`, `pnpm test`, `pnpm typecheck` and `pnpm lint` are run if affected
+- [x] Documentation does not claim Stage 15 release automation is implemented.
+- [x] Documentation does not describe unimplemented APIs as available.
+- [x] Links are relative and resolve inside the repository.
+- [x] Relevant docs formatting checks pass.
+- [x] `pnpm build`, `pnpm test`, `pnpm typecheck` and `pnpm lint` are run if affected
   files or repo workflow require them; otherwise the run result documents why not.
 
 ## Linked Memory
@@ -68,9 +68,9 @@ automation or future runtime behavior.
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: pending
+  - Status: completed
   - Purpose: Autonomous implementation run for README/package documentation.
-  - Result: pending
+  - Result: approved after task-level human review
 
 ## Research
 

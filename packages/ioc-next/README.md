@@ -1,93 +1,134 @@
 # @sagifire/ioc-next
 
-Next.js App Router adapter package for `@sagifire/ioc`.
+Next.js App Router boundary helpers for `@sagifire/ioc`.
 
-Stage 13 provides the runtime foundation helper, explicit request/operation context
-declarations, a route handler scope helper, a server action scope helper and minimal App
-Router snippets:
+This package keeps framework integration outside the core package. It owns cached runtime
+creation, explicit request/action context values, route handler scopes and server action
+scopes. It does not add route scanning, filesystem discovery, hidden current-request APIs
+or business logic inside framework handlers.
 
-- `createNextRuntime()`
-- `createNextRequestContext()`
-- `nextRequestValue()`
-- `nextRequestMultiValue()`
-- `withRouteScope()`
-- `withServerActionScope()`
+The package is currently used from the workspace. The manifest is `0.0.0` and
+`UNLICENSED`; release packaging and publishing are not implemented yet.
 
-When `createNextRuntime()` wraps a composed runtime, scope-local context tokens must be
-part of the composed runtime public capability surface. The route/action invocation still
-supplies the actual request-local value through `createNextRequestContext()`.
-
-Assume `REQUEST_ID`, `PUBLIC_API` and `app` are exported by application modules and
-composition code:
+## Imports
 
 ```ts
 import {
     createNextRequestContext,
     createNextRuntime,
+    nextRequestMultiValue,
     nextRequestValue,
     withRouteScope,
     withServerActionScope
 } from '@sagifire/ioc-next'
+```
+
+The package currently exposes a root export only and depends on `@sagifire/ioc`. Its source
+does not import Next.js or React types.
+
+## Public Surface
+
+- `createNextRuntime(factory)` - creates an instance-local cached runtime helper.
+- `runtimeHelper.getRuntime()` - returns the cached runtime, deduplicating in-flight
+  initialization.
+- `runtimeHelper.reset()` - clears that helper cache without mutating or disposing the
+  cached runtime.
+- `createNextRequestContext(options)` - stores explicit token/value declarations and
+  converts them to core `CreateScopeOptions`.
+- `nextRequestValue(token, value)` - single scope-local value declaration.
+- `nextRequestMultiValue(token, value)` - multi scope-local value declaration.
+- `withRouteScope(runtimeHelper, options, callback)` - creates one scope for a route
+  invocation and disposes it on success or failure.
+- `withServerActionScope(runtimeHelper, setup, callback)` - returns an action function
+  that creates one scope per invocation and disposes it on success or failure.
+
+## Cached Runtime
+
+```ts
+import { createNextRuntime } from '@sagifire/ioc-next'
 
 const appRuntime = createNextRuntime(() => app.compose())
 
-export function createRequestContext(requestId: string) {
-    return createNextRequestContext({
-        values: [nextRequestValue(REQUEST_ID, requestId)]
-    })
-}
+const runtime = await appRuntime.getRuntime()
+```
 
+The helper owns only its own cache instance. It is not a core global container or service
+locator. Failed initialization remains retryable.
+
+## Request Context
+
+Request and action data is explicit scope-local data:
+
+```ts
+const requestContext = createNextRequestContext({
+    values: [nextRequestValue(REQUEST_ID, 'request-1')],
+    multiValues: [nextRequestMultiValue(TAGS, 'app-router')]
+})
+```
+
+When the helper wraps a composed runtime, every scope-local context token must be visible
+through that composed runtime's public capability surface. A small context module can
+declare the token as a public/shared capability and let each route/action invocation
+override it through scope-local values.
+
+## Route Handler Scope
+
+```ts
 export function GET(request: Request, context: { params: { id: string } }) {
     return withRouteScope(
         appRuntime,
         {
             request,
             context,
-            requestContext: createRequestContext(context.params.id)
+            requestContext: createNextRequestContext({
+                values: [nextRequestValue(REQUEST_ID, context.params.id)]
+            })
         },
         async ({ scope }) => {
-            const publicApi = scope.get(PUBLIC_API)
+            const api = scope.get(CONTACT_REQUESTS_API)
 
-            return publicApi.getContact(context.params.id)
+            return api.getContact(context.params.id)
         }
     )
 }
+```
 
+The callback receives runtime, scope, request, route context and optional request context
+explicitly. The helper disposes the scope in a `finally` path.
+
+## Server Action Scope
+
+```ts
 export const submitContact = withServerActionScope(
     appRuntime,
     (formData: FormData) => ({
         context: {
             actionName: 'submit-contact'
         },
-        actionContext: createRequestContext(String(formData.get('requestId') ?? 'unknown'))
+        actionContext: createNextRequestContext({
+            values: [nextRequestValue(REQUEST_ID, String(formData.get('requestId') ?? 'unknown'))]
+        })
     }),
     async ({ scope }, formData) => {
-        const publicApi = scope.get(PUBLIC_API)
+        const api = scope.get(CONTACT_REQUESTS_API)
 
-        return publicApi.submitContact(formData)
+        return api.submitContact(formData)
     }
 )
 ```
 
-`createNextRuntime()` owns an instance-local cache, reuses successful runtime
-initialization, de-duplicates concurrent initialization and retries after failed
-initialization. `reset()` clears the helper cache without disposing or mutating the cached
-runtime.
+The helper preserves action argument and return type inference. It does not use route
+request/response semantics and does not expose hidden current action or current scope APIs.
 
-`createNextRequestContext()` keeps request or operation data explicit as token/value
-declarations and converts them to core `CreateScopeOptions` through `toScopeOptions()`.
-Use `nextRequestValue()` for single scope-local values and `nextRequestMultiValue()` for
-multi scope-local values.
+## Boundaries
 
-`withRouteScope()` obtains the cached runtime, creates one scope for a route invocation,
-passes runtime, scope, request and route context explicitly to the callback and disposes
-the scope after success or failure.
+- Business logic should live behind module public APIs.
+- Route/action files should create adapter scopes and call those public APIs.
+- The helper does not mutate frozen `ContainerRuntime` or `ComposedRuntime` instances.
+- The helper does not import or configure Next.js, React or a full application runtime.
 
-`withServerActionScope()` returns an action function. Each invocation obtains the cached
-runtime, creates one scope, passes runtime, scope and explicit action context to the
-callback and disposes the scope after success or failure. The helper preserves action
-argument and return type inference and does not use route request/response semantics.
+## More Documentation
 
-`examples/next-app-router` contains a narrow App Router-shaped skeleton. It does not add
-Next.js or React dependencies and keeps route/action files thin: they create adapter scopes
-and call a module public API instead of holding business logic in framework handlers.
+- [Next.js integration guide](../../docs/next-integration.md)
+- [Architecture](../../docs/architecture.md)
+- [Example skeleton](../../examples/next-app-router/README.md)

@@ -967,6 +967,12 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
   runtime semantics.
 - `TASK-07.02-0045-stage-14-implementation-planning` завершена після task-level human
   review approval.
+- `TASK-07.02-0046-stage-14-readme-package-docs` RUN-001 виконаний агентом і завершений
+  після task-level human review approval.
+- Stage 14 README/package docs RUN-001 оновив product-oriented root README, package
+  READMEs for `@sagifire/ioc`, `@sagifire/ioc-testing`, `@sagifire/ioc-next` and
+  `docs/README.md` navigation. RUN-001 не змінював runtime behavior, public API, package
+  versions, release automation або Stage 14 example applications.
 
 ## Current Risks
 
@@ -983,7 +989,7 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 
 ## Next Steps
 
-- Запустити `TASK-07.02-0046-stage-14-readme-package-docs`.
+- Запустити `TASK-07.02-0047-stage-14-core-container-async-docs`.
 
 ## Open Questions
 

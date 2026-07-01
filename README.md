@@ -1,37 +1,217 @@
 # @sagifire/ioc
 
-Staged implementation of the planned `@sagifire/ioc` package family.
+`@sagifire/ioc` is a TypeScript-native, JavaScript-friendly toolkit for explicit
+dependency composition. It gives applications typed tokens, immutable containers,
+request/operation scopes, module composition, diagnostics, testing helpers and thin
+Next.js App Router boundary helpers without decorators, `reflect-metadata` or filesystem
+discovery.
 
-This repository currently provides workspace structure, package manifests, TypeScript
-configuration, build/test/lint/format tooling, documentation skeletons and the Stage 3 core
-token API plus the Stage 4/5/6 sync container API for single-provider registrations,
-multi-provider contributions and scopes. Stage 7 async single-provider bindings, explicit
-`getAsync()` resolution, async resources and runtime/scope disposal are implemented. Stage
-8 core diagnostics now include typed errors, diagnostic reports and plain-text formatting.
-Stage 9 composer/modules are implemented with `defineModule()`, `createComposer()`,
-`use()`, `bind()`, `validate()`, `prepare()`, `compose()` and safe inspection through
-`composer.inspect()`, `composer.getGraph()` and `runtime.inspect()`. Stage 10 dependency
-edges, binding edges and module cycle diagnostics are implemented. Stage 11 DSL now
-includes `module()`, `defineApp()`, bind helper declarations and `adapt()` over existing
-module/composer semantics, with final export and inspection-parity hardening. Testing
-package foundation now includes `createTestRuntime()` for isolated core container runtimes.
-Stage 12 testing helpers now also include explicit `override(token)` declarations and
-`createTestComposer()` for fresh composer configuration with test-only required-port
-bindings, plus explicit `fakeModule()` definitions and `createModuleHarness()` for
-isolated single-module tests. Stage 12 graph and diagnostic assertion helpers are
-implemented over public inspection/diagnostic data. Stage 13 Next adapter foundation now
-includes `createNextRuntime()` for instance-local cached runtime creation and
-`createNextRequestContext()` for explicit request/operation-scoped values,
-`withRouteScope()` for route handler invocation scopes and `withServerActionScope()` for
-server action invocation scopes.
+This repository is currently a development workspace. Package manifests use version
+`0.0.0` and `UNLICENSED`, and release automation is not implemented yet. The package names
+and import paths below describe the implemented public API in this workspace.
 
 ## Packages
 
-- `@sagifire/ioc`
-- `@sagifire/ioc-next`
-- `@sagifire/ioc-testing`
+- [`@sagifire/ioc`](packages/ioc/README.md) - core tokens, container, scopes, composer,
+  optional DSL, diagnostics and lifecycle types.
+- [`@sagifire/ioc-testing`](packages/ioc-testing/README.md) - isolated test runtimes,
+  overrides, fake modules, module harnesses and graph/diagnostic assertions.
+- [`@sagifire/ioc-next`](packages/ioc-next/README.md) - App Router boundary helpers for
+  cached runtimes, explicit request context, route scopes and server action scopes.
 
-## Current Commands
+## Install Shape
+
+The packages are not published from this repository yet. When release packaging is added,
+the intended install shape is:
+
+```sh
+pnpm add @sagifire/ioc
+pnpm add -D @sagifire/ioc-testing
+pnpm add @sagifire/ioc-next
+```
+
+Inside this monorepo the packages are consumed through `workspace:*` dependencies.
+
+## Quickstart
+
+The smallest useful setup is a typed token plus a frozen container runtime:
+
+```ts
+import { createContainer, token } from '@sagifire/ioc'
+
+interface Clock {
+    now(): Date
+}
+
+const CLOCK = token<Clock>('app.clock')
+
+const container = createContainer()
+
+container.bind(CLOCK).toValue({
+    now(): Date {
+        return new Date()
+    }
+})
+
+const runtime = await container.freeze()
+
+try {
+    const timestamp = runtime.get(CLOCK).now().toISOString()
+} finally {
+    await runtime.dispose()
+}
+```
+
+`runtime.get()` is always synchronous. Async providers and resources use explicit
+`getAsync()` access.
+
+## Module Composition
+
+The object API is first-class. Modules declare what they require and provide, and the
+application composer wires required ports explicitly:
+
+```ts
+import { createComposer, defineModule, formatDiagnostics, token } from '@sagifire/ioc'
+
+interface AuthApi {
+    requireUser(): string
+}
+
+interface AuthReader {
+    currentUserId(): string
+}
+
+interface ContactRequestsApi {
+    submit(): string
+}
+
+const AUTH_API = token<AuthApi>('auth.public-api')
+const CONTACT_AUTH = token<AuthReader>('contact-requests.auth-reader')
+const CONTACT_API = token<ContactRequestsApi>('contact-requests.public-api')
+
+const authModule = defineModule({
+    id: 'auth',
+    provides: [{ token: AUTH_API, kind: 'public-api' }],
+    setup(context) {
+        context.bind(AUTH_API).toValue({
+            requireUser(): string {
+                return 'user-1'
+            }
+        })
+    }
+})
+
+const contactRequestsModule = defineModule({
+    id: 'contact-requests',
+    requires: [{ token: CONTACT_AUTH }],
+    provides: [{ token: CONTACT_API, kind: 'public-api' }],
+    setup(context) {
+        context.bind(CONTACT_API).toFactory(({ get }) => {
+            const auth = get(CONTACT_AUTH)
+
+            return {
+                submit(): string {
+                    return auth.currentUserId()
+                }
+            }
+        })
+    }
+})
+
+const composer = createComposer().use(authModule).use(contactRequestsModule)
+
+composer.bind(CONTACT_AUTH).toFactory(({ get }) => {
+    const auth = get(AUTH_API)
+
+    return {
+        currentUserId(): string {
+            return auth.requireUser()
+        }
+    }
+})
+
+const report = composer.validate()
+
+if (!report.ok) {
+    throw new Error(formatDiagnostics(report))
+}
+
+const app = await composer.compose()
+const contactRequests = app.get(CONTACT_API)
+```
+
+The optional DSL (`module()`, `defineApp()`, `bind()` and `adapt()`) is a convenience layer
+over the same composer behavior. It does not create a global registry or hide graph edges.
+
+## Testing
+
+Testing helpers create fresh configuration before `freeze()` or `compose()`. They do not
+patch frozen production runtimes:
+
+```ts
+import { token } from '@sagifire/ioc'
+import { createTestRuntime, override } from '@sagifire/ioc-testing'
+
+const LOGGER = token<{ info(message: string): void }>('test.logger')
+
+const runtime = await createTestRuntime({
+    overrides: [
+        override(LOGGER).toValue({
+            info(): void {}
+        })
+    ]
+})
+```
+
+See [`packages/ioc-testing`](packages/ioc-testing/README.md) for test composers, fake
+modules, module harnesses and graph/diagnostic assertions.
+
+## Next.js Boundaries
+
+`@sagifire/ioc-next` is intentionally thin. It creates and disposes one scope per route or
+server action invocation and passes runtime, scope and context explicitly:
+
+```ts
+import { createNextRuntime, withRouteScope } from '@sagifire/ioc-next'
+
+const appRuntime = createNextRuntime(() => composer.compose())
+
+export function GET(request: Request, context: { params: { id: string } }) {
+    return withRouteScope(
+        appRuntime,
+        {
+            request,
+            context
+        },
+        async ({ scope }) => {
+            const api = scope.get(CONTACT_API)
+
+            return api.submit()
+        }
+    )
+}
+```
+
+The adapter package does not add route scanning, hidden current request access or business
+logic inside framework handlers.
+
+## Documentation
+
+- [Documentation map](docs/README.md)
+- [Architecture](docs/architecture.md)
+- [Container](docs/container.md)
+- [Async model](docs/async-model.md)
+- [Composer](docs/composer.md)
+- [Modules](docs/modules.md)
+- [Diagnostics](docs/diagnostics.md)
+- [Testing](docs/testing.md)
+- [Next.js integration](docs/next-integration.md)
+- [Migration from DI containers](docs/migration-from-di-container.md)
+
+Some deep guides are still being expanded during Stage 14. Package README files and the
+docs map describe the current implemented API surface.
+
+## Development
 
 ```sh
 pnpm install
@@ -42,25 +222,6 @@ pnpm lint
 pnpm format
 ```
 
-## Documentation
-
-The files in `docs/` are minimal stage-tracking documentation. They intentionally do not
-describe unimplemented testing-helper or adapter APIs before those layers are implemented.
-
-The current DSL documentation is intentionally minimal: it documents `module()`,
-`defineApp()`, bind helper declarations and `adapt()` as optional helpers over the object
-API, while keeping `defineModule()` and `createComposer()` first-class.
-
-Testing documentation covers isolated runtimes, overrides, test composers, fake modules,
-module harnesses and graph/diagnostic assertions. Overrides are applied before
-`freeze()` / `compose()` and never mutate frozen runtimes.
-
-Next integration documentation currently covers `createNextRuntime()` runtime caching,
-`createNextRequestContext()` request/operation-scoped value declarations,
-`withRouteScope()` route handler scopes and `withServerActionScope()` server action
-scopes. A narrow `examples/next-app-router` skeleton demonstrates App Router-shaped route
-and action boundaries without adding a full Next.js example suite.
-
 ## License
 
-License selection is pending.
+Package manifests currently declare `UNLICENSED` while release packaging is still pending.
