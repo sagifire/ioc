@@ -260,7 +260,7 @@
     runtime helper.
   - Current: RUN-001
 - [TASK-07.01-0035-stage-12-overrides-test-composer](TASK-07.01-0035-stage-12-overrides-test-composer/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Stage 12 override declarations and test composer helper.

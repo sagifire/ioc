@@ -24,14 +24,61 @@ describe('package exports', () => {
         const testing = await import('@sagifire/ioc-testing')
         const core = await import('@sagifire/ioc')
         const value = core.token<string>('exports.testing.value')
+        const reader = core.token<{
+            read(): string
+        }>('exports.testing.reader')
+        const publicApi = core.token<{
+            submit(): string
+        }>('exports.testing.public-api')
+        const testModule = core.defineModule({
+            id: 'exports-testing-module',
+            requires: [
+                {
+                    token: reader
+                }
+            ],
+            provides: [
+                {
+                    token: publicApi,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(publicApi).toFactory((resolutionContext) => {
+                    const resolvedReader = resolutionContext.get(reader)
+
+                    return {
+                        submit(): string {
+                            return resolvedReader.read()
+                        }
+                    }
+                })
+            }
+        })
 
         const runtime = await testing.createTestRuntime((container) => {
             container.bind(value).toValue('testing-export')
         })
+        const testComposer = testing.createTestComposer({
+            modules: [testModule],
+            overrides: [
+                testing.override(reader).toValue({
+                    read(): string {
+                        return 'testing-composer-export'
+                    }
+                })
+            ]
+        })
+        const composedRuntime = await testComposer.compose()
 
         expect(testing.createTestRuntime).toBeTypeOf('function')
+        expect(testing.createTestComposer).toBeTypeOf('function')
+        expect(testing.override).toBeTypeOf('function')
+        expect(testing.DuplicateTestOverrideError).toBeTypeOf('function')
         expect(runtime.get(value)).toBe('testing-export')
+        expect(composedRuntime.get(publicApi).submit()).toBe('testing-composer-export')
 
+        await composedRuntime.dispose()
         await runtime.dispose()
     })
 

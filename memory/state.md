@@ -355,6 +355,17 @@ runtime/type/export tests and minimal docs sync. RUN-001 не реалізову
 test composer, fake modules, module harnesses, graph/diagnostic assertions, Next.js
 adapters або core runtime semantic changes.
 
+Stage 12 overrides and test composer implementation завершено після task-level human review
+approval:
+
+- [TASK-07.01-0035-stage-12-overrides-test-composer](tasks/plan/TASK-07.01-0035-stage-12-overrides-test-composer/index.md)
+
+RUN-001 реалізував explicit `override(token)` declarations for value/factory/class/async
+factory forms, `DuplicateTestOverrideError`, overrides support in `createTestRuntime()`,
+fresh `createTestComposer()` over existing `createComposer()` semantics, runtime/type/export
+tests and minimal docs sync. RUN-001 не реалізовував fake modules, module harnesses,
+graph/diagnostic assertions, Next.js adapters або core runtime semantic changes.
+
 ## Active Tasks
 
 Немає задач у статусі `active`.
@@ -468,7 +479,7 @@ adapters або core runtime semantic changes.
   - Status: done
   - Summary: Stage 12 testing package foundation implementation task.
 - [TASK-07.01-0035-stage-12-overrides-test-composer](tasks/plan/TASK-07.01-0035-stage-12-overrides-test-composer/index.md)
-  - Status: backlog
+  - Status: done
   - Summary: Stage 12 overrides and test composer implementation task.
 - [TASK-07.01-0036-stage-12-module-harness-fake-modules](tasks/plan/TASK-07.01-0036-stage-12-module-harness-fake-modules/index.md)
   - Status: backlog
@@ -790,6 +801,14 @@ adapters або core runtime semantic changes.
 - Stage 12 testing package foundation RUN-001 не реалізовував overrides, test composer,
   fake modules, module harnesses, graph/diagnostic assertions, Next.js adapters або core
   runtime semantic changes.
+- `TASK-07.01-0035-stage-12-overrides-test-composer` RUN-001 виконаний агентом,
+  переведений у `review` і завершений після task-level human review approval.
+- Stage 12 overrides/test composer RUN-001 реалізував explicit token-typed override
+  declarations, deterministic duplicate override error, container/runtime override support,
+  fresh test composer helper, composer validation/inspection visibility, runtime/type/export
+  tests and minimal docs sync.
+- Stage 12 overrides/test composer RUN-001 не реалізовував fake modules, module harnesses,
+  graph/diagnostic assertions, Next.js adapters або core runtime semantic changes.
 
 ## Current Risks
 
@@ -806,7 +825,7 @@ adapters або core runtime semantic changes.
 ## Next Steps
 
 - Продовжити Stage 12 з
-  [TASK-07.01-0035-stage-12-overrides-test-composer](tasks/plan/TASK-07.01-0035-stage-12-overrides-test-composer/index.md),
+  [TASK-07.01-0036-stage-12-module-harness-fake-modules](tasks/plan/TASK-07.01-0036-stage-12-module-harness-fake-modules/index.md),
   якщо roadmap order не зміниться.
 
 ## Open Questions

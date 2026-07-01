@@ -15,7 +15,9 @@ edges, binding edges and module cycle diagnostics are implemented. Stage 11 DSL 
 includes `module()`, `defineApp()`, bind helper declarations and `adapt()` over existing
 module/composer semantics, with final export and inspection-parity hardening. Testing
 package foundation now includes `createTestRuntime()` for isolated core container runtimes.
-Overrides, module harnesses, graph assertions and framework adapter behavior are planned
+Stage 12 testing helpers now also include explicit `override(token)` declarations and
+`createTestComposer()` for fresh composer configuration with test-only required-port
+bindings. Module harnesses, graph assertions and framework adapter behavior are planned
 for later roadmap stages.
 
 ## Packages

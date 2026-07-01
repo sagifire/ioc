@@ -1,6 +1,6 @@
 # TASK-07.01-0035: Stage 12 overrides and test composer
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-01
@@ -48,21 +48,21 @@ runtime creation without mutating frozen production runtime.
 
 ## Acceptance Criteria
 
-- [ ] Override declarations are explicit and token-typed.
-- [ ] Overrides apply before `freeze()` / `compose()`.
-- [ ] Duplicate overrides fail with readable diagnostics or testing-package error.
-- [ ] `createTestComposer()` creates fresh composer configuration per call.
-- [ ] Test composer reuses existing `createComposer()` semantics.
-- [ ] Composer validation and graph inspection remain visible after overrides.
-- [ ] Frozen runtime is never mutated by overrides.
-- [ ] Runtime tests cover container-level and composer-level override behavior.
-- [ ] Type-level assertions cover override and test composer inference.
-- [ ] Stage 12 task does not implement fake modules, harnesses, graph assertions or
+- [x] Override declarations are explicit and token-typed.
+- [x] Overrides apply before `freeze()` / `compose()`.
+- [x] Duplicate overrides fail with readable diagnostics or testing-package error.
+- [x] `createTestComposer()` creates fresh composer configuration per call.
+- [x] Test composer reuses existing `createComposer()` semantics.
+- [x] Composer validation and graph inspection remain visible after overrides.
+- [x] Frozen runtime is never mutated by overrides.
+- [x] Runtime tests cover container-level and composer-level override behavior.
+- [x] Type-level assertions cover override and test composer inference.
+- [x] Stage 12 task does not implement fake modules, harnesses, graph assertions or
   Next.js adapters.
-- [ ] `pnpm build` works.
-- [ ] `pnpm test` works.
-- [ ] `pnpm typecheck` works.
-- [ ] `pnpm lint` works.
+- [x] `pnpm build` works.
+- [x] `pnpm test` works.
+- [x] `pnpm typecheck` works.
+- [x] `pnpm lint` works.
 
 ## Linked Memory
 
@@ -78,9 +78,9 @@ runtime creation without mutating frozen production runtime.
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: planned
+  - Status: completed
   - Purpose: Початковий autonomous implementation run для overrides and test composer.
-  - Result: pending
+  - Result: completed, approved after task-level human review
 
 ## Research
 

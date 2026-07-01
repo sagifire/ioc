@@ -1,6 +1,6 @@
 # Run Requirements: RUN-001
 
-Status: planned
+Status: completed
 Agent Role: Agent Executor
 Execution Mode: autonomous-implementation
 Created: 2026-07-01
@@ -40,17 +40,17 @@ Implement Stage 12 override declarations and test composer helper in `@sagifire/
 
 ## Acceptance Criteria for This Run
 
-- [ ] Override declarations are implemented.
-- [ ] Overrides apply before `freeze()` / `compose()`.
-- [ ] Duplicate overrides fail deterministically.
-- [ ] Test composer helper creates fresh composer configuration per call.
-- [ ] Existing composer validation and graph inspection remain visible.
-- [ ] Runtime tests cover override behavior.
-- [ ] Type assertions cover override inference.
-- [ ] `pnpm build` works.
-- [ ] `pnpm test` works.
-- [ ] `pnpm typecheck` works.
-- [ ] `pnpm lint` works.
+- [x] Override declarations are implemented.
+- [x] Overrides apply before `freeze()` / `compose()`.
+- [x] Duplicate overrides fail deterministically.
+- [x] Test composer helper creates fresh composer configuration per call.
+- [x] Existing composer validation and graph inspection remain visible.
+- [x] Runtime tests cover override behavior.
+- [x] Type assertions cover override inference.
+- [x] `pnpm build` works.
+- [x] `pnpm test` works.
+- [x] `pnpm typecheck` works.
+- [x] `pnpm lint` works.
 
 ## Changes from Previous Run
 
