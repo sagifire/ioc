@@ -30,7 +30,11 @@
 | Capability dependency edge | Module graph edge from a consumer module required port to another module's provided capability. |
 | Binding dependency edge | Module graph edge from a consumer module required port to an explicit composition-level binding. |
 | Module cycle | Directed cycle between modules through capability dependency edges; diagnostics include module ID path and token/capability path. |
-| DSL | Optional ergonomic configuration layer over explicit object-configuration API. |
+| DSL | Optional ergonomic configuration layer over explicit object-configuration API; it must not hide the dependency graph or replace the object API. |
+| Module DSL | `module()`-style ergonomic declaration for module definitions that remains compatible with `defineModule()` and composer APIs. |
+| App DSL | `defineApp()`-style ergonomic application composition layer that converts to explicit composer configuration. |
+| Bind helper DSL | Ergonomic declaration layer for composition-level bindings that compiles to existing `composer.bind()` semantics. |
+| `adapt()` | Explicit adapter helper for satisfying consumer-owned required ports through composition bindings without hidden dependency inference. |
 | Diagnostic | Structured error or report that explains validation or runtime failure with actionable details. |
 | Inspection API | Runtime/composer API that exposes safe graph metadata without exposing private provider values. |
 | Runtime target | Environment where core can run, including Node.js, browser, Edge-compatible and Workers-compatible environments where possible. |

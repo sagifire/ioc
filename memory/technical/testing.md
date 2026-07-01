@@ -180,3 +180,23 @@ inspection do not execute binding factories, module provider factories or async 
 to infer dependencies. Provider-level cycles inside factories must continue to surface as
 container/provider diagnostics when resolution actually happens. Stage 9 no-edge/no-cycle
 guard assertions should be replaced with Stage 10 edge/cycle assertions.
+
+Stage 11 module DSL foundation must add runtime tests for `module()` conversion to existing
+module definitions, explicit required ports/capabilities, validation reuse and composer
+compatibility. It must also add Vitest `expectTypeOf` assertions for module DSL token
+inference.
+
+Stage 11 `defineApp()` DSL must add runtime tests for deterministic app DSL conversion to
+existing composer configuration, validation/inspection/compose behavior and graph parity
+with equivalent object API configuration. It must also add Vitest `expectTypeOf`
+assertions for app DSL inference.
+
+Stage 11 bind/adapt DSL must add runtime tests for supported bind helper conversions,
+`adapt()` behavior, binding priority, deterministic binding dependency edges and
+non-execution of adapter/binding factories during validation/inspection. It must also add
+Vitest `expectTypeOf` assertions for required port token value, adapter output and context
+access inference.
+
+Stage 11 DSL hardening must add final regression tests for root and `@sagifire/ioc/dsl`
+exports, DSL-generated graph inspection parity, no decorators/metadata/discovery/global
+registry behavior and documentation examples that keep object API first-class.

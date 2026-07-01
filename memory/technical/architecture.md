@@ -654,6 +654,30 @@ Restrictions:
 - no hidden graph;
 - object configuration API remains fully usable.
 
+Stage 11 DSL model:
+
+- DSL is an optional layer over existing explicit object/composer APIs.
+- `module()` is an ergonomic module declaration that must produce an existing
+  `ModuleDefinition` or an equivalent shape accepted by `defineModule()` and
+  `createComposer().use()`.
+- `defineApp()` is an application composition helper that converts declared modules and
+  bindings to existing `createComposer()`, `composer.use()` and `composer.bind()` behavior.
+- Bind helper DSL must compile to existing composer binding forms and diagnostics.
+- `adapt()` is an explicit adapter helper for satisfying consumer-owned required ports.
+- DSL-generated configuration must remain visible through `composer.validate()`,
+  `composer.inspect()`, `composer.getGraph()`, `runtime.inspect()` and diagnostics.
+
+Stage 11 DSL boundaries:
+
+- DSL must not become a second runtime, container, composer or module graph model.
+- DSL must not make object configuration a legacy or unsupported path.
+- DSL must not infer hidden dependencies by executing module setup, provider factories,
+  binding factories, adapter factories or async resources during validation/inspection.
+- DSL must not add decorators, `reflect-metadata`, constructor metadata, filesystem
+  auto-discovery, framework imports, global mutable app registries or service locator
+  behavior.
+- Testing helpers and Next.js adapters remain Stage 12 and Stage 13 scope.
+
 ## Inspection API
 
 Inspection should expose safe metadata:

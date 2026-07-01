@@ -162,5 +162,10 @@ types and cycle diagnostic public details where applicable. Runtime tests remain
 tests and must cover deterministic graph edges, cycle diagnostics and non-execution of
 factories during validation/inspection.
 
+Stage 11 DSL assertions use Vitest `expectTypeOf` for `module()`, `defineApp()`, bind
+helper DSL and `adapt()` inference. Runtime tests remain Vitest tests and must cover
+DSL-to-object/composer conversion, graph inspection parity, export smoke tests and no
+hidden factory execution during validation/inspection.
+
 Broader type-level test tooling remains open for later stages if Vitest assertions are not
 enough for more complex public API inference.

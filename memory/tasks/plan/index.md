@@ -87,6 +87,21 @@
 - [TASK-06.30-0027-stage-10-runtime-inspection-hardening](TASK-06.30-0027-stage-10-runtime-inspection-hardening/index.md)
   - Type: folder
   - Purpose: Задача реалізації Stage 10 runtime inspection hardening.
+- [TASK-07.01-0028-stage-11-implementation-planning](TASK-07.01-0028-stage-11-implementation-planning/index.md)
+  - Type: folder
+  - Purpose: Планування реалізації Stage 11 DSL.
+- [TASK-07.01-0029-stage-11-module-dsl-foundation](TASK-07.01-0029-stage-11-module-dsl-foundation/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 11 module DSL foundation.
+- [TASK-07.01-0030-stage-11-define-app-dsl](TASK-07.01-0030-stage-11-define-app-dsl/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 11 `defineApp()` DSL.
+- [TASK-07.01-0031-stage-11-bind-adapt-dsl](TASK-07.01-0031-stage-11-bind-adapt-dsl/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 11 bind helper DSL and `adapt()`.
+- [TASK-07.01-0032-stage-11-dsl-hardening-docs](TASK-07.01-0032-stage-11-dsl-hardening-docs/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 11 DSL hardening, exports and docs.
 
 ## Files
 

@@ -4,7 +4,9 @@ Status: module definition, composer static validation, module setup preparation,
 runtime capability access and safe inspection metadata implemented.
 
 Modules can now be described with the explicit object-configuration `defineModule()` API.
-Composer configuration can register those definitions with `createComposer().use()`,
+The `module()` DSL helper is also available as an optional thin layer that produces the
+same module definition shape. Composer configuration can register those definitions with
+`createComposer().use()`,
 validate declared capabilities, required ports and explicit bindings with
 `composer.validate()`, and execute setup/private provider registration with
 `composer.prepare()`. `composer.compose()` creates an immutable composed runtime that

@@ -36,6 +36,11 @@ Root source trace:
 - `TASK-06.30-0025` - Stage 10 dependency edge model implementation task.
 - `TASK-06.30-0026` - Stage 10 module cycle diagnostics implementation task.
 - `TASK-06.30-0027` - Stage 10 runtime inspection hardening implementation task.
+- `TASK-07.01-0028` - Stage 11 implementation planning task.
+- `TASK-07.01-0029` - Stage 11 module DSL foundation implementation task.
+- `TASK-07.01-0030` - Stage 11 `defineApp()` DSL implementation task.
+- `TASK-07.01-0031` - Stage 11 bind/adapt DSL implementation task.
+- `TASK-07.01-0032` - Stage 11 DSL hardening/docs implementation task.
 
 ## Completed
 
@@ -536,11 +541,47 @@ Root source trace:
 ## Next
 
 - Stage 11: DSL.
+  - Status: planned; planning task done after task-level human review.
   - Source: `SPEC.md` section 41.
-  - Implement: `module()`, `defineApp()`, `adapt()`, bind helper DSL and DSL to object
-    config conversion.
-  - Acceptance: DSL creates valid configs, requires no decorators, keeps graph visible
-    and leaves object API fully usable.
+  - Planning Task: `TASK-07.01-0028-stage-11-implementation-planning`.
+  - Implementation Tasks:
+    - `TASK-07.01-0029-stage-11-module-dsl-foundation` - done after task-level human
+      review;
+    - `TASK-07.01-0030-stage-11-define-app-dsl` - backlog;
+    - `TASK-07.01-0031-stage-11-bind-adapt-dsl` - backlog;
+    - `TASK-07.01-0032-stage-11-dsl-hardening-docs` - backlog.
+  - Implementation Decomposition:
+    - Task 1 builds `module()` as an optional ergonomic layer over `defineModule()`.
+    - Task 2 builds `defineApp()` and deterministic conversion to existing composer
+      configuration.
+    - Task 3 builds bind helper DSL and `adapt()` for explicit composition adapters.
+    - Task 4 hardens DSL inference, exports, inspection parity and minimal docs.
+  - API Decisions:
+    - DSL is optional and object-configuration API remains fully usable.
+    - `module()` must produce existing module definitions or an equivalent stable shape
+      compatible with `defineModule()` and `createComposer().use()`.
+    - `defineApp()` must convert to existing `createComposer()`, `composer.use()` and
+      `composer.bind()` behavior instead of creating a parallel runtime.
+    - `adapt()` must remain explicit adapter code for required ports and must not infer
+      dependencies by executing factories during validation.
+    - DSL-generated configuration must remain inspectable through existing composer and
+      runtime graph APIs.
+  - Acceptance:
+    - DSL creates valid module and app configuration;
+    - DSL requires no decorators, `reflect-metadata`, filesystem discovery or constructor
+      metadata;
+    - dependency graph remains visible through inspection APIs;
+    - object API remains fully usable without DSL;
+    - DSL does not add testing helpers, Next.js adapters or global app/container registry;
+    - `pnpm build`, `pnpm test`, `pnpm typecheck` and `pnpm lint` pass.
+  - Guardrails:
+    - не реалізовувати `@sagifire/ioc-testing` helpers or graph assertions;
+    - не реалізовувати Next.js adapters;
+    - не додавати decorators, `reflect-metadata`, filesystem auto-discovery, global
+      mutable app/container registry or service locator;
+    - не виконувати factories/adapters during validation/inspection for hidden dependency
+      inference;
+    - не робити DSL required path for users of explicit object configuration.
 
 ## Later
 

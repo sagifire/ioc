@@ -76,6 +76,13 @@
   - Summary: Планування реалізації Stage 10 module graph cycle detection і підготовка
     декількох implementation tasks.
   - Current: FIX-001
+- [TASK-07.01-0028-stage-11-implementation-planning](TASK-07.01-0028-stage-11-implementation-planning/index.md)
+  - Status: done
+  - Type: memory-update
+  - Execution Mode: interactive-memory-update
+  - Summary: Планування реалізації Stage 11 DSL і підготовка декількох implementation
+    tasks.
+  - Current: FIX-001
 
 ## Stage 2 Implementation
 
@@ -207,6 +214,33 @@
   - Execution Mode: autonomous-implementation
   - Summary: Stage 10 composed runtime inspection, binding-edge semantics and final
     regression hardening.
+  - Current: RUN-001
+
+## Stage 11 Implementation
+
+- [TASK-07.01-0029-stage-11-module-dsl-foundation](TASK-07.01-0029-stage-11-module-dsl-foundation/index.md)
+  - Status: done
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 11 `module()` DSL foundation over existing `defineModule()` object API.
+  - Current: RUN-001
+- [TASK-07.01-0030-stage-11-define-app-dsl](TASK-07.01-0030-stage-11-define-app-dsl/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 11 `defineApp()` DSL and deterministic conversion to composer config.
+  - Current: RUN-001
+- [TASK-07.01-0031-stage-11-bind-adapt-dsl](TASK-07.01-0031-stage-11-bind-adapt-dsl/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 11 bind helper DSL and `adapt()` for explicit composition adapters.
+  - Current: RUN-001
+- [TASK-07.01-0032-stage-11-dsl-hardening-docs](TASK-07.01-0032-stage-11-dsl-hardening-docs/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 11 DSL hardening, exports, inspection parity and minimal docs sync.
   - Current: RUN-001
 
 ## Format

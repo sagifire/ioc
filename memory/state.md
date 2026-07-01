@@ -260,8 +260,34 @@ binding/provider/resource factories during validation/inspection, deterministic 
 cycle path formatting, root/composer package export smoke tests and README sync. RUN-001 не
 реалізовував DSL, adapters, testing helpers або new binding dependency declaration API.
 
-Stage 10 module graph cycle detection завершено. Stage 11 DSL лишається наступним
-roadmap-фокусом.
+Stage 10 module graph cycle detection завершено після task-level human review approval.
+
+Stage 11 implementation planning завершено після task-level human review approval:
+
+- [TASK-07.01-0028-stage-11-implementation-planning](tasks/plan/TASK-07.01-0028-stage-11-implementation-planning/index.md)
+
+Stage 11 DSL implementation заплановано як чотири послідовні implementation задачі:
+
+- [TASK-07.01-0029-stage-11-module-dsl-foundation](tasks/plan/TASK-07.01-0029-stage-11-module-dsl-foundation/index.md)
+- [TASK-07.01-0030-stage-11-define-app-dsl](tasks/plan/TASK-07.01-0030-stage-11-define-app-dsl/index.md)
+- [TASK-07.01-0031-stage-11-bind-adapt-dsl](tasks/plan/TASK-07.01-0031-stage-11-bind-adapt-dsl/index.md)
+- [TASK-07.01-0032-stage-11-dsl-hardening-docs](tasks/plan/TASK-07.01-0032-stage-11-dsl-hardening-docs/index.md)
+
+Stage 11 planning зафіксував DSL як optional ergonomic layer over explicit
+object-configuration/composer API. DSL має конвертуватися у наявні `defineModule()`,
+`createComposer()`, `composer.use()` and `composer.bind()` semantics, зберігати graph
+visibility and не додавати decorators, `reflect-metadata`, filesystem discovery, global
+registries, testing helpers or Next.js adapters.
+
+Stage 11 module DSL foundation implementation завершено після task-level human review
+approval:
+
+- [TASK-07.01-0029-stage-11-module-dsl-foundation](tasks/plan/TASK-07.01-0029-stage-11-module-dsl-foundation/index.md)
+
+RUN-001 реалізував `module()` DSL over existing `defineModule()` semantics, object form
+and id shorthand, root / `@sagifire/ioc/dsl` exports, runtime/type/package-export tests
+and minimal public docs sync. RUN-001 не реалізовував `defineApp()`, `adapt()`,
+composition-level bind helper DSL, testing helpers or Next.js adapters.
 
 ## Active Tasks
 
@@ -354,6 +380,21 @@ roadmap-фокусом.
 - [TASK-06.30-0027-stage-10-runtime-inspection-hardening](tasks/plan/TASK-06.30-0027-stage-10-runtime-inspection-hardening/index.md)
   - Status: done
   - Summary: Stage 10 runtime inspection hardening implementation task.
+- [TASK-07.01-0028-stage-11-implementation-planning](tasks/plan/TASK-07.01-0028-stage-11-implementation-planning/index.md)
+  - Status: done
+  - Summary: Stage 11 DSL implementation planning task.
+- [TASK-07.01-0029-stage-11-module-dsl-foundation](tasks/plan/TASK-07.01-0029-stage-11-module-dsl-foundation/index.md)
+  - Status: done
+  - Summary: Stage 11 module DSL foundation implementation task.
+- [TASK-07.01-0030-stage-11-define-app-dsl](tasks/plan/TASK-07.01-0030-stage-11-define-app-dsl/index.md)
+  - Status: backlog
+  - Summary: Stage 11 `defineApp()` DSL implementation task.
+- [TASK-07.01-0031-stage-11-bind-adapt-dsl](tasks/plan/TASK-07.01-0031-stage-11-bind-adapt-dsl/index.md)
+  - Status: backlog
+  - Summary: Stage 11 bind helper DSL and `adapt()` implementation task.
+- [TASK-07.01-0032-stage-11-dsl-hardening-docs](tasks/plan/TASK-07.01-0032-stage-11-dsl-hardening-docs/index.md)
+  - Status: backlog
+  - Summary: Stage 11 DSL hardening, exports and docs implementation task.
 
 ## Recent Decisions
 
@@ -608,10 +649,35 @@ roadmap-фокусом.
   review approval.
 - Stage 10 module graph cycle detection завершено після approval фінальної runtime
   inspection hardening task.
+- `TASK-07.01-0028-stage-11-implementation-planning` створена як окрема
+  interactive-memory-update задача для планування Stage 11.
+- `TASK-07.01-0028-stage-11-implementation-planning` завершена після task-level human
+  review approval.
+- Stage 11 implementation розбита на чотири implementation tasks: module DSL foundation,
+  `defineApp()` DSL, bind/adapt DSL and DSL hardening/docs.
+- Для Stage 11 прийнято, що DSL є optional ergonomic layer over explicit object
+  configuration and composer APIs.
+- Для Stage 11 прийнято, що `module()` має створювати module definitions compatible with
+  `defineModule()` and `createComposer().use()`.
+- Для Stage 11 прийнято, що `defineApp()` має конвертувати declarations to existing
+  `createComposer()`, `composer.use()` and `composer.bind()` semantics.
+- Для Stage 11 прийнято, що `adapt()` is explicit adapter code and validation/inspection
+  must not execute adapter/binding factories to infer hidden dependencies.
+- Stage 11 не реалізує `@sagifire/ioc-testing` helpers, graph assertions or Next.js
+  adapters; це Stage 12+ scope.
+- `TASK-07.01-0029-stage-11-module-dsl-foundation` RUN-001 виконаний агентом,
+  переведений у `review` і approved після task-level human review.
+- Stage 11 module DSL foundation RUN-001 реалізував `module()` as optional wrapper over
+  `defineModule()`, зберіг explicit required ports/capabilities and composer inspection
+  visibility.
+- `TASK-07.01-0029-stage-11-module-dsl-foundation` завершена після task-level human
+  review approval.
 
 ## Current Risks
 
-- DSL, Next.js adapters і testing helpers залишаються out of scope до відповідних roadmap
+- Stage 11 DSL може випадково приховати graph semantics за ergonomic API; implementation
+  tasks мають перевіряти object API parity and inspection visibility.
+- Next.js adapters і testing helpers залишаються out of scope до відповідних roadmap
   stages.
 - Binding factory internals не мають static dependency metadata; Stage 10 dependency edge
   model фіксує static required-port -> binding edges only and keeps provider-level cycles
@@ -624,7 +690,9 @@ roadmap-фокусом.
 
 ## Next Steps
 
-- Запланувати Stage 11 DSL як наступний roadmap-фокус.
+- Запустити
+  [TASK-07.01-0030-stage-11-define-app-dsl](tasks/plan/TASK-07.01-0030-stage-11-define-app-dsl/index.md),
+  якщо roadmap order не зміниться.
 
 ## Open Questions
 

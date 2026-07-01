@@ -10,5 +10,6 @@ disposal. Stage 8 core diagnostics include typed errors, diagnostic reports and 
 formatting. Stage 9 composer/modules now include explicit module definitions, composer
 builder/static validation, module setup/private provider isolation, composed runtime
 capability access and safe inspection metadata. Stage 10 dependency edges and module cycle
-diagnostics are implemented. DSL, testing helpers and adapters remain planned for later
-roadmap stages.
+diagnostics are implemented. Stage 11 module DSL foundation is implemented through
+`module()`. App-level DSL, bind/adapt DSL, testing helpers and adapters remain planned for
+later roadmap stages.

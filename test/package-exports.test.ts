@@ -33,6 +33,7 @@ describe('package exports', () => {
         expect(module.formatDiagnostics).toBeTypeOf('function')
         expect(module.createComposer).toBeTypeOf('function')
         expect(module.defineModule).toBeTypeOf('function')
+        expect(module.module).toBeTypeOf('function')
         expect(module.InvalidModuleDefinitionError).toBeTypeOf('function')
         expect(module.DuplicateModuleDependencyError).toBeTypeOf('function')
         expect(module.DuplicateModuleCapabilityError).toBeTypeOf('function')
@@ -283,6 +284,37 @@ describe('package exports', () => {
             }
         ])
         expect(cycleError.code).toBe('SAGIFIRE_IOC_MODULE_CYCLE')
+
+        await runtime.dispose()
+    })
+
+    test('dsl subpath exposes module DSL API', async () => {
+        const dsl = await import('@sagifire/ioc/dsl')
+        const composerApi = await import('@sagifire/ioc/composer')
+        const tokens = await import('@sagifire/ioc/tokens')
+        const publicApi = tokens.token<{
+            ok(): boolean
+        }>('exports.dsl.public-api')
+        const dslModule = dsl.module({
+            id: 'exports-dsl-module',
+            provides: [
+                {
+                    token: publicApi,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(publicApi).toValue({
+                    ok(): boolean {
+                        return true
+                    }
+                })
+            }
+        })
+        const runtime = await composerApi.createComposer().use(dslModule).compose()
+
+        expect(dsl.module).toBeTypeOf('function')
+        expect(runtime.get(publicApi).ok()).toBe(true)
 
         await runtime.dispose()
     })

@@ -274,4 +274,35 @@ container/runtime diagnostics.
 Stage 10 must not implement DSL helpers, `@sagifire/ioc-testing` graph assertions or
 Next.js adapters.
 
-DSL, testing helpers and adapters start only at their respective stages.
+## Stage 11 DSL Rules
+
+Stage 11 adds DSL helpers in `@sagifire/ioc` as an optional ergonomic layer over existing
+object/composer APIs.
+
+Stage 11 must preserve the architecture boundary:
+
+- DSL works over explicit object configuration and composer APIs;
+- object configuration remains fully usable without DSL;
+- container does not import or know about DSL;
+- Next.js and React remain outside core;
+- testing helpers remain outside core package implementation scope.
+
+Stage 11 DSL rules:
+
+- `module()` must create or normalize explicit module definitions compatible with
+  `defineModule()` and `createComposer().use()`.
+- `defineApp()` must convert app-level declarations to existing `createComposer()`,
+  `composer.use()` and `composer.bind()` behavior.
+- bind helper DSL must compile to existing composer binding semantics.
+- `adapt()` must be explicit adapter code for satisfying required ports and must not hide
+  required port ownership.
+- DSL-generated configuration must remain inspectable through existing graph and
+  diagnostics APIs.
+- DSL must not execute user factories/adapters during validation or inspection to infer
+  hidden dependencies.
+
+Stage 11 must not add decorators, `reflect-metadata`, constructor metadata, filesystem
+auto-discovery, global mutable app/container registries, service locator behavior, Next.js
+adapters or `@sagifire/ioc-testing` helpers.
+
+Testing helpers and adapters start only at their respective stages.

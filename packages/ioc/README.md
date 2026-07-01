@@ -30,5 +30,7 @@ Implemented in the current stage:
   `runtime.inspect()`, including dependency edge metadata.
 - module cycle diagnostics through `ModuleCycleError` and `ComposerValidationError`
   reports.
+- module DSL foundation through `module()` over existing `defineModule()` semantics.
 
-DSL, testing helpers and framework adapters are planned for later roadmap stages.
+App-level DSL, bind/adapt DSL, testing helpers and framework adapters are planned for
+later roadmap stages.
