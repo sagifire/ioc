@@ -17,7 +17,8 @@ module/composer semantics, with final export and inspection-parity hardening. Te
 package foundation now includes `createTestRuntime()` for isolated core container runtimes.
 Stage 12 testing helpers now also include explicit `override(token)` declarations and
 `createTestComposer()` for fresh composer configuration with test-only required-port
-bindings. Module harnesses, graph assertions and framework adapter behavior are planned
+bindings, plus explicit `fakeModule()` definitions and `createModuleHarness()` for
+isolated single-module tests. Graph assertions and framework adapter behavior are planned
 for later roadmap stages.
 
 ## Packages

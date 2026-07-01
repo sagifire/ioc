@@ -69,15 +69,40 @@ describe('package exports', () => {
                 })
             ]
         })
+        const fakeReaderModule = testing.fakeModule('exports-testing-fake-reader', {
+            provides: [
+                {
+                    token: reader,
+                    useValue: {
+                        read(): string {
+                            return 'testing-harness-export'
+                        }
+                    }
+                }
+            ]
+        })
+        const harness = testing.createModuleHarness({
+            module: testModule,
+            fakeModules: [fakeReaderModule]
+        })
         const composedRuntime = await testComposer.compose()
+        const harnessRuntime = await harness.compose()
 
         expect(testing.createTestRuntime).toBeTypeOf('function')
         expect(testing.createTestComposer).toBeTypeOf('function')
         expect(testing.override).toBeTypeOf('function')
+        expect(testing.fakeModule).toBeTypeOf('function')
+        expect(testing.createModuleHarness).toBeTypeOf('function')
         expect(testing.DuplicateTestOverrideError).toBeTypeOf('function')
         expect(runtime.get(value)).toBe('testing-export')
         expect(composedRuntime.get(publicApi).submit()).toBe('testing-composer-export')
+        expect(harnessRuntime.get(publicApi).submit()).toBe('testing-harness-export')
+        expect(harness.getGraph().modules.map((moduleDefinition) => moduleDefinition.id)).toEqual([
+            'exports-testing-module',
+            'exports-testing-fake-reader'
+        ])
 
+        await harnessRuntime.dispose()
         await composedRuntime.dispose()
         await runtime.dispose()
     })

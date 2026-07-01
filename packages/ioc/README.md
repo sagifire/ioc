@@ -36,8 +36,8 @@ Implemented in the current stage:
 - bind helper DSL and `adapt()` declarations over existing composition binding semantics.
 
 Testing helpers live in `@sagifire/ioc-testing`, including isolated test runtimes,
-explicit overrides and a test composer helper. Framework adapters remain planned for later
-roadmap stages.
+explicit overrides, a test composer helper, fake modules and a module harness helper.
+Framework adapters remain planned for later roadmap stages.
 
 ## Optional DSL
 

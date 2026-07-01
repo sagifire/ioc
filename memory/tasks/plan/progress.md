@@ -266,7 +266,7 @@
   - Summary: Stage 12 override declarations and test composer helper.
   - Current: RUN-001
 - [TASK-07.01-0036-stage-12-module-harness-fake-modules](TASK-07.01-0036-stage-12-module-harness-fake-modules/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Stage 12 module harness and fake module helpers.

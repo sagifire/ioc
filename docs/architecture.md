@@ -15,8 +15,8 @@ diagnostics are implemented. Stage 11 DSL includes `module()` for module definit
 declarations and `adapt()` for explicit composition adapters. Testing helpers and adapters
 are now split into Stage 12 testing package tasks and later adapter stages.
 `@sagifire/ioc-testing` currently provides `createTestRuntime()`, explicit
-`override(token)` declarations and `createTestComposer()` for fresh test-only
-configuration before `freeze()` / `compose()`.
+`override(token)` declarations, `createTestComposer()`, `fakeModule()` and
+`createModuleHarness()` for fresh test-only configuration before `freeze()` / `compose()`.
 
 ## DSL Boundary
 

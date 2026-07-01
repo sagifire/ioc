@@ -1,6 +1,6 @@
 # Run Requirements: RUN-001
 
-Status: planned
+Status: completed
 Agent Role: Agent Executor
 Execution Mode: autonomous-implementation
 Created: 2026-07-01
@@ -37,16 +37,16 @@ Implement Stage 12 fake module helpers and module harness in `@sagifire/ioc-test
 
 ## Acceptance Criteria for This Run
 
-- [ ] Fake module helper is implemented.
-- [ ] Module harness composes a single module with fake required ports.
-- [ ] Harness preserves private provider isolation.
-- [ ] Harness graph remains inspectable.
-- [ ] Runtime tests cover fake modules and harness behavior.
-- [ ] Type assertions cover fake module/harness inference.
-- [ ] `pnpm build` works.
-- [ ] `pnpm test` works.
-- [ ] `pnpm typecheck` works.
-- [ ] `pnpm lint` works.
+- [x] Fake module helper is implemented.
+- [x] Module harness composes a single module with fake required ports.
+- [x] Harness preserves private provider isolation.
+- [x] Harness graph remains inspectable.
+- [x] Runtime tests cover fake modules and harness behavior.
+- [x] Type assertions cover fake module/harness inference.
+- [x] `pnpm build` works.
+- [x] `pnpm test` works.
+- [x] `pnpm typecheck` works.
+- [x] `pnpm lint` works.
 
 ## Changes from Previous Run
 

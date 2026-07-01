@@ -1,6 +1,6 @@
 # TASK-07.01-0036: Stage 12 module harness and fake modules
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-01
@@ -49,20 +49,20 @@ helpers must preserve module isolation and graph visibility.
 
 ## Acceptance Criteria
 
-- [ ] Fake module helper creates explicit `ModuleDefinition` values.
-- [ ] Module harness composes a single module with fake required ports.
-- [ ] Harness works with support modules when needed.
-- [ ] Harness preserves module-private provider isolation.
-- [ ] Harness exposes public capabilities through normal composed runtime APIs.
-- [ ] Harness graph remains inspectable through existing APIs.
-- [ ] Runtime tests cover fake modules, fake ports and private provider isolation.
-- [ ] Type-level assertions cover fake module and harness inference.
-- [ ] Stage 12 task does not implement graph assertions, diagnostic assertions or
+- [x] Fake module helper creates explicit `ModuleDefinition` values.
+- [x] Module harness composes a single module with fake required ports.
+- [x] Harness works with support modules when needed.
+- [x] Harness preserves module-private provider isolation.
+- [x] Harness exposes public capabilities through normal composed runtime APIs.
+- [x] Harness graph remains inspectable through existing APIs.
+- [x] Runtime tests cover fake modules, fake ports and private provider isolation.
+- [x] Type-level assertions cover fake module and harness inference.
+- [x] Stage 12 task does not implement graph assertions, diagnostic assertions or
   Next.js adapters.
-- [ ] `pnpm build` works.
-- [ ] `pnpm test` works.
-- [ ] `pnpm typecheck` works.
-- [ ] `pnpm lint` works.
+- [x] `pnpm build` works.
+- [x] `pnpm test` works.
+- [x] `pnpm typecheck` works.
+- [x] `pnpm lint` works.
 
 ## Linked Memory
 
@@ -78,9 +78,9 @@ helpers must preserve module isolation and graph visibility.
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: planned
+  - Status: completed
   - Purpose: Початковий autonomous implementation run для module harness and fake modules.
-  - Result: pending
+  - Result: completed, approved after task-level human review
 
 ## Research
 

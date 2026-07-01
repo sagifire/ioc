@@ -366,6 +366,18 @@ fresh `createTestComposer()` over existing `createComposer()` semantics, runtime
 tests and minimal docs sync. RUN-001 не реалізовував fake modules, module harnesses,
 graph/diagnostic assertions, Next.js adapters або core runtime semantic changes.
 
+Stage 12 module harness and fake modules implementation завершено після task-level human
+review approval:
+
+- [TASK-07.01-0036-stage-12-module-harness-fake-modules](tasks/plan/TASK-07.01-0036-stage-12-module-harness-fake-modules/index.md)
+
+RUN-001 реалізував `fakeModule()` as explicit `ModuleDefinition` helper,
+`createModuleHarness()` over fresh `createTestComposer()` semantics, fake value/factory/
+async-factory capabilities, support modules, explicit required-port overrides,
+runtime/type/export tests and minimal docs sync. RUN-001 не реалізовував graph assertions,
+diagnostic assertions, Next.js adapters, runtime monkey-patching або core
+runtime/composer semantic changes.
+
 ## Active Tasks
 
 Немає задач у статусі `active`.
@@ -482,7 +494,7 @@ graph/diagnostic assertions, Next.js adapters або core runtime semantic chang
   - Status: done
   - Summary: Stage 12 overrides and test composer implementation task.
 - [TASK-07.01-0036-stage-12-module-harness-fake-modules](tasks/plan/TASK-07.01-0036-stage-12-module-harness-fake-modules/index.md)
-  - Status: backlog
+  - Status: done
   - Summary: Stage 12 module harness and fake modules implementation task.
 - [TASK-07.01-0037-stage-12-graph-diagnostic-assertions](tasks/plan/TASK-07.01-0037-stage-12-graph-diagnostic-assertions/index.md)
   - Status: backlog
@@ -809,6 +821,15 @@ graph/diagnostic assertions, Next.js adapters або core runtime semantic chang
   tests and minimal docs sync.
 - Stage 12 overrides/test composer RUN-001 не реалізовував fake modules, module harnesses,
   graph/diagnostic assertions, Next.js adapters або core runtime semantic changes.
+- `TASK-07.01-0036-stage-12-module-harness-fake-modules` RUN-001 виконаний агентом,
+  переведений у `review` і завершений після task-level human review approval.
+- Stage 12 module harness/fake modules RUN-001 реалізував `fakeModule()`,
+  `createModuleHarness()`, fake required ports through explicit overrides or fake modules,
+  support modules, graph visibility through existing inspection APIs and private provider
+  isolation coverage.
+- Stage 12 module harness/fake modules RUN-001 не реалізовував graph assertions,
+  diagnostic assertions, Next.js adapters, runtime monkey-patching або core semantic
+  changes.
 
 ## Current Risks
 
@@ -825,7 +846,7 @@ graph/diagnostic assertions, Next.js adapters або core runtime semantic chang
 ## Next Steps
 
 - Продовжити Stage 12 з
-  [TASK-07.01-0036-stage-12-module-harness-fake-modules](tasks/plan/TASK-07.01-0036-stage-12-module-harness-fake-modules/index.md),
+  [TASK-07.01-0037-stage-12-graph-diagnostic-assertions](tasks/plan/TASK-07.01-0037-stage-12-graph-diagnostic-assertions/index.md),
   якщо roadmap order не зміниться.
 
 ## Open Questions

@@ -9,6 +9,8 @@ Current public API:
 - `override(token)`
 - `createTestComposer(configure?)`
 - `createTestComposer({ modules, configure, overrides })`
+- `fakeModule(definition)` / `fakeModule(id, definition)`
+- `createModuleHarness({ module, supportModules, fakeModules, overrides })`
 
 `createTestRuntime()` creates a fresh core container configuration, applies the explicit
 test configuration callback and override declarations if provided, then returns a frozen
@@ -49,5 +51,32 @@ const composer = createTestComposer({
 const runtime = await composer.compose()
 ```
 
-These helpers do not mutate existing frozen runtimes or composed runtimes. Fake modules,
-module harnesses and graph/diagnostic assertions are planned for later Stage 12 tasks.
+`fakeModule()` creates a normal explicit module definition for tests:
+
+```ts
+const fakeAuthModule = fakeModule('test-auth', {
+    provides: [
+        {
+            token: REQUIRED_PORT,
+            useValue: fakePort
+        }
+    ]
+})
+```
+
+`createModuleHarness()` composes one module under test with support modules, fake modules
+or explicit required-port overrides:
+
+```ts
+const harness = createModuleHarness({
+    module: moduleUnderTest,
+    fakeModules: [fakeAuthModule]
+})
+
+const runtime = await harness.compose()
+```
+
+These helpers do not mutate existing frozen runtimes or composed runtimes. Fake modules
+remain visible through existing composer/runtime inspection APIs, and module-private
+providers remain hidden behind normal composed runtime capability access. Graph/diagnostic
+assertions are planned for later Stage 12 tasks.
