@@ -1,6 +1,6 @@
 # Stack
 
-Source trace: `SPEC.md` sections 4-6 and 32-42.
+Source trace: `SPEC.md` sections 4-6 and 32-43.
 
 ## Product Stack
 
@@ -34,6 +34,21 @@ Core package must not use:
 - React APIs
 
 Platform-specific functionality belongs in adapter packages.
+
+## Next Adapter Package
+
+`@sagifire/ioc-next` is the Next.js App Router adapter package.
+
+Stage 13 package policy:
+
+- `@sagifire/ioc-next` depends on `@sagifire/ioc`.
+- `@sagifire/ioc` must not depend on `@sagifire/ioc-next`, Next.js or React.
+- Next.js/React dependencies should be peer dependencies, optional dependencies or
+  type-only dev dependencies only when an implementation task proves they are needed.
+- Adapter tests may use simulated request/action flows when that verifies the public
+  lifecycle without requiring a full Next.js application.
+- If a task needs to install or run Next.js, it must request permission for network or
+  dependency changes instead of bypassing them.
 
 ## Package Manager
 
@@ -172,6 +187,13 @@ Stage 12 `@sagifire/ioc-testing` assertions use Vitest runtime tests and Vitest
 test composer, fake modules, module harnesses and graph/diagnostic assertion helper inputs.
 The testing package should avoid a hard runtime dependency on Vitest internals unless an
 implementation task explicitly documents why plain assertion helpers are insufficient.
+
+Stage 13 `@sagifire/ioc-next` assertions use Vitest runtime tests and Vitest
+`expectTypeOf` for Next adapter helper inference: cached runtime helper, request context
+helper, route handler scope helper and server action scope helper. Runtime tests should
+cover simulated route/action flows, scope disposal on success/failure, package exports and
+package-boundary checks. A full running Next.js app is not required for Stage 13 unless a
+specific implementation task documents why simulated flows are insufficient.
 
 Broader type-level test tooling remains open for later stages if Vitest assertions are not
 enough for more complex public API inference.

@@ -90,6 +90,13 @@
   - Summary: Планування реалізації Stage 12 `@sagifire/ioc-testing` і підготовка
     декількох implementation tasks.
   - Current: FIX-001
+- [TASK-07.01-0039-stage-13-implementation-planning](TASK-07.01-0039-stage-13-implementation-planning/index.md)
+  - Status: done
+  - Type: memory-update
+  - Execution Mode: interactive-memory-update
+  - Summary: Планування реалізації Stage 13 `@sagifire/ioc-next` і підготовка декількох
+    implementation tasks.
+  - Current: FIX-001
 
 ## Stage 2 Implementation
 
@@ -282,6 +289,39 @@
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Stage 12 testing package hardening, exports and docs sync.
+  - Current: RUN-001
+
+## Stage 13 Implementation
+
+- [TASK-07.01-0040-stage-13-next-runtime-foundation](TASK-07.01-0040-stage-13-next-runtime-foundation/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 13 Next package foundation and cached runtime helper.
+  - Current: RUN-001
+- [TASK-07.01-0041-stage-13-next-request-context](TASK-07.01-0041-stage-13-next-request-context/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 13 request context helper and request-scoped values.
+  - Current: RUN-001
+- [TASK-07.01-0042-stage-13-route-handler-scope](TASK-07.01-0042-stage-13-route-handler-scope/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 13 route handler scope helper.
+  - Current: RUN-001
+- [TASK-07.01-0043-stage-13-server-action-scope](TASK-07.01-0043-stage-13-server-action-scope/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 13 server action scope helper.
+  - Current: RUN-001
+- [TASK-07.01-0044-stage-13-next-examples-hardening-docs](TASK-07.01-0044-stage-13-next-examples-hardening-docs/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 13 Next adapter hardening, exports and minimal docs/examples.
   - Current: RUN-001
 
 ## Format

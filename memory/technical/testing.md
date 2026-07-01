@@ -232,3 +232,33 @@ Stage 12 testing hardening/docs must add final regression tests for the complete
 Next.js adapter behavior in the testing package, final helper inference and docs examples
 that demonstrate overrides applying before `freeze()` / `compose()` without mutating frozen
 runtime.
+
+Stage 13 Next runtime foundation must add runtime tests for `@sagifire/ioc-next` public
+exports, cached runtime creation, cache reuse, in-flight initialization de-duplication,
+failed initialization retry/cache policy and no mutation of existing frozen runtimes. It
+must also add Vitest `expectTypeOf` assertions for cached runtime helper inference and
+package export smoke coverage for `@sagifire/ioc-next`.
+
+Stage 13 request context must add runtime tests for explicit request context creation,
+conversion to core scope options, single and multi request-local values, deterministic
+duplicate/conflict behavior through existing core validation and public immutability of
+context declarations. It must also add Vitest `expectTypeOf` assertions for request
+context helper inference.
+
+Stage 13 route handler scope must add runtime tests using simulated route invocation for
+successful execution, thrown handler disposal, request-scoped value visibility, async
+callback behavior, explicit runtime/scope/context callback data and absence of hidden
+current request APIs. It must also add Vitest `expectTypeOf` assertions for route handler
+callback inference.
+
+Stage 13 server action scope must add runtime tests using simulated action invocation for
+successful execution, thrown action disposal, action-scoped value visibility, async
+callback behavior, explicit runtime/scope/context callback data, action argument/return
+type inference and independence from route request/response behavior. It must also add
+Vitest `expectTypeOf` assertions for server action helper inference.
+
+Stage 13 Next examples/hardening/docs must add final regression tests for the complete
+`@sagifire/ioc-next` public API, package exports, core-to-next package boundary,
+testing-to-next package boundary, no filesystem auto-discovery, no hidden current
+request/action service locator and docs/examples that demonstrate App Router boundary
+usage without placing business logic in route/action handlers.

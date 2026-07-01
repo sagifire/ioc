@@ -120,6 +120,24 @@
 - [TASK-07.01-0038-stage-12-testing-hardening-docs](TASK-07.01-0038-stage-12-testing-hardening-docs/index.md)
   - Type: folder
   - Purpose: Задача реалізації Stage 12 testing hardening, exports and docs.
+- [TASK-07.01-0039-stage-13-implementation-planning](TASK-07.01-0039-stage-13-implementation-planning/index.md)
+  - Type: folder
+  - Purpose: Планування реалізації Stage 13 `@sagifire/ioc-next`.
+- [TASK-07.01-0040-stage-13-next-runtime-foundation](TASK-07.01-0040-stage-13-next-runtime-foundation/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 13 Next package foundation and cached runtime helper.
+- [TASK-07.01-0041-stage-13-next-request-context](TASK-07.01-0041-stage-13-next-request-context/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 13 request context helper and scoped values.
+- [TASK-07.01-0042-stage-13-route-handler-scope](TASK-07.01-0042-stage-13-route-handler-scope/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 13 route handler scope helper.
+- [TASK-07.01-0043-stage-13-server-action-scope](TASK-07.01-0043-stage-13-server-action-scope/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 13 server action scope helper.
+- [TASK-07.01-0044-stage-13-next-examples-hardening-docs](TASK-07.01-0044-stage-13-next-examples-hardening-docs/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 13 Next adapter hardening, exports and docs.
 
 ## Files
 

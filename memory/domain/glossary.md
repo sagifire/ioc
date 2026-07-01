@@ -5,6 +5,12 @@
 | `@sagifire/ioc` | Core runtime-agnostic package for typed tokens, container, context scopes, composer, DSL and diagnostics. |
 | `@sagifire/ioc-next` | Next.js App Router adapter package that integrates composed runtime and request/operation scopes at framework boundaries. |
 | `@sagifire/ioc-testing` | Testing package for isolated test runtimes, overrides, fake modules, module harnesses and graph assertions. |
+| Next adapter | Framework-boundary helpers in `@sagifire/ioc-next` that connect Next.js App Router handlers/actions to existing core runtime and scope APIs. |
+| Cached runtime helper | Adapter/application-level helper that creates runtime once, deduplicates in-flight initialization and reuses the runtime without creating a core global container. |
+| Next request context | Explicit token/value context for request or operation data that can be converted to core scope-local values. |
+| Route handler scope helper | Next adapter helper that creates one scope for a route handler invocation and disposes it after success or failure. |
+| Server action scope helper | Next adapter helper that creates one scope for a server action invocation and disposes it after success or failure. |
+| Framework boundary | Entry point where framework code calls application modules, such as a Next.js route handler or server action. |
 | Token | Typed dependency identity object with stable runtime `id`; object identity is not required for matching. |
 | Token namespace | Helper that creates stable prefixed token IDs, for example `contact-requests.public-api`. |
 | Provider | Registration that knows how to produce a token value through value, factory, class, async factory or async resource binding. |

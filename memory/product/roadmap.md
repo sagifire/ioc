@@ -47,6 +47,12 @@ Root source trace:
 - `TASK-07.01-0036` - Stage 12 module harness/fake modules implementation task.
 - `TASK-07.01-0037` - Stage 12 graph/diagnostic assertions implementation task.
 - `TASK-07.01-0038` - Stage 12 testing hardening/docs implementation task.
+- `TASK-07.01-0039` - Stage 13 implementation planning task.
+- `TASK-07.01-0040` - Stage 13 Next runtime foundation implementation task.
+- `TASK-07.01-0041` - Stage 13 Next request context implementation task.
+- `TASK-07.01-0042` - Stage 13 route handler scope implementation task.
+- `TASK-07.01-0043` - Stage 13 server action scope implementation task.
+- `TASK-07.01-0044` - Stage 13 Next examples/hardening/docs implementation task.
 
 ## Completed
 
@@ -642,12 +648,63 @@ Root source trace:
 ## Next
 
 - Stage 13: `@sagifire/ioc-next`.
+  - Status: planned.
   - Source: `SPEC.md` section 43.
-  - Implement: `createNextRuntime()`, cached runtime helper, request context helper,
-    route scope helper, server action scope helper and Next.js examples.
-  - Acceptance: adapter depends on `@sagifire/ioc`, core has no Next.js dependency,
-    runtime can be cached safely and request/operation scopes are created and disposed
-    at framework boundaries.
+  - Planning Task: `TASK-07.01-0039-stage-13-implementation-planning`.
+  - Implementation Tasks:
+    - `TASK-07.01-0040-stage-13-next-runtime-foundation` - backlog;
+    - `TASK-07.01-0041-stage-13-next-request-context` - backlog;
+    - `TASK-07.01-0042-stage-13-route-handler-scope` - backlog;
+    - `TASK-07.01-0043-stage-13-server-action-scope` - backlog;
+    - `TASK-07.01-0044-stage-13-next-examples-hardening-docs` - backlog.
+  - Implementation Decomposition:
+    - Task 1 replaces the placeholder package surface and builds cached runtime helper.
+    - Task 2 builds request context helper over explicit scope-local values.
+    - Task 3 builds route handler scope helper and disposal lifecycle.
+    - Task 4 builds server action scope helper and operation lifecycle.
+    - Task 5 hardens exports/tests/boundaries and adds minimal Next integration docs and
+      examples.
+  - API Decisions:
+    - Next adapter helpers live in `@sagifire/ioc-next`.
+    - `@sagifire/ioc-next` may depend on `@sagifire/ioc`; `@sagifire/ioc` must not depend
+      on `@sagifire/ioc-next`, Next.js or React.
+    - Runtime caching belongs at adapter/application boundary and must not create a core
+      global container or service locator.
+    - Cached runtime initialization should deduplicate in-flight creation; failed
+      initialization should remain retryable unless a task documents a stronger policy.
+    - Request context is explicit scope-local data, not hidden async-local current request
+      access.
+    - Route handler and server action helpers create one scope per invocation and dispose
+      it after callback execution on success and failure.
+    - Route/action helpers pass runtime, scope and context explicitly to user callbacks.
+    - Next.js/React dependencies should be peer or optional type-only dependencies only if
+      an implementation task proves they are needed.
+  - Implement:
+    - `createNextRuntime()` or equivalent cached runtime helper;
+    - request context helper through explicit token/value declarations;
+    - route handler scope helper;
+    - server action scope helper;
+    - package exports and boundary tests;
+    - minimal Next integration docs and App Router examples/snippets.
+  - Acceptance:
+    - adapter depends on `@sagifire/ioc`;
+    - core has no Next.js, React or `@sagifire/ioc-next` dependency;
+    - runtime can be cached safely without a hidden global core container;
+    - request/operation scopes are created and disposed at framework boundaries;
+    - request context values are explicit scope-local values;
+    - route handler helper disposes scope on success and failure;
+    - server action helper disposes scope on success and failure;
+    - package exports for `@sagifire/ioc-next` work;
+    - minimal Next integration docs/examples demonstrate boundary usage.
+  - Guardrails:
+    - не імпортувати Next.js або React з `@sagifire/ioc`;
+    - не мутувати frozen `ContainerRuntime` або `ComposedRuntime`;
+    - не створювати hidden global mutable container/service locator;
+    - не додавати filesystem auto-discovery, route scanning або module discovery;
+    - не додавати decorators, `reflect-metadata` або constructor metadata;
+    - не змінювати `@sagifire/ioc-testing` helper surface;
+    - не реалізовувати broad Stage 14 documentation/examples або Stage 15 release
+      automation.
 
 ## Later
 

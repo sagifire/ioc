@@ -4,7 +4,7 @@ Source trace:
 
 - `AGENTS.md` sections `Архітектурні межі`, `Непорушні правила реалізації`,
   `Стиль коду`, `Робочий процес`.
-- `SPEC.md` sections 7, 8, 42 and 50.
+- `SPEC.md` sections 7, 8, 42, 43 and 50.
 - `memory/sources/SPEC.md` historical source snapshot.
 
 ## Architecture Boundaries
@@ -346,3 +346,44 @@ Stage 12 must not add:
 - global mutable runtime/test registry;
 - Next.js adapters, request context helpers, route handler helpers or server action
   helpers.
+
+## Stage 13 Next Adapter Rules
+
+Stage 13 adds Next.js App Router helpers in `@sagifire/ioc-next`.
+
+Stage 13 must preserve package boundaries:
+
+- `@sagifire/ioc-next` may depend on `@sagifire/ioc`;
+- `@sagifire/ioc` must not depend on `@sagifire/ioc-next`, Next.js or React;
+- `@sagifire/ioc-testing` must not expose or implement Next adapter helpers;
+- core runtime/container/composer semantics must not change unless a task explicitly
+  identifies a core API gap and updates Project Memory.
+
+Stage 13 helper rules:
+
+- cached runtime helper must reuse existing core runtime/composer/app public APIs;
+- runtime cache ownership must be explicit and adapter/application-level, not a hidden core
+  global container;
+- in-flight runtime initialization should be de-duplicated;
+- failed initialization should be retryable unless the task documents an explicit cache
+  poisoning policy;
+- request context helper must model explicit token/value scope-local data;
+- request context helper must not create hidden current-request or async-local service
+  locator behavior;
+- route handler helper must create one scope per route invocation;
+- route handler helper must dispose scope on success and failure;
+- server action helper must create one scope per action invocation;
+- server action helper must dispose scope on success and failure;
+- route/action callbacks must receive runtime, scope and context explicitly;
+- examples must keep business logic behind module public APIs rather than inside framework
+  handlers.
+
+Stage 13 must not add:
+
+- Next.js or React imports to `@sagifire/ioc`;
+- mutation of frozen `ContainerRuntime` or `ComposedRuntime`;
+- filesystem auto-discovery, route scanning or module discovery;
+- decorators, `reflect-metadata` or constructor metadata;
+- hidden global app/container registry or service locator;
+- broad Stage 14 documentation/examples;
+- Stage 15 release automation.

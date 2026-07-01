@@ -871,10 +871,34 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
   helper families, filesystem discovery, runtime monkey-patching, release automation або
   core runtime/composer semantic changes.
 - Stage 12 `@sagifire/ioc-testing` завершено після approval фінальної hardening/docs task.
+- `TASK-07.01-0039-stage-13-implementation-planning` створена як окрема
+  interactive-memory-update задача для планування Stage 13.
+- Stage 13 implementation заплановано як п'ять послідовних implementation tasks:
+  `TASK-07.01-0040-stage-13-next-runtime-foundation`,
+  `TASK-07.01-0041-stage-13-next-request-context`,
+  `TASK-07.01-0042-stage-13-route-handler-scope`,
+  `TASK-07.01-0043-stage-13-server-action-scope` and
+  `TASK-07.01-0044-stage-13-next-examples-hardening-docs`.
+- Для Stage 13 прийнято, що Next adapter helpers live in `@sagifire/ioc-next`; core
+  package must not depend on `@sagifire/ioc-next`, Next.js or React.
+- Для Stage 13 прийнято, що cached runtime helper має adapter/application-level cache
+  ownership, in-flight initialization de-duplication and no hidden core global container.
+- Для Stage 13 прийнято, що request context is explicit token/value scope-local data, not
+  hidden async-local current request access.
+- Для Stage 13 прийнято, що route handler and server action helpers create one scope per
+  invocation and dispose it on success and failure.
+- Stage 13 не реалізує filesystem auto-discovery, route scanning, decorators,
+  `reflect-metadata`, broad Stage 14 documentation/examples або Stage 15 release
+  automation.
+- `TASK-07.01-0039-stage-13-implementation-planning` завершена після task-level human
+  review approval.
 
 ## Current Risks
 
-- Next.js adapters залишаються out of scope до Stage 13.
+- `@sagifire/ioc-next` досі лишається placeholder package до виконання Stage 13
+  implementation tasks.
+- Stage 13 може потребувати Next.js/React dependency metadata або examples; якщо для цього
+  потрібна dependency installation або network access, task agent має попросити дозвіл.
 - Binding factory internals не мають static dependency metadata; Stage 10 dependency edge
   model фіксує static required-port -> binding edges only and keeps provider-level cycles
   inside factories under existing container diagnostics.
@@ -886,8 +910,7 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 
 ## Next Steps
 
-- Створити Stage 13 implementation planning task для `@sagifire/ioc-next`, якщо roadmap
-  order не зміниться.
+- Запустити `TASK-07.01-0040-stage-13-next-runtime-foundation`.
 
 ## Open Questions
 

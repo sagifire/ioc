@@ -2,7 +2,7 @@
 
 Source trace:
 
-- `SPEC.md` sections 1-3, 8-31 and 42.
+- `SPEC.md` sections 1-3, 8-31 and 42-43.
 - `AGENTS.md` architecture boundaries.
 
 ## Overview
@@ -710,6 +710,36 @@ The core pattern:
 - call public API from module;
 - keep business logic out of route/page/action;
 - dispose scope after handler/action.
+
+Stage 13 Next adapter model:
+
+- `@sagifire/ioc-next` owns all Next.js App Router adapter helpers.
+- `@sagifire/ioc-next` may depend on `@sagifire/ioc`; `@sagifire/ioc` must not depend on
+  `@sagifire/ioc-next`, Next.js or React.
+- `createNextRuntime()` or an equivalent helper creates an adapter/application-level
+  cached runtime accessor.
+- Runtime cache ownership is instance-local to the helper and must not create a hidden core
+  global container or service locator.
+- Cached runtime initialization should deduplicate in-flight creation.
+- Failed cached runtime initialization should be retryable unless an implementation task
+  records a stricter public policy.
+- Request context helpers convert explicit token/value declarations to existing
+  `CreateScopeOptions` / scope-local values.
+- Route handler helpers create one core scope per route invocation and dispose it after
+  callback execution on success and failure.
+- Server action helpers create one core scope per action invocation and dispose it after
+  callback execution on success and failure.
+- Route/action helpers pass runtime, scope and context explicitly to callbacks; they must
+  not expose hidden current request/action service locator APIs.
+
+Stage 13 boundaries:
+
+- no Next.js or React imports in `@sagifire/ioc`;
+- no runtime mutation after `freeze()` / `compose()`;
+- no filesystem auto-discovery, route scanning or module discovery;
+- no decorators, `reflect-metadata` or constructor metadata;
+- no business logic hidden in route/action adapter examples;
+- broad documentation and full examples suite remain Stage 14 scope.
 
 ## Testing Package
 
