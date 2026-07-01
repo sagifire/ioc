@@ -41,6 +41,12 @@ Root source trace:
 - `TASK-07.01-0030` - Stage 11 `defineApp()` DSL implementation task.
 - `TASK-07.01-0031` - Stage 11 bind/adapt DSL implementation task.
 - `TASK-07.01-0032` - Stage 11 DSL hardening/docs implementation task.
+- `TASK-07.01-0033` - Stage 12 implementation planning task.
+- `TASK-07.01-0034` - Stage 12 testing package foundation implementation task.
+- `TASK-07.01-0035` - Stage 12 overrides/test composer implementation task.
+- `TASK-07.01-0036` - Stage 12 module harness/fake modules implementation task.
+- `TASK-07.01-0037` - Stage 12 graph/diagnostic assertions implementation task.
+- `TASK-07.01-0038` - Stage 12 testing hardening/docs implementation task.
 
 ## Completed
 
@@ -585,12 +591,55 @@ Root source trace:
 ## Next
 
 - Stage 12: `@sagifire/ioc-testing`.
-  - Status: planned.
+  - Status: planned after task-level human review.
   - Source: `SPEC.md` section 42.
-  - Implement: test runtime, test composer, overrides, module harness, fake modules and
-    graph assertion helpers.
-  - Acceptance: overrides apply before compose, frozen runtime is never mutated, single
-    module harness works with fake ports and graph assertions are readable in Vitest.
+  - Planning Task: `TASK-07.01-0033-stage-12-implementation-planning`.
+  - Implementation Tasks:
+    - `TASK-07.01-0034-stage-12-testing-package-foundation` - backlog;
+    - `TASK-07.01-0035-stage-12-overrides-test-composer` - backlog;
+    - `TASK-07.01-0036-stage-12-module-harness-fake-modules` - backlog;
+    - `TASK-07.01-0037-stage-12-graph-diagnostic-assertions` - backlog;
+    - `TASK-07.01-0038-stage-12-testing-hardening-docs` - backlog.
+  - Implementation Decomposition:
+    - Task 1 replaces the placeholder package surface and builds isolated test runtime
+      foundation.
+    - Task 2 builds explicit override declarations and test composer helpers.
+    - Task 3 builds fake modules and single-module harness helpers.
+    - Task 4 builds graph and diagnostic assertion helpers.
+    - Task 5 hardens final exports, package boundaries and docs.
+  - API Decisions:
+    - Testing helpers live in `@sagifire/ioc-testing`, not in core.
+    - `@sagifire/ioc-testing` may depend on `@sagifire/ioc`; core must not depend on
+      testing helpers.
+    - Test runtimes/composers are created from fresh configuration.
+    - Overrides apply before `freeze()` / `compose()` and never mutate frozen runtime.
+    - Composer-level overrides should satisfy required ports or test wiring; replacing
+      public capabilities should be modeled by fake/test modules.
+    - Fake modules are explicit module definitions and remain visible in inspection.
+    - Module harnesses preserve module-private provider isolation.
+    - Graph assertions use public inspection data only.
+    - Diagnostic assertions use public `DiagnosticReport` / typed error data only.
+  - Acceptance:
+    - test runtime helper creates isolated runtime configuration;
+    - test composer helper composes modules with test-only overrides;
+    - overrides apply before `compose()` / `freeze()`;
+    - frozen runtime is never mutated;
+    - single module harness works with fake required ports;
+    - fake modules are explicit and inspectable;
+    - graph assertions are readable in Vitest;
+    - diagnostic assertions are deterministic and readable;
+    - package exports for `@sagifire/ioc-testing` work;
+    - `pnpm build`, `pnpm test`, `pnpm typecheck` and `pnpm lint` pass.
+  - Guardrails:
+    - не мутувати frozen `ContainerRuntime` або `ComposedRuntime`;
+    - не використовувати private runtime internals для overrides or assertions;
+    - не приховувати dependency graph за testing DSL magic;
+    - не додавати filesystem auto-discovery or fixture auto-discovery;
+    - не реалізовувати Next.js adapters, route/action scopes or framework helpers;
+    - не додавати decorators, `reflect-metadata`, Node-only APIs or global mutable
+      registries into core;
+    - не змінювати core container/composer/runtime semantics без окремої task-level
+      потреби.
 
 ## Later
 

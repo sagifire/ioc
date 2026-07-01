@@ -102,6 +102,24 @@
 - [TASK-07.01-0032-stage-11-dsl-hardening-docs](TASK-07.01-0032-stage-11-dsl-hardening-docs/index.md)
   - Type: folder
   - Purpose: Задача реалізації Stage 11 DSL hardening, exports and docs.
+- [TASK-07.01-0033-stage-12-implementation-planning](TASK-07.01-0033-stage-12-implementation-planning/index.md)
+  - Type: folder
+  - Purpose: Планування реалізації Stage 12 `@sagifire/ioc-testing`.
+- [TASK-07.01-0034-stage-12-testing-package-foundation](TASK-07.01-0034-stage-12-testing-package-foundation/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 12 testing package foundation.
+- [TASK-07.01-0035-stage-12-overrides-test-composer](TASK-07.01-0035-stage-12-overrides-test-composer/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 12 overrides and test composer.
+- [TASK-07.01-0036-stage-12-module-harness-fake-modules](TASK-07.01-0036-stage-12-module-harness-fake-modules/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 12 module harness and fake modules.
+- [TASK-07.01-0037-stage-12-graph-diagnostic-assertions](TASK-07.01-0037-stage-12-graph-diagnostic-assertions/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 12 graph and diagnostic assertions.
+- [TASK-07.01-0038-stage-12-testing-hardening-docs](TASK-07.01-0038-stage-12-testing-hardening-docs/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 12 testing hardening, exports and docs.
 
 ## Files
 

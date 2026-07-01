@@ -1,6 +1,6 @@
 # Stack
 
-Source trace: `SPEC.md` sections 4-6 and 32-40.
+Source trace: `SPEC.md` sections 4-6 and 32-42.
 
 ## Product Stack
 
@@ -166,6 +166,12 @@ Stage 11 DSL assertions use Vitest `expectTypeOf` for `module()`, `defineApp()`,
 helper DSL and `adapt()` inference. Runtime tests remain Vitest tests and must cover
 DSL-to-object/composer conversion, graph inspection parity, export smoke tests and no
 hidden factory execution during validation/inspection.
+
+Stage 12 `@sagifire/ioc-testing` assertions use Vitest runtime tests and Vitest
+`expectTypeOf` for testing package helper inference: isolated test runtime, overrides,
+test composer, fake modules, module harnesses and graph/diagnostic assertion helper inputs.
+The testing package should avoid a hard runtime dependency on Vitest internals unless an
+implementation task explicitly documents why plain assertion helpers are insufficient.
 
 Broader type-level test tooling remains open for later stages if Vitest assertions are not
 enough for more complex public API inference.

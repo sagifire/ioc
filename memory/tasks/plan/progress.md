@@ -83,6 +83,13 @@
   - Summary: Планування реалізації Stage 11 DSL і підготовка декількох implementation
     tasks.
   - Current: FIX-001
+- [TASK-07.01-0033-stage-12-implementation-planning](TASK-07.01-0033-stage-12-implementation-planning/index.md)
+  - Status: done
+  - Type: memory-update
+  - Execution Mode: interactive-memory-update
+  - Summary: Планування реалізації Stage 12 `@sagifire/ioc-testing` і підготовка
+    декількох implementation tasks.
+  - Current: FIX-001
 
 ## Stage 2 Implementation
 
@@ -241,6 +248,40 @@
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Stage 11 DSL hardening, exports, inspection parity and minimal docs sync.
+  - Current: RUN-001
+
+## Stage 12 Implementation
+
+- [TASK-07.01-0034-stage-12-testing-package-foundation](TASK-07.01-0034-stage-12-testing-package-foundation/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 12 `@sagifire/ioc-testing` package foundation and isolated test
+    runtime helper.
+  - Current: RUN-001
+- [TASK-07.01-0035-stage-12-overrides-test-composer](TASK-07.01-0035-stage-12-overrides-test-composer/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 12 override declarations and test composer helper.
+  - Current: RUN-001
+- [TASK-07.01-0036-stage-12-module-harness-fake-modules](TASK-07.01-0036-stage-12-module-harness-fake-modules/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 12 module harness and fake module helpers.
+  - Current: RUN-001
+- [TASK-07.01-0037-stage-12-graph-diagnostic-assertions](TASK-07.01-0037-stage-12-graph-diagnostic-assertions/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 12 graph and diagnostic assertion helpers.
+  - Current: RUN-001
+- [TASK-07.01-0038-stage-12-testing-hardening-docs](TASK-07.01-0038-stage-12-testing-hardening-docs/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 12 testing package hardening, exports and docs sync.
   - Current: RUN-001
 
 ## Format

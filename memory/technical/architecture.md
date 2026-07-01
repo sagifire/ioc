@@ -2,7 +2,7 @@
 
 Source trace:
 
-- `SPEC.md` sections 1-3 and 8-31.
+- `SPEC.md` sections 1-3, 8-31 and 42.
 - `AGENTS.md` architecture boundaries.
 
 ## Overview
@@ -724,6 +724,38 @@ The core pattern:
 - diagnostic assertions.
 
 Overrides apply before compose and never mutate frozen production runtime.
+
+Stage 12 testing package model:
+
+- testing helpers live in `@sagifire/ioc-testing`;
+- `@sagifire/ioc-testing` may depend on `@sagifire/ioc`;
+- `@sagifire/ioc` must not depend on `@sagifire/ioc-testing`;
+- test runtime helpers create fresh container configuration and freeze it for each test
+  runtime;
+- test composer helpers create fresh composer configuration and apply modules, bindings
+  and overrides before `compose()`;
+- overrides are explicit token-level declarations and are applied before `freeze()` or
+  `compose()`;
+- overrides never mutate a frozen `ContainerRuntime` or `ComposedRuntime`;
+- replacing a public capability for a module-level test should use an explicit fake module
+  or support module rather than runtime patching;
+- fake modules are normal explicit module definitions and remain visible through
+  inspection APIs;
+- module harnesses compose one module under test with fake required ports and support
+  modules while preserving private provider isolation;
+- graph assertions read public `ModuleGraph`, `ComposerInspection` or `RuntimeInspection`
+  data;
+- diagnostic assertions read public `DiagnosticReport` or typed error-derived diagnostic
+  data.
+
+Stage 12 testing package boundaries:
+
+- no monkey-patching of core runtime internals;
+- no filesystem or fixture auto-discovery;
+- no hidden dependency inference by executing factories for assertion setup;
+- no Next.js adapters or framework boundary helpers;
+- no decorators or `reflect-metadata`;
+- no global mutable runtime registry.
 
 ## Reference Architecture Example
 

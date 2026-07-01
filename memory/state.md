@@ -326,6 +326,24 @@ composer/runtime binding semantics.
 
 Stage 11 DSL завершено після approval фінальної hardening/docs task.
 
+Stage 12 implementation planning завершено після task-level human review approval:
+
+- [TASK-07.01-0033-stage-12-implementation-planning](tasks/plan/TASK-07.01-0033-stage-12-implementation-planning/index.md)
+
+Stage 12 `@sagifire/ioc-testing` implementation заплановано як п'ять послідовних
+implementation задач:
+
+- [TASK-07.01-0034-stage-12-testing-package-foundation](tasks/plan/TASK-07.01-0034-stage-12-testing-package-foundation/index.md)
+- [TASK-07.01-0035-stage-12-overrides-test-composer](tasks/plan/TASK-07.01-0035-stage-12-overrides-test-composer/index.md)
+- [TASK-07.01-0036-stage-12-module-harness-fake-modules](tasks/plan/TASK-07.01-0036-stage-12-module-harness-fake-modules/index.md)
+- [TASK-07.01-0037-stage-12-graph-diagnostic-assertions](tasks/plan/TASK-07.01-0037-stage-12-graph-diagnostic-assertions/index.md)
+- [TASK-07.01-0038-stage-12-testing-hardening-docs](tasks/plan/TASK-07.01-0038-stage-12-testing-hardening-docs/index.md)
+
+Stage 12 planning зафіксував testing helper boundary: helpers live in
+`@sagifire/ioc-testing`, create fresh test configuration/runtime instances, apply
+overrides before `freeze()` / `compose()`, never mutate frozen runtime and use public graph
+/ diagnostic data for assertions.
+
 ## Active Tasks
 
 Немає задач у статусі `active`.
@@ -432,6 +450,24 @@ Stage 11 DSL завершено після approval фінальної hardening
 - [TASK-07.01-0032-stage-11-dsl-hardening-docs](tasks/plan/TASK-07.01-0032-stage-11-dsl-hardening-docs/index.md)
   - Status: done
   - Summary: Stage 11 DSL hardening, exports and docs implementation task.
+- [TASK-07.01-0033-stage-12-implementation-planning](tasks/plan/TASK-07.01-0033-stage-12-implementation-planning/index.md)
+  - Status: done
+  - Summary: Stage 12 `@sagifire/ioc-testing` implementation planning task.
+- [TASK-07.01-0034-stage-12-testing-package-foundation](tasks/plan/TASK-07.01-0034-stage-12-testing-package-foundation/index.md)
+  - Status: backlog
+  - Summary: Stage 12 testing package foundation implementation task.
+- [TASK-07.01-0035-stage-12-overrides-test-composer](tasks/plan/TASK-07.01-0035-stage-12-overrides-test-composer/index.md)
+  - Status: backlog
+  - Summary: Stage 12 overrides and test composer implementation task.
+- [TASK-07.01-0036-stage-12-module-harness-fake-modules](tasks/plan/TASK-07.01-0036-stage-12-module-harness-fake-modules/index.md)
+  - Status: backlog
+  - Summary: Stage 12 module harness and fake modules implementation task.
+- [TASK-07.01-0037-stage-12-graph-diagnostic-assertions](tasks/plan/TASK-07.01-0037-stage-12-graph-diagnostic-assertions/index.md)
+  - Status: backlog
+  - Summary: Stage 12 graph and diagnostic assertions implementation task.
+- [TASK-07.01-0038-stage-12-testing-hardening-docs](tasks/plan/TASK-07.01-0038-stage-12-testing-hardening-docs/index.md)
+  - Status: backlog
+  - Summary: Stage 12 testing hardening, exports and docs implementation task.
 
 ## Recent Decisions
 
@@ -718,13 +754,27 @@ Stage 11 DSL завершено після approval фінальної hardening
 - Stage 11 DSL завершено: `module()`, `defineApp()`, bind helper declarations and
   `adapt()` implemented as optional layer over object/composer APIs with inspection parity
   coverage and minimal docs sync.
+- `TASK-07.01-0033-stage-12-implementation-planning` створена як окрема
+  interactive-memory-update задача для планування Stage 12.
+- `TASK-07.01-0033-stage-12-implementation-planning` завершена після task-level human
+  review approval.
+- Stage 12 implementation розбита на п'ять implementation tasks: testing package
+  foundation, overrides/test composer, module harness/fake modules, graph/diagnostic
+  assertions and testing hardening/docs.
+- Для Stage 12 прийнято, що testing helpers live in `@sagifire/ioc-testing`; core package
+  must not depend on testing helpers.
+- Для Stage 12 прийнято, що test runtime/composer helpers create fresh configuration and
+  apply overrides before `freeze()` / `compose()`.
+- Для Stage 12 прийнято, що frozen `ContainerRuntime` and `ComposedRuntime` are never
+  mutated by testing helpers.
+- Для Stage 12 прийнято, що fake modules are explicit module definitions and graph
+  assertions use public inspection/diagnostics data only.
+- Stage 12 не реалізує Next.js adapters, route/action scopes, filesystem discovery,
+  runtime monkey-patching or core semantic changes.
 
 ## Current Risks
 
-- Stage 12 `@sagifire/ioc-testing` ще не сплановано task-level decomposition; не треба
-  починати implementation helpers без окремої planning task.
-- Next.js adapters і testing helpers залишаються out of scope до відповідних roadmap
-  stages.
+- Next.js adapters залишаються out of scope до Stage 13.
 - Binding factory internals не мають static dependency metadata; Stage 10 dependency edge
   model фіксує static required-port -> binding edges only and keeps provider-level cycles
   inside factories under existing container diagnostics.
@@ -736,8 +786,9 @@ Stage 11 DSL завершено після approval фінальної hardening
 
 ## Next Steps
 
-- Створити planning task для Stage 12 `@sagifire/ioc-testing`, якщо roadmap order не
-  зміниться.
+- Запустити
+  [TASK-07.01-0034-stage-12-testing-package-foundation](tasks/plan/TASK-07.01-0034-stage-12-testing-package-foundation/index.md),
+  якщо roadmap order не зміниться.
 
 ## Open Questions
 

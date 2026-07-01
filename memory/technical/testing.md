@@ -200,3 +200,35 @@ access inference.
 Stage 11 DSL hardening must add final regression tests for root and `@sagifire/ioc/dsl`
 exports, DSL-generated graph inspection parity, no decorators/metadata/discovery/global
 registry behavior and documentation examples that keep object API first-class.
+
+Stage 12 testing package foundation must add runtime tests for `@sagifire/ioc-testing`
+public exports, isolated test runtime creation, explicit test container configuration,
+fresh runtime/configuration per helper call, provider resolution through existing core
+runtime APIs and disposal behavior. It must also add Vitest `expectTypeOf` assertions for
+testing runtime helper inference and package export smoke coverage for
+`@sagifire/ioc-testing`.
+
+Stage 12 overrides/test composer must add runtime tests for explicit override
+declarations, applying overrides before `freeze()` / `compose()`, duplicate override
+rejection, test composer creation from fresh configuration, required-port override
+validation, graph visibility after overrides and no mutation of frozen runtime. It must
+also add Vitest `expectTypeOf` assertions for override token inference and test composer
+helper types.
+
+Stage 12 module harness/fake modules must add runtime tests for fake module creation,
+single-module harness composition, fake required ports, support modules, public capability
+resolution through composed runtime, private provider isolation and graph inspection
+visibility. It must also add Vitest `expectTypeOf` assertions for fake module and harness
+inference.
+
+Stage 12 graph/diagnostic assertions must add runtime tests for passing and failing graph
+assertions, deterministic failure messages, module/capability/required-port/binding/edge
+checks, diagnostic report checks, typed error-derived diagnostic checks and non-mutation of
+input graph/diagnostic objects. It must also add Vitest `expectTypeOf` assertions for
+assertion helper input types.
+
+Stage 12 testing hardening/docs must add final regression tests for the complete
+`@sagifire/ioc-testing` public API, package exports, core-to-testing package boundary, no
+Next.js adapter behavior in the testing package, final helper inference and docs examples
+that demonstrate overrides applying before `freeze()` / `compose()` without mutating frozen
+runtime.

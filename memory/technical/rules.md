@@ -4,7 +4,7 @@ Source trace:
 
 - `AGENTS.md` sections `Архітектурні межі`, `Непорушні правила реалізації`,
   `Стиль коду`, `Робочий процес`.
-- `SPEC.md` sections 7, 8 and 50.
+- `SPEC.md` sections 7, 8, 42 and 50.
 - `memory/sources/SPEC.md` historical source snapshot.
 
 ## Architecture Boundaries
@@ -306,3 +306,43 @@ auto-discovery, global mutable app/container registries, service locator behavio
 adapters or `@sagifire/ioc-testing` helpers.
 
 Testing helpers and adapters start only at their respective stages.
+
+## Stage 12 Testing Package Rules
+
+Stage 12 adds testing helpers in `@sagifire/ioc-testing`.
+
+Stage 12 must preserve package boundaries:
+
+- `@sagifire/ioc-testing` may depend on `@sagifire/ioc`;
+- `@sagifire/ioc` must not depend on `@sagifire/ioc-testing`;
+- Next.js and React remain outside Stage 12 testing helper scope;
+- core runtime/container/composer semantics must not change unless a task explicitly
+  identifies a core API gap and updates Project Memory.
+
+Stage 12 helper rules:
+
+- test runtime helpers must create fresh container configuration before `freeze()`;
+- test composer helpers must create fresh composer configuration before `compose()`;
+- overrides must be explicit token-level declarations;
+- overrides must apply before `freeze()` / `compose()`;
+- overrides must not mutate frozen `ContainerRuntime` or `ComposedRuntime`;
+- duplicate overrides should fail deterministically unless a task explicitly documents a
+  different rule;
+- fake modules must be explicit module definitions or compile to explicit module
+  definitions;
+- module harnesses must preserve module-private provider isolation;
+- graph assertions must read public `ModuleGraph`, `ComposerInspection` or
+  `RuntimeInspection` data only;
+- diagnostic assertions must read public `DiagnosticReport` or typed error data only;
+- assertion helpers must produce deterministic readable failures.
+
+Stage 12 must not add:
+
+- runtime monkey-patching;
+- access to private runtime internals;
+- hidden dependency inference by executing factories for assertion setup;
+- filesystem auto-discovery or fixture auto-discovery;
+- decorators or `reflect-metadata`;
+- global mutable runtime/test registry;
+- Next.js adapters, request context helpers, route handler helpers or server action
+  helpers.

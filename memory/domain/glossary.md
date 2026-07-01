@@ -35,6 +35,13 @@
 | App DSL | `defineApp()`-style ergonomic application composition layer that converts to explicit composer configuration. |
 | Bind helper DSL | Ergonomic declaration layer for composition-level bindings that compiles to existing `composer.bind()` semantics. |
 | `adapt()` | Explicit adapter helper for satisfying consumer-owned required ports through composition bindings without hidden dependency inference. |
+| Testing runtime | Fresh runtime created for tests from isolated configuration; it must not mutate production runtime. |
+| Test composer | Testing helper that builds a fresh composer configuration with modules, bindings and overrides before composition. |
+| Override | Explicit test-only token binding applied before `freeze()` or `compose()`; it is not a patch to a frozen runtime. |
+| Fake module | Explicit test module definition used to provide fake capabilities or ports while remaining visible in module graph inspection. |
+| Module harness | Testing helper that composes one module under test with fake required ports or support modules. |
+| Graph assertion | Testing helper that checks public module graph or inspection data with readable deterministic failure messages. |
+| Diagnostic assertion | Testing helper that checks public diagnostics reports or typed diagnostic data with readable deterministic failure messages. |
 | Diagnostic | Structured error or report that explains validation or runtime failure with actionable details. |
 | Inspection API | Runtime/composer API that exposes safe graph metadata without exposing private provider values. |
 | Runtime target | Environment where core can run, including Node.js, browser, Edge-compatible and Workers-compatible environments where possible. |
