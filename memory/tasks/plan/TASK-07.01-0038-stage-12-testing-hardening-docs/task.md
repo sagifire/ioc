@@ -1,6 +1,6 @@
 # TASK-07.01-0038: Stage 12 testing hardening and docs
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-01
@@ -42,20 +42,20 @@ API coverage and documentation without starting Stage 13 adapters.
 
 ## Acceptance Criteria
 
-- [ ] Final `@sagifire/ioc-testing` public helper surface has integration regression tests.
-- [ ] Package export smoke tests cover final testing API.
-- [ ] Type-level assertions cover final helper inference.
-- [ ] Docs explain isolated test runtimes, overrides, test composer, module harnesses,
+- [x] Final `@sagifire/ioc-testing` public helper surface has integration regression tests.
+- [x] Package export smoke tests cover final testing API.
+- [x] Type-level assertions cover final helper inference.
+- [x] Docs explain isolated test runtimes, overrides, test composer, module harnesses,
   fake modules and graph/diagnostic assertions.
-- [ ] Docs state that overrides apply before `freeze()` / `compose()` and never mutate
+- [x] Docs state that overrides apply before `freeze()` / `compose()` and never mutate
   frozen runtime.
-- [ ] Boundary checks confirm core does not import testing package.
-- [ ] Boundary checks confirm testing package does not implement Next.js adapters.
-- [ ] Stage 12 task does not implement Stage 13, Stage 14 or Stage 15 behavior.
-- [ ] `pnpm build` works.
-- [ ] `pnpm test` works.
-- [ ] `pnpm typecheck` works.
-- [ ] `pnpm lint` works.
+- [x] Boundary checks confirm core does not import testing package.
+- [x] Boundary checks confirm testing package does not implement Next.js adapters.
+- [x] Stage 12 task does not implement Stage 13, Stage 14 or Stage 15 behavior.
+- [x] `pnpm build` works.
+- [x] `pnpm test` works.
+- [x] `pnpm typecheck` works.
+- [x] `pnpm lint` works.
 
 ## Linked Memory
 
@@ -71,9 +71,9 @@ API coverage and documentation without starting Stage 13 adapters.
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: planned
+  - Status: completed
   - Purpose: Початковий autonomous implementation run для testing package hardening.
-  - Result: pending
+  - Result: completed, approved after task-level human review
 
 ## Research
 

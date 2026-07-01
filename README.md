@@ -18,8 +18,9 @@ package foundation now includes `createTestRuntime()` for isolated core containe
 Stage 12 testing helpers now also include explicit `override(token)` declarations and
 `createTestComposer()` for fresh composer configuration with test-only required-port
 bindings, plus explicit `fakeModule()` definitions and `createModuleHarness()` for
-isolated single-module tests. Graph assertions and framework adapter behavior are planned
-for later roadmap stages.
+isolated single-module tests. Stage 12 graph and diagnostic assertion helpers are
+implemented over public inspection/diagnostic data. Framework adapter behavior remains
+planned for later roadmap stages.
 
 ## Packages
 
@@ -46,6 +47,10 @@ describe unimplemented testing-helper or adapter APIs before those layers are im
 The current DSL documentation is intentionally minimal: it documents `module()`,
 `defineApp()`, bind helper declarations and `adapt()` as optional helpers over the object
 API, while keeping `defineModule()` and `createComposer()` first-class.
+
+Testing documentation covers isolated runtimes, overrides, test composers, fake modules,
+module harnesses and graph/diagnostic assertions. Overrides are applied before
+`freeze()` / `compose()` and never mutate frozen runtimes.
 
 ## License
 

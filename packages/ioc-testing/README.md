@@ -19,10 +19,14 @@ Current public API:
 - `assertDiagnosticReportOk(report)`
 - `assertDiagnosticReportHasDiagnostic(report, expectation)`
 - `assertErrorDiagnostic(error, expectation)`
+- `DuplicateTestOverrideError`
+- `GraphAssertionError`
+- `DiagnosticAssertionError`
 
 `createTestRuntime()` creates a fresh core container configuration, applies the explicit
 test configuration callback and override declarations if provided, then returns a frozen
-`ContainerRuntime`.
+`ContainerRuntime`. Overrides are applied before `freeze()`; they are not patches to an
+existing runtime.
 
 Example:
 
@@ -54,7 +58,8 @@ await runtime.dispose()
 
 `createTestComposer()` creates a fresh core composer configuration, applies modules,
 explicit composer configuration and test overrides before validation, inspection or
-composition:
+composition. Overrides are applied before `compose()` and are visible as explicit binding
+edges in graph inspection:
 
 ```ts
 const composer = createTestComposer({
@@ -94,7 +99,9 @@ const runtime = await harness.compose()
 
 These helpers do not mutate existing frozen runtimes or composed runtimes. Fake modules
 remain visible through existing composer/runtime inspection APIs, and module-private
-providers remain hidden behind normal composed runtime capability access.
+providers remain hidden behind normal composed runtime capability access. Replacing a
+module-level public capability should be modeled with a fake or support module rather than
+patching a composed runtime.
 
 Graph assertions read public `ModuleGraph`, `ComposerInspection` or `RuntimeInspection`
 data:
@@ -120,3 +127,7 @@ assertErrorDiagnostic(error, {
 
 Assertion failures throw plain deterministic `Error` subclasses, so they are usable from
 Vitest without a runtime dependency on Vitest internals.
+
+This package depends on `@sagifire/ioc` and does not provide Next.js, React, route handler
+or server action adapters. Framework adapters belong to `@sagifire/ioc-next` in a later
+roadmap stage.

@@ -1,6 +1,6 @@
 # Testing
 
-Status: Stage 12 graph and diagnostic assertions.
+Status: Stage 12 final testing package hardening.
 
 `@sagifire/ioc-testing` currently exposes isolated runtime helpers, explicit overrides, a
 test composer helper, fake modules, a module harness helper and assertion helpers:
@@ -23,7 +23,8 @@ test composer helper, fake modules, a module harness helper and assertion helper
 
 Runtime helpers create a fresh `@sagifire/ioc` container configuration per call, apply
 explicit test configuration and override declarations before `freeze()` and return a
-frozen `ContainerRuntime`.
+frozen `ContainerRuntime`. Overrides are explicit token-level declarations and are never
+applied to an existing frozen runtime.
 
 ```ts
 const runtime = await createTestRuntime({
@@ -83,7 +84,9 @@ These helpers reuse core container/composer APIs and do not mutate existing froz
 `ContainerRuntime` or `ComposedRuntime` instances. Duplicate override declarations fail
 deterministically. Fake modules remain visible through existing composer/runtime
 inspection APIs and module-private providers remain hidden behind normal composed runtime
-capability access.
+capability access. If a test needs to replace a public capability, prefer an explicit fake
+module or support module; overrides are intended for required ports and test wiring before
+composition.
 
 Graph assertions read public `ModuleGraph`, `ComposerInspection` or `RuntimeInspection`
 data only:
@@ -117,3 +120,11 @@ assertErrorDiagnostic(error, {
 
 Assertion failures throw deterministic plain `Error` subclasses and do not require a
 runtime dependency on Vitest internals.
+
+Boundary rules:
+
+- `@sagifire/ioc-testing` may depend on `@sagifire/ioc`.
+- `@sagifire/ioc` must not import `@sagifire/ioc-testing`.
+- The testing package must not import or implement Next.js, React, route handler or server
+  action adapters.
+- Testing helpers must not use filesystem or fixture auto-discovery.

@@ -588,10 +588,8 @@ Root source trace:
       inference;
     - не робити DSL required path for users of explicit object configuration.
 
-## Next
-
 - Stage 12: `@sagifire/ioc-testing`.
-  - Status: planned after task-level human review.
+  - Status: done after task-level human review.
   - Source: `SPEC.md` section 42.
   - Planning Task: `TASK-07.01-0033-stage-12-implementation-planning`.
   - Implementation Tasks:
@@ -599,7 +597,7 @@ Root source trace:
     - `TASK-07.01-0035-stage-12-overrides-test-composer` - done;
     - `TASK-07.01-0036-stage-12-module-harness-fake-modules` - done;
     - `TASK-07.01-0037-stage-12-graph-diagnostic-assertions` - done;
-    - `TASK-07.01-0038-stage-12-testing-hardening-docs` - backlog.
+    - `TASK-07.01-0038-stage-12-testing-hardening-docs` - done.
   - Implementation Decomposition:
     - Task 1 replaces the placeholder package surface and builds isolated test runtime
       foundation.
@@ -641,7 +639,7 @@ Root source trace:
     - не змінювати core container/composer/runtime semantics без окремої task-level
       потреби.
 
-## Later
+## Next
 
 - Stage 13: `@sagifire/ioc-next`.
   - Source: `SPEC.md` section 43.
@@ -650,6 +648,8 @@ Root source trace:
   - Acceptance: adapter depends on `@sagifire/ioc`, core has no Next.js dependency,
     runtime can be cached safely and request/operation scopes are created and disposed
     at framework boundaries.
+
+## Later
 
 - Stage 14: Documentation and examples.
   - Source: `SPEC.md` section 44.

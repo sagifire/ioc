@@ -391,6 +391,21 @@ docs sync. RUN-001 не реалізовував Next.js adapter assertions, run
 private runtime internals access, hidden dependency inference або core graph/diagnostic
 semantic changes.
 
+Stage 12 testing hardening/docs implementation завершено після task-level human review
+approval:
+
+- [TASK-07.01-0038-stage-12-testing-hardening-docs](tasks/plan/TASK-07.01-0038-stage-12-testing-hardening-docs/index.md)
+
+RUN-001 додав final integration/type/package-boundary coverage for the complete
+`@sagifire/ioc-testing` helper surface, package export smoke hardening, source-level
+boundary checks for core/testing/adapter separation and docs sync for isolated runtimes,
+overrides, test composer, fake modules, module harnesses and graph/diagnostic assertions.
+RUN-001 не реалізовував new testing helper families, Next.js adapters, Stage 14 examples,
+release automation, runtime monkey-patching, filesystem discovery або core
+runtime/composer semantic changes.
+
+Stage 12 `@sagifire/ioc-testing` завершено після approval фінальної hardening/docs task.
+
 ## Active Tasks
 
 Немає задач у статусі `active`.
@@ -513,7 +528,7 @@ semantic changes.
   - Status: done
   - Summary: Stage 12 graph and diagnostic assertions implementation task.
 - [TASK-07.01-0038-stage-12-testing-hardening-docs](tasks/plan/TASK-07.01-0038-stage-12-testing-hardening-docs/index.md)
-  - Status: backlog
+  - Status: done
   - Summary: Stage 12 testing hardening, exports and docs implementation task.
 
 ## Recent Decisions
@@ -843,6 +858,19 @@ semantic changes.
 - Stage 12 module harness/fake modules RUN-001 не реалізовував graph assertions,
   diagnostic assertions, Next.js adapters, runtime monkey-patching або core semantic
   changes.
+- `TASK-07.01-0037-stage-12-graph-diagnostic-assertions` RUN-001 виконаний агентом,
+  переведений у `review` і завершений після task-level human review approval.
+- Stage 12 graph/diagnostic assertions RUN-001 реалізував assertion helpers over public
+  graph/diagnostic data with deterministic plain errors and export/docs coverage.
+- `TASK-07.01-0038-stage-12-testing-hardening-docs` RUN-001 виконаний агентом,
+  переведений у `review` і завершений після task-level human review approval.
+- Stage 12 testing hardening/docs RUN-001 додав final integration/type/package-boundary
+  regression coverage, final package export smoke coverage and docs sync for the complete
+  `@sagifire/ioc-testing` helper surface.
+- Stage 12 testing hardening/docs RUN-001 не реалізовував Next.js adapters, new testing
+  helper families, filesystem discovery, runtime monkey-patching, release automation або
+  core runtime/composer semantic changes.
+- Stage 12 `@sagifire/ioc-testing` завершено після approval фінальної hardening/docs task.
 
 ## Current Risks
 
@@ -858,9 +886,8 @@ semantic changes.
 
 ## Next Steps
 
-- Продовжити Stage 12 з
-  [TASK-07.01-0038-stage-12-testing-hardening-docs](tasks/plan/TASK-07.01-0038-stage-12-testing-hardening-docs/index.md),
-  якщо roadmap order не зміниться.
+- Створити Stage 13 implementation planning task для `@sagifire/ioc-next`, якщо roadmap
+  order не зміниться.
 
 ## Open Questions
 

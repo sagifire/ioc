@@ -278,7 +278,7 @@
   - Summary: Stage 12 graph and diagnostic assertion helpers.
   - Current: RUN-001
 - [TASK-07.01-0038-stage-12-testing-hardening-docs](TASK-07.01-0038-stage-12-testing-hardening-docs/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Stage 12 testing package hardening, exports and docs sync.

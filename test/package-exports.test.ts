@@ -20,7 +20,7 @@ describe('package exports', () => {
         expect(module).toBeTypeOf('object')
     })
 
-    test('ioc-testing export exposes test runtime foundation API', async () => {
+    test('ioc-testing export exposes final Stage 12 testing API', async () => {
         const testing = await import('@sagifire/ioc-testing')
         const core = await import('@sagifire/ioc')
         const value = core.token<string>('exports.testing.value')
@@ -104,6 +104,9 @@ describe('package exports', () => {
         expect(testing.GraphAssertionError).toBeTypeOf('function')
         expect(testing.DiagnosticAssertionError).toBeTypeOf('function')
         expect(testing.DuplicateTestOverrideError).toBeTypeOf('function')
+        expect(Object.keys(testing).filter((exportName) => exportName.includes('Next'))).toEqual(
+            []
+        )
         testing.assertGraphHasModule(harness.getGraph(), 'exports-testing-module')
         testing.assertGraphHasCapability(harness.getGraph(), {
             tokenId: publicApi.id,

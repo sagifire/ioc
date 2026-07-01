@@ -16,7 +16,8 @@ declarations and `adapt()` for explicit composition adapters. Testing helpers an
 are now split into Stage 12 testing package tasks and later adapter stages.
 `@sagifire/ioc-testing` currently provides `createTestRuntime()`, explicit
 `override(token)` declarations, `createTestComposer()`, `fakeModule()` and
-`createModuleHarness()` for fresh test-only configuration before `freeze()` / `compose()`.
+`createModuleHarness()` for fresh test-only configuration before `freeze()` / `compose()`,
+plus graph and diagnostic assertions over public inspection/diagnostic data.
 
 ## DSL Boundary
 
