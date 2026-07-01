@@ -726,7 +726,7 @@ Root source trace:
   - Implementation Tasks:
     - `TASK-07.02-0046-stage-14-readme-package-docs` - done;
     - `TASK-07.02-0047-stage-14-core-container-async-docs` - done;
-    - `TASK-07.02-0048-stage-14-composer-modules-diagnostics-docs` - backlog;
+    - `TASK-07.02-0048-stage-14-composer-modules-diagnostics-docs` - done;
     - `TASK-07.02-0049-stage-14-testing-next-docs` - backlog;
     - `TASK-07.02-0050-stage-14-basic-node-module-examples` - backlog;
     - `TASK-07.02-0051-stage-14-async-db-testing-examples` - backlog;

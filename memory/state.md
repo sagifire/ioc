@@ -980,6 +980,14 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
   boundaries, tokens, provider registration, lifetimes, scopes, scope-local values,
   sync/async resolution, async resources, retry behavior and disposal. RUN-001 не змінював
   runtime behavior, public API, package exports, examples або `memory/sources/SPEC.md`.
+- `TASK-07.02-0048-stage-14-composer-modules-diagnostics-docs` RUN-001 виконаний агентом
+  і завершений після task-level human review approval.
+- Stage 14 composer/modules/diagnostics docs RUN-001 переписав `docs/composer.md`,
+  `docs/modules.md` and `docs/diagnostics.md` як durable user-facing guides for composer
+  lifecycle, module required-port ownership, capabilities, private provider isolation,
+  graph inspection, typed diagnostics, formatting, module cycle diagnostics and diagnostic
+  assertions. RUN-001 не змінював runtime behavior, public API, package exports, examples
+  або `memory/sources/SPEC.md`.
 
 ## Current Risks
 
@@ -996,7 +1004,7 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 
 ## Next Steps
 
-- Запустити `TASK-07.02-0048-stage-14-composer-modules-diagnostics-docs`.
+- Запустити `TASK-07.02-0049-stage-14-testing-next-docs`.
 
 ## Open Questions
 

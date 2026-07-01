@@ -1,56 +1,54 @@
 # Modules
 
-Status: module definition, composer static validation, module setup preparation, composed
-runtime capability access and safe inspection metadata implemented.
+Modules are the public composition units of `@sagifire/ioc`. A module declares the tokens
+it requires, the capabilities it provides, and the provider registrations needed to build
+those capabilities.
 
-Modules can now be described with the explicit object-configuration `defineModule()` API.
-The `module()` DSL helper is also available as an optional thin layer that produces the
-same module definition shape. The `defineApp()` DSL helper can collect module definitions,
-object-form binding declarations, bind helper declarations and `adapt()` declarations,
-then convert them to a fresh configured composer through existing `createComposer().use()`
-and `composer.bind()` semantics.
-Composer configuration can register those definitions with `createComposer().use()`,
-validate declared capabilities, required ports and explicit bindings with
-`composer.validate()`, and execute setup/private provider registration with
-`composer.prepare()`. `composer.compose()` creates an immutable composed runtime that
-exposes declared exported capabilities while hiding private module providers and
-required-port-only bindings.
+The key rule is ownership: a required port belongs to the module that consumes it. A public
+capability belongs to the module that exports it. Application composition binds those two
+ideas together without letting modules reach through each other's private providers.
 
-Module graph inspection is available through `composer.inspect()`, `composer.getGraph()`
-and `runtime.inspect()`. It includes module IDs, versions, safe metadata summaries,
-required port metadata, capability metadata, composition binding metadata, validation
-status, dependency edge metadata and exported provider registration summaries.
+## Module Definition
 
-Stage 10 dependency edge metadata is implemented for capability-satisfied and
-binding-satisfied required ports. Module cycle detection is implemented over capability
-dependency edges, and cycle diagnostics include module and token paths without exposing
-provider values or private runtime internals.
-
-## Object API And DSL Parity
-
-The explicit object API remains fully supported:
+Use `defineModule()` for the object API:
 
 ```ts
+import { defineModule, token } from '@sagifire/ioc'
+
+interface AuthReader {
+    currentUserId(): string
+}
+
+interface ContactRequestsApi {
+    submit(subject: string): string
+}
+
+const CONTACT_REQUESTS_AUTH_READER = token<AuthReader>('contact-requests.auth-reader')
+const CONTACT_REQUESTS_PUBLIC_API = token<ContactRequestsApi>('contact-requests.public-api')
+
 const contactRequestsModule = defineModule({
     id: 'contact-requests',
+    version: '1.0.0',
     requires: [
         {
-            token: CONTACT_REQUESTS_AUTH_READER
+            token: CONTACT_REQUESTS_AUTH_READER,
+            description: 'Consumer-owned auth reader'
         }
     ],
     provides: [
         {
             token: CONTACT_REQUESTS_PUBLIC_API,
-            kind: 'public-api'
+            kind: 'public-api',
+            description: 'Contact requests use cases'
         }
     ],
     setup(context) {
-        context.bind(CONTACT_REQUESTS_PUBLIC_API).toFactory((resolutionContext) => {
-            const authReader = resolutionContext.get(CONTACT_REQUESTS_AUTH_READER)
+        context.bind(CONTACT_REQUESTS_PUBLIC_API).toFactory(({ get }) => {
+            const auth = get(CONTACT_REQUESTS_AUTH_READER)
 
             return {
-                submit(): string {
-                    return authReader.currentUserId()
+                submit(subject): string {
+                    return `${auth.currentUserId()}:${subject}`
                 }
             }
         })
@@ -58,54 +56,238 @@ const contactRequestsModule = defineModule({
 })
 ```
 
-The DSL version is only a declaration convenience:
+A module definition contains:
+
+- `id`: stable module identity. It must be non-empty and use the supported ASCII ID
+  characters.
+- `version`: optional metadata for inspection.
+- `metadata`: optional safe metadata summarized by inspection.
+- `requires`: required ports declared by this consumer module.
+- `provides`: exported capabilities declared by this provider module.
+- `setup(context)`: registration function for module providers.
+
+`requires` defaults to an empty array, and `provides` defaults to an empty array. Duplicate
+required tokens or duplicate provided tokens inside one module are rejected by
+`defineModule()`.
+
+## Required Ports
+
+Required ports describe what a module needs from the application graph:
 
 ```ts
+requires: [
+    {
+        token: CONTACT_REQUESTS_AUTH_READER,
+        required: true,
+        kind: 'external',
+        description: 'Auth access shaped for contact requests'
+    }
+]
+```
+
+Fields:
+
+- `token`: typed token for the port value.
+- `required`: optional; defaults to `true`.
+- `kind`: optional; defaults to `external`. The current kinds are `external` and `shared`.
+- `description`: optional inspection text.
+
+Required ports are not public runtime capabilities. They are inputs owned by the consumer
+module. A required port can be satisfied by another module capability with the same token
+ID or by an explicit `composer.bind(portToken)` binding.
+
+Prefer consumer-owned ports when one module only needs a narrowed view of another module.
+For example, `contact-requests` can require `CONTACT_REQUESTS_AUTH_READER` instead of
+requiring the entire `AUTH_PUBLIC_API`.
+
+## Capabilities
+
+Capabilities describe what a module exports:
+
+```ts
+provides: [
+    {
+        token: CONTACT_REQUESTS_PUBLIC_API,
+        kind: 'public-api',
+        description: 'Contact requests public API'
+    }
+]
+```
+
+Supported capability kinds are:
+
+- `public-api`
+- `admin-contribution`
+- `event-publisher`
+- `event-subscriber`
+- `shared-service`
+- `custom`
+
+A declared capability is a contract. The module must register a provider for that token
+during setup, otherwise `prepare()` / `compose()` fail with a validation error. Declaring a
+capability without registering it is treated as a broken module, not as a missing
+dependency.
+
+## Setup Context
+
+Module setup receives a module-bound context:
+
+```ts
+setup(context) {
+    context.bind(CONTACT_REQUESTS_PUBLIC_API).toFactory(({ get }) => {
+        const auth = get(CONTACT_REQUESTS_AUTH_READER)
+
+        return createContactRequestsApi(auth)
+    })
+}
+```
+
+The setup context exposes:
+
+- `moduleId`;
+- `bind(token)` for single-provider registrations;
+- `add(token)` for multi-provider registrations;
+- resolution methods inherited from the container context.
+
+During setup registration, resolution methods are intentionally not active. Setup should
+register providers, not resolve the graph. Provider factories receive a resolution context
+when the provider is actually resolved through the prepared/composed runtime.
+
+Module setup can register:
+
+- `bind(token).toValue(value)`;
+- `bind(token).toFactory(factory)`;
+- `bind(token).toClass(ClassConstructor)`;
+- `bind(token).toAsyncFactory(factory)`;
+- `bind(token).toAsyncResource(factory)`;
+- `add(token).toValue(value)`;
+- `add(token).toFactory(factory)`.
+
+The usual container lifetime and async initialization helpers apply to the returned
+bindings where the underlying provider kind supports them.
+
+## Private Providers
+
+A provider registered for a declared capability token is exported. A provider registered
+for any other token is module-private:
+
+```ts
+const CONTACT_REQUESTS_REPOSITORY = token<ContactRequestsRepository>('contact-requests.repository')
+
+const contactRequestsModule = defineModule({
+    id: 'contact-requests',
+    provides: [{ token: CONTACT_REQUESTS_PUBLIC_API, kind: 'public-api' }],
+    setup(context) {
+        context.bind(CONTACT_REQUESTS_REPOSITORY).toFactory(() => createRepository())
+        context.bind(CONTACT_REQUESTS_PUBLIC_API).toFactory(({ get }) => {
+            const repository = get(CONTACT_REQUESTS_REPOSITORY)
+
+            return createContactRequestsApi(repository)
+        })
+    }
+})
+```
+
+`CONTACT_REQUESTS_REPOSITORY` is visible to providers inside `contact-requests`, but it is
+not resolvable from the composed runtime and is not visible to other modules. Inspection
+does not expose private provider values or private runtime internals.
+
+This is the module isolation boundary:
+
+- a module can resolve its own private providers from its provider factories;
+- a module can resolve its declared required ports;
+- a module can resolve allowed public capabilities;
+- a module cannot resolve another module's private providers;
+- the composed runtime cannot resolve module-private providers;
+- composition-level required-port bindings do not become public capabilities by default.
+
+## Application Composition
+
+Modules become useful when the application composes them:
+
+```ts
+const composer = createComposer().use(authModule).use(contactRequestsModule)
+
+composer.bind(CONTACT_REQUESTS_AUTH_READER).toFactory(({ get }) => {
+    const auth = get(AUTH_PUBLIC_API)
+
+    return {
+        currentUserId(): string {
+            return auth.requireUser()
+        }
+    }
+})
+
+const report = composer.validate()
+const runtime = await composer.compose()
+```
+
+The binding adapts `AUTH_PUBLIC_API` to the consumer-owned
+`CONTACT_REQUESTS_AUTH_READER` port. The contact requests module depends on the narrowed
+port, not on auth module internals.
+
+## Graph Inspection
+
+`composer.getGraph()`, `composer.inspect()` and `runtime.inspect()` expose public graph
+metadata:
+
+```ts
+const graph = composer.getGraph()
+
+graph.requiredPorts
+graph.capabilities
+graph.bindings
+graph.edges
+```
+
+Required ports include `satisfiedBy`:
+
+- `binding`: satisfied by an explicit composer binding;
+- `capability`: satisfied by a declared module capability;
+- `optional`: optional and currently unsatisfied;
+- `missing`: required and unsatisfied.
+
+Dependency edges preserve this distinction. Capability edges connect module to module.
+Binding edges connect module to application-level binding. Binding edges are not treated as
+module cycles.
+
+Validation and inspection do not execute binding factories, module provider factories or
+async resources to infer hidden edges. If provider code has a runtime provider-level cycle,
+that remains a container/runtime diagnostic when the provider is actually resolved.
+
+## Optional DSL Parity
+
+The `module()` DSL helper creates the same kind of module definition as `defineModule()`:
+
+```ts
+import { module } from '@sagifire/ioc/dsl'
+
 const contactRequestsModule = module('contact-requests', {
-    requires: [
-        {
-            token: CONTACT_REQUESTS_AUTH_READER
-        }
-    ],
-    provides: [
-        {
-            token: CONTACT_REQUESTS_PUBLIC_API,
-            kind: 'public-api'
-        }
-    ],
+    requires: [{ token: CONTACT_REQUESTS_AUTH_READER }],
+    provides: [{ token: CONTACT_REQUESTS_PUBLIC_API, kind: 'public-api' }],
     setup(context) {
-        context.bind(CONTACT_REQUESTS_PUBLIC_API).toFactory((resolutionContext) => {
-            const authReader = resolutionContext.get(CONTACT_REQUESTS_AUTH_READER)
-
-            return {
-                submit(): string {
-                    return authReader.currentUserId()
-                }
-            }
+        context.bind(CONTACT_REQUESTS_PUBLIC_API).toFactory(({ get }) => {
+            return createContactRequestsApi(get(CONTACT_REQUESTS_AUTH_READER))
         })
     }
 })
 ```
 
-Application-level DSL keeps required-port ownership explicit:
+Application DSL also compiles to explicit composer usage:
 
 ```ts
+import { adapt, defineApp } from '@sagifire/ioc/dsl'
+
 const app = defineApp({
     modules: [authModule, contactRequestsModule],
     bindings: [
-        adapt(CONTACT_REQUESTS_AUTH_READER, (context) => {
-            const auth = context.get(AUTH_PUBLIC_API)
-
-            return {
-                currentUserId(): string {
-                    return auth.requireUser()
-                }
-            }
+        adapt(CONTACT_REQUESTS_AUTH_READER, ({ get }) => {
+            return createAuthReader(get(AUTH_PUBLIC_API))
         })
     ]
 })
 ```
 
-Only modules and bindings passed to `defineApp()` participate in validation and
-composition. The DSL does not register modules globally, scan the filesystem, use
-decorators or hide dependency edges behind factory execution.
+The object API is not a legacy path. The DSL is optional and delegates to the same
+validation, inspection, preparation and composition behavior. It does not scan files,
+register modules globally, use decorators, require `reflect-metadata` or hide graph edges.

@@ -346,7 +346,7 @@
   - Summary: Stage 14 architecture, container and async model documentation.
   - Current: RUN-001
 - [TASK-07.02-0048-stage-14-composer-modules-diagnostics-docs](TASK-07.02-0048-stage-14-composer-modules-diagnostics-docs/index.md)
-  - Status: backlog
+  - Status: done
   - Type: docs
   - Execution Mode: autonomous-implementation
   - Summary: Stage 14 composer, modules and diagnostics documentation.

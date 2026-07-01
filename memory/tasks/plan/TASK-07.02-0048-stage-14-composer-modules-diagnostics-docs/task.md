@@ -1,6 +1,6 @@
 # TASK-07.02-0048: Stage 14 composer, modules and diagnostics docs
 
-Status: backlog
+Status: done
 Type: docs
 Execution Mode: autonomous-implementation
 Created: 2026-07-02
@@ -43,17 +43,17 @@ inspection and readable diagnostics.
 
 ## Acceptance Criteria
 
-- [ ] Composer docs explain validation, preparation, composition and inspection flow.
-- [ ] Modules docs explain required-port ownership, capabilities and private provider
+- [x] Composer docs explain validation, preparation, composition and inspection flow.
+- [x] Modules docs explain required-port ownership, capabilities and private provider
   isolation.
-- [ ] Diagnostics docs explain `SagifireIocError`, reports, formatter and representative
+- [x] Diagnostics docs explain `SagifireIocError`, reports, formatter and representative
   composer diagnostics.
-- [ ] DSL is documented as optional parity layer over object API.
-- [ ] Docs state validation/inspection do not execute user factories for hidden dependency
+- [x] DSL is documented as optional parity layer over object API.
+- [x] Docs state validation/inspection do not execute user factories for hidden dependency
   inference.
-- [ ] Snippets use implemented public API.
-- [ ] Relevant docs formatting checks pass.
-- [ ] Verification is recorded in run result.
+- [x] Snippets use implemented public API.
+- [x] Relevant docs formatting checks pass.
+- [x] Verification is recorded in run result.
 
 ## Linked Memory
 
@@ -66,9 +66,9 @@ inspection and readable diagnostics.
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: pending
+  - Status: completed
   - Purpose: Autonomous implementation run for composer/modules/diagnostics docs.
-  - Result: pending
+  - Result: approved after task-level human review
 
 ## Research
 
