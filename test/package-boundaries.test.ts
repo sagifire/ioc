@@ -58,8 +58,34 @@ describe('package boundaries', () => {
         const leakedTestingHelpers = testingHelperNames.filter((exportName) => {
             return exportName in nextAdapter
         })
+        const futureStageHelperNames = ['createRouteHandlerScope', 'createServerActionScope']
+        const earlyFutureStageHelpers = futureStageHelperNames.filter((exportName) => {
+            return exportName in nextAdapter
+        })
+        const hiddenRequestContextHelpers = nextExportNames.filter((exportName) => {
+            const normalizedExportName = exportName.toLowerCase()
 
-        expect(nextExportNames).toEqual([])
+            return (
+                normalizedExportName.includes('current') ||
+                normalizedExportName.includes('asynclocal') ||
+                normalizedExportName.includes('global')
+            )
+        })
+
+        expect(nextAdapter.createNextRequestContext).toBeTypeOf('function')
+        expect(nextAdapter.createNextRuntime).toBeTypeOf('function')
+        expect(nextAdapter.nextRequestMultiValue).toBeTypeOf('function')
+        expect(nextAdapter.nextRequestValue).toBeTypeOf('function')
+        expect(nextExportNames.sort()).toEqual(
+            [
+                'createNextRequestContext',
+                'createNextRuntime',
+                'nextRequestMultiValue',
+                'nextRequestValue'
+            ].sort()
+        )
         expect(leakedTestingHelpers).toEqual([])
+        expect(earlyFutureStageHelpers).toEqual([])
+        expect(hiddenRequestContextHelpers).toEqual([])
     })
 })

@@ -19,8 +19,9 @@ Stage 12 testing helpers now also include explicit `override(token)` declaration
 `createTestComposer()` for fresh composer configuration with test-only required-port
 bindings, plus explicit `fakeModule()` definitions and `createModuleHarness()` for
 isolated single-module tests. Stage 12 graph and diagnostic assertion helpers are
-implemented over public inspection/diagnostic data. Framework adapter behavior remains
-planned for later roadmap stages.
+implemented over public inspection/diagnostic data. Stage 13 Next adapter foundation now
+includes `createNextRuntime()` for instance-local cached runtime creation and
+`createNextRequestContext()` for explicit request-scoped values.
 
 ## Packages
 
@@ -51,6 +52,10 @@ API, while keeping `defineModule()` and `createComposer()` first-class.
 Testing documentation covers isolated runtimes, overrides, test composers, fake modules,
 module harnesses and graph/diagnostic assertions. Overrides are applied before
 `freeze()` / `compose()` and never mutate frozen runtimes.
+
+Next integration documentation currently covers `createNextRuntime()` runtime caching and
+`createNextRequestContext()` request-scoped value declarations. Route handler scope and
+server action scope helpers remain staged follow-up work.
 
 ## License
 

@@ -294,13 +294,13 @@
 ## Stage 13 Implementation
 
 - [TASK-07.01-0040-stage-13-next-runtime-foundation](TASK-07.01-0040-stage-13-next-runtime-foundation/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Stage 13 Next package foundation and cached runtime helper.
   - Current: RUN-001
 - [TASK-07.01-0041-stage-13-next-request-context](TASK-07.01-0041-stage-13-next-request-context/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Stage 13 request context helper and request-scoped values.

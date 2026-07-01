@@ -1,6 +1,6 @@
 # Run Requirements: RUN-001
 
-Status: planned
+Status: completed
 Agent Role: Agent Executor
 Execution Mode: autonomous-implementation
 Created: 2026-07-01
@@ -41,19 +41,19 @@ Implement Stage 13 request context helper and request-scoped value declarations 
 
 ## Acceptance Criteria for This Run
 
-- [ ] Request context helper is implemented.
-- [ ] Explicit context entries convert to core scope options.
-- [ ] Single and multi request-local values preserve token inference.
-- [ ] Duplicate/conflict behavior is deterministic.
-- [ ] Public API does not mutate context after creation.
-- [ ] No hidden service locator behavior is introduced.
-- [ ] Runtime tests cover helper behavior.
-- [ ] Type assertions cover helper inference.
-- [ ] Package export smoke tests cover new public exports where applicable.
-- [ ] `pnpm build` works.
-- [ ] `pnpm test` works.
-- [ ] `pnpm typecheck` works.
-- [ ] `pnpm lint` works.
+- [x] Request context helper is implemented.
+- [x] Explicit context entries convert to core scope options.
+- [x] Single and multi request-local values preserve token inference.
+- [x] Duplicate/conflict behavior is deterministic.
+- [x] Public API does not mutate context after creation.
+- [x] No hidden service locator behavior is introduced.
+- [x] Runtime tests cover helper behavior.
+- [x] Type assertions cover helper inference.
+- [x] Package export smoke tests cover new public exports where applicable.
+- [x] `pnpm build` works.
+- [x] `pnpm test` works.
+- [x] `pnpm typecheck` works.
+- [x] `pnpm lint` works.
 
 ## Changes from Previous Run
 

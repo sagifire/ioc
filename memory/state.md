@@ -892,11 +892,32 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
   automation.
 - `TASK-07.01-0039-stage-13-implementation-planning` завершена після task-level human
   review approval.
+- `TASK-07.01-0040-stage-13-next-runtime-foundation` RUN-001 виконаний агентом,
+  переведений у `review` і завершений після task-level human review approval.
+- Stage 13 Next runtime foundation RUN-001 реалізував `createNextRuntime()` in
+  `@sagifire/ioc-next` with instance-local runtime cache ownership, in-flight
+  initialization de-duplication, retry after failed initialization, explicit `reset()`,
+  runtime/type/export tests and minimal docs sync.
+- Stage 13 Next runtime foundation RUN-001 не реалізовував request context helper, route
+  handler scope helper, server action scope helper, App Router examples, filesystem
+  discovery, route scanning, Next.js/React imports або core runtime/composer semantic
+  changes.
+- `TASK-07.01-0041-stage-13-next-request-context` RUN-001 виконаний агентом і завершений
+  після task-level human review approval.
+- Stage 13 Next request context RUN-001 реалізував `createNextRequestContext()`,
+  `nextRequestValue()` and `nextRequestMultiValue()` in `@sagifire/ioc-next` with explicit
+  token/value scope-local declarations, `toScopeOptions()` conversion to core
+  `CreateScopeOptions`, runtime/type/export tests and minimal docs sync.
+- Stage 13 Next request context RUN-001 не реалізовував route handler scope helper, server
+  action scope helper, App Router examples, hidden AsyncLocalStorage/current-request
+  access, filesystem discovery, route scanning, Next.js/React imports або core
+  runtime/composer semantic changes.
 
 ## Current Risks
 
-- `@sagifire/ioc-next` досі лишається placeholder package до виконання Stage 13
-  implementation tasks.
+- `@sagifire/ioc-next` має runtime foundation and request context helper; route handler
+  scope, server action scope and final examples/hardening залишаються Stage 13 follow-up
+  tasks.
 - Stage 13 може потребувати Next.js/React dependency metadata або examples; якщо для цього
   потрібна dependency installation або network access, task agent має попросити дозвіл.
 - Binding factory internals не мають static dependency metadata; Stage 10 dependency edge
@@ -910,7 +931,8 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 
 ## Next Steps
 
-- Запустити `TASK-07.01-0040-stage-13-next-runtime-foundation`.
+- Запустити `TASK-07.01-0042-stage-13-route-handler-scope`, якщо reviewer не змінить
+  порядок.
 
 ## Open Questions
 

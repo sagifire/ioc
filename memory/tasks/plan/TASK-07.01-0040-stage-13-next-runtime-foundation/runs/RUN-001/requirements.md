@@ -1,6 +1,6 @@
 # Run Requirements: RUN-001
 
-Status: planned
+Status: completed
 Agent Role: Agent Executor
 Execution Mode: autonomous-implementation
 Created: 2026-07-01
@@ -45,19 +45,19 @@ Implement Stage 13 `@sagifire/ioc-next` package foundation and cached runtime he
 
 ## Acceptance Criteria for This Run
 
-- [ ] Next runtime foundation is implemented.
-- [ ] Cached runtime helper reuses successful initialization.
-- [ ] Concurrent initialization is de-duplicated.
-- [ ] Failed initialization retry/cache policy is covered by tests.
-- [ ] Helper does not mutate existing frozen runtimes.
-- [ ] Core package has no Next.js/React/adapter imports.
-- [ ] Runtime tests cover helper behavior.
-- [ ] Type assertions cover helper inference.
-- [ ] Package export smoke tests cover `@sagifire/ioc-next`.
-- [ ] `pnpm build` works.
-- [ ] `pnpm test` works.
-- [ ] `pnpm typecheck` works.
-- [ ] `pnpm lint` works.
+- [x] Next runtime foundation is implemented.
+- [x] Cached runtime helper reuses successful initialization.
+- [x] Concurrent initialization is de-duplicated.
+- [x] Failed initialization retry/cache policy is covered by tests.
+- [x] Helper does not mutate existing frozen runtimes.
+- [x] Core package has no Next.js/React/adapter imports.
+- [x] Runtime tests cover helper behavior.
+- [x] Type assertions cover helper inference.
+- [x] Package export smoke tests cover `@sagifire/ioc-next`.
+- [x] `pnpm build` works.
+- [x] `pnpm test` works.
+- [x] `pnpm typecheck` works.
+- [x] `pnpm lint` works.
 
 ## Changes from Previous Run
 

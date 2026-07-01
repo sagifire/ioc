@@ -1,6 +1,6 @@
 # TASK-07.01-0040: Stage 13 Next runtime foundation
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-01
@@ -57,22 +57,22 @@ React imports.
 
 ## Acceptance Criteria
 
-- [ ] `@sagifire/ioc-next` exports a non-placeholder Next adapter foundation.
-- [ ] `createNextRuntime()` or equivalent cached runtime helper is implemented.
-- [ ] Runtime cache is owned by the helper instance and not by a hidden global registry.
-- [ ] Successful runtime initialization is reused by later calls.
-- [ ] Concurrent calls share in-flight initialization.
-- [ ] Failed initialization can be retried or has a documented explicit cache policy.
-- [ ] Helper preserves user runtime type inference.
-- [ ] Core package does not import Next.js, React or `@sagifire/ioc-next`.
-- [ ] Runtime tests cover cache behavior and package boundary.
-- [ ] Type-level assertions cover helper inference.
-- [ ] Package export smoke tests cover `@sagifire/ioc-next`.
-- [ ] Stage 13 task does not implement request, route or server action helpers.
-- [ ] `pnpm build` works.
-- [ ] `pnpm test` works.
-- [ ] `pnpm typecheck` works.
-- [ ] `pnpm lint` works.
+- [x] `@sagifire/ioc-next` exports a non-placeholder Next adapter foundation.
+- [x] `createNextRuntime()` or equivalent cached runtime helper is implemented.
+- [x] Runtime cache is owned by the helper instance and not by a hidden global registry.
+- [x] Successful runtime initialization is reused by later calls.
+- [x] Concurrent calls share in-flight initialization.
+- [x] Failed initialization can be retried or has a documented explicit cache policy.
+- [x] Helper preserves user runtime type inference.
+- [x] Core package does not import Next.js, React or `@sagifire/ioc-next`.
+- [x] Runtime tests cover cache behavior and package boundary.
+- [x] Type-level assertions cover helper inference.
+- [x] Package export smoke tests cover `@sagifire/ioc-next`.
+- [x] Stage 13 task does not implement request, route or server action helpers.
+- [x] `pnpm build` works.
+- [x] `pnpm test` works.
+- [x] `pnpm typecheck` works.
+- [x] `pnpm lint` works.
 
 ## Linked Memory
 
@@ -88,9 +88,9 @@ React imports.
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: planned
+  - Status: completed
   - Purpose: Початковий autonomous implementation run для Next runtime foundation.
-  - Result: pending
+  - Result: completed, approved after task-level human review
 
 ## Research
 

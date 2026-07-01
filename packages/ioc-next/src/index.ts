@@ -1,2 +1,144 @@
-// Stage 2 placeholder. Next.js adapter behavior starts in a later roadmap stage.
-export {}
+import {
+    scopeMultiValue,
+    scopeValue,
+    type ContainerRuntime,
+    type CreateScopeOptions,
+    type ScopeLocalValue,
+    type ScopeLocalValueObject,
+    type Token
+} from '@sagifire/ioc'
+
+type Awaitable<TValue> = TValue | Promise<TValue>
+
+interface RuntimeCacheEntry<TRuntime> {
+    readonly runtime: TRuntime
+}
+
+export type NextRequestContextValue<TValue = unknown> = ScopeLocalValueObject<TValue>
+
+export interface NextRequestContextOptions {
+    readonly values?: readonly ScopeLocalValue[]
+    readonly multiValues?: readonly ScopeLocalValue[]
+}
+
+export interface NextRequestContext {
+    readonly values: readonly NextRequestContextValue[]
+    readonly multiValues: readonly NextRequestContextValue[]
+    toScopeOptions(): CreateScopeOptions
+}
+
+export type NextRuntimeFactory<TRuntime extends ContainerRuntime = ContainerRuntime> =
+    () => Awaitable<TRuntime>
+
+export interface NextRuntimeHelper<TRuntime extends ContainerRuntime = ContainerRuntime> {
+    getRuntime(): Promise<TRuntime>
+    reset(): void
+}
+
+export function createNextRuntime<TRuntime extends ContainerRuntime>(
+    factory: NextRuntimeFactory<TRuntime>
+): NextRuntimeHelper<TRuntime> {
+    let cache: RuntimeCacheEntry<TRuntime> | undefined
+    let inFlight: Promise<TRuntime> | undefined
+    let generation = 0
+
+    async function initializeRuntime(initializationGeneration: number): Promise<TRuntime> {
+        const runtime = await factory()
+
+        if (generation === initializationGeneration) {
+            cache = Object.freeze({
+                runtime
+            })
+        }
+
+        return runtime
+    }
+
+    return Object.freeze({
+        getRuntime(): Promise<TRuntime> {
+            if (cache !== undefined) {
+                return Promise.resolve(cache.runtime)
+            }
+
+            if (inFlight !== undefined) {
+                return inFlight
+            }
+
+            const initializationGeneration = generation
+            const initialization = initializeRuntime(initializationGeneration).finally(() => {
+                if (inFlight === initialization) {
+                    inFlight = undefined
+                }
+            })
+
+            inFlight = initialization
+
+            return initialization
+        },
+
+        reset(): void {
+            generation += 1
+            cache = undefined
+            inFlight = undefined
+        }
+    })
+}
+
+export function createNextRequestContext(
+    options: NextRequestContextOptions = {}
+): NextRequestContext {
+    const values = Object.freeze((options.values ?? []).map(normalizeSingleRequestValue))
+    const multiValues = Object.freeze((options.multiValues ?? []).map(normalizeMultiRequestValue))
+    const scopeOptions: CreateScopeOptions = Object.freeze({
+        values,
+        multiValues
+    })
+
+    return Object.freeze({
+        values,
+        multiValues,
+        toScopeOptions(): CreateScopeOptions {
+            return scopeOptions
+        }
+    })
+}
+
+export function nextRequestValue<TValue>(
+    valueToken: Token<TValue>,
+    value: TValue
+): NextRequestContextValue<TValue> {
+    return scopeValue(valueToken, value)
+}
+
+export function nextRequestMultiValue<TValue>(
+    valueToken: Token<TValue>,
+    value: TValue
+): NextRequestContextValue<TValue> {
+    return scopeMultiValue(valueToken, value)
+}
+
+function normalizeSingleRequestValue(entry: ScopeLocalValue): NextRequestContextValue {
+    if (isScopeLocalTuple(entry)) {
+        const [valueToken, value] = entry
+
+        return scopeValue(valueToken, value)
+    }
+
+    return scopeValue(entry.token, entry.value)
+}
+
+function normalizeMultiRequestValue(entry: ScopeLocalValue): NextRequestContextValue {
+    if (isScopeLocalTuple(entry)) {
+        const [valueToken, value] = entry
+
+        return scopeMultiValue(valueToken, value)
+    }
+
+    return scopeMultiValue(entry.token, entry.value)
+}
+
+function isScopeLocalTuple(
+    entry: ScopeLocalValue
+): entry is readonly [token: Token<unknown>, value: unknown] {
+    return Array.isArray(entry)
+}

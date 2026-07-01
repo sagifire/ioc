@@ -648,12 +648,12 @@ Root source trace:
 ## Next
 
 - Stage 13: `@sagifire/ioc-next`.
-  - Status: planned.
+  - Status: in progress.
   - Source: `SPEC.md` section 43.
   - Planning Task: `TASK-07.01-0039-stage-13-implementation-planning`.
   - Implementation Tasks:
-    - `TASK-07.01-0040-stage-13-next-runtime-foundation` - backlog;
-    - `TASK-07.01-0041-stage-13-next-request-context` - backlog;
+    - `TASK-07.01-0040-stage-13-next-runtime-foundation` - done;
+    - `TASK-07.01-0041-stage-13-next-request-context` - done;
     - `TASK-07.01-0042-stage-13-route-handler-scope` - backlog;
     - `TASK-07.01-0043-stage-13-server-action-scope` - backlog;
     - `TASK-07.01-0044-stage-13-next-examples-hardening-docs` - backlog.

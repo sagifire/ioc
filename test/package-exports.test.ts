@@ -104,9 +104,7 @@ describe('package exports', () => {
         expect(testing.GraphAssertionError).toBeTypeOf('function')
         expect(testing.DiagnosticAssertionError).toBeTypeOf('function')
         expect(testing.DuplicateTestOverrideError).toBeTypeOf('function')
-        expect(Object.keys(testing).filter((exportName) => exportName.includes('Next'))).toEqual(
-            []
-        )
+        expect(Object.keys(testing).filter((exportName) => exportName.includes('Next'))).toEqual([])
         testing.assertGraphHasModule(harness.getGraph(), 'exports-testing-module')
         testing.assertGraphHasCapability(harness.getGraph(), {
             tokenId: publicApi.id,
@@ -124,6 +122,66 @@ describe('package exports', () => {
         await harnessRuntime.dispose()
         await composedRuntime.dispose()
         await runtime.dispose()
+    })
+
+    test('ioc-next export exposes implemented Stage 13 adapter API', async () => {
+        const nextAdapter = await import('@sagifire/ioc-next')
+        const core = await import('@sagifire/ioc')
+        const value = core.token<string>('exports.next.value')
+        const requestId = core.token<string>('exports.next.request-id')
+        const requestPlugin = core.token<{
+            readonly name: string
+        }>('exports.next.request-plugin')
+        let factoryCalls = 0
+        const runtimeHelper = nextAdapter.createNextRuntime(async () => {
+            factoryCalls += 1
+
+            const container = core.createContainer()
+
+            container.bind(value).toValue(`next-export-${factoryCalls}`)
+
+            return container.freeze()
+        })
+
+        const firstRuntime = await runtimeHelper.getRuntime()
+        const secondRuntime = await runtimeHelper.getRuntime()
+        const requestContext = nextAdapter.createNextRequestContext({
+            values: [nextAdapter.nextRequestValue(requestId, 'export-request')],
+            multiValues: [
+                nextAdapter.nextRequestMultiValue(requestPlugin, {
+                    name: 'export-plugin'
+                })
+            ]
+        })
+        const requestScope = firstRuntime.createScope(requestContext.toScopeOptions())
+
+        expect(nextAdapter.createNextRequestContext).toBeTypeOf('function')
+        expect(nextAdapter.createNextRuntime).toBeTypeOf('function')
+        expect(nextAdapter.nextRequestMultiValue).toBeTypeOf('function')
+        expect(nextAdapter.nextRequestValue).toBeTypeOf('function')
+        expect(runtimeHelper.getRuntime).toBeTypeOf('function')
+        expect(runtimeHelper.reset).toBeTypeOf('function')
+        expect(firstRuntime).toBe(secondRuntime)
+        expect(firstRuntime.get(value)).toBe('next-export-1')
+        expect(requestScope.get(requestId)).toBe('export-request')
+        expect(requestScope.getAll(requestPlugin)).toEqual([
+            {
+                name: 'export-plugin'
+            }
+        ])
+        expect(factoryCalls).toBe(1)
+
+        runtimeHelper.reset()
+
+        const resetRuntime = await runtimeHelper.getRuntime()
+
+        expect(resetRuntime).not.toBe(firstRuntime)
+        expect(resetRuntime.get(value)).toBe('next-export-2')
+        expect(factoryCalls).toBe(2)
+
+        await requestScope.dispose()
+        await resetRuntime.dispose()
+        await firstRuntime.dispose()
     })
 
     test('root export exposes token API', async () => {

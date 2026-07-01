@@ -1,6 +1,6 @@
 # TASK-07.01-0041: Stage 13 Next request context
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-01
@@ -55,23 +55,23 @@ the context data layer without implementing route handler or server action wrapp
 
 ## Acceptance Criteria
 
-- [ ] Request context helper is implemented in `@sagifire/ioc-next`.
-- [ ] Helper converts explicit context entries to existing core scope options.
-- [ ] Single request-local values preserve token value inference.
-- [ ] Multi request-local values preserve token value inference where supported.
-- [ ] Duplicate/conflict behavior is deterministic and delegates to existing core scope
+- [x] Request context helper is implemented in `@sagifire/ioc-next`.
+- [x] Helper converts explicit context entries to existing core scope options.
+- [x] Single request-local values preserve token value inference.
+- [x] Multi request-local values preserve token value inference where supported.
+- [x] Duplicate/conflict behavior is deterministic and delegates to existing core scope
   validation where appropriate.
-- [ ] Request context data is not mutated through public adapter APIs after creation.
-- [ ] No hidden current-request service locator or async-local dependency is introduced.
-- [ ] Core package does not import Next.js, React or `@sagifire/ioc-next`.
-- [ ] Runtime tests cover request context behavior.
-- [ ] Type-level assertions cover request context inference.
-- [ ] Package export smoke tests remain valid for `@sagifire/ioc-next`.
-- [ ] Stage 13 task does not implement route handler or server action wrappers.
-- [ ] `pnpm build` works.
-- [ ] `pnpm test` works.
-- [ ] `pnpm typecheck` works.
-- [ ] `pnpm lint` works.
+- [x] Request context data is not mutated through public adapter APIs after creation.
+- [x] No hidden current-request service locator or async-local dependency is introduced.
+- [x] Core package does not import Next.js, React or `@sagifire/ioc-next`.
+- [x] Runtime tests cover request context behavior.
+- [x] Type-level assertions cover request context inference.
+- [x] Package export smoke tests remain valid for `@sagifire/ioc-next`.
+- [x] Stage 13 task does not implement route handler or server action wrappers.
+- [x] `pnpm build` works.
+- [x] `pnpm test` works.
+- [x] `pnpm typecheck` works.
+- [x] `pnpm lint` works.
 
 ## Linked Memory
 
@@ -88,9 +88,9 @@ the context data layer without implementing route handler or server action wrapp
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: planned
+  - Status: completed
   - Purpose: Початковий autonomous implementation run для Next request context helpers.
-  - Result: pending
+  - Result: approved
 
 ## Research
 
