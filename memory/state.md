@@ -944,12 +944,37 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
   changes.
 - Stage 13 `@sagifire/ioc-next` завершено після approval фінальної examples/hardening/docs
   task.
+- `TASK-07.02-0045-stage-14-implementation-planning` створена як окрема
+  interactive-memory-update задача для планування Stage 14.
+- Stage 14 documentation/examples implementation заплановано як вісім послідовних
+  implementation tasks:
+  `TASK-07.02-0046-stage-14-readme-package-docs`,
+  `TASK-07.02-0047-stage-14-core-container-async-docs`,
+  `TASK-07.02-0048-stage-14-composer-modules-diagnostics-docs`,
+  `TASK-07.02-0049-stage-14-testing-next-docs`,
+  `TASK-07.02-0050-stage-14-basic-node-module-examples`,
+  `TASK-07.02-0051-stage-14-async-db-testing-examples`,
+  `TASK-07.02-0052-stage-14-next-app-router-example-hardening` and
+  `TASK-07.02-0053-stage-14-migration-final-docs-hardening`.
+- Для Stage 14 прийнято, що documentation/examples describe implemented public API only
+  and do not introduce new runtime behavior.
+- Для Stage 14 прийнято, що examples keep dependency graph explicit, prefer object API
+  first and show DSL only as optional convenience where useful.
+- Для Stage 14 прийнято, що runnable/typechecked examples should be verified through
+  existing workspace tooling where practical.
+- Stage 14 не реалізує release automation, package versioning, publishing workflow,
+  decorators, `reflect-metadata`, hidden discovery, service locator behavior or new
+  runtime semantics.
+- `TASK-07.02-0045-stage-14-implementation-planning` завершена після task-level human
+  review approval.
 
 ## Current Risks
 
 - Binding factory internals не мають static dependency metadata; Stage 10 dependency edge
   model фіксує static required-port -> binding edges only and keeps provider-level cycles
   inside factories under existing container diagnostics.
+- Stage 14 documentation/examples можуть виявити public API gaps; такі gaps треба
+  оформлювати як follow-up tasks, а не тихо виправляти runtime behavior у docs-задачах.
 - Root `SPEC.md` лишається source reference і може дублювати canonical memory; для
   operational рішень використовувати `memory/product/`, `memory/domain/` і
   `memory/technical/`.
@@ -958,9 +983,9 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 
 ## Next Steps
 
-- Підготувати Stage 14 documentation/examples implementation planning task.
+- Запустити `TASK-07.02-0046-stage-14-readme-package-docs`.
 
 ## Open Questions
 
-- Для Stage 14 треба обрати остаточний інструмент type-level tests, якщо Vitest
-  `expectTypeOf` стане недостатнім для складніших public API inference contracts.
+- Для Stage 14 кожна examples-task має обрати найменший достатній verification path:
+  executable script, typecheck, targeted tests or documented manual check.

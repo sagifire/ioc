@@ -1,6 +1,6 @@
 # Stack
 
-Source trace: `SPEC.md` sections 4-6 and 32-43.
+Source trace: `SPEC.md` sections 4-6 and 32-44.
 
 ## Product Stack
 
@@ -119,9 +119,13 @@ Examples:
 
 - `examples/next-app-router`
 - `examples/basic-node`
+- `examples/module-composition`
+- `examples/async-db-resource`
+- `examples/testing-overrides`
 
 Documentation:
 
+- `docs/README.md` or equivalent docs navigation
 - `docs/architecture.md`
 - `docs/container.md`
 - `docs/async-model.md`
@@ -131,6 +135,24 @@ Documentation:
 - `docs/testing.md`
 - `docs/diagnostics.md`
 - `docs/migration-from-di-container.md`
+
+## Documentation And Example Tooling
+
+Stage 14 documentation and examples should use existing workspace tooling before adding new
+dependencies.
+
+Preferred verification paths:
+
+- markdown/docs formatting with existing formatter commands;
+- TypeScript typecheck for example source where examples are wired into workspace
+  configuration;
+- targeted Vitest or package-boundary checks when examples expose behavior that is already
+  testable without external services;
+- documented manual check only when an example is intentionally a framework-shaped skeleton
+  or cannot be executed without installing an external framework.
+
+Stage 14 should not install Next.js, React, database clients, markdown linters or doc-site
+frameworks unless a task documents a concrete need and asks for permission.
 
 ## Build Tooling
 

@@ -138,6 +138,33 @@
 - [TASK-07.01-0044-stage-13-next-examples-hardening-docs](TASK-07.01-0044-stage-13-next-examples-hardening-docs/index.md)
   - Type: folder
   - Purpose: Задача реалізації Stage 13 Next adapter hardening, exports and docs.
+- [TASK-07.02-0045-stage-14-implementation-planning](TASK-07.02-0045-stage-14-implementation-planning/index.md)
+  - Type: folder
+  - Purpose: Планування реалізації Stage 14 documentation and examples.
+- [TASK-07.02-0046-stage-14-readme-package-docs](TASK-07.02-0046-stage-14-readme-package-docs/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 14 README and package documentation.
+- [TASK-07.02-0047-stage-14-core-container-async-docs](TASK-07.02-0047-stage-14-core-container-async-docs/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 14 architecture, container and async documentation.
+- [TASK-07.02-0048-stage-14-composer-modules-diagnostics-docs](TASK-07.02-0048-stage-14-composer-modules-diagnostics-docs/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 14 composer, modules and diagnostics documentation.
+- [TASK-07.02-0049-stage-14-testing-next-docs](TASK-07.02-0049-stage-14-testing-next-docs/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 14 testing and Next integration documentation.
+- [TASK-07.02-0050-stage-14-basic-node-module-examples](TASK-07.02-0050-stage-14-basic-node-module-examples/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 14 basic Node and module-composition examples.
+- [TASK-07.02-0051-stage-14-async-db-testing-examples](TASK-07.02-0051-stage-14-async-db-testing-examples/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 14 async resource and testing override examples.
+- [TASK-07.02-0052-stage-14-next-app-router-example-hardening](TASK-07.02-0052-stage-14-next-app-router-example-hardening/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 14 Next App Router example hardening.
+- [TASK-07.02-0053-stage-14-migration-final-docs-hardening](TASK-07.02-0053-stage-14-migration-final-docs-hardening/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 14 migration guide and final docs/examples hardening.
 
 ## Files
 

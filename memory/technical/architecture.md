@@ -787,6 +787,41 @@ Stage 12 testing package boundaries:
 - no decorators or `reflect-metadata`;
 - no global mutable runtime registry.
 
+## Documentation And Examples
+
+Stage 14 turns the completed Stage 3-13 behavior into public learning material.
+
+Documentation responsibilities:
+
+- root README and package READMEs explain package roles, install/import shape and the
+  shortest useful quickstart;
+- architecture docs explain package boundaries and why core remains framework-agnostic;
+- container and async docs explain providers, lifetimes, scopes, async access, resources
+  and disposal;
+- composer/modules docs explain required ports, capabilities, bindings, graph inspection
+  and module isolation;
+- diagnostics docs explain typed errors, reports and formatting;
+- testing docs explain isolated test runtimes, overrides, fake modules, module harnesses
+  and graph/diagnostic assertions;
+- Next integration docs explain cached runtime, explicit request context, route scopes and
+  server action scopes;
+- migration docs map common DI container patterns to explicit typed-token and
+  module-composition patterns.
+
+Example responsibilities:
+
+- `examples/basic-node` demonstrates basic token/container usage;
+- `examples/module-composition` demonstrates modules, required ports, bindings and graph
+  inspection;
+- `examples/async-db-resource` demonstrates async resource initialization and disposal;
+- `examples/testing-overrides` demonstrates testing helpers without mutating frozen
+  runtimes;
+- `examples/next-app-router` demonstrates framework-boundary Next adapter usage.
+
+Stage 14 documentation and examples must describe implemented public API only. If a docs or
+example task finds an API gap, the result should record a follow-up instead of silently
+adding runtime behavior outside the documentation stage.
+
 ## Reference Architecture Example
 
 The canonical example uses two modules:

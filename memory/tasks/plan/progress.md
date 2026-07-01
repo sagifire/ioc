@@ -97,6 +97,13 @@
   - Summary: Планування реалізації Stage 13 `@sagifire/ioc-next` і підготовка декількох
     implementation tasks.
   - Current: FIX-001
+- [TASK-07.02-0045-stage-14-implementation-planning](TASK-07.02-0045-stage-14-implementation-planning/index.md)
+  - Status: done
+  - Type: memory-update
+  - Execution Mode: interactive-memory-update
+  - Summary: Планування реалізації Stage 14 documentation/examples і підготовка декількох
+    implementation tasks.
+  - Current: FIX-001
 
 ## Stage 2 Implementation
 
@@ -322,6 +329,57 @@
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Stage 13 Next adapter hardening, exports and minimal docs/examples.
+  - Current: RUN-001
+
+## Stage 14 Implementation
+
+- [TASK-07.02-0046-stage-14-readme-package-docs](TASK-07.02-0046-stage-14-readme-package-docs/index.md)
+  - Status: backlog
+  - Type: docs
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 14 root README, package READMEs and docs navigation.
+  - Current: RUN-001
+- [TASK-07.02-0047-stage-14-core-container-async-docs](TASK-07.02-0047-stage-14-core-container-async-docs/index.md)
+  - Status: backlog
+  - Type: docs
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 14 architecture, container and async model documentation.
+  - Current: RUN-001
+- [TASK-07.02-0048-stage-14-composer-modules-diagnostics-docs](TASK-07.02-0048-stage-14-composer-modules-diagnostics-docs/index.md)
+  - Status: backlog
+  - Type: docs
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 14 composer, modules and diagnostics documentation.
+  - Current: RUN-001
+- [TASK-07.02-0049-stage-14-testing-next-docs](TASK-07.02-0049-stage-14-testing-next-docs/index.md)
+  - Status: backlog
+  - Type: docs
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 14 testing and Next integration documentation.
+  - Current: RUN-001
+- [TASK-07.02-0050-stage-14-basic-node-module-examples](TASK-07.02-0050-stage-14-basic-node-module-examples/index.md)
+  - Status: backlog
+  - Type: docs
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 14 `basic-node` and `module-composition` examples.
+  - Current: RUN-001
+- [TASK-07.02-0051-stage-14-async-db-testing-examples](TASK-07.02-0051-stage-14-async-db-testing-examples/index.md)
+  - Status: backlog
+  - Type: docs
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 14 `async-db-resource` and `testing-overrides` examples.
+  - Current: RUN-001
+- [TASK-07.02-0052-stage-14-next-app-router-example-hardening](TASK-07.02-0052-stage-14-next-app-router-example-hardening/index.md)
+  - Status: backlog
+  - Type: docs
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 14 hardening for `examples/next-app-router`.
+  - Current: RUN-001
+- [TASK-07.02-0053-stage-14-migration-final-docs-hardening](TASK-07.02-0053-stage-14-migration-final-docs-hardening/index.md)
+  - Status: backlog
+  - Type: docs
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 14 migration guide and final docs/examples hardening.
   - Current: RUN-001
 
 ## Format

@@ -11,6 +11,10 @@
 | Route handler scope helper | Next adapter helper that creates one scope for a route handler invocation and disposes it after success or failure. |
 | Server action scope helper | Next adapter helper that creates one scope for a server action invocation and disposes it after success or failure. |
 | Framework boundary | Entry point where framework code calls application modules, such as a Next.js route handler or server action. |
+| Documentation suite | Stage 14 public documentation surface: README, package READMEs and deep guides for architecture, container, async model, composer, modules, diagnostics, testing, Next integration and migration. |
+| Example suite | Stage 14 repository examples that demonstrate implemented public API through explicit, inspectable usage: `basic-node`, `module-composition`, `async-db-resource`, `testing-overrides` and `next-app-router`. |
+| Migration guide | Stage 14 documentation that maps common DI container patterns to typed tokens, explicit providers, scopes, modules, required ports, bindings and testing overrides. |
+| Example verification | Task-level check that an example is runnable, typechecked, covered by targeted tests or otherwise manually verified with the reason recorded in the task result. |
 | Token | Typed dependency identity object with stable runtime `id`; object identity is not required for matching. |
 | Token namespace | Helper that creates stable prefixed token IDs, for example `contact-requests.public-api`. |
 | Provider | Registration that knows how to produce a token value through value, factory, class, async factory or async resource binding. |

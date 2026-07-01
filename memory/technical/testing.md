@@ -262,3 +262,35 @@ Stage 13 Next examples/hardening/docs must add final regression tests for the co
 testing-to-next package boundary, no filesystem auto-discovery, no hidden current
 request/action service locator and docs/examples that demonstrate App Router boundary
 usage without placing business logic in route/action handlers.
+
+Stage 14 README/package documentation must be verified with relevant formatting/link
+checks where available and by reviewing snippets against implemented public API. If full
+build/test/typecheck/lint is not relevant to docs-only changes, the task result must say
+why.
+
+Stage 14 core/container/async docs must verify snippets against implemented APIs where
+practical and explicitly guard the documented sync/async boundary: `get()` remains sync and
+async providers/resources use explicit async access.
+
+Stage 14 composer/modules/diagnostics docs must verify object API and DSL snippets against
+implemented APIs where practical. Docs must keep validation/inspection non-execution of
+user factories clear.
+
+Stage 14 testing/Next docs must verify helper names and workflow snippets against current
+package exports. Testing docs must preserve the rule that overrides apply before
+`freeze()` / `compose()`. Next docs must preserve explicit request/action context and scope
+disposal behavior.
+
+Stage 14 example tasks must choose the smallest sufficient verification path per example:
+
+- run the example if it is executable without external services;
+- typecheck example source if a runtime command would require unavailable framework
+  infrastructure;
+- add targeted tests only when they validate example behavior without duplicating existing
+  package tests;
+- record a manual check only when the example is intentionally framework-shaped and cannot
+  run without dependencies that were not approved.
+
+Stage 14 final docs hardening must check docs/example links, stale placeholder language,
+claims about unimplemented release automation and consistency between README, package
+READMEs, deep docs and examples.

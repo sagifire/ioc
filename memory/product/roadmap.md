@@ -53,6 +53,17 @@ Root source trace:
 - `TASK-07.01-0042` - Stage 13 route handler scope implementation task.
 - `TASK-07.01-0043` - Stage 13 server action scope implementation task.
 - `TASK-07.01-0044` - Stage 13 Next examples/hardening/docs implementation task.
+- `TASK-07.02-0045` - Stage 14 implementation planning task.
+- `TASK-07.02-0046` - Stage 14 README and package docs implementation task.
+- `TASK-07.02-0047` - Stage 14 core/container/async docs implementation task.
+- `TASK-07.02-0048` - Stage 14 composer/modules/diagnostics docs implementation task.
+- `TASK-07.02-0049` - Stage 14 testing/Next docs implementation task.
+- `TASK-07.02-0050` - Stage 14 basic-node/module-composition examples implementation
+  task.
+- `TASK-07.02-0051` - Stage 14 async-db-resource/testing-overrides examples
+  implementation task.
+- `TASK-07.02-0052` - Stage 14 Next App Router example hardening implementation task.
+- `TASK-07.02-0053` - Stage 14 migration guide/final docs hardening implementation task.
 
 ## Completed
 
@@ -645,7 +656,7 @@ Root source trace:
     - не змінювати core container/composer/runtime semantics без окремої task-level
       потреби.
 
-## Next
+## Recently Completed Stage 13
 
 - Stage 13: `@sagifire/ioc-next`.
   - Status: done after task-level human review.
@@ -706,16 +717,74 @@ Root source trace:
     - не реалізовувати broad Stage 14 documentation/examples або Stage 15 release
       automation.
 
-## Later
+## Next
 
 - Stage 14: Documentation and examples.
+  - Status: planned after implementation planning approval.
   - Source: `SPEC.md` section 44.
-  - Implement docs for README, architecture, container, async model, composer, modules,
-    Next.js integration, testing, diagnostics and migration from DI containers.
-  - Implement examples: `basic-node`, `next-app-router`, `module-composition`,
-    `async-db-resource`, `testing-overrides`.
-  - Acceptance: public API, async model, module isolation, Next.js integration and testing
-    workflow are documented and demonstrated.
+  - Planning Task: `TASK-07.02-0045-stage-14-implementation-planning`.
+  - Implementation Tasks:
+    - `TASK-07.02-0046-stage-14-readme-package-docs` - backlog;
+    - `TASK-07.02-0047-stage-14-core-container-async-docs` - backlog;
+    - `TASK-07.02-0048-stage-14-composer-modules-diagnostics-docs` - backlog;
+    - `TASK-07.02-0049-stage-14-testing-next-docs` - backlog;
+    - `TASK-07.02-0050-stage-14-basic-node-module-examples` - backlog;
+    - `TASK-07.02-0051-stage-14-async-db-testing-examples` - backlog;
+    - `TASK-07.02-0052-stage-14-next-app-router-example-hardening` - backlog;
+    - `TASK-07.02-0053-stage-14-migration-final-docs-hardening` - backlog.
+  - Implementation Decomposition:
+    - Task 1 rewrites root README, package READMEs and docs navigation.
+    - Task 2 expands architecture, container and async model documentation.
+    - Task 3 expands composer, modules and diagnostics documentation.
+    - Task 4 expands testing and Next integration documentation.
+    - Task 5 adds `basic-node` and `module-composition` examples.
+    - Task 6 adds `async-db-resource` and `testing-overrides` examples.
+    - Task 7 hardens the existing `next-app-router` example.
+    - Task 8 writes the migration guide and performs final docs/examples hardening.
+  - Documentation Scope:
+    - root README and package READMEs;
+    - architecture and package boundaries;
+    - container, providers, lifetimes, scopes and scope-local values;
+    - async model, async resources, `getAsync()` and disposal;
+    - composer, modules, capabilities, required ports, bindings and inspection;
+    - diagnostics, reports and formatting;
+    - `@sagifire/ioc-testing` workflow;
+    - `@sagifire/ioc-next` integration;
+    - migration from typical DI container patterns.
+  - Example Scope:
+    - `examples/basic-node`;
+    - `examples/module-composition`;
+    - `examples/async-db-resource`;
+    - `examples/testing-overrides`;
+    - `examples/next-app-router`.
+  - Decisions:
+    - Stage 14 is documentation/examples only and must not introduce new runtime behavior.
+    - Public docs describe implemented public API only.
+    - Object-configuration API remains first-class; DSL is optional convenience.
+    - Examples keep dependency graph explicit and inspectable.
+    - Examples should be runnable or typechecked through existing workspace tooling where
+      practical.
+    - If a docs/example task discovers a public API gap, it records a follow-up instead of
+      silently changing runtime behavior.
+  - Acceptance:
+    - public API is documented from README/package docs to deep guides;
+    - async model is documented and demonstrated;
+    - module isolation and graph inspection are documented and demonstrated;
+    - Next.js integration is documented and demonstrated at framework boundaries;
+    - testing workflow is documented and demonstrated;
+    - migration guide exists;
+    - required examples exist and are verified where practical.
+  - Guardrails:
+    - не реалізовувати new runtime behavior, public API changes or package export changes
+      unless a task records a separate need and scope;
+    - не додавати hidden filesystem discovery, route scanning, module discovery,
+      decorators, `reflect-metadata`, constructor metadata or service locator behavior;
+    - не мутувати frozen `ContainerRuntime` або `ComposedRuntime` in examples;
+    - не імпортувати Next.js або React з `@sagifire/ioc`;
+    - не додавати full Next.js dependency install without explicit task-level approval;
+    - не реалізовувати Stage 15 release automation.
+
+## Later
 
 - Stage 15: Release automation.
   - Source: `SPEC.md` section 45.

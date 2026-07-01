@@ -387,3 +387,47 @@ Stage 13 must not add:
 - hidden global app/container registry or service locator;
 - broad Stage 14 documentation/examples;
 - Stage 15 release automation.
+
+## Stage 14 Documentation And Examples Rules
+
+Stage 14 adds public documentation and repository examples for the implemented Stage 3-13
+API surface.
+
+Stage 14 allowed scope:
+
+- root README and package README updates;
+- deep docs for architecture, container, async model, composer, modules, diagnostics,
+  testing, Next integration and migration;
+- examples for `basic-node`, `module-composition`, `async-db-resource`,
+  `testing-overrides` and `next-app-router`;
+- docs/example navigation, links and consistency hardening;
+- verification scripts or lightweight example wiring only when needed to validate examples.
+
+Stage 14 documentation rules:
+
+- document implemented public API only;
+- keep object-configuration API first-class;
+- present DSL as optional ergonomic convenience, not as required path;
+- explain package boundaries and runtime immutability explicitly;
+- distinguish examples/snippets from release/publishing instructions;
+- if a public API gap is discovered, record a follow-up task instead of silently changing
+  runtime behavior.
+
+Stage 14 example rules:
+
+- examples must keep dependency graph explicit and inspectable;
+- examples must not use decorators, `reflect-metadata`, constructor metadata or filesystem
+  auto-discovery;
+- examples must not create global mutable containers, hidden service locators or hidden
+  current-request/action APIs;
+- testing examples must not mutate frozen `ContainerRuntime` or `ComposedRuntime`;
+- Next examples must keep business logic behind module public APIs and adapter helpers at
+  framework boundaries.
+
+Stage 14 must not add:
+
+- new runtime behavior or public API changes without a separate task-level decision;
+- Stage 15 release automation, changesets, publish workflow or CI release jobs;
+- mandatory Next.js, React, database or documentation-site dependencies without explicit
+  approval;
+- edits to `memory/sources/SPEC.md`.
