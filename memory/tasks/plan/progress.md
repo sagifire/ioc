@@ -237,7 +237,7 @@
   - Summary: Stage 11 bind helper DSL and `adapt()` for explicit composition adapters.
   - Current: RUN-001
 - [TASK-07.01-0032-stage-11-dsl-hardening-docs](TASK-07.01-0032-stage-11-dsl-hardening-docs/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Stage 11 DSL hardening, exports, inspection parity and minimal docs sync.

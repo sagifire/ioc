@@ -25,3 +25,87 @@ Stage 10 dependency edge metadata is implemented for capability-satisfied and
 binding-satisfied required ports. Module cycle detection is implemented over capability
 dependency edges, and cycle diagnostics include module and token paths without exposing
 provider values or private runtime internals.
+
+## Object API And DSL Parity
+
+The explicit object API remains fully supported:
+
+```ts
+const contactRequestsModule = defineModule({
+    id: 'contact-requests',
+    requires: [
+        {
+            token: CONTACT_REQUESTS_AUTH_READER
+        }
+    ],
+    provides: [
+        {
+            token: CONTACT_REQUESTS_PUBLIC_API,
+            kind: 'public-api'
+        }
+    ],
+    setup(context) {
+        context.bind(CONTACT_REQUESTS_PUBLIC_API).toFactory((resolutionContext) => {
+            const authReader = resolutionContext.get(CONTACT_REQUESTS_AUTH_READER)
+
+            return {
+                submit(): string {
+                    return authReader.currentUserId()
+                }
+            }
+        })
+    }
+})
+```
+
+The DSL version is only a declaration convenience:
+
+```ts
+const contactRequestsModule = module('contact-requests', {
+    requires: [
+        {
+            token: CONTACT_REQUESTS_AUTH_READER
+        }
+    ],
+    provides: [
+        {
+            token: CONTACT_REQUESTS_PUBLIC_API,
+            kind: 'public-api'
+        }
+    ],
+    setup(context) {
+        context.bind(CONTACT_REQUESTS_PUBLIC_API).toFactory((resolutionContext) => {
+            const authReader = resolutionContext.get(CONTACT_REQUESTS_AUTH_READER)
+
+            return {
+                submit(): string {
+                    return authReader.currentUserId()
+                }
+            }
+        })
+    }
+})
+```
+
+Application-level DSL keeps required-port ownership explicit:
+
+```ts
+const app = defineApp({
+    modules: [authModule, contactRequestsModule],
+    bindings: [
+        adapt(CONTACT_REQUESTS_AUTH_READER, (context) => {
+            const auth = context.get(AUTH_PUBLIC_API)
+
+            return {
+                currentUserId(): string {
+                    return auth.requireUser()
+                }
+            }
+        })
+    ]
+})
+```
+
+Only modules and bindings passed to `defineApp()` participate in validation and
+composition. The DSL does not register modules globally, scan the filesystem, use
+decorators or hide dependency edges behind factory execution.

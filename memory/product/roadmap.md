@@ -538,10 +538,8 @@ Root source trace:
     - не додавати filesystem auto-discovery, decorators, `reflect-metadata`, Node-only
       APIs or global mutable registries into core.
 
-## Next
-
 - Stage 11: DSL.
-  - Status: planned; planning task done after task-level human review.
+  - Status: done after task-level human review.
   - Source: `SPEC.md` section 41.
   - Planning Task: `TASK-07.01-0028-stage-11-implementation-planning`.
   - Implementation Tasks:
@@ -549,7 +547,8 @@ Root source trace:
       review;
     - `TASK-07.01-0030-stage-11-define-app-dsl` - done after task-level human review;
     - `TASK-07.01-0031-stage-11-bind-adapt-dsl` - done after task-level human review;
-    - `TASK-07.01-0032-stage-11-dsl-hardening-docs` - backlog.
+    - `TASK-07.01-0032-stage-11-dsl-hardening-docs` - done after task-level human
+      review.
   - Implementation Decomposition:
     - Task 1 builds `module()` as an optional ergonomic layer over `defineModule()`.
     - Task 2 builds `defineApp()` and deterministic conversion to existing composer
@@ -583,14 +582,17 @@ Root source trace:
       inference;
     - не робити DSL required path for users of explicit object configuration.
 
-## Later
+## Next
 
 - Stage 12: `@sagifire/ioc-testing`.
+  - Status: planned.
   - Source: `SPEC.md` section 42.
   - Implement: test runtime, test composer, overrides, module harness, fake modules and
     graph assertion helpers.
   - Acceptance: overrides apply before compose, frozen runtime is never mutated, single
     module harness works with fake ports and graph assertions are readable in Vitest.
+
+## Later
 
 - Stage 13: `@sagifire/ioc-next`.
   - Source: `SPEC.md` section 43.

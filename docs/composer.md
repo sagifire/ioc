@@ -27,3 +27,22 @@ Dependency edges are inspection metadata only. Capability dependency edges conne
 consumer module required port to the module capability that satisfies it. Binding
 dependency edges connect a consumer module required port to an explicit composition-level
 binding. Binding edges do not create module-level cycle diagnostics by themselves.
+
+## Optional DSL
+
+The composer object API remains the canonical behavior surface. Stage 11 DSL helpers only
+prepare declarations that are applied through existing composer methods:
+
+- `module()` creates module definitions compatible with `createComposer().use()`.
+- `defineApp()` creates a fresh composer, calls `use()` for each declared module and
+  applies declared bindings through `composer.bind()`.
+- `bind(token)` and `adapt(token, factory)` create explicit composition-level binding
+  declarations.
+
+This means DSL-generated applications validate, inspect, prepare and compose through the
+same graph model as object API composition. Required ports, capabilities, bindings and
+dependency edges remain visible through `composer.validate()`, `composer.inspect()`,
+`composer.getGraph()` and `runtime.inspect()`.
+
+The DSL does not auto-discover modules, execute factories during validation, create global
+registries or expose required-port-only bindings as public runtime capabilities.

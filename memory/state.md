@@ -311,6 +311,21 @@ runtime/type/package-export tests and minimal public docs sync. RUN-001 не р�
 testing helpers, graph assertion helpers, Next.js adapters, hidden dependency inference or
 changes to composer/runtime binding semantics.
 
+Stage 11 DSL hardening/docs implementation завершено після task-level human review
+approval:
+
+- [TASK-07.01-0032-stage-11-dsl-hardening-docs](tasks/plan/TASK-07.01-0032-stage-11-dsl-hardening-docs/index.md)
+
+RUN-001 підсилив final DSL runtime/type/package-export coverage, додав DSL vs object API
+validation/inspection/runtime graph parity regressions, перевірив explicit declaration /
+no shared registry behavior, синхронізував minimal README/docs for optional DSL and object
+API parity and verified build/test/typecheck/lint. RUN-001 не реалізовував testing
+helpers, graph assertion helpers, Next.js adapters, decorators, `reflect-metadata`,
+filesystem discovery, global registries, hidden dependency inference or changes to
+composer/runtime binding semantics.
+
+Stage 11 DSL завершено після approval фінальної hardening/docs task.
+
 ## Active Tasks
 
 Немає задач у статусі `active`.
@@ -415,7 +430,7 @@ changes to composer/runtime binding semantics.
   - Status: done
   - Summary: Stage 11 bind helper DSL and `adapt()` implementation task.
 - [TASK-07.01-0032-stage-11-dsl-hardening-docs](tasks/plan/TASK-07.01-0032-stage-11-dsl-hardening-docs/index.md)
-  - Status: backlog
+  - Status: done
   - Summary: Stage 11 DSL hardening, exports and docs implementation task.
 
 ## Recent Decisions
@@ -694,11 +709,20 @@ changes to composer/runtime binding semantics.
   visibility.
 - `TASK-07.01-0029-stage-11-module-dsl-foundation` завершена після task-level human
   review approval.
+- `TASK-07.01-0030-stage-11-define-app-dsl` завершена після task-level human review
+  approval.
+- `TASK-07.01-0031-stage-11-bind-adapt-dsl` завершена після task-level human review
+  approval.
+- `TASK-07.01-0032-stage-11-dsl-hardening-docs` завершена після task-level human review
+  approval.
+- Stage 11 DSL завершено: `module()`, `defineApp()`, bind helper declarations and
+  `adapt()` implemented as optional layer over object/composer APIs with inspection parity
+  coverage and minimal docs sync.
 
 ## Current Risks
 
-- Stage 11 DSL може випадково приховати graph semantics за ergonomic API; implementation
-  tasks мають перевіряти object API parity and inspection visibility.
+- Stage 12 `@sagifire/ioc-testing` ще не сплановано task-level decomposition; не треба
+  починати implementation helpers без окремої planning task.
 - Next.js adapters і testing helpers залишаються out of scope до відповідних roadmap
   stages.
 - Binding factory internals не мають static dependency metadata; Stage 10 dependency edge
@@ -712,9 +736,8 @@ changes to composer/runtime binding semantics.
 
 ## Next Steps
 
-- Запустити
-  [TASK-07.01-0032-stage-11-dsl-hardening-docs](tasks/plan/TASK-07.01-0032-stage-11-dsl-hardening-docs/index.md),
-  якщо roadmap order не зміниться.
+- Створити planning task для Stage 12 `@sagifire/ioc-testing`, якщо roadmap order не
+  зміниться.
 
 ## Open Questions
 

@@ -1,6 +1,6 @@
 # TASK-07.01-0032: Stage 11 DSL hardening and docs
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-01
@@ -49,21 +49,21 @@ documented without implying magic or replacing the object API.
 
 ## Acceptance Criteria
 
-- [ ] DSL public API is coherent across root and `@sagifire/ioc/dsl` exports.
-- [ ] DSL-generated configuration has validation/inspection parity with equivalent object
+- [x] DSL public API is coherent across root and `@sagifire/ioc/dsl` exports.
+- [x] DSL-generated configuration has validation/inspection parity with equivalent object
   API configuration.
-- [ ] Type-level tests cover module/app/bind/adapt DSL inference.
-- [ ] Runtime tests cover final DSL integration path.
-- [ ] Package export smoke tests cover final DSL API.
-- [ ] Docs/README describe DSL as optional and keep object API first-class.
-- [ ] Docs/README do not imply decorators, auto-discovery, service locator behavior or
+- [x] Type-level tests cover module/app/bind/adapt DSL inference.
+- [x] Runtime tests cover final DSL integration path.
+- [x] Package export smoke tests cover final DSL API.
+- [x] Docs/README describe DSL as optional and keep object API first-class.
+- [x] Docs/README do not imply decorators, auto-discovery, service locator behavior or
   hidden graph magic.
-- [ ] Stage 11 overall acceptance is satisfied.
-- [ ] Stage 11 task does not implement testing helpers or Next.js adapters.
-- [ ] `pnpm build` works.
-- [ ] `pnpm test` works.
-- [ ] `pnpm typecheck` works.
-- [ ] `pnpm lint` works.
+- [x] Stage 11 overall acceptance is satisfied.
+- [x] Stage 11 task does not implement testing helpers or Next.js adapters.
+- [x] `pnpm build` works.
+- [x] `pnpm test` works.
+- [x] `pnpm typecheck` works.
+- [x] `pnpm lint` works.
 
 ## Linked Memory
 
@@ -79,9 +79,9 @@ documented without implying magic or replacing the object API.
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: planned
+  - Status: completed
   - Purpose: Початковий autonomous implementation run для final DSL hardening.
-  - Result: pending
+  - Result: prepared for review
 
 ## Research
 

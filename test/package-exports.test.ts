@@ -364,4 +364,83 @@ describe('package exports', () => {
 
         await runtime.dispose()
     })
+
+    test('root and dsl subpath expose coherent final DSL helpers', async () => {
+        const root = await import('@sagifire/ioc')
+        const dsl = await import('@sagifire/ioc/dsl')
+        const reader = root.token<{
+            read(): string
+        }>('exports.dsl.coherent-reader')
+        const publicApi = root.token<{
+            value(): string
+        }>('exports.dsl.coherent-public-api')
+        const createModule = (moduleFactory: typeof root.module) => {
+            return moduleFactory('exports-dsl-coherent-module', {
+                requires: [
+                    {
+                        token: reader
+                    }
+                ],
+                provides: [
+                    {
+                        token: publicApi,
+                        kind: 'public-api'
+                    }
+                ],
+                setup(context): void {
+                    context.bind(publicApi).toFactory((resolutionContext) => {
+                        const dependency = resolutionContext.get(reader)
+
+                        return {
+                            value(): string {
+                                return dependency.read()
+                            }
+                        }
+                    })
+                }
+            })
+        }
+        const rootApp = root.defineApp({
+            modules: [createModule(root.module)],
+            bindings: [
+                root.adapt(reader, () => {
+                    return {
+                        read(): string {
+                            return 'root-dsl'
+                        }
+                    }
+                })
+            ]
+        })
+        const subpathApp = dsl.defineApp({
+            modules: [createModule(dsl.module)],
+            bindings: [
+                dsl.bind(reader).toFactory(() => {
+                    return {
+                        read(): string {
+                            return 'subpath-dsl'
+                        }
+                    }
+                })
+            ]
+        })
+        const rootRuntime = await rootApp.compose()
+        const subpathRuntime = await subpathApp.compose()
+
+        expect(root.module).toBeTypeOf('function')
+        expect(root.defineApp).toBeTypeOf('function')
+        expect(root.bind).toBeTypeOf('function')
+        expect(root.adapt).toBeTypeOf('function')
+        expect(dsl.module).toBeTypeOf('function')
+        expect(dsl.defineApp).toBeTypeOf('function')
+        expect(dsl.bind).toBeTypeOf('function')
+        expect(dsl.adapt).toBeTypeOf('function')
+        expect(rootApp.getGraph()).toEqual(subpathApp.getGraph())
+        expect(rootRuntime.inspect().graph).toEqual(subpathRuntime.inspect().graph)
+        expect(rootRuntime.get(publicApi).value()).toBe('root-dsl')
+        expect(subpathRuntime.get(publicApi).value()).toBe('subpath-dsl')
+
+        await rootRuntime.dispose()
+        await subpathRuntime.dispose()
+    })
 })

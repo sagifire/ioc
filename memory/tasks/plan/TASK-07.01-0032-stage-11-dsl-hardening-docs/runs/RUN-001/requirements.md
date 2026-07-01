@@ -1,6 +1,6 @@
 # Run Requirements: RUN-001
 
-Status: planned
+Status: completed
 Agent Role: Agent Executor
 Execution Mode: autonomous-implementation
 Created: 2026-07-01
@@ -40,15 +40,15 @@ Complete Stage 11 DSL hardening, export coverage and minimal docs sync.
 
 ## Acceptance Criteria for This Run
 
-- [ ] Final DSL export surface is verified.
-- [ ] Runtime parity tests cover DSL vs object API graph behavior.
-- [ ] Type assertions cover final DSL API.
-- [ ] Docs explain optional DSL and object API parity.
-- [ ] Stage 11 overall acceptance is satisfied.
-- [ ] `pnpm build` works.
-- [ ] `pnpm test` works.
-- [ ] `pnpm typecheck` works.
-- [ ] `pnpm lint` works.
+- [x] Final DSL export surface is verified.
+- [x] Runtime parity tests cover DSL vs object API graph behavior.
+- [x] Type assertions cover final DSL API.
+- [x] Docs explain optional DSL and object API parity.
+- [x] Stage 11 overall acceptance is satisfied.
+- [x] `pnpm build` works.
+- [x] `pnpm test` works.
+- [x] `pnpm typecheck` works.
+- [x] `pnpm lint` works.
 
 ## Changes from Previous Run
 

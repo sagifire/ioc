@@ -927,3 +927,230 @@ describe('bind/adapt DSL', () => {
         expectTypeOf<TokenValue<typeof adapterBinding.token>>().toEqualTypeOf<AuthReader>()
     })
 })
+
+describe('DSL hardening', () => {
+    test('matches equivalent object API graph inspection for the final DSL path', async () => {
+        const createAuthSetup = (userId: string) => {
+            return (context: ModuleSetupContext): void => {
+                context.bind(AUTH_PUBLIC_API).toValue({
+                    requireUser(): string {
+                        return userId
+                    }
+                })
+            }
+        }
+        const createContactSetup = () => {
+            return (context: ModuleSetupContext): void => {
+                context.bind(CONTACT_REQUESTS_PUBLIC_API).toFactory((resolutionContext) => {
+                    const authReader = resolutionContext.get(AUTH_READER)
+
+                    return {
+                        submit(): string {
+                            return authReader.currentUserId()
+                        }
+                    }
+                })
+            }
+        }
+        const authReaderAdapter = (context: ComposerBindingContext): AuthReader => {
+            const auth = context.get(AUTH_PUBLIC_API)
+
+            return {
+                currentUserId(): string {
+                    return auth.requireUser()
+                }
+            }
+        }
+        const objectAuthModule = defineModule({
+            id: 'dsl-hardening-auth',
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup: createAuthSetup('hardening-user')
+        })
+        const objectContactModule = defineModule({
+            id: 'dsl-hardening-contact-requests',
+            requires: [
+                {
+                    token: AUTH_READER
+                }
+            ],
+            provides: [
+                {
+                    token: CONTACT_REQUESTS_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup: createContactSetup()
+        })
+        const dslAuthModule = moduleDsl('dsl-hardening-auth', {
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup: createAuthSetup('hardening-user')
+        })
+        const dslContactModule = moduleDsl('dsl-hardening-contact-requests', {
+            requires: [
+                {
+                    token: AUTH_READER
+                }
+            ],
+            provides: [
+                {
+                    token: CONTACT_REQUESTS_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup: createContactSetup()
+        })
+        const objectComposer = createComposer().use(objectAuthModule).use(objectContactModule)
+
+        objectComposer.bind(AUTH_READER).toFactory(authReaderAdapter)
+
+        const app = defineApp({
+            modules: [dslAuthModule, dslContactModule],
+            bindings: [adapt(AUTH_READER, authReaderAdapter)]
+        })
+        const objectRuntime = await objectComposer.compose()
+        const appRuntime = await app.compose()
+
+        expect(app.validate()).toEqual(objectComposer.validate())
+        expect(app.getGraph()).toEqual(objectComposer.getGraph())
+        expect(app.inspect()).toEqual(objectComposer.inspect())
+        expect(appRuntime.inspect()).toEqual(objectRuntime.inspect())
+        expect(appRuntime.get(CONTACT_REQUESTS_PUBLIC_API).submit()).toBe('hardening-user')
+        expect(objectRuntime.get(CONTACT_REQUESTS_PUBLIC_API).submit()).toBe('hardening-user')
+
+        await appRuntime.dispose()
+        await objectRuntime.dispose()
+    })
+
+    test('keeps modules and bindings explicit without shared registry or auto discovery', () => {
+        const orphanAuthModule = moduleDsl('dsl-hardening-orphan-auth', {
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(): void {}
+        })
+        const consumerModule = moduleDsl('dsl-hardening-explicit-consumer', {
+            requires: [
+                {
+                    token: AUTH_PUBLIC_API
+                },
+                {
+                    token: AUTH_READER
+                }
+            ],
+            setup(): void {}
+        })
+        const orphanBinding = bind(AUTH_READER).toValue({
+            currentUserId(): string {
+                return 'orphan-binding-user'
+            }
+        })
+        const missingApp = defineApp({
+            modules: [consumerModule]
+        })
+        const explicitApp = defineApp({
+            modules: [orphanAuthModule, consumerModule],
+            bindings: [orphanBinding]
+        })
+
+        expect(missingApp.validate()).toEqual({
+            ok: false,
+            diagnostics: [
+                {
+                    code: 'SAGIFIRE_IOC_MISSING_REQUIRED_PORT',
+                    severity: 'error',
+                    message:
+                        'Missing required port "dsl.auth-public-api" for module "dsl-hardening-explicit-consumer"',
+                    details: {
+                        moduleId: 'dsl-hardening-explicit-consumer',
+                        tokenId: 'dsl.auth-public-api',
+                        dependencyKind: 'external'
+                    }
+                },
+                {
+                    code: 'SAGIFIRE_IOC_MISSING_REQUIRED_PORT',
+                    severity: 'error',
+                    message:
+                        'Missing required port "dsl.auth-reader" for module "dsl-hardening-explicit-consumer"',
+                    details: {
+                        moduleId: 'dsl-hardening-explicit-consumer',
+                        tokenId: 'dsl.auth-reader',
+                        dependencyKind: 'external'
+                    }
+                }
+            ]
+        })
+        expect(explicitApp.validate()).toEqual({
+            ok: true,
+            diagnostics: []
+        })
+        expect(explicitApp.getGraph().modules.map((moduleNode) => moduleNode.id)).toEqual([
+            'dsl-hardening-orphan-auth',
+            'dsl-hardening-explicit-consumer'
+        ])
+        expect(explicitApp.getGraph().bindings).toEqual([
+            {
+                tokenId: 'dsl.auth-reader',
+                kind: 'value',
+                providerKind: 'value',
+                lifetime: 'singleton'
+            }
+        ])
+    })
+
+    test('preserves final DSL tuple inference for module, app, bind and adapt declarations', () => {
+        const moduleDefinition = moduleDsl('dsl-hardening-typed', {
+            requires: [
+                {
+                    token: AUTH_READER
+                }
+            ],
+            provides: [
+                {
+                    token: CONTACT_REQUESTS_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(): void {}
+        })
+        const valueBinding = bind(AUTH_READER).toValue({
+            currentUserId(): string {
+                return 'typed-hardening-user'
+            }
+        })
+        const adapterBinding = adapt(AUTH_READER, () => {
+            return {
+                currentUserId(): string {
+                    return 'typed-adapter-user'
+                }
+            }
+        })
+        const app = defineApp({
+            modules: [moduleDefinition],
+            bindings: [valueBinding, adapterBinding]
+        })
+
+        expectTypeOf(app).toMatchTypeOf<AppDslDefinition>()
+        expectTypeOf(app.modules[0]).toEqualTypeOf<typeof moduleDefinition>()
+        expectTypeOf(app.bindings[0]).toEqualTypeOf<AppDslValueBindingDefinition<AuthReader>>()
+        expectTypeOf(app.bindings[1]).toEqualTypeOf<AppDslFactoryBindingDefinition<AuthReader>>()
+        expectTypeOf<TokenValue<(typeof app.modules)[0]['requires'][0]['token']>>().toEqualTypeOf<
+            AuthReader
+        >()
+        expectTypeOf<
+            TokenValue<(typeof app.modules)[0]['provides'][0]['token']>
+        >().toEqualTypeOf<ContactRequestsPublicApi>()
+    })
+})

@@ -14,3 +14,58 @@ diagnostics are implemented. Stage 11 DSL includes `module()` for module definit
 `defineApp()` for deterministic conversion to existing composer configuration, bind helper
 declarations and `adapt()` for explicit composition adapters. Testing helpers and adapters
 remain planned for later roadmap stages.
+
+## DSL Boundary
+
+The DSL is optional. It is an ergonomic declaration layer over the explicit
+object-configuration and composer APIs, not a second runtime or hidden registry.
+
+- `module()` normalizes to the same module definition semantics as `defineModule()`.
+- `defineApp()` creates a fresh configured composer from declared modules and bindings.
+- `bind(token)` creates composition binding declarations for existing `composer.bind()`
+  provider forms.
+- `adapt(token, factory)` is an explicit factory binding helper for consumer-owned
+  required ports.
+
+Object configuration remains first-class:
+
+```ts
+const composer = createComposer()
+    .use(authModule)
+    .use(contactRequestsModule)
+
+composer.bind(CONTACT_REQUESTS_AUTH_READER).toFactory((context) => {
+    const auth = context.get(AUTH_PUBLIC_API)
+
+    return {
+        currentUserId(): string {
+            return auth.requireUser()
+        }
+    }
+})
+```
+
+The equivalent DSL path produces the same inspectable graph shape:
+
+```ts
+const app = defineApp({
+    modules: [authModule, contactRequestsModule],
+    bindings: [
+        adapt(CONTACT_REQUESTS_AUTH_READER, (context) => {
+            const auth = context.get(AUTH_PUBLIC_API)
+
+            return {
+                currentUserId(): string {
+                    return auth.requireUser()
+                }
+            }
+        })
+    ]
+})
+```
+
+Validation and inspection use declared module requirements, capabilities and composition
+bindings. They do not execute module setup, provider factories, binding factories, adapter
+factories or async resources to infer hidden dependencies. The core package still has no
+decorators, `reflect-metadata`, constructor metadata, filesystem discovery, framework
+imports, global mutable app registry or service locator behavior.
