@@ -800,7 +800,7 @@ Root source trace:
   - Planning Task: `TASK-07.02-0054-stage-15-implementation-planning`.
   - Implementation Tasks:
     - `TASK-07.02-0055-stage-15-repository-governance-artifacts` - done;
-    - `TASK-07.02-0056-stage-15-package-publish-metadata` - backlog;
+    - `TASK-07.02-0056-stage-15-package-publish-metadata` - done;
     - `TASK-07.02-0057-stage-15-changesets-versioning-changelog` - backlog;
     - `TASK-07.02-0058-stage-15-ci-quality-gates` - backlog;
     - `TASK-07.02-0059-stage-15-pack-dry-run-validation` - backlog;

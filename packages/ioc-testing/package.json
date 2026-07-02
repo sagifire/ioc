@@ -1,9 +1,34 @@
 {
     "name": "@sagifire/ioc-testing",
     "version": "0.0.0",
+    "description": "Testing helpers, overrides, fake modules and graph assertions for @sagifire/ioc.",
     "type": "module",
     "sideEffects": false,
     "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/sagifire/ioc.git",
+        "directory": "packages/ioc-testing"
+    },
+    "homepage": "https://github.com/sagifire/ioc/tree/main/packages/ioc-testing#readme",
+    "bugs": {
+        "url": "https://github.com/sagifire/ioc/issues"
+    },
+    "keywords": [
+        "ioc",
+        "dependency-injection",
+        "dependency-composition",
+        "typescript",
+        "esm",
+        "testing",
+        "test-helpers",
+        "overrides",
+        "fake-modules",
+        "graph-assertions"
+    ],
+    "publishConfig": {
+        "access": "public"
+    },
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "exports": {
@@ -14,7 +39,9 @@
         "./package.json": "./package.json"
     },
     "files": [
-        "dist",
+        "dist/index.js",
+        "dist/index.js.map",
+        "dist/index.d.ts",
         "README.md",
         "LICENSE",
         "NOTICE"

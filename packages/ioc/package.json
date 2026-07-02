@@ -1,9 +1,33 @@
 {
     "name": "@sagifire/ioc",
     "version": "0.0.0",
+    "description": "TypeScript-native IoC container, module composer, diagnostics and optional DSL.",
     "type": "module",
     "sideEffects": false,
     "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/sagifire/ioc.git",
+        "directory": "packages/ioc"
+    },
+    "homepage": "https://github.com/sagifire/ioc/tree/main/packages/ioc#readme",
+    "bugs": {
+        "url": "https://github.com/sagifire/ioc/issues"
+    },
+    "keywords": [
+        "ioc",
+        "dependency-injection",
+        "dependency-composition",
+        "typescript",
+        "esm",
+        "tokens",
+        "container",
+        "modules",
+        "diagnostics"
+    ],
+    "publishConfig": {
+        "access": "public"
+    },
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "exports": {
@@ -42,7 +66,30 @@
         "./package.json": "./package.json"
     },
     "files": [
-        "dist",
+        "dist/index.js",
+        "dist/index.js.map",
+        "dist/index.d.ts",
+        "dist/tokens.js",
+        "dist/tokens.js.map",
+        "dist/tokens.d.ts",
+        "dist/container.js",
+        "dist/container.js.map",
+        "dist/container.d.ts",
+        "dist/context.js",
+        "dist/context.js.map",
+        "dist/context.d.ts",
+        "dist/composer.js",
+        "dist/composer.js.map",
+        "dist/composer.d.ts",
+        "dist/dsl.js",
+        "dist/dsl.js.map",
+        "dist/dsl.d.ts",
+        "dist/diagnostics.js",
+        "dist/diagnostics.js.map",
+        "dist/diagnostics.d.ts",
+        "dist/lifecycle.js",
+        "dist/lifecycle.js.map",
+        "dist/lifecycle.d.ts",
         "README.md",
         "LICENSE",
         "NOTICE"

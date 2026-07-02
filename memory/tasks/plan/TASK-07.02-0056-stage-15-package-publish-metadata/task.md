@@ -1,6 +1,6 @@
 # TASK-07.02-0056: Stage 15 package publish metadata
 
-Status: backlog
+Status: done
 Type: chore
 Execution Mode: autonomous-implementation
 Created: 2026-07-02
@@ -47,16 +47,16 @@ publish automation rely on it.
 
 ## Acceptance Criteria
 
-- [ ] All publishable package manifests have consistent license/repository/homepage/bugs
+- [x] All publishable package manifests have consistent license/repository/homepage/bugs
   metadata.
-- [ ] `bugs.url` points to GitHub Issues.
-- [ ] Public package access policy is explicit where needed.
-- [ ] Root workspace remains private.
-- [ ] Package `files` entries are intentional and include release docs/artifacts.
-- [ ] Package exports remain tree-shaking friendly and unchanged unless a narrow metadata
+- [x] `bugs.url` points to GitHub Issues.
+- [x] Public package access policy is explicit where needed.
+- [x] Root workspace remains private.
+- [x] Package `files` entries are intentional and include release docs/artifacts.
+- [x] Package exports remain tree-shaking friendly and unchanged unless a narrow metadata
   need is documented.
-- [ ] Package manifests parse and package metadata checks pass.
-- [ ] Relevant build/typecheck/lint/test decisions are recorded.
+- [x] Package manifests parse and package metadata checks pass.
+- [x] Relevant build/typecheck/lint/test decisions are recorded.
 
 ## Linked Memory
 
@@ -70,9 +70,9 @@ publish automation rely on it.
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: planned
+  - Status: completed
   - Purpose: Autonomous implementation run for package publish metadata.
-  - Result: pending
+  - Result: approved after task-level human review
 
 ## Research
 

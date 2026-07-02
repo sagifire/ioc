@@ -21,7 +21,7 @@ and import paths below describe the implemented public API in this workspace.
 
 ## Install Shape
 
-The packages are not published from this repository yet. When release packaging is added,
+The packages are not published from this repository yet. When publishing is enabled,
 the intended install shape is:
 
 ```sh
