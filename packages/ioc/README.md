@@ -177,3 +177,4 @@ inference.
 - [Composer](../../docs/composer.md)
 - [Modules](../../docs/modules.md)
 - [Diagnostics](../../docs/diagnostics.md)
+- [Migration from DI containers](../../docs/migration-from-di-container.md)

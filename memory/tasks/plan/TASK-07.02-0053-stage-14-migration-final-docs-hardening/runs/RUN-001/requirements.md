@@ -1,6 +1,6 @@
 # Run Requirements: RUN-001
 
-Status: pending
+Status: completed
 Agent Role: Agent Executor
 Execution Mode: autonomous-implementation
 Created: 2026-07-02
@@ -31,10 +31,10 @@ Write migration guide and perform final Stage 14 docs/examples hardening.
 
 ## Acceptance Criteria for This Run
 
-- [ ] Migration guide is complete for current API.
-- [ ] Docs/examples consistency is checked.
-- [ ] Stage 14 completion status is prepared for human review.
-- [ ] Verification and memory sync are recorded in `result.md`.
+- [x] Migration guide is complete for current API.
+- [x] Docs/examples consistency is checked.
+- [x] Stage 14 completion status is prepared for human review.
+- [x] Verification and memory sync are recorded in `result.md`.
 
 ## Changes from Previous Run
 

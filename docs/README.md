@@ -1,8 +1,7 @@
 # Documentation
 
 This directory is the repository documentation map for the implemented workspace API.
-Stage 14 is expanding the deep guides in sequence, so some pages still carry skeleton
-status text. Package README files and this map are the current entry points.
+Package README files and this map are the current entry points.
 
 ## Start Here
 

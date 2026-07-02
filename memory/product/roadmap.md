@@ -717,10 +717,10 @@ Root source trace:
     - не реалізовувати broad Stage 14 documentation/examples або Stage 15 release
       automation.
 
-## Next
+## Recently Completed Stage 14
 
 - Stage 14: Documentation and examples.
-  - Status: planned after implementation planning approval.
+  - Status: done after task-level human review.
   - Source: `SPEC.md` section 44.
   - Planning Task: `TASK-07.02-0045-stage-14-implementation-planning`.
   - Implementation Tasks:
@@ -731,7 +731,7 @@ Root source trace:
     - `TASK-07.02-0050-stage-14-basic-node-module-examples` - done;
     - `TASK-07.02-0051-stage-14-async-db-testing-examples` - done;
     - `TASK-07.02-0052-stage-14-next-app-router-example-hardening` - done;
-    - `TASK-07.02-0053-stage-14-migration-final-docs-hardening` - backlog.
+    - `TASK-07.02-0053-stage-14-migration-final-docs-hardening` - done.
   - Implementation Decomposition:
     - Task 1 rewrites root README, package READMEs and docs navigation.
     - Task 2 expands architecture, container and async model documentation.
@@ -784,7 +784,7 @@ Root source trace:
     - не додавати full Next.js dependency install without explicit task-level approval;
     - не реалізовувати Stage 15 release automation.
 
-## Later
+## Next
 
 - Stage 15: Release automation.
   - Source: `SPEC.md` section 45.

@@ -1020,14 +1020,26 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
   scope, focused typecheck config and direct Node run harness. RUN-001 не змінював runtime
   behavior, public API, package exports, external dependencies, release automation, full
   Next.js app setup або `memory/sources/SPEC.md`.
+- `TASK-07.02-0053-stage-14-migration-final-docs-hardening` RUN-001 виконаний агентом і
+  завершений після task-level human review approval.
+- Stage 14 migration/final docs hardening RUN-001 переписав
+  `docs/migration-from-di-container.md` from skeleton to a practical migration guide,
+  прибрав stale Stage 14 placeholder copy з root/docs navigation, додав migration guide
+  link у core package README, перевірив docs/example links, stale placeholder language,
+  release automation claims and reran final workspace/example verification. RUN-001 не
+  змінював runtime behavior, public API, package exports, external dependencies, release
+  automation, examples behavior або `memory/sources/SPEC.md`.
+- Stage 14 documentation/examples завершено після approval фінальної migration/final docs
+  hardening task.
 
 ## Current Risks
 
 - Binding factory internals не мають static dependency metadata; Stage 10 dependency edge
   model фіксує static required-port -> binding edges only and keeps provider-level cycles
   inside factories under existing container diagnostics.
-- Stage 14 documentation/examples можуть виявити public API gaps; такі gaps треба
-  оформлювати як follow-up tasks, а не тихо виправляти runtime behavior у docs-задачах.
+- Stage 15 release automation ще не реалізовано; package versioning, changelog,
+  publishing workflow, CI release jobs and provenance decisions мають плануватися окремою
+  task.
 - Root `SPEC.md` лишається source reference і може дублювати canonical memory; для
   operational рішень використовувати `memory/product/`, `memory/domain/` і
   `memory/technical/`.
@@ -1036,9 +1048,8 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 
 ## Next Steps
 
-- Запустити `TASK-07.02-0053-stage-14-migration-final-docs-hardening`.
+- Створити окрему Stage 15 release automation planning task.
 
 ## Open Questions
 
-- Для Stage 14 кожна examples-task має обрати найменший достатній verification path:
-  executable script, typecheck, targeted tests or documented manual check.
+- Немає.

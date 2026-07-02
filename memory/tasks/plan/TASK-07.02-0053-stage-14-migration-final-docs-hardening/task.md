@@ -1,6 +1,6 @@
 # TASK-07.02-0053: Stage 14 migration and final docs hardening
 
-Status: backlog
+Status: done
 Type: docs
 Execution Mode: autonomous-implementation
 Created: 2026-07-02
@@ -43,15 +43,15 @@ planning starts.
 
 ## Acceptance Criteria
 
-- [ ] Migration guide explains practical mapping from typical DI patterns to
+- [x] Migration guide explains practical mapping from typical DI patterns to
   `@sagifire/ioc` concepts.
-- [ ] Guide covers tokens, providers, scopes, modules, required ports, bindings, testing
+- [x] Guide covers tokens, providers, scopes, modules, required ports, bindings, testing
   overrides and Next boundaries where relevant.
-- [ ] Docs/examples links are checked and stale stage-placeholder copy is removed or
+- [x] Docs/examples links are checked and stale stage-placeholder copy is removed or
   intentionally retained only where accurate.
-- [ ] Docs/examples do not claim Stage 15 release automation is implemented.
-- [ ] Final Stage 14 verification is recorded.
-- [ ] Task memory and general state are synced after implementation.
+- [x] Docs/examples do not claim Stage 15 release automation is implemented.
+- [x] Final Stage 14 verification is recorded.
+- [x] Task memory and general state are synced after implementation.
 
 ## Linked Memory
 
@@ -66,9 +66,9 @@ planning starts.
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: pending
+  - Status: completed
   - Purpose: Autonomous implementation run for migration guide and final docs hardening.
-  - Result: pending
+  - Result: approved after task-level human review
 
 ## Research
 

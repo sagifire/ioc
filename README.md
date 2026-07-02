@@ -208,8 +208,8 @@ logic inside framework handlers.
 - [Next.js integration](docs/next-integration.md)
 - [Migration from DI containers](docs/migration-from-di-container.md)
 
-Some deep guides are still being expanded during Stage 14. Package README files and the
-docs map describe the current implemented API surface.
+The guides and examples describe the current implemented API surface in this workspace.
+Release packaging remains separate future work.
 
 ## Examples
 
