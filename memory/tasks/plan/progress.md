@@ -467,7 +467,7 @@
   - Summary: Stage 16 pre-`0.0.1` closure of `H-001` sync factory Promise behavior.
   - Current: RUN-001
 - [TASK-07.02-0067-stage-16-composer-duplicate-binding-validation](TASK-07.02-0067-stage-16-composer-duplicate-binding-validation/index.md)
-  - Status: backlog
+  - Status: done
   - Type: bugfix
   - Execution Mode: autonomous-implementation
   - Summary: Stage 16 pre-`0.0.1` closure of `H-002` composer duplicate binding validation.

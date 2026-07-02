@@ -1,6 +1,6 @@
 # TASK-07.02-0067: Stage 16 composer duplicate binding validation
 
-Status: backlog
+Status: done
 Type: bugfix
 Execution Mode: autonomous-implementation
 Created: 2026-07-02
@@ -44,15 +44,15 @@ reclassified with rationale під час task-level review.
 
 ## Acceptance Criteria
 
-- [ ] `H-002` має closure mapping у task result.
-- [ ] `composer.validate()` reports duplicate composer bindings for the same token.
-- [ ] `composer.inspect().validation` reports the same validation issue.
-- [ ] `composer.prepare()` and `composer.compose()` fail through composer validation, not
+- [x] `H-002` має closure mapping у task result.
+- [x] `composer.validate()` reports duplicate composer bindings for the same token.
+- [x] `composer.inspect().validation` reports the same validation issue.
+- [x] `composer.prepare()` and `composer.compose()` fail through composer validation, not
       only through lower-level `DuplicateProviderError`.
-- [ ] DSL/app duplicate binding path is covered or explicitly documented as not applicable.
-- [ ] Behavior changes are covered by tests.
-- [ ] Relevant verification commands run where practical or limitations documented.
-- [ ] Package versions remain unchanged.
+- [x] DSL/app duplicate binding path is covered or explicitly documented as not applicable.
+- [x] Behavior changes are covered by tests.
+- [x] Relevant verification commands run where practical or limitations documented.
+- [x] Package versions remain unchanged.
 
 ## Linked Memory
 
@@ -65,9 +65,9 @@ reclassified with rationale під час task-level review.
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: planned
+  - Status: completed
   - Purpose: Autonomous implementation run for closing `H-002`.
-  - Result: pending
+  - Result: approved
 
 ## Research
 

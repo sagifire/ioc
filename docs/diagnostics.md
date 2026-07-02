@@ -27,8 +27,9 @@ import {
 } from '@sagifire/ioc/diagnostics'
 ```
 
-Composer-specific errors such as `ComposerValidationError`, `MissingRequiredPortError` and
-`ModuleCycleError` are exported from the root package and `@sagifire/ioc/composer`.
+Composer-specific errors such as `ComposerValidationError`, `MissingRequiredPortError`,
+`DuplicateComposerBindingError` and `ModuleCycleError` are exported from the root package
+and `@sagifire/ioc/composer`.
 
 ## Typed Errors
 
@@ -159,6 +160,7 @@ Representative composer diagnostics:
 - `SAGIFIRE_IOC_DUPLICATE_MODULE_ID`
 - `SAGIFIRE_IOC_DUPLICATE_MODULE_CAPABILITY`
 - `SAGIFIRE_IOC_MISSING_REQUIRED_PORT`
+- `SAGIFIRE_IOC_DUPLICATE_COMPOSER_BINDING`
 - `SAGIFIRE_IOC_INVALID_COMPOSER_BINDING`
 - `SAGIFIRE_IOC_MODULE_CYCLE`
 - `SAGIFIRE_IOC_MISSING_MODULE_PROVIDER`

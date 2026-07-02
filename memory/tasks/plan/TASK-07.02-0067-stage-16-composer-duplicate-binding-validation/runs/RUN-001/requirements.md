@@ -1,6 +1,6 @@
 # Run Requirements: RUN-001
 
-Status: planned
+Status: completed
 Agent Role: Agent Executor
 Execution Mode: autonomous-implementation
 Created: 2026-07-02
@@ -35,12 +35,12 @@ composer validation before runtime composition fails.
 
 ## Acceptance Criteria for This Run
 
-- [ ] `H-002` closure is recorded.
-- [ ] Duplicate composer bindings are reported by validation/inspection.
-- [ ] Prepare/compose fail through composer validation for duplicate composer bindings.
-- [ ] Regression tests cover the behavior.
-- [ ] Relevant verification is recorded.
-- [ ] Package versions remain unchanged.
+- [x] `H-002` closure is recorded.
+- [x] Duplicate composer bindings are reported by validation/inspection.
+- [x] Prepare/compose fail through composer validation for duplicate composer bindings.
+- [x] Regression tests cover the behavior.
+- [x] Relevant verification is recorded.
+- [x] Package versions remain unchanged.
 
 ## Changes from Previous Run
 

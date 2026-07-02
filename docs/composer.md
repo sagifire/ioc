@@ -171,6 +171,7 @@ Representative composer diagnostics include:
 - duplicate module IDs;
 - duplicate statically declared provided capabilities;
 - missing required ports;
+- duplicate composer bindings for the same token;
 - bindings for tokens that no module declared as a required port;
 - module dependency cycles over capability dependency edges.
 

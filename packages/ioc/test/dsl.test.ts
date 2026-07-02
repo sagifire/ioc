@@ -409,6 +409,59 @@ describe('defineApp DSL', () => {
         ])
     })
 
+    test('reuses composer duplicate binding validation for app bindings', async () => {
+        const moduleDefinition = moduleDsl('dsl-app-duplicate-binding', {
+            requires: [
+                {
+                    token: AUTH_READER
+                }
+            ],
+            setup(): void {}
+        })
+        const expectedReport = {
+            ok: false,
+            diagnostics: [
+                {
+                    code: 'SAGIFIRE_IOC_DUPLICATE_COMPOSER_BINDING',
+                    severity: 'error',
+                    message: 'Duplicate composer binding for token "dsl.auth-reader"',
+                    details: {
+                        tokenId: 'dsl.auth-reader',
+                        bindingKinds: ['value', 'factory']
+                    }
+                }
+            ]
+        }
+        const app = defineApp({
+            modules: [moduleDefinition],
+            bindings: [
+                bind(AUTH_READER).toValue({
+                    currentUserId(): string {
+                        return 'first-user'
+                    }
+                }),
+                adapt(AUTH_READER, () => {
+                    return {
+                        currentUserId(): string {
+                            return 'second-user'
+                        }
+                    }
+                })
+            ]
+        })
+
+        expect(app.validate()).toEqual(expectedReport)
+        expect(app.inspect().validation).toEqual(expectedReport)
+        await expect(app.prepare()).rejects.toMatchObject({
+            code: 'SAGIFIRE_IOC_COMPOSER_VALIDATION_FAILED',
+            report: expectedReport
+        })
+        await expect(app.compose()).rejects.toMatchObject({
+            code: 'SAGIFIRE_IOC_COMPOSER_VALIDATION_FAILED',
+            report: expectedReport
+        })
+    })
+
     test('records supported binding forms without executing factories during graph inspection', () => {
         const moduleDefinition = moduleDsl('dsl-app-binding-forms', {
             requires: [

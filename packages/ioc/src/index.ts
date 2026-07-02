@@ -28,6 +28,7 @@ export type {
 } from './diagnostics'
 export {
     ComposerValidationError,
+    DuplicateComposerBindingError,
     DuplicateModuleIdError,
     DuplicateModuleCapabilityError,
     DuplicateModuleDependencyError,
@@ -54,6 +55,7 @@ export type {
     CapabilityDependencyEdge,
     ComposerInspection,
     CompositionBindingMetadata,
+    DuplicateComposerBindingErrorDetails,
     DuplicateModuleCapabilityErrorDetails,
     DuplicateModuleIdErrorDetails,
     DuplicateModuleTokenErrorDetails,

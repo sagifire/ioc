@@ -292,6 +292,11 @@ export interface InvalidComposerBindingErrorDetails {
     readonly reason: 'missing-required-port'
 }
 
+export interface DuplicateComposerBindingErrorDetails {
+    readonly tokenId: string
+    readonly bindingKinds: readonly ComposerBindingKind[]
+}
+
 export interface ModuleCycleErrorDetails {
     readonly moduleIdPath: readonly string[]
     readonly tokenIdPath: readonly string[]
@@ -481,6 +486,34 @@ export class InvalidComposerBindingError extends SagifireIocError<InvalidCompose
         this.tokenId = tokenId
         this.bindingKind = bindingKind
         this.reason = reason
+    }
+}
+
+export class DuplicateComposerBindingError extends SagifireIocError<DuplicateComposerBindingErrorDetails> {
+    override readonly name = 'DuplicateComposerBindingError'
+    override readonly code = 'SAGIFIRE_IOC_DUPLICATE_COMPOSER_BINDING'
+    readonly tokenId: string
+    readonly bindingKinds: readonly ComposerBindingKind[]
+
+    constructor(
+        tokenId: string,
+        bindingKinds: readonly [ComposerBindingKind, ComposerBindingKind, ...ComposerBindingKind[]]
+    ) {
+        const frozenBindingKinds = Object.freeze([...bindingKinds])
+
+        super({
+            code: 'SAGIFIRE_IOC_DUPLICATE_COMPOSER_BINDING',
+            message: `Duplicate composer binding for token "${tokenId}"`,
+            details: {
+                tokenId,
+                bindingKinds: frozenBindingKinds
+            }
+        })
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.tokenId = tokenId
+        this.bindingKinds = frozenBindingKinds
     }
 }
 
@@ -1884,6 +1917,7 @@ function validateComposer(
     const bindingTokenIds = collectBindingTokenIds(bindings)
     const requiredPortTokenIds = collectRequiredPortTokenIds(modules)
 
+    appendDuplicateBindingDiagnostics(diagnostics, bindings)
     appendMissingRequiredPortDiagnostics(diagnostics, modules, providedTokenIds, bindingTokenIds)
     appendInvalidBindingDiagnostics(diagnostics, bindings, requiredPortTokenIds)
     appendModuleCycleDiagnostics(diagnostics, modules, bindings)
@@ -1942,6 +1976,39 @@ function appendDuplicateCapabilityDiagnostics(
                         [firstModuleId, secondModuleId, ...remainingModuleIds],
                         tokenId
                     )
+                )
+            )
+        }
+    }
+}
+
+function appendDuplicateBindingDiagnostics(
+    diagnostics: Diagnostic[],
+    bindings: readonly ComposerBindingRecord[]
+): void {
+    const bindingKindsByTokenId = new Map<string, ComposerBindingKind[]>()
+
+    for (const binding of bindings) {
+        const bindingKinds = bindingKindsByTokenId.get(binding.token.id)
+
+        if (bindingKinds === undefined) {
+            bindingKindsByTokenId.set(binding.token.id, [binding.kind])
+        } else {
+            bindingKinds.push(binding.kind)
+        }
+    }
+
+    for (const [tokenId, bindingKinds] of bindingKindsByTokenId) {
+        const [firstBindingKind, secondBindingKind, ...remainingBindingKinds] = bindingKinds
+
+        if (firstBindingKind !== undefined && secondBindingKind !== undefined) {
+            diagnostics.push(
+                diagnosticFromError(
+                    new DuplicateComposerBindingError(tokenId, [
+                        firstBindingKind,
+                        secondBindingKind,
+                        ...remainingBindingKinds
+                    ])
                 )
             )
         }

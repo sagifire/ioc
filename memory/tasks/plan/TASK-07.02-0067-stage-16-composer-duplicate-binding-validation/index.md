@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Backlog implementation task for closing Stage 16 audit finding `H-002` before version
+Implementation task for closing Stage 16 audit finding `H-002` before version
 `0.0.1`.
 
 ## Files

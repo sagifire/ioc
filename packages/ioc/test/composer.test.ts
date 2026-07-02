@@ -2,6 +2,7 @@ import { describe, expect, expectTypeOf, test } from 'vitest'
 
 import {
     ComposerValidationError,
+    DuplicateComposerBindingError,
     DuplicateModuleIdError,
     DuplicateModuleCapabilityError,
     DuplicateModuleDependencyError,
@@ -22,6 +23,7 @@ import {
     type ComposerBindingContext,
     type ComposerInspection,
     type CompositionBindingMetadata,
+    type DuplicateComposerBindingErrorDetails,
     type InspectionProviderKind,
     type ModuleDefinition,
     type ModuleDefinitionInput,
@@ -528,6 +530,67 @@ describe('composer builder and static validation', () => {
         })
         expect(factoryCalls).toBe(0)
         expect(asyncFactoryCalls).toBe(0)
+    })
+
+    test('reports duplicate composer bindings before prepare and compose reach container', async () => {
+        let setupCalls = 0
+        const module = defineModule({
+            id: 'duplicate-composer-binding',
+            requires: [
+                {
+                    token: AUTH_READER
+                }
+            ],
+            setup(): void {
+                setupCalls += 1
+            }
+        })
+        const composer = createComposer().use(module)
+        const expectedReport = {
+            ok: false,
+            diagnostics: [
+                {
+                    code: 'SAGIFIRE_IOC_DUPLICATE_COMPOSER_BINDING',
+                    severity: 'error',
+                    message: 'Duplicate composer binding for token "composer.auth-reader"',
+                    details: {
+                        tokenId: 'composer.auth-reader',
+                        bindingKinds: ['value', 'factory']
+                    }
+                }
+            ]
+        }
+
+        composer.bind(AUTH_READER).toValue({
+            currentUserId(): string {
+                return 'first-user'
+            }
+        })
+        composer.bind(AUTH_READER).toFactory(() => {
+            return {
+                currentUserId(): string {
+                    return 'second-user'
+                }
+            }
+        })
+
+        expect(composer.validate()).toEqual(expectedReport)
+        expect(composer.inspect().validation).toEqual(expectedReport)
+        await expect(composer.prepare()).rejects.toMatchObject({
+            code: 'SAGIFIRE_IOC_COMPOSER_VALIDATION_FAILED',
+            report: expectedReport
+        })
+        await expect(composer.compose()).rejects.toMatchObject({
+            code: 'SAGIFIRE_IOC_COMPOSER_VALIDATION_FAILED',
+            report: expectedReport
+        })
+        await expect(composer.compose()).rejects.not.toMatchObject({
+            code: 'SAGIFIRE_IOC_DUPLICATE_PROVIDER'
+        })
+        expect(setupCalls).toBe(0)
+        expect(
+            new DuplicateComposerBindingError(AUTH_READER.id, ['value', 'factory'])
+        ).toBeInstanceOf(DuplicateComposerBindingError)
     })
 
     test('uses declared capabilities to satisfy required ports without explicit bindings', () => {
@@ -2091,6 +2154,10 @@ describe('inspection api', () => {
             readonly moduleIdPath: readonly string[]
             readonly tokenIdPath: readonly string[]
             readonly edgeKinds: readonly ModuleDependencyEdgeKind[]
+        }>()
+        expectTypeOf<DuplicateComposerBindingErrorDetails>().toEqualTypeOf<{
+            readonly tokenId: string
+            readonly bindingKinds: readonly ('value' | 'factory' | 'class' | 'async-factory')[]
         }>()
 
         const cycleError = new ModuleCycleError({

@@ -1177,6 +1177,16 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 - Stage 16 sync factory Promise guard RUN-001 також синхронізував public docs для
   sync/async factory policy, зберіг `toValue(Promise)` як exact value storage, перевірив
   `pnpm release:validate` і не змінював package versions, changelogs або publish workflow.
+- `TASK-07.02-0067-stage-16-composer-duplicate-binding-validation` RUN-001 виконаний
+  агентом і завершений після task-level human review approval.
+- Stage 16 composer duplicate binding validation RUN-001 закрив `H-002` на рівні
+  implementation result: `composer.validate()` and `composer.inspect().validation` тепер
+  звітують `SAGIFIRE_IOC_DUPLICATE_COMPOSER_BINDING` для duplicate composer bindings,
+  `prepare()` / `compose()` падають через `ComposerValidationError`, а DSL `defineApp()`
+  duplicate binding path покритий regression test.
+- Stage 16 composer duplicate binding validation RUN-001 також синхронізував public docs,
+  перевірив `pnpm release:validate` і не змінював package versions, changelogs або publish
+  workflow.
 
 ## Current Risks
 
@@ -1184,9 +1194,9 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
   model фіксує static required-port -> binding edges only and keeps provider-level cycles
   inside factories under existing container diagnostics.
 - Stage 16 audit знайшов pre-`0.0.1` blockers: `C-001`, `H-001`, `H-002`, `M-001` і
-  `L-001`; `C-001` and `H-001` review-approved closed, а version `0.0.1` залишається
-  blocked until remaining accepted audit blockers are review-approved closed or explicitly
-  reclassified.
+  `L-001`; `C-001`, `H-001` and `H-002` review-approved closed, а version `0.0.1`
+  залишається blocked until remaining accepted audit blockers are review-approved closed
+  or explicitly reclassified.
 - Publishable package versions still remain `0.0.0`; version `0.0.1` is intentionally
   blocked until all accepted audit blockers are closed.
 - GitHub private vulnerability reporting is an external repository setting; `SECURITY.md`
@@ -1202,8 +1212,7 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 
 ## Next Steps
 
-- Закрити remaining pre-`0.0.1` blockers `H-002`, `M-001` і `L-001` у
-  `TASK-0067`-`TASK-0069`.
+- Закрити remaining pre-`0.0.1` blockers `M-001` і `L-001` у `TASK-0068`-`TASK-0069`.
 
 ## Open Questions
 
