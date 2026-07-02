@@ -455,7 +455,7 @@
   - Summary: Stage 16 pre-`0.0.1` codebase audit report повністю українською мовою.
   - Current: RSCH-001
 - [TASK-07.02-0064-stage-16-critical-fixes-from-audit](TASK-07.02-0064-stage-16-critical-fixes-from-audit/index.md)
-  - Status: backlog
+  - Status: done
   - Type: bugfix
   - Execution Mode: autonomous-implementation
   - Summary: Stage 16 closure of `C-001` critical finding from the codebase audit.

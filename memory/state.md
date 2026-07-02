@@ -1161,6 +1161,13 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 - `TASK-07.02-0065-stage-16-version-0-0-1-stabilization-handoff` не стартує, доки
   `TASK-0064`, `TASK-0066`, `TASK-0067`, `TASK-0068` і `TASK-0069` не закриті або явно
   reclassified with rationale.
+- `TASK-07.02-0064-stage-16-critical-fixes-from-audit` RUN-001 виконаний агентом і
+  завершений після task-level human review approval.
+- Stage 16 critical fixes RUN-001 закрив `C-001`: release workflow тепер використовує
+  стабільний `changesets/action@v1`, а локальний Vitest regression guard перевіряє, що
+  workflow не повернувся до `changesets/action@v2`.
+- Stage 16 critical fixes RUN-001 не закривав non-critical findings `H-001`, `H-002`,
+  `M-001` і `L-001`; вони лишаються pre-`0.0.1` blockers у `TASK-0066`-`TASK-0069`.
 
 ## Current Risks
 
@@ -1168,8 +1175,8 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
   model фіксує static required-port -> binding edges only and keeps provider-level cycles
   inside factories under existing container diagnostics.
 - Stage 16 audit знайшов pre-`0.0.1` blockers: `C-001`, `H-001`, `H-002`, `M-001` і
-  `L-001`; version `0.0.1` залишається blocked until їх closure or explicit
-  reclassification.
+  `L-001`; `C-001` review-approved closed, а version `0.0.1` залишається blocked until
+  remaining accepted audit blockers are review-approved closed or explicitly reclassified.
 - Publishable package versions still remain `0.0.0`; version `0.0.1` is intentionally
   blocked until all accepted audit blockers are closed.
 - GitHub private vulnerability reporting is an external repository setting; `SECURITY.md`
@@ -1185,8 +1192,7 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 
 ## Next Steps
 
-- Запустити `TASK-07.02-0064-stage-16-critical-fixes-from-audit` для виправлення `C-001`.
-- Після `TASK-0064` закрити pre-`0.0.1` blockers `H-001`, `H-002`, `M-001` і `L-001` у
+- Закрити pre-`0.0.1` blockers `H-001`, `H-002`, `M-001` і `L-001` у
   `TASK-0066`-`TASK-0069`.
 
 ## Open Questions
