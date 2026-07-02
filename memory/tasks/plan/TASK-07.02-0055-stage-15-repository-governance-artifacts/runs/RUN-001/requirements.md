@@ -1,6 +1,6 @@
 # Run Requirements: RUN-001
 
-Status: planned
+Status: completed
 Agent Role: Agent Executor
 Execution Mode: autonomous-implementation
 Created: 2026-07-02
@@ -40,13 +40,13 @@ Create and update repository governance artifacts for Stage 15.
 
 ## Acceptance Criteria for This Run
 
-- [ ] Apache 2.0 replaces placeholder license text.
-- [ ] NOTICE files are no longer placeholders.
-- [ ] Contribution, security and trademark docs exist.
-- [ ] Package license metadata matches Apache 2.0.
-- [ ] GitHub Issues contact decision is documented.
-- [ ] Product mark usage is documented without unsupported legal claims.
-- [ ] Formatting/stale-placeholder verification is recorded in `result.md`.
+- [x] Apache 2.0 replaces placeholder license text.
+- [x] NOTICE files are no longer placeholders.
+- [x] Contribution, security and trademark docs exist.
+- [x] Package license metadata matches Apache 2.0.
+- [x] GitHub Issues contact decision is documented.
+- [x] Product mark usage is documented without unsupported legal claims.
+- [x] Formatting/stale-placeholder verification is recorded in `result.md`.
 
 ## Changes from Previous Run
 

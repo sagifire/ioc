@@ -7,7 +7,7 @@ This package creates fresh test-only container/composer configuration before
 `ComposedRuntime`.
 
 The package is currently used from the workspace. The manifest is `0.0.0` and
-`UNLICENSED`; release packaging and publishing are not implemented yet.
+`Apache-2.0`; release packaging and publishing are not implemented yet.
 
 ## Imports
 
@@ -166,6 +166,15 @@ runtime dependency on Vitest internals.
 - Testing helpers must not use filesystem or fixture auto-discovery.
 - Next.js, React, route handler helpers and server action helpers belong to
   `@sagifire/ioc-next`.
+
+## Governance
+
+- [License](LICENSE) - Apache License, Version 2.0.
+- [Notices](NOTICE) - package notices and attribution.
+- [Contributing](../../CONTRIBUTING.md) - contribution flow and GitHub Issues support
+  channel.
+- [Security](../../SECURITY.md) - security-sensitive reporting policy.
+- [Trademarks](../../TRADEMARKS.md) - `@sagifire/ioc` product mark usage guidance.
 
 ## More Documentation
 

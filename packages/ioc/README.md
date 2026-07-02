@@ -8,7 +8,7 @@ inspection, diagnostics, lifecycle types and the optional DSL. It does not impor
 React, Node-only APIs, decorators or `reflect-metadata`.
 
 This package is currently used from the workspace. The manifest is `0.0.0` and
-`UNLICENSED`; release packaging and publishing are not implemented yet.
+`Apache-2.0`; release packaging and publishing are not implemented yet.
 
 ## Imports
 
@@ -166,6 +166,15 @@ inference.
 - `@sagifire/ioc-testing` contains testing helpers and may depend on this package.
 - `@sagifire/ioc-next` contains framework boundary helpers and may depend on this package.
 - This core package must not depend on either package.
+
+## Governance
+
+- [License](LICENSE) - Apache License, Version 2.0.
+- [Notices](NOTICE) - package notices and attribution.
+- [Contributing](../../CONTRIBUTING.md) - contribution flow and GitHub Issues support
+  channel.
+- [Security](../../SECURITY.md) - security-sensitive reporting policy.
+- [Trademarks](../../TRADEMARKS.md) - `@sagifire/ioc` product mark usage guidance.
 
 ## More Documentation
 

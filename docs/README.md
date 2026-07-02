@@ -29,6 +29,14 @@ Package README files and this map are the current entry points.
 - [Migration from DI containers](migration-from-di-container.md) - migration notes from
   common DI container patterns.
 
+## Governance
+
+- [License](../LICENSE) - Apache License, Version 2.0.
+- [Notices](../NOTICE) - project notices and attribution.
+- [Contributing](../CONTRIBUTING.md) - contribution flow and GitHub Issues support channel.
+- [Security](../SECURITY.md) - security-sensitive reporting policy.
+- [Trademarks](../TRADEMARKS.md) - `@sagifire/ioc` product mark usage guidance.
+
 ## Examples
 
 - [Basic Node](../examples/basic-node/README.md) - tokens, container providers,

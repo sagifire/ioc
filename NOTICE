@@ -1,3 +1,15 @@
 @sagifire/ioc
 
-Stage 2 repository foundation. No released package notice text yet.
+Copyright 2026 Sagifire contributors
+
+This product includes software developed by Sagifire contributors.
+
+This repository and its publishable packages are licensed under the Apache License,
+Version 2.0. See the LICENSE file for the license terms.
+
+The @sagifire/ioc name is a product mark for this library family. Use of the mark is
+governed by TRADEMARKS.md. The Apache License, Version 2.0 does not grant trademark
+rights except as required for reasonable and customary use in describing the origin of the
+work and reproducing this notice.
+
+No additional third-party attribution notices are currently required by this project.

@@ -1052,14 +1052,26 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
   human approval, а secrets/tokens не створюються, не логуються і не комітяться.
 - `TASK-07.02-0054-stage-15-implementation-planning` завершена після task-level human
   review approval.
+- `TASK-07.02-0055-stage-15-repository-governance-artifacts` RUN-001 виконаний агентом і
+  завершений після task-level human review approval.
+- Stage 15 repository governance artifacts RUN-001 замінив root/package license
+  placeholders на Apache License 2.0, оновив root/package NOTICE, додав
+  `CONTRIBUTING.md`, `SECURITY.md` and `TRADEMARKS.md`, перевів publishable package
+  manifests на `Apache-2.0` and linked governance docs from README/package docs.
+- Stage 15 governance artifacts RUN-001 не реалізовував Changesets, CI, package dry-run,
+  npm publish workflow, release automation або package publish metadata beyond license
+  fields.
 
 ## Current Risks
 
 - Binding factory internals не мають static dependency metadata; Stage 10 dependency edge
   model фіксує static required-port -> binding edges only and keeps provider-level cycles
   inside factories under existing container diagnostics.
-- Stage 15 implementation tasks ще не виконані; current repository still has placeholder
-  release/governance artifacts until `TASK-07.02-0055` runs.
+- Later Stage 15 release automation tasks remain backlog; package publish metadata is not
+  configured yet.
+- GitHub private vulnerability reporting is an external repository setting; `SECURITY.md`
+  documents a safe fallback, but maintainers still need to enable or provide a private
+  channel before requesting sensitive vulnerability details.
 - Actual npm publishing will require explicit human approval and external GitHub/npm
   credentials/settings that cannot be created safely by repository file edits alone.
 - Root `SPEC.md` лишається source reference і може дублювати canonical memory; для
@@ -1070,7 +1082,7 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 
 ## Next Steps
 
-- Запустити `TASK-07.02-0055-stage-15-repository-governance-artifacts`.
+- Запустити `TASK-07.02-0056-stage-15-package-publish-metadata`.
 
 ## Open Questions
 

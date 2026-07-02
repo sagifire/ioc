@@ -392,7 +392,7 @@
 ## Stage 15 Implementation
 
 - [TASK-07.02-0055-stage-15-repository-governance-artifacts](TASK-07.02-0055-stage-15-repository-governance-artifacts/index.md)
-  - Status: backlog
+  - Status: done
   - Type: chore
   - Execution Mode: autonomous-implementation
   - Summary: Stage 15 repository governance artifacts: `LICENSE`, `NOTICE`,

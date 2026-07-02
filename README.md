@@ -7,7 +7,7 @@ Next.js App Router boundary helpers without decorators, `reflect-metadata` or fi
 discovery.
 
 This repository is currently a development workspace. Package manifests use version
-`0.0.0` and `UNLICENSED`, and release automation is not implemented yet. The package names
+`0.0.0` and `Apache-2.0`, and release automation is not implemented yet. The package names
 and import paths below describe the implemented public API in this workspace.
 
 ## Packages
@@ -225,6 +225,14 @@ Release packaging remains separate future work.
 - [Next App Router](examples/next-app-router/README.md) - cached runtime, explicit
   request/action context, route scopes and server action scopes for `@sagifire/ioc-next`.
 
+## Governance
+
+- [License](LICENSE) - Apache License, Version 2.0.
+- [Notices](NOTICE) - project notices and attribution.
+- [Contributing](CONTRIBUTING.md) - contribution flow and GitHub Issues support channel.
+- [Security](SECURITY.md) - security-sensitive reporting policy.
+- [Trademarks](TRADEMARKS.md) - `@sagifire/ioc` product mark usage guidance.
+
 ## Development
 
 ```sh
@@ -238,4 +246,4 @@ pnpm format
 
 ## License
 
-Package manifests currently declare `UNLICENSED` while release packaging is still pending.
+Apache License, Version 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).

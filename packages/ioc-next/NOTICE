@@ -1,3 +1,13 @@
 @sagifire/ioc-next
 
-Stage 2 package placeholder.
+Copyright 2026 Sagifire contributors
+
+This package is part of the @sagifire/ioc library family and is licensed under the Apache
+License, Version 2.0. See the LICENSE file distributed with this package.
+
+The @sagifire/ioc name is a product mark for this library family. Use of the mark is
+governed by the repository TRADEMARKS.md policy. The Apache License, Version 2.0 does not
+grant trademark rights except as required for reasonable and customary use in describing
+the origin of the work and reproducing this notice.
+
+No additional third-party attribution notices are currently required by this package.
