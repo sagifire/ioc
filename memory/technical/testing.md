@@ -294,3 +294,30 @@ Stage 14 example tasks must choose the smallest sufficient verification path per
 Stage 14 final docs hardening must check docs/example links, stale placeholder language,
 claims about unimplemented release automation and consistency between README, package
 READMEs, deep docs and examples.
+
+Stage 15 repository governance artifacts must verify that placeholder license/notice text
+is gone, package manifests use Apache 2.0, contribution/security/trademark documents are
+discoverable and no policy asks users to post secrets or sensitive vulnerability details in
+public issues.
+
+Stage 15 package metadata must verify package manifests parse, package metadata is
+consistent across publishable packages, root workspace remains private and package `files`
+entries include intended release artifacts.
+
+Stage 15 versioning/changelog setup must verify the chosen tool can run locally where
+practical, version/changelog scripts exist and no actual publish occurs.
+
+Stage 15 CI quality gates must verify workflow YAML by review or tooling where practical
+and run local equivalents for build, test, typecheck and lint unless the task documents a
+concrete limitation.
+
+Stage 15 package dry-run validation must build packages, run package dry-run for all
+publishable packages, inspect package contents and smoke-test package exports/types from
+packed artifacts where practical.
+
+Stage 15 npm publish workflow/provenance must verify the workflow references secrets
+safely, runs validation before publish and supports npm provenance where practical. The
+task must not execute actual publish without explicit human approval.
+
+Stage 15 final release hardening must re-run relevant release checks, scan docs for stale
+release/publishing claims and sync Project Memory with the final Stage 15 state.

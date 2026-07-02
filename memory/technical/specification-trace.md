@@ -101,6 +101,11 @@ or ordinary memory-update tasks.
   - `memory/technical/architecture.md`
 - Sections 32-45, implementation stages:
   - `memory/product/roadmap.md`
+- Section 45, release automation and publish readiness:
+  - `memory/product/requirements.md`
+  - `memory/technical/stack.md`
+  - `memory/technical/rules.md`
+  - `memory/technical/testing.md`
 - Sections 46-49, testing requirements:
   - `memory/technical/testing.md`
 - Section 50, Codex implementation rules:

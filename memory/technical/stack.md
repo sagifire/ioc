@@ -1,6 +1,6 @@
 # Stack
 
-Source trace: `SPEC.md` sections 4-6 and 32-44.
+Source trace: `SPEC.md` sections 4-6 and 32-45.
 
 ## Product Stack
 
@@ -96,6 +96,8 @@ The main entrypoint must not import heavy or optional parts unnecessarily.
 
 Top-level foundation:
 
+- `.changeset/`
+- `.github/workflows/`
 - `package.json`
 - `pnpm-workspace.yaml`
 - `pnpm-lock.yaml`
@@ -107,6 +109,9 @@ Top-level foundation:
 - `README.md`
 - `LICENSE`
 - `NOTICE`
+- `CONTRIBUTING.md`
+- `SECURITY.md`
+- `TRADEMARKS.md`
 - `CHANGELOG.md`
 
 Packages:
@@ -153,6 +158,37 @@ Preferred verification paths:
 
 Stage 14 should not install Next.js, React, database clients, markdown linters or doc-site
 frameworks unless a task documents a concrete need and asks for permission.
+
+## Release And Governance Tooling
+
+Stage 15 release/governance decisions:
+
+- repository and publishable packages use Apache License 2.0;
+- `@sagifire/ioc` is protected as the product mark;
+- GitHub Issues are the primary ordinary support/contact channel;
+- security policy must not ask users to disclose secrets or sensitive vulnerability details
+  in public issues;
+- Changesets is the planned default for versioning and changelog generation unless an
+  implementation task documents a concrete blocker and equivalent replacement;
+- GitHub Actions should provide CI quality gates before publish workflow;
+- npm package dry-run validation should verify package contents and export usability before
+  real publishing;
+- npm publish workflow should support provenance where practical.
+
+Stage 15 repository artifacts:
+
+- `LICENSE`
+- `NOTICE`
+- `CONTRIBUTING.md`
+- `SECURITY.md`
+- `TRADEMARKS.md`
+- `CHANGELOG.md`
+- `.changeset/`
+- `.github/workflows/ci.yml`
+- `.github/workflows/release.yml` or equivalent publish workflow
+
+Actual npm publishing requires explicit human approval and external credentials/settings.
+Repository files may reference secret names, but must not contain tokens or secrets.
 
 ## Build Tooling
 

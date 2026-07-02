@@ -4,7 +4,7 @@ Source trace:
 
 - `AGENTS.md` sections `Архітектурні межі`, `Непорушні правила реалізації`,
   `Стиль коду`, `Робочий процес`.
-- `SPEC.md` sections 7, 8, 42, 43 and 50.
+- `SPEC.md` sections 7, 8, 42, 43, 45 and 50.
 - `memory/sources/SPEC.md` historical source snapshot.
 
 ## Architecture Boundaries
@@ -430,4 +430,49 @@ Stage 14 must not add:
 - Stage 15 release automation, changesets, publish workflow or CI release jobs;
 - mandatory Next.js, React, database or documentation-site dependencies without explicit
   approval;
+- edits to `memory/sources/SPEC.md`.
+
+## Stage 15 Release And Governance Rules
+
+Stage 15 adds release automation and repository governance readiness. It must not change
+runtime semantics.
+
+Stage 15 allowed scope:
+
+- repository governance artifacts: `LICENSE`, `NOTICE`, `CONTRIBUTING.md`, `SECURITY.md`
+  and `TRADEMARKS.md`;
+- package publish metadata for `@sagifire/ioc`, `@sagifire/ioc-next` and
+  `@sagifire/ioc-testing`;
+- Changesets or a documented equivalent for package versioning and changelog generation;
+- GitHub Actions CI quality gates;
+- npm package dry-run validation and packed artifact export smoke checks;
+- npm publish workflow with provenance support where practical;
+- release docs and final Project Memory sync.
+
+Stage 15 governance rules:
+
+- use Apache License 2.0 for repository and publishable packages;
+- protect `@sagifire/ioc` as product mark in `TRADEMARKS.md`;
+- do not claim registered trademark status unless the human explicitly confirms it;
+- use GitHub Issues as the primary ordinary support/contact channel;
+- do not ask users to disclose secrets or sensitive vulnerability details in public issues;
+- if a private vulnerability reporting channel requires repository settings, document the
+  external setting instead of pretending it exists in repository files.
+
+Stage 15 release rules:
+
+- actual npm publish requires explicit human approval;
+- do not create, log or commit npm tokens, GitHub secrets or credentials;
+- workflow files may reference required secret names but must not contain secret values;
+- CI must not require publish credentials for ordinary pull request checks;
+- package dry-run validation must happen before publish workflow is considered ready;
+- release automation must preserve package boundaries, `sideEffects: false` and
+  tree-shaking-friendly exports.
+
+Stage 15 must not add:
+
+- runtime behavior changes or public API changes without a separate task-level decision;
+- Next.js/React dependencies in `@sagifire/ioc`;
+- hidden discovery, decorators, `reflect-metadata` or service locator behavior;
+- credential management outside repository files;
 - edits to `memory/sources/SPEC.md`.

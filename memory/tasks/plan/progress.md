@@ -104,6 +104,13 @@
   - Summary: Планування реалізації Stage 14 documentation/examples і підготовка декількох
     implementation tasks.
   - Current: FIX-001
+- [TASK-07.02-0054-stage-15-implementation-planning](TASK-07.02-0054-stage-15-implementation-planning/index.md)
+  - Status: done
+  - Type: memory-update
+  - Execution Mode: interactive-memory-update
+  - Summary: Планування реалізації Stage 15 release automation and repository governance
+    readiness і підготовка декількох implementation tasks.
+  - Current: FIX-001
 
 ## Stage 2 Implementation
 
@@ -380,6 +387,56 @@
   - Type: docs
   - Execution Mode: autonomous-implementation
   - Summary: Stage 14 migration guide and final docs/examples hardening.
+  - Current: RUN-001
+
+## Stage 15 Implementation
+
+- [TASK-07.02-0055-stage-15-repository-governance-artifacts](TASK-07.02-0055-stage-15-repository-governance-artifacts/index.md)
+  - Status: backlog
+  - Type: chore
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 15 repository governance artifacts: `LICENSE`, `NOTICE`,
+    `CONTRIBUTING.md`, `SECURITY.md`, `TRADEMARKS.md` and Apache 2.0 package license
+    metadata.
+  - Current: RUN-001
+- [TASK-07.02-0056-stage-15-package-publish-metadata](TASK-07.02-0056-stage-15-package-publish-metadata/index.md)
+  - Status: backlog
+  - Type: chore
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 15 package publish metadata for publishable package manifests and npm
+    package contents.
+  - Current: RUN-001
+- [TASK-07.02-0057-stage-15-changesets-versioning-changelog](TASK-07.02-0057-stage-15-changesets-versioning-changelog/index.md)
+  - Status: backlog
+  - Type: chore
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 15 Changesets/versioning/changelog setup.
+  - Current: RUN-001
+- [TASK-07.02-0058-stage-15-ci-quality-gates](TASK-07.02-0058-stage-15-ci-quality-gates/index.md)
+  - Status: backlog
+  - Type: chore
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 15 GitHub Actions CI quality gates for build/test/typecheck/lint.
+  - Current: RUN-001
+- [TASK-07.02-0059-stage-15-pack-dry-run-validation](TASK-07.02-0059-stage-15-pack-dry-run-validation/index.md)
+  - Status: backlog
+  - Type: chore
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 15 npm package dry-run validation, package contents and export smoke
+    checks.
+  - Current: RUN-001
+- [TASK-07.02-0060-stage-15-npm-publish-workflow-provenance](TASK-07.02-0060-stage-15-npm-publish-workflow-provenance/index.md)
+  - Status: backlog
+  - Type: chore
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 15 npm publish workflow with provenance support and no unapproved
+    actual publish.
+  - Current: RUN-001
+- [TASK-07.02-0061-stage-15-release-docs-final-hardening](TASK-07.02-0061-stage-15-release-docs-final-hardening/index.md)
+  - Status: backlog
+  - Type: docs
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 15 release docs, final consistency checks and Project Memory sync.
   - Current: RUN-001
 
 ## Format

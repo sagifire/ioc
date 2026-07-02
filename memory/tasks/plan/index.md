@@ -165,6 +165,30 @@
 - [TASK-07.02-0053-stage-14-migration-final-docs-hardening](TASK-07.02-0053-stage-14-migration-final-docs-hardening/index.md)
   - Type: folder
   - Purpose: Задача реалізації Stage 14 migration guide and final docs/examples hardening.
+- [TASK-07.02-0054-stage-15-implementation-planning](TASK-07.02-0054-stage-15-implementation-planning/index.md)
+  - Type: folder
+  - Purpose: Планування реалізації Stage 15 release automation and repository governance.
+- [TASK-07.02-0055-stage-15-repository-governance-artifacts](TASK-07.02-0055-stage-15-repository-governance-artifacts/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 15 repository governance artifacts.
+- [TASK-07.02-0056-stage-15-package-publish-metadata](TASK-07.02-0056-stage-15-package-publish-metadata/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 15 package publish metadata.
+- [TASK-07.02-0057-stage-15-changesets-versioning-changelog](TASK-07.02-0057-stage-15-changesets-versioning-changelog/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 15 Changesets versioning and changelog setup.
+- [TASK-07.02-0058-stage-15-ci-quality-gates](TASK-07.02-0058-stage-15-ci-quality-gates/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 15 CI quality gates.
+- [TASK-07.02-0059-stage-15-pack-dry-run-validation](TASK-07.02-0059-stage-15-pack-dry-run-validation/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 15 package dry-run validation.
+- [TASK-07.02-0060-stage-15-npm-publish-workflow-provenance](TASK-07.02-0060-stage-15-npm-publish-workflow-provenance/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 15 npm publish workflow and provenance.
+- [TASK-07.02-0061-stage-15-release-docs-final-hardening](TASK-07.02-0061-stage-15-release-docs-final-hardening/index.md)
+  - Type: folder
+  - Purpose: Задача реалізації Stage 15 release docs and final hardening.
 
 ## Files
 

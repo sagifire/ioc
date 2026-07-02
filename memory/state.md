@@ -1031,15 +1031,37 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
   automation, examples behavior або `memory/sources/SPEC.md`.
 - Stage 14 documentation/examples завершено після approval фінальної migration/final docs
   hardening task.
+- `TASK-07.02-0054-stage-15-implementation-planning` створена як окрема
+  interactive-memory-update задача для планування Stage 15.
+- Stage 15 release automation and repository governance implementation заплановано як сім
+  послідовних implementation tasks:
+  `TASK-07.02-0055-stage-15-repository-governance-artifacts`,
+  `TASK-07.02-0056-stage-15-package-publish-metadata`,
+  `TASK-07.02-0057-stage-15-changesets-versioning-changelog`,
+  `TASK-07.02-0058-stage-15-ci-quality-gates`,
+  `TASK-07.02-0059-stage-15-pack-dry-run-validation`,
+  `TASK-07.02-0060-stage-15-npm-publish-workflow-provenance` and
+  `TASK-07.02-0061-stage-15-release-docs-final-hardening`.
+- Для Stage 15 прийнято використовувати Apache License 2.0 для repository and publishable
+  packages.
+- Для Stage 15 прийнято захищати `@sagifire/ioc` як product mark through repository
+  trademark guidance.
+- Для Stage 15 прийнято використовувати GitHub Issues as primary ordinary
+  contact/support channel.
+- Stage 15 planning зафіксував guardrail: actual npm publish не виконується без explicit
+  human approval, а secrets/tokens не створюються, не логуються і не комітяться.
+- `TASK-07.02-0054-stage-15-implementation-planning` завершена після task-level human
+  review approval.
 
 ## Current Risks
 
 - Binding factory internals не мають static dependency metadata; Stage 10 dependency edge
   model фіксує static required-port -> binding edges only and keeps provider-level cycles
   inside factories under existing container diagnostics.
-- Stage 15 release automation ще не реалізовано; package versioning, changelog,
-  publishing workflow, CI release jobs and provenance decisions мають плануватися окремою
-  task.
+- Stage 15 implementation tasks ще не виконані; current repository still has placeholder
+  release/governance artifacts until `TASK-07.02-0055` runs.
+- Actual npm publishing will require explicit human approval and external GitHub/npm
+  credentials/settings that cannot be created safely by repository file edits alone.
 - Root `SPEC.md` лишається source reference і може дублювати canonical memory; для
   operational рішень використовувати `memory/product/`, `memory/domain/` і
   `memory/technical/`.
@@ -1048,7 +1070,7 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 
 ## Next Steps
 
-- Створити окрему Stage 15 release automation planning task.
+- Запустити `TASK-07.02-0055-stage-15-repository-governance-artifacts`.
 
 ## Open Questions
 

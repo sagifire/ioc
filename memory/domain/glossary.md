@@ -15,6 +15,14 @@
 | Example suite | Stage 14 repository examples that demonstrate implemented public API through explicit, inspectable usage: `basic-node`, `module-composition`, `async-db-resource`, `testing-overrides` and `next-app-router`. |
 | Migration guide | Stage 14 documentation that maps common DI container patterns to typed tokens, explicit providers, scopes, modules, required ports, bindings and testing overrides. |
 | Example verification | Task-level check that an example is runnable, typechecked, covered by targeted tests or otherwise manually verified with the reason recorded in the task result. |
+| Apache License 2.0 | Accepted license for the repository and publishable `@sagifire/ioc` packages. |
+| Product mark | Product identity protected for the library name `@sagifire/ioc`; usage rules live in `TRADEMARKS.md`. |
+| Governance artifact | Repository policy/documentation file required for release readiness, including `LICENSE`, `NOTICE`, `CONTRIBUTING.md`, `SECURITY.md` and `TRADEMARKS.md`. |
+| GitHub Issues contact | Primary ordinary support/contact channel for bugs, feature requests and project questions. |
+| Changesets | Planned default Stage 15 tool for package versioning and changelog generation in the pnpm monorepo. |
+| Package dry-run validation | Stage 15 verification that built npm package artifacts contain intended files and usable exports before real publish. |
+| npm provenance | npm publish metadata proving the package was published through a trusted CI workflow where supported. |
+| Publish workflow | GitHub Actions release workflow that publishes validated packages to npm using repository secrets and explicit human-controlled triggers. |
 | Token | Typed dependency identity object with stable runtime `id`; object identity is not required for matching. |
 | Token namespace | Helper that creates stable prefixed token IDs, for example `contact-requests.public-api`. |
 | Provider | Registration that knows how to produce a token value through value, factory, class, async factory or async resource binding. |

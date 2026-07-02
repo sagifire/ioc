@@ -64,6 +64,14 @@ Root source trace:
   implementation task.
 - `TASK-07.02-0052` - Stage 14 Next App Router example hardening implementation task.
 - `TASK-07.02-0053` - Stage 14 migration guide/final docs hardening implementation task.
+- `TASK-07.02-0054` - Stage 15 implementation planning task.
+- `TASK-07.02-0055` - Stage 15 repository governance artifacts implementation task.
+- `TASK-07.02-0056` - Stage 15 package publish metadata implementation task.
+- `TASK-07.02-0057` - Stage 15 Changesets/versioning/changelog implementation task.
+- `TASK-07.02-0058` - Stage 15 CI quality gates implementation task.
+- `TASK-07.02-0059` - Stage 15 package dry-run validation implementation task.
+- `TASK-07.02-0060` - Stage 15 npm publish workflow/provenance implementation task.
+- `TASK-07.02-0061` - Stage 15 release docs/final hardening implementation task.
 
 ## Completed
 
@@ -787,9 +795,61 @@ Root source trace:
 ## Next
 
 - Stage 15: Release automation.
+  - Status: planned; implementation tasks created after Stage 14 human confirmation.
   - Source: `SPEC.md` section 45.
-  - Implement: changesets or equivalent release workflow, package versioning, changelog
-    generation, GitHub Actions CI, npm publish workflow and provenance support if chosen.
-  - Acceptance: packages can be versioned according to chosen strategy, CI runs build/test
-    typecheck, release artifacts are valid and npm package exports work after publish
-    dry-run.
+  - Planning Task: `TASK-07.02-0054-stage-15-implementation-planning`.
+  - Implementation Tasks:
+    - `TASK-07.02-0055-stage-15-repository-governance-artifacts` - backlog;
+    - `TASK-07.02-0056-stage-15-package-publish-metadata` - backlog;
+    - `TASK-07.02-0057-stage-15-changesets-versioning-changelog` - backlog;
+    - `TASK-07.02-0058-stage-15-ci-quality-gates` - backlog;
+    - `TASK-07.02-0059-stage-15-pack-dry-run-validation` - backlog;
+    - `TASK-07.02-0060-stage-15-npm-publish-workflow-provenance` - backlog;
+    - `TASK-07.02-0061-stage-15-release-docs-final-hardening` - backlog.
+  - Implementation Decomposition:
+    - Task 1 replaces placeholder governance artifacts and sets Apache 2.0 package license
+      metadata.
+    - Task 2 prepares package publish metadata and npm package contents declarations.
+    - Task 3 configures Changesets or a documented equivalent for versioning and changelog
+      generation.
+    - Task 4 adds GitHub Actions CI quality gates.
+    - Task 5 adds package dry-run validation and packed artifact export smoke checks.
+    - Task 6 adds npm publish workflow with provenance support where practical.
+    - Task 7 updates release docs and performs final release/readiness consistency
+      hardening.
+  - Decisions:
+    - Use Apache License 2.0 for repository and publishable packages.
+    - Protect `@sagifire/ioc` as the product mark.
+    - Use GitHub Issues as the primary ordinary project contact/support channel.
+    - Repository governance artifacts task must be first in Stage 15.
+    - Changesets is the planned default for versioning/changelog; a task may document an
+      equivalent replacement only if a concrete blocker is found.
+    - Release automation should support npm provenance where practical.
+    - Actual npm publishing requires explicit human approval and valid external
+      repository/npm credentials.
+  - Implement:
+    - `LICENSE`, `NOTICE`, `CONTRIBUTING.md`, `SECURITY.md` and `TRADEMARKS.md`;
+    - package license and publish metadata;
+    - versioning/changelog workflow;
+    - GitHub Actions CI;
+    - npm package dry-run validation;
+    - npm publish workflow with provenance support where practical;
+    - final release documentation and Project Memory sync.
+  - Acceptance:
+    - governance artifacts exist and no longer contain placeholders;
+    - package manifests use Apache 2.0 and publish-ready metadata;
+    - packages can be versioned according to chosen strategy;
+    - changelog generation is configured;
+    - CI runs build, test, typecheck and lint;
+    - release artifacts are valid and npm package exports work after package dry-run;
+    - npm publish workflow exists and uses secrets/provenance safely where practical;
+    - no actual publish happens without explicit human approval.
+  - Guardrails:
+    - не виконувати actual npm publish без explicit human approval;
+    - не створювати, не логувати і не комітити npm tokens, GitHub secrets or credentials;
+    - не заявляти про registered trademark без окремого підтвердження;
+    - не просити користувачів публічно розкривати secrets or sensitive vulnerability
+      details in GitHub Issues;
+    - не змінювати runtime behavior, public API або package boundaries без окремої
+      task-level потреби;
+    - не редагувати `memory/sources/SPEC.md`.

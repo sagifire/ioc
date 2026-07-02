@@ -23,7 +23,11 @@ Source trace: `SPEC.md` sections 1-54 and `AGENTS.md` architecture/workflow rule
 | REQ-TREESHAKE-001 | Keep package exports tree-shaking friendly and verify that core subpath imports do not pull unrelated layers or Next.js adapters. | accepted |
 | REQ-DOCS-001 | Document architecture, container, async model, composer, modules, Next.js integration, testing, diagnostics and migration from typical DI containers. | accepted |
 | REQ-QUALITY-001 | Implement by stages with acceptance criteria, tests, verification commands and no stage skipping. | accepted |
-| REQ-RELEASE-001 | Add release automation with versioning, changelog generation, CI, npm publish dry-run and provenance support if chosen. | planned |
+| REQ-GOV-001 | Use Apache License 2.0 for the repository and publishable packages. | accepted |
+| REQ-GOV-002 | Protect `@sagifire/ioc` as the product mark through repository trademark guidance. | accepted |
+| REQ-GOV-003 | Provide repository governance artifacts: `LICENSE`, `NOTICE`, `CONTRIBUTING.md`, `SECURITY.md` and `TRADEMARKS.md`. | accepted |
+| REQ-SUPPORT-001 | Use GitHub Issues as the primary ordinary project contact/support channel. | accepted |
+| REQ-RELEASE-001 | Add release automation with versioning, changelog generation, CI, npm package dry-run validation, npm publish workflow and provenance support where practical. | accepted |
 
 ## Requirement Status Rule
 

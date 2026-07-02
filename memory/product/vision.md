@@ -11,6 +11,14 @@
 - `@sagifire/ioc-next` - адаптери й helpers для Next.js App Router.
 - `@sagifire/ioc-testing` - тестові утиліти, overrides, fake modules і graph assertions.
 
+## Product Governance
+
+- Project and publishable packages use Apache License 2.0.
+- `@sagifire/ioc` is protected as the product mark for this library family.
+- Primary ordinary contact/support channel is GitHub Issues.
+- Security policy must avoid asking users to disclose secrets or sensitive vulnerability
+  details in public issues.
+
 Root source trace:
 
 - `AGENTS.md` - project governance, architecture boundaries, style і workflow.

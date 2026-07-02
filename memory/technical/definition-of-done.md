@@ -52,6 +52,10 @@ The repository must provide:
 - package exports;
 - documentation;
 - examples;
+- Apache 2.0 licensing;
+- repository governance docs;
+- security and contribution policy;
+- product mark guidance;
 - release workflow.
 
 ## Architectural Definition Of Done
@@ -83,3 +87,4 @@ The implementation is safe when:
 - no global runtime state exists in core;
 - no package boundary is violated;
 - no hidden framework-specific dependency leaks into core.
+- release workflows do not commit secrets or publish without explicit human approval.
