@@ -1167,7 +1167,7 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
   стабільний `changesets/action@v1`, а локальний Vitest regression guard перевіряє, що
   workflow не повернувся до `changesets/action@v2`.
 - Stage 16 critical fixes RUN-001 не закривав non-critical findings `H-001`, `H-002`,
-  `M-001` і `L-001`; вони лишаються pre-`0.0.1` blockers у `TASK-0066`-`TASK-0069`.
+  `M-001` і `L-001`; ці findings були винесені в `TASK-0066`-`TASK-0069`.
 - `TASK-07.02-0066-stage-16-sync-factory-promise-guard` RUN-001 виконаний агентом і
   завершений після task-level human review approval.
 - Stage 16 sync factory Promise guard RUN-001 закрив `H-001` на рівні implementation result:
@@ -1187,6 +1187,17 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 - Stage 16 composer duplicate binding validation RUN-001 також синхронізував public docs,
   перевірив `pnpm release:validate` і не змінював package versions, changelogs або publish
   workflow.
+- `TASK-07.02-0068-stage-16-freeze-failure-retry-policy` RUN-001 виконаний агентом і
+  завершений після task-level human review approval.
+- Stage 16 freeze failure retry policy RUN-001 закрив `M-001` на рівні implementation
+  result: failed eager async `container.freeze()` більше не кешує rejected
+  `frozenRuntimePromise`, повторний `freeze()` стартує fresh runtime snapshot, builder
+  повертається у mutable configuration phase після failed attempt, а успішний `freeze()`
+  лишається immutable/cached.
+- Stage 16 freeze failure retry policy RUN-001 також додав cleanup initialized singleton
+  resources from failed eager attempts, focused async provider/resource regression tests,
+  public docs sync, перевірив `pnpm release:validate` і не змінював package versions,
+  changelogs або publish workflow.
 
 ## Current Risks
 
@@ -1194,9 +1205,9 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
   model фіксує static required-port -> binding edges only and keeps provider-level cycles
   inside factories under existing container diagnostics.
 - Stage 16 audit знайшов pre-`0.0.1` blockers: `C-001`, `H-001`, `H-002`, `M-001` і
-  `L-001`; `C-001`, `H-001` and `H-002` review-approved closed, а version `0.0.1`
-  залишається blocked until remaining accepted audit blockers are review-approved closed
-  or explicitly reclassified.
+  `L-001`; `C-001`, `H-001`, `H-002` and `M-001` review-approved closed, а version
+  `0.0.1` залишається blocked until remaining accepted audit blockers are review-approved
+  closed or explicitly reclassified.
 - Publishable package versions still remain `0.0.0`; version `0.0.1` is intentionally
   blocked until all accepted audit blockers are closed.
 - GitHub private vulnerability reporting is an external repository setting; `SECURITY.md`
@@ -1212,7 +1223,7 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 
 ## Next Steps
 
-- Закрити remaining pre-`0.0.1` blockers `M-001` і `L-001` у `TASK-0068`-`TASK-0069`.
+- Закрити remaining pre-`0.0.1` blocker `L-001` у `TASK-07.02-0069`.
 
 ## Open Questions
 

@@ -2,6 +2,7 @@ import { describe, expect, expectTypeOf, test } from 'vitest'
 
 import {
     AsyncProviderAccessError,
+    ContainerFrozenError,
     InvalidProviderLifecycleError,
     InvalidScopeError,
     ProviderCycleError,
@@ -94,6 +95,46 @@ describe('container async providers and resources', () => {
         await expect(runtime.getAsync(COUNTER)).resolves.toEqual({
             value: 1
         })
+    })
+
+    test('retries freeze after failed eager singleton async factory initialization', async () => {
+        const container = createContainer()
+        let calls = 0
+
+        container
+            .bind(COUNTER)
+            .toAsyncFactory(async () => {
+                calls += 1
+
+                if (calls === 1) {
+                    throw new Error('fail 1')
+                }
+
+                return {
+                    value: calls
+                }
+            })
+            .singleton()
+            .eager()
+
+        await expect(container.freeze()).rejects.toThrow('fail 1')
+        expect(calls).toBe(1)
+
+        container.bind(LOGGER).toValue(createLogger('after failed freeze'))
+
+        const runtime = await container.freeze()
+
+        expect(calls).toBe(2)
+        expect(runtime.get(COUNTER)).toEqual({
+            value: 2
+        })
+        expect(runtime.get(LOGGER)).toEqual({
+            name: 'after failed freeze'
+        })
+        await expect(container.freeze()).resolves.toBe(runtime)
+        expect(() => container.bind(MISSING).toValue({ value: 'late' })).toThrow(
+            ContainerFrozenError
+        )
     })
 
     test('keeps lazy async factories behind getAsync and uses transient lifetime by default', async () => {
@@ -400,6 +441,73 @@ describe('container async providers and resources', () => {
         await expect(scope.getAsync(COUNTER)).rejects.toThrow(ScopeDisposedError)
         expect(() => scope.get(COUNTER)).toThrow(ScopeDisposedError)
         expect(disposed).toEqual(['other-counter', 'counter', 'counter'])
+    })
+
+    test('disposes eager singleton resources from a failed freeze before retry', async () => {
+        const container = createContainer()
+        const disposed: string[] = []
+        let counterCalls = 0
+        let otherCalls = 0
+
+        container
+            .bind(COUNTER)
+            .toAsyncResource(async () => {
+                const value = {
+                    value: (counterCalls += 1)
+                }
+
+                return {
+                    value,
+                    dispose(): void {
+                        disposed.push(`counter ${value.value}`)
+                    }
+                }
+            })
+            .singleton()
+            .eager()
+        container
+            .bind(OTHER_COUNTER)
+            .toAsyncResource(async () => {
+                otherCalls += 1
+
+                if (otherCalls === 1) {
+                    throw new Error('resource fail 1')
+                }
+
+                const value = {
+                    value: otherCalls
+                }
+
+                return {
+                    value,
+                    dispose(): void {
+                        disposed.push(`other ${value.value}`)
+                    }
+                }
+            })
+            .singleton()
+            .eager()
+
+        await expect(container.freeze()).rejects.toThrow('resource fail 1')
+
+        expect(counterCalls).toBe(1)
+        expect(otherCalls).toBe(1)
+        expect(disposed).toEqual(['counter 1'])
+
+        const runtime = await container.freeze()
+
+        expect(counterCalls).toBe(2)
+        expect(otherCalls).toBe(2)
+        expect(runtime.get(COUNTER)).toEqual({
+            value: 2
+        })
+        expect(runtime.get(OTHER_COUNTER)).toEqual({
+            value: 2
+        })
+
+        await runtime.dispose()
+
+        expect(disposed).toEqual(['counter 1', 'other 2', 'counter 2'])
     })
 
     test('does not make runtime disposal own live scopes', async () => {

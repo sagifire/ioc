@@ -82,6 +82,17 @@ const config = runtime.get(CONFIG)
 `eager()` is valid only for singleton async providers and singleton async resources. It is
 not valid for transient or scoped async providers.
 
+If eager initialization rejects during `freeze()`, no runtime is produced and the failed
+attempt is not cached. Calling `freeze()` again retries eager initialization from a fresh
+runtime snapshot. After a failed attempt the container returns to the configuration phase,
+so callers may retry transient startup work or adjust still-mutable binding metadata before
+the next `freeze()`.
+
+Once `freeze()` resolves successfully, the container is immutable and later `freeze()` calls
+return the same runtime. If a failed eager attempt initialized singleton resources before a
+later eager provider rejected, those initialized resources are disposed before the rejected
+`freeze()` settles; the retry starts with a fresh resource set.
+
 ## Lazy Async Providers
 
 Async factories are lazy by default. A lazy async provider initializes on the first
@@ -122,6 +133,35 @@ requests for the same singleton provider share one pending initialization. Concu
 requests for the same scoped provider share one pending initialization within that scope.
 
 ## Retry Behavior
+
+Failed async initialization is not cached. This applies to lazy provider/resource
+initialization and to eager singleton initialization during `freeze()`.
+
+For eager providers, a rejected `freeze()` can be called again:
+
+```ts
+let attempts = 0
+
+container
+    .bind(CONFIG)
+    .toAsyncFactory(async () => {
+        attempts += 1
+
+        if (attempts === 1) {
+            throw new Error('temporary startup failure')
+        }
+
+        return {
+            apiBaseUrl: 'https://example.invalid'
+        }
+    })
+    .singleton()
+    .eager()
+
+await container.freeze() // rejects
+const runtime = await container.freeze() // retries and resolves
+const config = runtime.get(CONFIG)
+```
 
 Failed lazy async initialization is not cached.
 

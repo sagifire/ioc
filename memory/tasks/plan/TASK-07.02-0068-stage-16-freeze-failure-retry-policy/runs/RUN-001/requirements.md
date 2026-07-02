@@ -1,6 +1,6 @@
 # Run Requirements: RUN-001
 
-Status: planned
+Status: completed
 Agent Role: Agent Executor
 Execution Mode: autonomous-implementation
 Created: 2026-07-02
@@ -34,11 +34,11 @@ explicit and verified.
 
 ## Acceptance Criteria for This Run
 
-- [ ] `M-001` closure is recorded.
-- [ ] Failed `freeze()` policy is explicit.
-- [ ] Focused regression tests cover the selected policy.
-- [ ] Relevant verification is recorded.
-- [ ] Package versions remain unchanged.
+- [x] `M-001` closure is recorded.
+- [x] Failed `freeze()` policy is explicit.
+- [x] Focused regression tests cover the selected policy.
+- [x] Relevant verification is recorded.
+- [x] Package versions remain unchanged.
 
 ## Changes from Previous Run
 

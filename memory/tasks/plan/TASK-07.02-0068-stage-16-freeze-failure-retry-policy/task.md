@@ -1,6 +1,6 @@
 # TASK-07.02-0068: Stage 16 freeze failure retry policy
 
-Status: backlog
+Status: done
 Type: bugfix
 Execution Mode: autonomous-implementation
 Created: 2026-07-02
@@ -43,15 +43,15 @@ reclassified with rationale під час task-level review.
 
 ## Acceptance Criteria
 
-- [ ] `M-001` має closure mapping у task result.
-- [ ] Failed `freeze()` policy is explicit in runtime behavior and public docs.
-- [ ] If retry is supported, rejected `frozenRuntimePromise` handling allows a real retry
+- [x] `M-001` має closure mapping у task result.
+- [x] Failed `freeze()` policy is explicit in runtime behavior and public docs.
+- [x] If retry is supported, rejected `frozenRuntimePromise` handling allows a real retry
       without breaking immutability after successful freeze.
-- [ ] If retry is not supported, terminal failure semantics are documented and covered by
-      tests.
-- [ ] Eager async provider/resource failure path has focused tests.
-- [ ] Relevant verification commands run where practical or limitations documented.
-- [ ] Package versions remain unchanged.
+- [x] If retry is not supported, terminal failure semantics are documented and covered by
+      tests. Not applicable: retry is supported and tested.
+- [x] Eager async provider/resource failure path has focused tests.
+- [x] Relevant verification commands run where practical or limitations documented.
+- [x] Package versions remain unchanged.
 
 ## Linked Memory
 
@@ -64,9 +64,9 @@ reclassified with rationale під час task-level review.
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: planned
+  - Status: completed
   - Purpose: Autonomous implementation run for closing `M-001`.
-  - Result: pending
+  - Result: approved
 
 ## Research
 

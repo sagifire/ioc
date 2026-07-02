@@ -431,9 +431,18 @@ export function createContainer(): ContainerBuilder {
             }
 
             isFrozen = true
-            frozenRuntimePromise = createRuntime(cloneProviderRegistrations(registrations))
+            const runtimePromise = createRuntime(cloneProviderRegistrations(registrations))
+            const guardedRuntimePromise = runtimePromise.catch((error: unknown) => {
+                if (frozenRuntimePromise === guardedRuntimePromise) {
+                    frozenRuntimePromise = undefined
+                    isFrozen = false
+                }
 
-            return frozenRuntimePromise
+                throw error
+            })
+            frozenRuntimePromise = guardedRuntimePromise
+
+            return guardedRuntimePromise
         }
     }
 
@@ -1591,7 +1600,19 @@ async function createRuntime(
         }
     }
 
-    await initializeEagerSingletonProviders(registrations, resolveProviderAsync)
+    try {
+        await initializeEagerSingletonProviders(registrations, resolveProviderAsync)
+    } catch (error) {
+        runtimeState.disposed = true
+
+        try {
+            await disposeResourceRecords(runtimeState.singletonResourceDisposers)
+        } catch {
+            // Preserve the initialization failure for the rejected freeze attempt.
+        }
+
+        throw error
+    }
 
     return Object.freeze(runtime)
 }

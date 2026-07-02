@@ -273,12 +273,17 @@ there is no hidden ambient scope lookup.
 
 ## Immutability And Errors
 
-After `freeze()`:
+After a successful `freeze()`:
 
 - the runtime is frozen and exposes no registration APIs;
 - late `bind()` or `add()` calls fail;
 - captured binding builders cannot register late providers or change lifetimes;
 - runtime disposal prevents further resolution and scope creation.
+
+If eager async initialization fails during `freeze()`, no runtime is produced. The rejected
+attempt is not cached: a later `freeze()` retries from a fresh runtime snapshot, and the
+builder is mutable again until a `freeze()` succeeds. Singleton resources initialized by a
+failed eager attempt are disposed before the rejected `freeze()` settles.
 
 Common typed errors include:
 

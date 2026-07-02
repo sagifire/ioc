@@ -473,7 +473,7 @@
   - Summary: Stage 16 pre-`0.0.1` closure of `H-002` composer duplicate binding validation.
   - Current: RUN-001
 - [TASK-07.02-0068-stage-16-freeze-failure-retry-policy](TASK-07.02-0068-stage-16-freeze-failure-retry-policy/index.md)
-  - Status: backlog
+  - Status: done
   - Type: bugfix
   - Execution Mode: autonomous-implementation
   - Summary: Stage 16 pre-`0.0.1` closure of `M-001` failed `freeze()` policy.
