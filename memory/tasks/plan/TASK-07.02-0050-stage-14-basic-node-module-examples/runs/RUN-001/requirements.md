@@ -1,6 +1,6 @@
 # Run Requirements: RUN-001
 
-Status: pending
+Status: completed
 Agent Role: Agent Executor
 Execution Mode: autonomous-implementation
 Created: 2026-07-02
@@ -32,10 +32,10 @@ Add `basic-node` and `module-composition` examples.
 
 ## Acceptance Criteria for This Run
 
-- [ ] Basic Node example is present and verified.
-- [ ] Module composition example is present and verified.
-- [ ] Example docs explain commands and behavior.
-- [ ] Verification is recorded in `result.md`.
+- [x] Basic Node example is present and verified.
+- [x] Module composition example is present and verified.
+- [x] Example docs explain commands and behavior.
+- [x] Verification is recorded in `result.md`.
 
 ## Changes from Previous Run
 

@@ -32,8 +32,13 @@ status text. Package README files and this map are the current entry points.
 
 ## Examples
 
+- [Basic Node](../examples/basic-node/README.md) - tokens, container providers,
+  multi-providers, scope-local values and runtime disposal.
+- [Module composition](../examples/module-composition/README.md) - modules, capabilities,
+  required ports, explicit binding adapters, validation, inspection and composed runtime
+  resolution.
 - [Next App Router skeleton](../examples/next-app-router/README.md) - current narrow
   workspace example for `@sagifire/ioc-next`.
 
-Additional Stage 14 example folders are planned for basic Node usage, module composition,
-async resources and testing overrides. They are not present in this repository yet.
+Additional Stage 14 example folders are still planned for async resources and testing
+overrides.

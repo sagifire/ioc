@@ -211,6 +211,16 @@ logic inside framework handlers.
 Some deep guides are still being expanded during Stage 14. Package README files and the
 docs map describe the current implemented API surface.
 
+## Examples
+
+- [Basic Node](examples/basic-node/README.md) - tokens, container providers,
+  multi-providers, scope-local values and runtime disposal.
+- [Module composition](examples/module-composition/README.md) - modules, capabilities,
+  required ports, explicit binding adapters, validation, inspection and composed runtime
+  resolution.
+- [Next App Router skeleton](examples/next-app-router/README.md) - narrow App Router
+  boundary example for `@sagifire/ioc-next`.
+
 ## Development
 
 ```sh

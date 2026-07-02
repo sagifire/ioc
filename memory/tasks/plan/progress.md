@@ -358,7 +358,7 @@
   - Summary: Stage 14 testing and Next integration documentation.
   - Current: RUN-001
 - [TASK-07.02-0050-stage-14-basic-node-module-examples](TASK-07.02-0050-stage-14-basic-node-module-examples/index.md)
-  - Status: backlog
+  - Status: done
   - Type: docs
   - Execution Mode: autonomous-implementation
   - Summary: Stage 14 `basic-node` and `module-composition` examples.

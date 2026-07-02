@@ -1,6 +1,6 @@
 # TASK-07.02-0050: Stage 14 basic-node and module-composition examples
 
-Status: backlog
+Status: done
 Type: docs
 Execution Mode: autonomous-implementation
 Created: 2026-07-02
@@ -43,14 +43,14 @@ Examples should be small, inspectable and useful as executable documentation.
 
 ## Acceptance Criteria
 
-- [ ] `examples/basic-node` exists and demonstrates basic implemented API.
-- [ ] `examples/module-composition` exists and demonstrates module composition with
+- [x] `examples/basic-node` exists and demonstrates basic implemented API.
+- [x] `examples/module-composition` exists and demonstrates module composition with
   required ports and bindings.
-- [ ] Examples keep dependency graph explicit and do not use auto-discovery.
-- [ ] Examples are runnable or typechecked through documented commands where practical.
-- [ ] Example READMEs explain purpose, command and expected behavior.
-- [ ] Root/docs navigation links to the examples.
-- [ ] Verification is recorded in run result.
+- [x] Examples keep dependency graph explicit and do not use auto-discovery.
+- [x] Examples are runnable or typechecked through documented commands where practical.
+- [x] Example READMEs explain purpose, command and expected behavior.
+- [x] Root/docs navigation links to the examples.
+- [x] Verification is recorded in run result.
 
 ## Linked Memory
 
@@ -64,9 +64,9 @@ Examples should be small, inspectable and useful as executable documentation.
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: pending
+  - Status: completed
   - Purpose: Autonomous implementation run for basic-node and module-composition examples.
-  - Result: pending
+  - Result: approved after task-level human review
 
 ## Research
 
