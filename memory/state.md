@@ -1101,14 +1101,23 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 - Stage 15 package dry-run validation RUN-001 не виконував npm publish, не додавав release
   workflow, не створював secrets/tokens, не змінював runtime behavior, public API або
   package exports.
+- `TASK-07.02-0060-stage-15-npm-publish-workflow-provenance` RUN-001 виконаний агентом і
+  завершений після task-level human review approval.
+- Stage 15 npm publish workflow/provenance RUN-001 додав `.github/workflows/release.yml`,
+  manual-only npm publish path through `workflow_dispatch`, Changesets release PR flow on
+  push to `master`, `pnpm release:validate`, `pnpm release:publish`, publish-job
+  `id-token: write`, `NPM_CONFIG_PROVENANCE=true`, `${{ secrets.NPM_TOKEN }}` references
+  and `docs/release.md` for external settings and provenance limitations.
+- Stage 15 npm publish workflow/provenance RUN-001 не виконував actual npm publish, не
+  створював secrets/tokens/repository settings, не змінював runtime behavior, public API
+  або package exports.
 
 ## Current Risks
 
 - Binding factory internals не мають static dependency metadata; Stage 10 dependency edge
   model фіксує static required-port -> binding edges only and keeps provider-level cycles
   inside factories under existing container diagnostics.
-- Later Stage 15 release automation tasks remain backlog; npm publish workflow is not
-  configured yet.
+- Stage 15 final release docs/hardening task remains backlog.
 - GitHub private vulnerability reporting is an external repository setting; `SECURITY.md`
   documents a safe fallback, but maintainers still need to enable or provide a private
   channel before requesting sensitive vulnerability details.
@@ -1122,7 +1131,7 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 
 ## Next Steps
 
-- Запустити `TASK-07.02-0060-stage-15-npm-publish-workflow-provenance`.
+- Запустити `TASK-07.02-0061-stage-15-release-docs-final-hardening`.
 
 ## Open Questions
 

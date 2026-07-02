@@ -426,7 +426,7 @@
     checks.
   - Current: RUN-001
 - [TASK-07.02-0060-stage-15-npm-publish-workflow-provenance](TASK-07.02-0060-stage-15-npm-publish-workflow-provenance/index.md)
-  - Status: backlog
+  - Status: done
   - Type: chore
   - Execution Mode: autonomous-implementation
   - Summary: Stage 15 npm publish workflow with provenance support and no unapproved

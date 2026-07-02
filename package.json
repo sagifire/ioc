@@ -14,6 +14,8 @@
         "format:write": "prettier --write .",
         "lint": "eslint .",
         "pack:dry-run": "node scripts/pack-dry-run.mjs",
+        "release:publish": "changeset publish",
+        "release:validate": "pnpm build && pnpm typecheck && pnpm format && pnpm lint && pnpm test && pnpm pack:dry-run",
         "test": "pnpm build && vitest run",
         "test:unit": "vitest run",
         "typecheck": "tsc -b --pretty false && tsc -p tsconfig.test.json --pretty false"

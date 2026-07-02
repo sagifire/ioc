@@ -28,6 +28,8 @@ Package README files and this map are the current entry points.
   route scopes and server action scopes.
 - [Migration from DI containers](migration-from-di-container.md) - migration notes from
   common DI container patterns.
+- [Release workflow](release.md) - Changesets release PRs, manual npm publish workflow,
+  required external settings and provenance assumptions.
 
 ## Governance
 

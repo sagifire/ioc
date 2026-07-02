@@ -1,6 +1,6 @@
 # TASK-07.02-0060: Stage 15 npm publish workflow and provenance
 
-Status: backlog
+Status: done
 Type: chore
 Execution Mode: autonomous-implementation
 Created: 2026-07-02
@@ -61,9 +61,9 @@ the repository can define the release workflow that publishes validated packages
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: planned
+  - Status: completed
   - Purpose: Autonomous implementation run for npm publish workflow and provenance.
-  - Result: pending
+  - Result: approved
 
 ## Research
 

@@ -1,0 +1,154 @@
+name: Release
+
+on:
+    push:
+        branches:
+            - master
+    workflow_dispatch:
+        inputs:
+            publish_to_npm:
+                description: Run validation only, or publish packages to npm after validation.
+                required: true
+                type: choice
+                default: dry-run
+                options:
+                    - dry-run
+                    - publish
+
+permissions:
+    contents: read
+
+concurrency:
+    group: release-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: false
+
+env:
+    NODE_VERSION: 24
+    PNPM_VERSION: 11.7.0
+
+jobs:
+    release-pr:
+        name: Changesets release PR
+        if: ${{ github.event_name == 'push' }}
+        runs-on: ubuntu-24.04
+        permissions:
+            contents: write
+            pull-requests: write
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+              with:
+                  persist-credentials: false
+
+            - name: Install pnpm
+              uses: pnpm/action-setup@v6
+              with:
+                  version: ${{ env.PNPM_VERSION }}
+                  run_install: false
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v6
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: pnpm
+                  cache-dependency-path: pnpm-lock.yaml
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Validate release artifacts
+              run: pnpm release:validate
+
+            - name: Create release pull request
+              uses: changesets/action@v2
+              with:
+                  version: pnpm changeset:version
+                  title: Version packages
+                  commit: Version packages
+                  commitMode: github-api
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    validate-manual-release:
+        name: Validate manual release
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        runs-on: ubuntu-24.04
+        permissions:
+            contents: read
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+              with:
+                  persist-credentials: false
+
+            - name: Install pnpm
+              uses: pnpm/action-setup@v6
+              with:
+                  version: ${{ env.PNPM_VERSION }}
+                  run_install: false
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v6
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: pnpm
+                  cache-dependency-path: pnpm-lock.yaml
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Validate release artifacts
+              run: pnpm release:validate
+
+    publish-npm:
+        name: Publish to npm
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.publish_to_npm == 'publish' && github.ref == 'refs/heads/master' }}
+        needs:
+            - validate-manual-release
+        runs-on: ubuntu-24.04
+        environment: npm-publish
+        permissions:
+            contents: read
+            id-token: write
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+              with:
+                  persist-credentials: false
+
+            - name: Install pnpm
+              uses: pnpm/action-setup@v6
+              with:
+                  version: ${{ env.PNPM_VERSION }}
+                  run_install: false
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v6
+              with:
+                  node-version: ${{ env.NODE_VERSION }}
+                  registry-url: https://registry.npmjs.org
+                  package-manager-cache: false
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Validate release artifacts before publish
+              run: pnpm release:validate
+
+            - name: Check npm token
+              run: |
+                  if [ -z "${NODE_AUTH_TOKEN}" ]; then
+                      echo "The NPM_TOKEN repository secret is required for publishing." >&2
+                      exit 1
+                  fi
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+            - name: Publish packages to npm with provenance
+              run: pnpm release:publish
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+                  NPM_CONFIG_PROVENANCE: true

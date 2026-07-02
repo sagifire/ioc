@@ -7,8 +7,9 @@ Next.js App Router boundary helpers without decorators, `reflect-metadata` or fi
 discovery.
 
 This repository is currently a development workspace. Package manifests use version
-`0.0.0` and `Apache-2.0`, and release automation is not implemented yet. The package names
-and import paths below describe the implemented public API in this workspace.
+`0.0.0` and `Apache-2.0`, with Changesets, CI, package dry-run validation and a manual npm
+publish workflow. The package names and import paths below describe the implemented public
+API in this workspace.
 
 ## Packages
 
@@ -21,7 +22,7 @@ and import paths below describe the implemented public API in this workspace.
 
 ## Install Shape
 
-The packages are not published from this repository yet. When publishing is enabled,
+The packages are not published from this repository yet. After the first approved publish,
 the intended install shape is:
 
 ```sh

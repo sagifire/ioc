@@ -8,8 +8,8 @@ scopes. It does not add route scanning, filesystem discovery, hidden current-req
 or business logic inside framework handlers.
 
 The package is currently used from the workspace. The manifest is `0.0.0` and
-`Apache-2.0` with npm publish metadata; versioning, package dry-run validation and
-publishing automation are not implemented yet.
+`Apache-2.0` with npm publish metadata, Changesets versioning, package dry-run validation
+and a manual npm publish workflow.
 
 ## Imports
 

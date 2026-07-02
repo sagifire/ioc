@@ -20,5 +20,6 @@ The publishable packages are configured as a fixed Changesets group:
 They release with synchronized public versions. The root workspace package stays private and
 is not published.
 
-This setup does not publish to npm. Publishing is handled by a later release workflow and
-requires explicit human approval.
+Publishing is handled by the manual `Release` workflow. A push to `master` creates or
+updates the Changesets release PR only; npm publish requires an explicit workflow dispatch
+with `publish_to_npm` set to `publish`.
