@@ -7,7 +7,8 @@ Created: 2026-07-02
 
 ## Goal for This Run
 
-Close all critical findings from the Stage 16 audit report.
+Close all critical findings from the Stage 16 audit report. At review time this is
+`C-001`: invalid/unverified `changesets/action@v2` in the release workflow.
 
 ## Clarified Requirements
 
@@ -15,6 +16,8 @@ Close all critical findings from the Stage 16 audit report.
 - Do not change package versions.
 - Add or update tests for behavior changes.
 - Record closure mapping for every critical finding.
+- Keep `H-001`, `H-002`, `M-001` and `L-001` in their separate pre-`0.0.1` tasks unless a
+  direct dependency makes a small shared change unavoidable.
 - Preserve package boundaries and non-negotiable architecture rules.
 
 ## Scope for This Run
@@ -26,7 +29,7 @@ Close all critical findings from the Stage 16 audit report.
 ## Out of Scope for This Run
 
 - Version `0.0.1` fixation.
-- Non-critical findings unless they block a critical fix.
+- Non-critical findings unless they directly block the `C-001` critical fix.
 - Broad refactors not required by critical findings.
 - npm publish.
 

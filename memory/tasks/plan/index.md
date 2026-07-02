@@ -197,10 +197,23 @@
   - Purpose: Задача аудиту Stage 16 перед фіксацією `0.0.1`.
 - [TASK-07.02-0064-stage-16-critical-fixes-from-audit](TASK-07.02-0064-stage-16-critical-fixes-from-audit/index.md)
   - Type: folder
-  - Purpose: Задача закриття critical findings із Stage 16 audit report.
+  - Purpose: Задача закриття `C-001` critical finding із Stage 16 audit report.
+- [TASK-07.02-0066-stage-16-sync-factory-promise-guard](TASK-07.02-0066-stage-16-sync-factory-promise-guard/index.md)
+  - Type: folder
+  - Purpose: Задача закриття `H-001` sync factory Promise behavior до `0.0.1`.
+- [TASK-07.02-0067-stage-16-composer-duplicate-binding-validation](TASK-07.02-0067-stage-16-composer-duplicate-binding-validation/index.md)
+  - Type: folder
+  - Purpose: Задача закриття `H-002` composer duplicate binding validation до `0.0.1`.
+- [TASK-07.02-0068-stage-16-freeze-failure-retry-policy](TASK-07.02-0068-stage-16-freeze-failure-retry-policy/index.md)
+  - Type: folder
+  - Purpose: Задача закриття `M-001` failed `freeze()` policy до `0.0.1`.
+- [TASK-07.02-0069-stage-16-changeset-status-docs](TASK-07.02-0069-stage-16-changeset-status-docs/index.md)
+  - Type: folder
+  - Purpose: Задача закриття `L-001` Changesets status docs до `0.0.1`.
 - [TASK-07.02-0065-stage-16-version-0-0-1-stabilization-handoff](TASK-07.02-0065-stage-16-version-0-0-1-stabilization-handoff/index.md)
   - Type: folder
-  - Purpose: Задача фіксації version `0.0.1` and stabilization handoff.
+  - Purpose: Задача фіксації version `0.0.1` and stabilization handoff після всіх audit
+    blockers.
 
 ## Files
 

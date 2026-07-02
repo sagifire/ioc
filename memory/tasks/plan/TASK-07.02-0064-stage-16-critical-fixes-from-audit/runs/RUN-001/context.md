@@ -22,6 +22,9 @@
 The audit report is the source of scope for this task. Version `0.0.1` must not be fixed
 until critical findings are closed or explicitly reclassified with rationale.
 
+After human review, `C-001` is mapped to this task. `H-001`, `H-002`, `M-001` and `L-001`
+are mapped to `TASK-0066`-`TASK-0069` and also must be closed before version `0.0.1`.
+
 ## Files / Modules to Inspect
 
 - Files referenced by critical findings in `RSCH-001`.

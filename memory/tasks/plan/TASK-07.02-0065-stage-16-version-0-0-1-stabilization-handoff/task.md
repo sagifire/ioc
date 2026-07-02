@@ -12,18 +12,23 @@ Current Fixation: n/a
 ## Goal
 
 Зафіксувати publishable packages at version `0.0.1` and update Project Memory for code
-stabilization after audit and critical fixes are complete.
+stabilization after audit and all pre-`0.0.1` audit blockers are complete.
 
 ## Product Context
 
 Stage 15 built the release/governance machinery while package manifests stayed at
 `0.0.0`. Stage 16 must not treat `0.0.1` as ready until the audit has been completed and
-critical audit findings have been closed.
+all review-approved audit blockers are closed: `C-001`, `H-001`, `H-002`, `M-001` and
+`L-001`.
 
 ## Scope
 
-- Confirm `TASK-07.02-0063` audit report is completed/review-ready.
+- Confirm `TASK-07.02-0063` audit report is completed/done.
 - Confirm `TASK-07.02-0064` closed or reclassified all critical findings.
+- Confirm `TASK-07.02-0066` closed or reclassified `H-001`.
+- Confirm `TASK-07.02-0067` closed or reclassified `H-002`.
+- Confirm `TASK-07.02-0068` closed or reclassified `M-001`.
+- Confirm `TASK-07.02-0069` closed or reclassified `L-001`.
 - Use existing Changesets/versioning flow or documented equivalent to fix publishable
   package versions at `0.0.1`.
 - Update package changelogs and release-status docs as needed.
@@ -43,8 +48,10 @@ critical audit findings have been closed.
 
 ## Acceptance Criteria
 
-- [ ] Audit report exists and is completed/review-ready.
+- [ ] Audit report exists and is completed/done.
 - [ ] Critical audit findings are closed or explicitly reclassified with rationale.
+- [ ] `H-001`, `H-002`, `M-001` and `L-001` follow-up tasks are closed or explicitly
+      reclassified with rationale.
 - [ ] Publishable package manifests are fixed at `0.0.1`.
 - [ ] Package changelogs include `0.0.1` entries.
 - [ ] Public docs no longer claim only `0.0.0` workspace state where that becomes stale.
@@ -56,6 +63,10 @@ critical audit findings have been closed.
 
 - `memory/tasks/plan/TASK-07.02-0063-stage-16-codebase-audit-report/research/RSCH-001.md`
 - `memory/tasks/plan/TASK-07.02-0064-stage-16-critical-fixes-from-audit/runs/RUN-001/result.md`
+- `memory/tasks/plan/TASK-07.02-0066-stage-16-sync-factory-promise-guard/runs/RUN-001/result.md`
+- `memory/tasks/plan/TASK-07.02-0067-stage-16-composer-duplicate-binding-validation/runs/RUN-001/result.md`
+- `memory/tasks/plan/TASK-07.02-0068-stage-16-freeze-failure-retry-policy/runs/RUN-001/result.md`
+- `memory/tasks/plan/TASK-07.02-0069-stage-16-changeset-status-docs/runs/RUN-001/result.md`
 - `memory/tasks/plan/TASK-07.02-0062-stage-16-implementation-planning/fixations/FIX-001.md`
 - `memory/product/requirements.md`
 - `memory/product/roadmap.md`

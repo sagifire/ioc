@@ -10,6 +10,10 @@ Task Status After Run: n/a
 
 Буде заповнено після implementation run.
 
+## Audit Finding Closure Mapping
+
+- `H-002`: pending.
+
 ## Changed Files
 
 Буде заповнено після implementation run.
@@ -20,13 +24,12 @@ Task Status After Run: n/a
 
 ## Acceptance Criteria Check
 
-- [ ] Package versions fixed at `0.0.1`.
-- [ ] All audit blocker tasks are closed or explicitly reclassified with rationale.
-- [ ] Changelogs updated for `0.0.1`.
-- [ ] Release docs match actual state.
-- [ ] Final verification is recorded.
-- [ ] Project Memory records stabilization handoff.
-- [ ] No unapproved publish action is performed.
+- [ ] `H-002` closure is recorded.
+- [ ] Duplicate composer bindings are reported by validation/inspection.
+- [ ] Prepare/compose fail through composer validation for duplicate composer bindings.
+- [ ] Regression tests cover the behavior.
+- [ ] Relevant verification is recorded.
+- [ ] Package versions remain unchanged.
 
 ## Memory Sync
 

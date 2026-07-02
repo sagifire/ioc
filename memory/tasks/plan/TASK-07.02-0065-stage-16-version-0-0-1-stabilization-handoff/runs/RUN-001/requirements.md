@@ -8,11 +8,12 @@ Created: 2026-07-02
 ## Goal for This Run
 
 Fix publishable package versions at `0.0.1` and hand the repository into stabilization
-mode after audit and critical fixes.
+mode after audit and all pre-`0.0.1` audit blockers.
 
 ## Clarified Requirements
 
-- Do not start until audit and critical-fix tasks are complete/review-ready.
+- Do not start until `TASK-0063` is done and `TASK-0064`, `TASK-0066`, `TASK-0067`,
+  `TASK-0068` and `TASK-0069` are done or explicitly reclassified with rationale.
 - Use existing Changesets/versioning flow unless a blocker is documented.
 - Do not publish to npm without explicit human approval.
 - Keep package boundaries and runtime behavior stable.
@@ -28,13 +29,14 @@ mode after audit and critical fixes.
 ## Out of Scope for This Run
 
 - New runtime behavior.
-- Critical fixes not already closed by previous task.
+- Audit blockers not already closed by previous tasks.
 - npm publish without explicit approval.
 - External repository/npm settings or credentials.
 
 ## Acceptance Criteria for This Run
 
 - [ ] Package versions fixed at `0.0.1`.
+- [ ] All audit blocker tasks are closed or explicitly reclassified with rationale.
 - [ ] Changelogs updated for `0.0.1`.
 - [ ] Release docs match actual state.
 - [ ] Final verification is recorded.

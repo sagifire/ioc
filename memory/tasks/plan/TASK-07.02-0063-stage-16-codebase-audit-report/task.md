@@ -1,6 +1,6 @@
 # TASK-07.02-0063: Stage 16 codebase audit report
 
-Status: backlog
+Status: done
 Type: research
 Execution Mode: autonomous-research
 Created: 2026-07-02
@@ -52,14 +52,15 @@ candidate із критичними дефектами або порушення
 
 ## Acceptance Criteria
 
-- [ ] Audit report is fully Ukrainian.
-- [ ] Audit report covers code behavior, public API, tests, docs/examples, package exports,
+- [x] Audit report is fully Ukrainian.
+- [x] Audit report covers code behavior, public API, tests, docs/examples, package exports,
       release/versioning and Project Memory consistency.
-- [ ] Findings are classified by severity.
-- [ ] Every `critical` finding has enough evidence for implementation follow-up.
-- [ ] Commands/checks run during audit are recorded.
-- [ ] If no critical findings exist, report states that explicitly with rationale.
-- [ ] No code/package version changes are made during audit.
+- [x] Findings are classified by severity.
+- [x] Every `critical` finding has enough evidence for implementation follow-up.
+- [x] Commands/checks run during audit are recorded.
+- [x] Critical findings exist and are explicitly listed with evidence; no-critical rationale
+      is not applicable.
+- [x] No code/package version changes are made during audit.
 
 ## Linked Memory
 
@@ -80,9 +81,9 @@ candidate із критичними дефектами або порушення
 ## Research
 
 - [RSCH-001](research/RSCH-001.md)
-  - Status: planned
+  - Status: done
   - Purpose: Повністю український pre-`0.0.1` codebase audit report.
 
 ## Fixations
 
-Немає. Research result фіксується у `research/RSCH-001.md`.
+Немає. Research result зафіксовано у `research/RSCH-001.md` і прийнято після human review.

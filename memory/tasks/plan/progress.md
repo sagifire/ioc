@@ -449,7 +449,7 @@
 ## Stage 16 Stabilization
 
 - [TASK-07.02-0063-stage-16-codebase-audit-report](TASK-07.02-0063-stage-16-codebase-audit-report/index.md)
-  - Status: backlog
+  - Status: done
   - Type: research
   - Execution Mode: autonomous-research
   - Summary: Stage 16 pre-`0.0.1` codebase audit report повністю українською мовою.
@@ -458,14 +458,38 @@
   - Status: backlog
   - Type: bugfix
   - Execution Mode: autonomous-implementation
-  - Summary: Stage 16 closure of all critical findings from the codebase audit.
+  - Summary: Stage 16 closure of `C-001` critical finding from the codebase audit.
+  - Current: RUN-001
+- [TASK-07.02-0066-stage-16-sync-factory-promise-guard](TASK-07.02-0066-stage-16-sync-factory-promise-guard/index.md)
+  - Status: backlog
+  - Type: bugfix
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 16 pre-`0.0.1` closure of `H-001` sync factory Promise behavior.
+  - Current: RUN-001
+- [TASK-07.02-0067-stage-16-composer-duplicate-binding-validation](TASK-07.02-0067-stage-16-composer-duplicate-binding-validation/index.md)
+  - Status: backlog
+  - Type: bugfix
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 16 pre-`0.0.1` closure of `H-002` composer duplicate binding validation.
+  - Current: RUN-001
+- [TASK-07.02-0068-stage-16-freeze-failure-retry-policy](TASK-07.02-0068-stage-16-freeze-failure-retry-policy/index.md)
+  - Status: backlog
+  - Type: bugfix
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 16 pre-`0.0.1` closure of `M-001` failed `freeze()` policy.
+  - Current: RUN-001
+- [TASK-07.02-0069-stage-16-changeset-status-docs](TASK-07.02-0069-stage-16-changeset-status-docs/index.md)
+  - Status: backlog
+  - Type: docs
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 16 pre-`0.0.1` closure of `L-001` Changesets status docs.
   - Current: RUN-001
 - [TASK-07.02-0065-stage-16-version-0-0-1-stabilization-handoff](TASK-07.02-0065-stage-16-version-0-0-1-stabilization-handoff/index.md)
   - Status: backlog
   - Type: chore
   - Execution Mode: autonomous-implementation
-  - Summary: Stage 16 version `0.0.1` fixation and stabilization handoff after audit and
-    critical fixes.
+  - Summary: Stage 16 version `0.0.1` fixation and stabilization handoff after all audit
+    blockers are closed.
   - Current: RUN-001
 
 ## Format

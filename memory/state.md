@@ -1131,27 +1131,47 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
   фінальної release docs/final hardening task.
 - `TASK-07.02-0062-stage-16-implementation-planning` створена як окрема
   interactive-memory-update задача для планування Stage 16.
-- Stage 16 `0.0.1` stabilization заплановано як три послідовні operational tasks:
+- Stage 16 `0.0.1` stabilization первинно заплановано як три послідовні operational tasks:
   `TASK-07.02-0063-stage-16-codebase-audit-report`,
   `TASK-07.02-0064-stage-16-critical-fixes-from-audit` and
   `TASK-07.02-0065-stage-16-version-0-0-1-stabilization-handoff`.
 - Для Stage 16 прийнято, що audit report має бути повністю українською мовою.
 - Для Stage 16 прийнято, що version `0.0.1` не фіксується до завершення audit task і
-  closure всіх critical audit findings.
+  closure всіх review-approved audit blockers.
 - Для Stage 16 прийнято використовувати existing Changesets/release tooling для version
   fixation, а actual npm publish залишається забороненим без explicit human approval.
 - `TASK-07.02-0062-stage-16-implementation-planning` завершена після task-level human
   review approval.
+- `TASK-07.02-0063-stage-16-codebase-audit-report` виконана агентом і завершена після
+  task-level human review approval.
+- Stage 16 audit RSCH-001 підготував повністю український pre-`0.0.1` codebase audit
+  report. Аудит знайшов 1 critical finding: release workflow використовує
+  непідтверджений `changesets/action@v2`, що блокує `0.0.1` handoff до виправлення або
+  reclassification with rationale.
+- Після review audit report прийнято:
+  - `C-001` виправляється в `TASK-07.02-0064-stage-16-critical-fixes-from-audit`;
+  - `H-001` закривається до `0.0.1` у
+    `TASK-07.02-0066-stage-16-sync-factory-promise-guard`;
+  - `H-002` закривається до `0.0.1` у
+    `TASK-07.02-0067-stage-16-composer-duplicate-binding-validation`;
+  - `M-001` закривається до `0.0.1` у
+    `TASK-07.02-0068-stage-16-freeze-failure-retry-policy`;
+  - `L-001` закривається до `0.0.1` у
+    `TASK-07.02-0069-stage-16-changeset-status-docs`.
+- `TASK-07.02-0065-stage-16-version-0-0-1-stabilization-handoff` не стартує, доки
+  `TASK-0064`, `TASK-0066`, `TASK-0067`, `TASK-0068` і `TASK-0069` не закриті або явно
+  reclassified with rationale.
 
 ## Current Risks
 
 - Binding factory internals не мають static dependency metadata; Stage 10 dependency edge
   model фіксує static required-port -> binding edges only and keeps provider-level cycles
   inside factories under existing container diagnostics.
-- Stage 16 audit ще не виконаний; до audit report немає підтвердження, що codebase не має
-  critical defects before `0.0.1`.
+- Stage 16 audit знайшов pre-`0.0.1` blockers: `C-001`, `H-001`, `H-002`, `M-001` і
+  `L-001`; version `0.0.1` залишається blocked until їх closure or explicit
+  reclassification.
 - Publishable package versions still remain `0.0.0`; version `0.0.1` is intentionally
-  blocked until critical audit closure.
+  blocked until all accepted audit blockers are closed.
 - GitHub private vulnerability reporting is an external repository setting; `SECURITY.md`
   documents a safe fallback, but maintainers still need to enable or provide a private
   channel before requesting sensitive vulnerability details.
@@ -1165,7 +1185,9 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 
 ## Next Steps
 
-- Запустити `TASK-07.02-0063-stage-16-codebase-audit-report`.
+- Запустити `TASK-07.02-0064-stage-16-critical-fixes-from-audit` для виправлення `C-001`.
+- Після `TASK-0064` закрити pre-`0.0.1` blockers `H-001`, `H-002`, `M-001` і `L-001` у
+  `TASK-0066`-`TASK-0069`.
 
 ## Open Questions
 
