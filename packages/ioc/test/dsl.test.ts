@@ -277,21 +277,21 @@ describe('module DSL foundation', () => {
         expectTypeOf(objectFormModule.requires[0]).toEqualTypeOf<
             ModuleDependencyDefinition<AuthReader>
         >()
-        expectTypeOf<TokenValue<(typeof objectFormModule.requires)[0]['token']>>().toEqualTypeOf<
-            AuthReader
-        >()
-        expectTypeOf<TokenValue<(typeof objectFormModule.requires)[1]['token']>>().toEqualTypeOf<
-            AuthReader
-        >()
+        expectTypeOf<
+            TokenValue<(typeof objectFormModule.requires)[0]['token']>
+        >().toEqualTypeOf<AuthReader>()
+        expectTypeOf<
+            TokenValue<(typeof objectFormModule.requires)[1]['token']>
+        >().toEqualTypeOf<AuthReader>()
         expectTypeOf<
             TokenValue<(typeof objectFormModule.provides)[0]['token']>
         >().toEqualTypeOf<ContactRequestsPublicApi>()
-        expectTypeOf<TokenValue<(typeof shorthandModule.requires)[0]['token']>>().toEqualTypeOf<
-            AuthReader
-        >()
-        expectTypeOf<TokenValue<(typeof shorthandModule.provides)[0]['token']>>().toEqualTypeOf<
-            AuthPublicApi
-        >()
+        expectTypeOf<
+            TokenValue<(typeof shorthandModule.requires)[0]['token']>
+        >().toEqualTypeOf<AuthReader>()
+        expectTypeOf<
+            TokenValue<(typeof shorthandModule.provides)[0]['token']>
+        >().toEqualTypeOf<AuthPublicApi>()
     })
 })
 
@@ -398,7 +398,8 @@ describe('defineApp DSL', () => {
             {
                 code: 'SAGIFIRE_IOC_MISSING_REQUIRED_PORT',
                 severity: 'error',
-                message: 'Missing required port "dsl.auth-reader" for module "dsl-app-missing-port"',
+                message:
+                    'Missing required port "dsl.auth-reader" for module "dsl-app-missing-port"',
                 details: {
                     moduleId: 'dsl-app-missing-port',
                     tokenId: 'dsl.auth-reader',
@@ -571,16 +572,16 @@ describe('defineApp DSL', () => {
 
         expectTypeOf(app).toMatchTypeOf<AppDslDefinition>()
         expectTypeOf(app.modules[0]).toMatchTypeOf<ModuleDefinition | undefined>()
-        expectTypeOf<TokenValue<(typeof app.modules)[0]['requires'][0]['token']>>().toEqualTypeOf<
-            AuthReader
-        >()
-        expectTypeOf<TokenValue<(typeof app.modules)[0]['provides'][0]['token']>>().toEqualTypeOf<
-            ContactRequestsPublicApi
-        >()
+        expectTypeOf<
+            TokenValue<(typeof app.modules)[0]['requires'][0]['token']>
+        >().toEqualTypeOf<AuthReader>()
+        expectTypeOf<
+            TokenValue<(typeof app.modules)[0]['provides'][0]['token']>
+        >().toEqualTypeOf<ContactRequestsPublicApi>()
         expectTypeOf<TokenValue<(typeof app.bindings)[0]['token']>>().toEqualTypeOf<AuthReader>()
-        expectTypeOf<NonNullable<(typeof app.bindings)[0]>['useValue']>().toEqualTypeOf<
-            AuthReader
-        >()
+        expectTypeOf<
+            NonNullable<(typeof app.bindings)[0]>['useValue']
+        >().toEqualTypeOf<AuthReader>()
         expectTypeOf(app.createComposer()).toMatchTypeOf<ReturnType<typeof createComposer>>()
         expectTypeOf(app.validate()).toEqualTypeOf<DiagnosticReport>()
         expectTypeOf(app.inspect()).toEqualTypeOf<ComposerInspection>()
@@ -613,23 +614,25 @@ describe('bind/adapt DSL', () => {
                 }
             ],
             setup(context): void {
-                context.bind(CONTACT_REQUESTS_PUBLIC_API).toAsyncFactory(async (resolutionContext) => {
-                    const valueReader = resolutionContext.get(VALUE_AUTH_READER)
-                    const factoryReader = resolutionContext.get(FACTORY_AUTH_READER)
-                    const classReader = resolutionContext.get(CLASS_AUTH_READER)
-                    const asyncReader = await resolutionContext.getAsync(ASYNC_AUTH_READER)
+                context
+                    .bind(CONTACT_REQUESTS_PUBLIC_API)
+                    .toAsyncFactory(async (resolutionContext) => {
+                        const valueReader = resolutionContext.get(VALUE_AUTH_READER)
+                        const factoryReader = resolutionContext.get(FACTORY_AUTH_READER)
+                        const classReader = resolutionContext.get(CLASS_AUTH_READER)
+                        const asyncReader = await resolutionContext.getAsync(ASYNC_AUTH_READER)
 
-                    return {
-                        submit(): string {
-                            return [
-                                valueReader.currentUserId(),
-                                factoryReader.currentUserId(),
-                                classReader.currentUserId(),
-                                asyncReader.currentUserId()
-                            ].join('|')
+                        return {
+                            submit(): string {
+                                return [
+                                    valueReader.currentUserId(),
+                                    factoryReader.currentUserId(),
+                                    classReader.currentUserId(),
+                                    asyncReader.currentUserId()
+                                ].join('|')
+                            }
                         }
-                    }
-                })
+                    })
             }
         })
         let factoryCalls = 0
@@ -1146,9 +1149,9 @@ describe('DSL hardening', () => {
         expectTypeOf(app.modules[0]).toEqualTypeOf<typeof moduleDefinition>()
         expectTypeOf(app.bindings[0]).toEqualTypeOf<AppDslValueBindingDefinition<AuthReader>>()
         expectTypeOf(app.bindings[1]).toEqualTypeOf<AppDslFactoryBindingDefinition<AuthReader>>()
-        expectTypeOf<TokenValue<(typeof app.modules)[0]['requires'][0]['token']>>().toEqualTypeOf<
-            AuthReader
-        >()
+        expectTypeOf<
+            TokenValue<(typeof app.modules)[0]['requires'][0]['token']>
+        >().toEqualTypeOf<AuthReader>()
         expectTypeOf<
             TokenValue<(typeof app.modules)[0]['provides'][0]['token']>
         >().toEqualTypeOf<ContactRequestsPublicApi>()

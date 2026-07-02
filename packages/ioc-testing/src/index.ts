@@ -78,18 +78,19 @@ export interface FakeModuleProviderBase<TValue = unknown> {
     readonly description?: string
 }
 
-export interface FakeModuleValueProvider<TValue = unknown>
-    extends FakeModuleProviderBase<TValue> {
+export interface FakeModuleValueProvider<TValue = unknown> extends FakeModuleProviderBase<TValue> {
     readonly useValue: TValue
 }
 
-export interface FakeModuleFactoryProvider<TValue = unknown>
-    extends FakeModuleProviderBase<TValue> {
+export interface FakeModuleFactoryProvider<
+    TValue = unknown
+> extends FakeModuleProviderBase<TValue> {
     readonly useFactory: SyncProviderFactory<TValue>
 }
 
-export interface FakeModuleAsyncFactoryProvider<TValue = unknown>
-    extends FakeModuleProviderBase<TValue> {
+export interface FakeModuleAsyncFactoryProvider<
+    TValue = unknown
+> extends FakeModuleProviderBase<TValue> {
     readonly useAsyncFactory: AsyncProviderFactory<TValue>
 }
 
@@ -115,12 +116,8 @@ type NormalizedFakeModuleDependencies<
         : never
 }
 
-type NormalizedFakeModuleCapabilities<
-    TProvides extends readonly FakeModuleProvider[]
-> = {
-    readonly [TIndex in keyof TProvides]: TProvides[TIndex] extends FakeModuleProvider<
-        infer TValue
-    >
+type NormalizedFakeModuleCapabilities<TProvides extends readonly FakeModuleProvider[]> = {
+    readonly [TIndex in keyof TProvides]: TProvides[TIndex] extends FakeModuleProvider<infer TValue>
         ? ModuleCapabilityDefinition<TValue>
         : never
 }
@@ -162,7 +159,8 @@ export interface CreateTestComposerOptions {
 
 export interface FakeModuleOptions<
     TMetadata = unknown,
-    TRequires extends readonly ModuleDependencyDefinitionInput[] = readonly ModuleDependencyDefinitionInput[],
+    TRequires extends readonly ModuleDependencyDefinitionInput[] =
+        readonly ModuleDependencyDefinitionInput[],
     TProvides extends readonly FakeModuleProvider[] = readonly FakeModuleProvider[]
 > {
     readonly version?: string
@@ -173,7 +171,8 @@ export interface FakeModuleOptions<
 
 export interface FakeModuleInput<
     TMetadata = unknown,
-    TRequires extends readonly ModuleDependencyDefinitionInput[] = readonly ModuleDependencyDefinitionInput[],
+    TRequires extends readonly ModuleDependencyDefinitionInput[] =
+        readonly ModuleDependencyDefinitionInput[],
     TProvides extends readonly FakeModuleProvider[] = readonly FakeModuleProvider[]
 > extends FakeModuleOptions<TMetadata, TRequires, TProvides> {
     readonly id: string
@@ -181,7 +180,8 @@ export interface FakeModuleInput<
 
 export type FakeModuleDefinition<
     TMetadata = unknown,
-    TRequires extends readonly ModuleDependencyDefinitionInput[] = readonly ModuleDependencyDefinitionInput[],
+    TRequires extends readonly ModuleDependencyDefinitionInput[] =
+        readonly ModuleDependencyDefinitionInput[],
     TProvides extends readonly FakeModuleProvider[] = readonly FakeModuleProvider[]
 > = ModuleDefinition<
     TMetadata,
@@ -189,9 +189,7 @@ export type FakeModuleDefinition<
     NormalizedFakeModuleCapabilities<TProvides>
 >
 
-export interface CreateModuleHarnessOptions<
-    TModule extends ModuleDefinition = ModuleDefinition
-> {
+export interface CreateModuleHarnessOptions<TModule extends ModuleDefinition = ModuleDefinition> {
     readonly module: TModule
     readonly supportModules?: readonly ModuleDefinition[]
     readonly fakeModules?: readonly ModuleDefinition[]
@@ -234,9 +232,7 @@ export interface GraphBindingExpectation {
     readonly providerKind?: InspectionProviderKind
 }
 
-export type GraphEdgeExpectation =
-    | GraphCapabilityEdgeExpectation
-    | GraphBindingEdgeExpectation
+export type GraphEdgeExpectation = GraphCapabilityEdgeExpectation | GraphBindingEdgeExpectation
 
 export interface GraphCapabilityEdgeExpectation {
     readonly edgeKind: 'capability'
@@ -285,9 +281,7 @@ export class DiagnosticAssertionError extends Error {
     }
 }
 
-export function createTestRuntime(
-    configure?: TestRuntimeConfigurator
-): Promise<ContainerRuntime>
+export function createTestRuntime(configure?: TestRuntimeConfigurator): Promise<ContainerRuntime>
 export function createTestRuntime(options?: CreateTestRuntimeOptions): Promise<ContainerRuntime>
 export async function createTestRuntime(
     input?: TestRuntimeConfigurator | CreateTestRuntimeOptions
@@ -336,14 +330,16 @@ export function createTestComposer(
 
 export function fakeModule<
     TMetadata = unknown,
-    const TRequires extends readonly ModuleDependencyDefinitionInput[] = readonly ModuleDependencyDefinitionInput[],
+    const TRequires extends readonly ModuleDependencyDefinitionInput[] =
+        readonly ModuleDependencyDefinitionInput[],
     const TProvides extends readonly FakeModuleProvider[] = readonly FakeModuleProvider[]
 >(
     definition: FakeModuleInput<TMetadata, TRequires, TProvides>
 ): FakeModuleDefinition<TMetadata, TRequires, TProvides>
 export function fakeModule<
     TMetadata = unknown,
-    const TRequires extends readonly ModuleDependencyDefinitionInput[] = readonly ModuleDependencyDefinitionInput[],
+    const TRequires extends readonly ModuleDependencyDefinitionInput[] =
+        readonly ModuleDependencyDefinitionInput[],
     const TProvides extends readonly FakeModuleProvider[] = readonly FakeModuleProvider[]
 >(
     id: string,
@@ -351,7 +347,8 @@ export function fakeModule<
 ): FakeModuleDefinition<TMetadata, TRequires, TProvides>
 export function fakeModule<
     TMetadata = unknown,
-    const TRequires extends readonly ModuleDependencyDefinitionInput[] = readonly ModuleDependencyDefinitionInput[],
+    const TRequires extends readonly ModuleDependencyDefinitionInput[] =
+        readonly ModuleDependencyDefinitionInput[],
     const TProvides extends readonly FakeModuleProvider[] = readonly FakeModuleProvider[]
 >(
     idOrDefinition: string | FakeModuleInput<TMetadata, TRequires, TProvides>,
@@ -374,9 +371,9 @@ export function fakeModule<
     >
 }
 
-export function createModuleHarness<
-    TModule extends ModuleDefinition = ModuleDefinition
->(options: CreateModuleHarnessOptions<TModule>): ModuleHarness<TModule> {
+export function createModuleHarness<TModule extends ModuleDefinition = ModuleDefinition>(
+    options: CreateModuleHarnessOptions<TModule>
+): ModuleHarness<TModule> {
     const supportModules = Object.freeze([...(options.supportModules ?? [])])
     const fakeModules = Object.freeze([...(options.fakeModules ?? [])])
     const modules = Object.freeze([options.module, ...supportModules, ...fakeModules])
@@ -571,10 +568,7 @@ export function assertDiagnosticReportHasDiagnostic(
     )
 }
 
-export function assertErrorDiagnostic(
-    error: unknown,
-    expectation: DiagnosticExpectation
-): void {
+export function assertErrorDiagnostic(error: unknown, expectation: DiagnosticExpectation): void {
     const diagnostic = diagnosticFromError(error)
 
     if (matchesDiagnostic(diagnostic, expectation)) {
@@ -658,11 +652,7 @@ function createExplicitFakeModuleDefinitionInput<
 >(
     definition: FakeModuleInput<TMetadata, TRequires, TProvides>,
     providers: TProvides
-): ModuleDefinitionInput<
-    TMetadata,
-    TRequires,
-    NormalizedFakeModuleCapabilities<TProvides>
-> {
+): ModuleDefinitionInput<TMetadata, TRequires, NormalizedFakeModuleCapabilities<TProvides>> {
     const baseDefinition = {
         id: definition.id,
         requires: definition.requires ?? ([] as unknown as TRequires),
@@ -824,7 +814,10 @@ function applyTestOverridesToContainer(
     }
 }
 
-function applyTestOverridesToComposer(composer: Composer, overrides: readonly TestOverride[]): void {
+function applyTestOverridesToComposer(
+    composer: Composer,
+    overrides: readonly TestOverride[]
+): void {
     for (const testOverride of overrides) {
         const builder = composer.bind(testOverride.token)
 
@@ -858,10 +851,7 @@ function matchesOptional<TValue>(actual: TValue, expected: TValue | undefined): 
     return expected === undefined || actual === expected
 }
 
-function matchesGraphEdge(
-    edge: ModuleDependencyEdge,
-    expectation: GraphEdgeExpectation
-): boolean {
+function matchesGraphEdge(edge: ModuleDependencyEdge, expectation: GraphEdgeExpectation): boolean {
     if (edge.edgeKind !== expectation.edgeKind) {
         return false
     }
@@ -888,10 +878,7 @@ function matchesGraphEdge(
     )
 }
 
-function matchesDiagnostic(
-    diagnostic: Diagnostic,
-    expectation: DiagnosticExpectation
-): boolean {
+function matchesDiagnostic(diagnostic: Diagnostic, expectation: DiagnosticExpectation): boolean {
     if (!matchesOptional(diagnostic.code, expectation.code)) {
         return false
     }
@@ -1058,7 +1045,9 @@ function formatDiagnosticExpectation(expectation: DiagnosticExpectation): string
         formatOptionalExpectationPart('severity', expectation.severity),
         formatOptionalExpectationPart('message', expectation.message),
         formatOptionalExpectationPart('messageIncludes', expectation.messageIncludes),
-        expectation.details === undefined ? undefined : `details: ${stableFormat(expectation.details)}`
+        expectation.details === undefined
+            ? undefined
+            : `details: ${stableFormat(expectation.details)}`
     ].filter((part): part is string => {
         return part !== undefined
     })
@@ -1098,11 +1087,7 @@ function stableFormat(value: unknown): string {
         return JSON.stringify(value)
     }
 
-    if (
-        typeof value === 'number' ||
-        typeof value === 'boolean' ||
-        typeof value === 'bigint'
-    ) {
+    if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
         return String(value)
     }
 

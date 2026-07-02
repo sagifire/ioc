@@ -82,7 +82,8 @@ export interface ModuleDefinition<
 
 export interface ModuleDefinitionInput<
     TMetadata = unknown,
-    TRequires extends readonly ModuleDependencyDefinitionInput[] = readonly ModuleDependencyDefinitionInput[],
+    TRequires extends readonly ModuleDependencyDefinitionInput[] =
+        readonly ModuleDependencyDefinitionInput[],
     TProvides extends readonly ModuleCapabilityDefinition[] = readonly ModuleCapabilityDefinition[]
 > {
     readonly id: string
@@ -98,11 +99,7 @@ type Awaitable<TValue> = TValue | Promise<TValue>
 export type ComposerBindingKind = 'value' | 'factory' | 'class' | 'async-factory'
 
 export type InspectionProviderKind =
-    | 'value'
-    | 'factory'
-    | 'class'
-    | 'async-factory'
-    | 'async-resource'
+    'value' | 'factory' | 'class' | 'async-factory' | 'async-resource'
 
 export type RequiredPortSatisfaction = 'binding' | 'capability' | 'optional' | 'missing'
 
@@ -375,10 +372,8 @@ export class DuplicateModuleCapabilityError extends SagifireIocError<DuplicateMo
     constructor(moduleId: string, tokenId: string)
     constructor(moduleIds: readonly [string, string, ...string[]], tokenId: string)
     constructor(moduleIdOrIds: string | readonly [string, string, ...string[]], tokenId: string) {
-        const moduleId =
-            typeof moduleIdOrIds === 'string' ? moduleIdOrIds : moduleIdOrIds[0]
-        const moduleIds =
-            typeof moduleIdOrIds === 'string' ? [moduleIdOrIds] : [...moduleIdOrIds]
+        const moduleId = typeof moduleIdOrIds === 'string' ? moduleIdOrIds : moduleIdOrIds[0]
+        const moduleIds = typeof moduleIdOrIds === 'string' ? [moduleIdOrIds] : [...moduleIdOrIds]
         const details =
             typeof moduleIdOrIds === 'string'
                 ? {
@@ -598,9 +593,7 @@ export class MissingModuleProviderError extends SagifireIocError<MissingModulePr
     }
 }
 
-type NormalizedModuleDependencies<
-    TRequires extends readonly ModuleDependencyDefinitionInput[]
-> = {
+type NormalizedModuleDependencies<TRequires extends readonly ModuleDependencyDefinitionInput[]> = {
     readonly [TIndex in keyof TRequires]: TRequires[TIndex] extends ModuleDependencyDefinitionInput<
         infer TValue
     >
@@ -608,9 +601,7 @@ type NormalizedModuleDependencies<
         : never
 }
 
-type NormalizedModuleCapabilities<
-    TProvides extends readonly ModuleCapabilityDefinition[]
-> = {
+type NormalizedModuleCapabilities<TProvides extends readonly ModuleCapabilityDefinition[]> = {
     readonly [TIndex in keyof TProvides]: TProvides[TIndex] extends ModuleCapabilityDefinition<
         infer TValue
     >
@@ -705,8 +696,10 @@ const moduleCapabilityKinds: readonly ModuleCapabilityKind[] = [
 
 export function defineModule<
     TMetadata = unknown,
-    const TRequires extends readonly ModuleDependencyDefinitionInput[] = readonly ModuleDependencyDefinitionInput[],
-    const TProvides extends readonly ModuleCapabilityDefinition[] = readonly ModuleCapabilityDefinition[]
+    const TRequires extends readonly ModuleDependencyDefinitionInput[] =
+        readonly ModuleDependencyDefinitionInput[],
+    const TProvides extends readonly ModuleCapabilityDefinition[] =
+        readonly ModuleCapabilityDefinition[]
 >(
     definition: ModuleDefinitionInput<TMetadata, TRequires, TProvides>
 ): ModuleDefinition<
@@ -1363,7 +1356,12 @@ function createLiveModuleSetupContext(
         },
 
         add<TValue>(bindingToken: Token<TValue>): MultiBindingBuilder<TValue> {
-            return createModuleMultiBindingBuilder(moduleDefinition, bindingToken, container, access)
+            return createModuleMultiBindingBuilder(
+                moduleDefinition,
+                bindingToken,
+                container,
+                access
+            )
         },
 
         get<TValue>(resolutionToken: Token<TValue>): TValue {
@@ -1658,15 +1656,21 @@ function createModuleResolutionContext(
         },
 
         tryGet<TValue>(resolutionToken: Token<TValue>): TValue | undefined {
-            return context.tryGet(resolveModuleAccessToken(moduleDefinition, resolutionToken, access))
+            return context.tryGet(
+                resolveModuleAccessToken(moduleDefinition, resolutionToken, access)
+            )
         },
 
         getAll<TValue>(resolutionToken: Token<TValue>): TValue[] {
-            return context.getAll(resolveModuleAccessToken(moduleDefinition, resolutionToken, access))
+            return context.getAll(
+                resolveModuleAccessToken(moduleDefinition, resolutionToken, access)
+            )
         },
 
         getAsync<TValue>(resolutionToken: Token<TValue>): Promise<TValue> {
-            return context.getAsync(resolveModuleAccessToken(moduleDefinition, resolutionToken, access))
+            return context.getAsync(
+                resolveModuleAccessToken(moduleDefinition, resolutionToken, access)
+            )
         },
 
         tryGetAsync<TValue>(resolutionToken: Token<TValue>): Promise<TValue | undefined> {
@@ -1897,7 +1901,9 @@ function appendDuplicateModuleIdDiagnostics(
     for (const moduleDefinition of modules) {
         if (seenModuleIds.has(moduleDefinition.id)) {
             if (!reportedModuleIds.has(moduleDefinition.id)) {
-                diagnostics.push(diagnosticFromError(new DuplicateModuleIdError(moduleDefinition.id)))
+                diagnostics.push(
+                    diagnosticFromError(new DuplicateModuleIdError(moduleDefinition.id))
+                )
                 reportedModuleIds.add(moduleDefinition.id)
             }
 

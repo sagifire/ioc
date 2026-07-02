@@ -329,28 +329,28 @@ describe('testing package hardening', () => {
         expectTypeOf(harness.getGraph()).toEqualTypeOf<ModuleGraph>()
         expectTypeOf(harness.compose()).toEqualTypeOf<Promise<ComposedRuntime>>()
         expectTypeOf(createTestRuntime(runtimeOptions)).toEqualTypeOf<Promise<ContainerRuntime>>()
-        expectTypeOf(createTestComposer(composerOptions).inspect()).toEqualTypeOf<
-            ComposerInspection
-        >()
+        expectTypeOf(
+            createTestComposer(composerOptions).inspect()
+        ).toEqualTypeOf<ComposerInspection>()
         expectTypeOf<RuntimeInspection>().toMatchTypeOf<GraphAssertionInput>()
-        expectTypeOf<Parameters<typeof assertGraphHasCapability>[1]>().toEqualTypeOf<
-            GraphCapabilityExpectation
-        >()
-        expectTypeOf<Parameters<typeof assertGraphHasRequiredPort>[1]>().toEqualTypeOf<
-            GraphRequiredPortExpectation
-        >()
-        expectTypeOf<Parameters<typeof assertGraphHasBinding>[1]>().toEqualTypeOf<
-            GraphBindingExpectation
-        >()
-        expectTypeOf<Parameters<typeof assertGraphHasEdge>[1]>().toEqualTypeOf<
-            GraphEdgeExpectation
-        >()
-        expectTypeOf<Parameters<typeof assertDiagnosticReportHasDiagnostic>[0]>().toEqualTypeOf<
-            DiagnosticReport
-        >()
-        expectTypeOf<Parameters<typeof assertDiagnosticReportHasDiagnostic>[1]>().toEqualTypeOf<
-            DiagnosticExpectation
-        >()
+        expectTypeOf<
+            Parameters<typeof assertGraphHasCapability>[1]
+        >().toEqualTypeOf<GraphCapabilityExpectation>()
+        expectTypeOf<
+            Parameters<typeof assertGraphHasRequiredPort>[1]
+        >().toEqualTypeOf<GraphRequiredPortExpectation>()
+        expectTypeOf<
+            Parameters<typeof assertGraphHasBinding>[1]
+        >().toEqualTypeOf<GraphBindingExpectation>()
+        expectTypeOf<
+            Parameters<typeof assertGraphHasEdge>[1]
+        >().toEqualTypeOf<GraphEdgeExpectation>()
+        expectTypeOf<
+            Parameters<typeof assertDiagnosticReportHasDiagnostic>[0]
+        >().toEqualTypeOf<DiagnosticReport>()
+        expectTypeOf<
+            Parameters<typeof assertDiagnosticReportHasDiagnostic>[1]
+        >().toEqualTypeOf<DiagnosticExpectation>()
 
         const runtime = await createTestRuntime(runtimeOptions)
 

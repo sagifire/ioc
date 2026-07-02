@@ -348,7 +348,8 @@ describe('module definition foundation', () => {
             mutableModule.id = 'changed'
         }).toThrow(TypeError)
         expect(() => {
-            const mutableRequires = module.requires as unknown as ModuleDependencyDefinition<AuthReader>[]
+            const mutableRequires =
+                module.requires as unknown as ModuleDependencyDefinition<AuthReader>[]
 
             mutableRequires.push({
                 token: OPTIONAL_AUTH_READER,
@@ -413,7 +414,9 @@ describe('module definition foundation', () => {
         expectTypeOf(module.requires[0]).toEqualTypeOf<ModuleDependencyDefinition<AuthReader>>()
         expectTypeOf<TokenValue<(typeof module.requires)[0]['token']>>().toEqualTypeOf<AuthReader>()
         expectTypeOf<TokenValue<(typeof module.requires)[1]['token']>>().toEqualTypeOf<AuthReader>()
-        expectTypeOf<TokenValue<(typeof module.provides)[0]['token']>>().toEqualTypeOf<AuthPublicApi>()
+        expectTypeOf<
+            TokenValue<(typeof module.provides)[0]['token']>
+        >().toEqualTypeOf<AuthPublicApi>()
         expectTypeOf(setupResult.metadata).toEqualTypeOf<
             | {
                   readonly feature: string
@@ -421,7 +424,6 @@ describe('module definition foundation', () => {
             | undefined
         >()
     })
-
 })
 
 describe('composer builder and static validation', () => {
@@ -609,7 +611,8 @@ describe('composer builder and static validation', () => {
             {
                 code: 'SAGIFIRE_IOC_MISSING_REQUIRED_PORT',
                 severity: 'error',
-                message: 'Missing required port "composer.auth-reader" for module "missing-port-module"',
+                message:
+                    'Missing required port "composer.auth-reader" for module "missing-port-module"',
                 details: {
                     moduleId: 'missing-port-module',
                     tokenId: 'composer.auth-reader',
@@ -617,8 +620,9 @@ describe('composer builder and static validation', () => {
                 }
             }
         ])
-        expect(new MissingRequiredPortError('missing-port-module', AUTH_READER.id, 'external'))
-            .toBeInstanceOf(MissingRequiredPortError)
+        expect(
+            new MissingRequiredPortError('missing-port-module', AUTH_READER.id, 'external')
+        ).toBeInstanceOf(MissingRequiredPortError)
     })
 
     test('reports bindings that target no declared required port without exposing values', () => {
@@ -737,10 +741,7 @@ describe('composer builder and static validation', () => {
                 message: 'Module dependency cycle detected: cycle-a -> cycle-b -> cycle-a',
                 details: {
                     moduleIdPath: ['cycle-a', 'cycle-b', 'cycle-a'],
-                    tokenIdPath: [
-                        'composer.notification-public-api',
-                        'composer.auth-public-api'
-                    ],
+                    tokenIdPath: ['composer.notification-public-api', 'composer.auth-public-api'],
                     edgeKinds: ['capability', 'capability']
                 }
             }
@@ -813,12 +814,7 @@ describe('composer builder and static validation', () => {
                     'Module dependency cycle detected: ' +
                     'long-cycle-a -> long-cycle-b -> long-cycle-c -> long-cycle-a',
                 details: {
-                    moduleIdPath: [
-                        'long-cycle-a',
-                        'long-cycle-b',
-                        'long-cycle-c',
-                        'long-cycle-a'
-                    ],
+                    moduleIdPath: ['long-cycle-a', 'long-cycle-b', 'long-cycle-c', 'long-cycle-a'],
                     tokenIdPath: [
                         'composer.contact-requests-public-api',
                         'composer.notification-public-api',
@@ -906,13 +902,9 @@ describe('composer builder and static validation', () => {
         binding.toFactory((context) => {
             expectTypeOf(context).toEqualTypeOf<ComposerBindingContext>()
             expectTypeOf(context.get(AUTH_PUBLIC_API)).toEqualTypeOf<AuthPublicApi>()
-            expectTypeOf(context.tryGet(AUTH_PUBLIC_API)).toEqualTypeOf<
-                AuthPublicApi | undefined
-            >()
+            expectTypeOf(context.tryGet(AUTH_PUBLIC_API)).toEqualTypeOf<AuthPublicApi | undefined>()
             expectTypeOf(context.getAll(AUTH_PUBLIC_API)).toEqualTypeOf<AuthPublicApi[]>()
-            expectTypeOf(context.getAsync(AUTH_PUBLIC_API)).toEqualTypeOf<
-                Promise<AuthPublicApi>
-            >()
+            expectTypeOf(context.getAsync(AUTH_PUBLIC_API)).toEqualTypeOf<Promise<AuthPublicApi>>()
             expectTypeOf(context.tryGetAsync(AUTH_PUBLIC_API)).toEqualTypeOf<
                 Promise<AuthPublicApi | undefined>
             >()
@@ -980,9 +972,12 @@ describe('module setup and private providers', () => {
                     secret: 'module-secret'
                 })
                 context.add(AUDIT_EVENTS).toValue('setup-event')
-                context.add(AUDIT_EVENTS).toFactory(() => {
-                    return 'factory-event'
-                }).singleton()
+                context
+                    .add(AUDIT_EVENTS)
+                    .toFactory(() => {
+                        return 'factory-event'
+                    })
+                    .singleton()
                 context
                     .bind(CONTACT_REQUESTS_PUBLIC_API)
                     .toAsyncFactory(async (providerContext) => {
@@ -1006,10 +1001,7 @@ describe('module setup and private providers', () => {
                     .eager()
             }
         })
-        const prepared = await createComposer()
-            .use(authModule)
-            .use(contactRequestsModule)
-            .prepare()
+        const prepared = await createComposer().use(authModule).use(contactRequestsModule).prepare()
 
         expect(setupCalls).toBe(2)
         expect(prepared).toEqual({
@@ -1045,10 +1037,7 @@ describe('module setup and private providers', () => {
             secret: 'module-secret'
         })
         expect(contactSetupContext?.get(AUTH_PUBLIC_API).requireUser()).toBe('auth-user')
-        expect(contactSetupContext?.getAll(AUDIT_EVENTS)).toEqual([
-            'setup-event',
-            'factory-event'
-        ])
+        expect(contactSetupContext?.getAll(AUDIT_EVENTS)).toEqual(['setup-event', 'factory-event'])
         expect(JSON.stringify(prepared)).not.toContain('composer.auth-secret')
         expect(JSON.stringify(prepared)).not.toContain('composer.audit-events')
     })
@@ -1151,8 +1140,9 @@ describe('module setup and private providers', () => {
             }
         })
 
-        await expect(createComposer().use(privateOwner).use(foreignReader).prepare()).rejects
-            .toBeInstanceOf(PrivateProviderAccessError)
+        await expect(
+            createComposer().use(privateOwner).use(foreignReader).prepare()
+        ).rejects.toBeInstanceOf(PrivateProviderAccessError)
 
         try {
             await createComposer().use(privateOwner).use(foreignReader).prepare()
@@ -1207,8 +1197,9 @@ describe('module setup and private providers', () => {
                         }
                     }
                 ])
-                expect(new MissingModuleProviderError('missing-actual-provider', AUTH_PUBLIC_API.id))
-                    .toBeInstanceOf(MissingModuleProviderError)
+                expect(
+                    new MissingModuleProviderError('missing-actual-provider', AUTH_PUBLIC_API.id)
+                ).toBeInstanceOf(MissingModuleProviderError)
             }
         }
     })
@@ -1246,9 +1237,7 @@ describe('module setup and private providers', () => {
                 expectTypeOf(context.bind(AUTH_PUBLIC_API)).toMatchTypeOf<
                     BindingBuilder<AuthPublicApi>
                 >()
-                expectTypeOf(context.add(AUDIT_EVENTS)).toMatchTypeOf<
-                    MultiBindingBuilder<string>
-                >()
+                expectTypeOf(context.add(AUDIT_EVENTS)).toMatchTypeOf<MultiBindingBuilder<string>>()
                 expectTypeOf(context.get<AuthPublicApi>).returns.toEqualTypeOf<AuthPublicApi>()
                 expectTypeOf(context.tryGet<AuthPublicApi>).returns.toEqualTypeOf<
                     AuthPublicApi | undefined
@@ -1269,7 +1258,9 @@ describe('module setup and private providers', () => {
             }
         })
 
-        const preparedComposition: PreparedComposition = await createComposer().use(module).prepare()
+        const preparedComposition: PreparedComposition = await createComposer()
+            .use(module)
+            .prepare()
 
         expect(preparedComposition.capabilities[0]?.tokenId).toBe('composer.auth-public-api')
     })
@@ -1366,10 +1357,7 @@ describe('inspection api', () => {
                     valueType: 'string',
                     value: 'contact-metadata'
                 },
-                requiredPortIds: [
-                    'composer.auth-reader',
-                    'composer.optional-auth-reader'
-                ],
+                requiredPortIds: ['composer.auth-reader', 'composer.optional-auth-reader'],
                 capabilityIds: ['composer.contact-requests-public-api']
             }
         ])
@@ -2075,9 +2063,7 @@ describe('inspection api', () => {
 
         expectTypeOf(composerInspection).toEqualTypeOf<ComposerInspection>()
         expectTypeOf(graph).toEqualTypeOf<ModuleGraph>()
-        expectTypeOf(composerInspection.modules[0]).toEqualTypeOf<
-            ModuleNodeMetadata | undefined
-        >()
+        expectTypeOf(composerInspection.modules[0]).toEqualTypeOf<ModuleNodeMetadata | undefined>()
         expectTypeOf(composerInspection.requiredPorts[0]).toEqualTypeOf<
             RequiredPortMetadata | undefined
         >()
@@ -2087,9 +2073,7 @@ describe('inspection api', () => {
         expectTypeOf(composerInspection.bindings[0]).toEqualTypeOf<
             CompositionBindingMetadata | undefined
         >()
-        expectTypeOf(composerInspection.edges[0]).toEqualTypeOf<
-            ModuleDependencyEdge | undefined
-        >()
+        expectTypeOf(composerInspection.edges[0]).toEqualTypeOf<ModuleDependencyEdge | undefined>()
         expectTypeOf(composerInspection.validation.ok).toEqualTypeOf<boolean>()
         expectTypeOf<InspectionProviderKind>().toEqualTypeOf<
             'value' | 'factory' | 'class' | 'async-factory' | 'async-resource'
@@ -2229,9 +2213,7 @@ describe('composed runtime capabilities', () => {
 
         expect(Object.isFrozen(runtime)).toBe(true)
         expect(runtime.get(AUTH_PUBLIC_API).requireUser()).toBe('auth-user')
-        expect(runtime.get(CONTACT_REQUESTS_PUBLIC_API).submit()).toBe(
-            'auth-user:module-secret'
-        )
+        expect(runtime.get(CONTACT_REQUESTS_PUBLIC_API).submit()).toBe('auth-user:module-secret')
         expect(runtime.getAll(AUDIT_EVENTS)).toEqual(['created', 'submitted'])
         expect(() => runtime.get(AUTH_READER)).toThrow(PrivateProviderAccessError)
         expect(() => runtime.tryGet(AUTH_SECRET)).toThrow(PrivateProviderAccessError)
@@ -2427,10 +2409,12 @@ describe('composed runtime capabilities', () => {
             }
         })
 
-        await expect(createComposer().use(missingRequiredPortModule).compose()).rejects
-            .toBeInstanceOf(ComposerValidationError)
-        await expect(createComposer().use(missingProviderModule).compose()).rejects
-            .toBeInstanceOf(ComposerValidationError)
+        await expect(
+            createComposer().use(missingRequiredPortModule).compose()
+        ).rejects.toBeInstanceOf(ComposerValidationError)
+        await expect(createComposer().use(missingProviderModule).compose()).rejects.toBeInstanceOf(
+            ComposerValidationError
+        )
         await expect(duplicateActualProviderComposer.compose()).rejects.toMatchObject({
             code: 'SAGIFIRE_IOC_DUPLICATE_PROVIDER'
         })
@@ -2528,11 +2512,7 @@ describe('composed runtime capabilities', () => {
                     {
                         code: 'SAGIFIRE_IOC_MODULE_CYCLE',
                         details: {
-                            moduleIdPath: [
-                                'compose-cycle-a',
-                                'compose-cycle-b',
-                                'compose-cycle-a'
-                            ],
+                            moduleIdPath: ['compose-cycle-a', 'compose-cycle-b', 'compose-cycle-a'],
                             tokenIdPath: [
                                 'composer.notification-public-api',
                                 'composer.auth-public-api'

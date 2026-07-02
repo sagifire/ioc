@@ -861,10 +861,7 @@ async function createRuntime(
         }
     }
 
-    const assertResolutionIsActive = (
-        scopeState: ScopeState | undefined,
-        action: string
-    ): void => {
+    const assertResolutionIsActive = (scopeState: ScopeState | undefined, action: string): void => {
         if (scopeState?.disposed === true) {
             throw new ScopeDisposedError()
         }
@@ -1315,7 +1312,11 @@ async function createRuntime(
             )
         }
 
-        return resolveProviderAsync(registration.provider as ProviderRecord<TValue>, stack, scopeState)
+        return resolveProviderAsync(
+            registration.provider as ProviderRecord<TValue>,
+            stack,
+            scopeState
+        )
     }
 
     const resolveOptionalAsync = async <TValue>(
@@ -1355,7 +1356,11 @@ async function createRuntime(
             )
         }
 
-        return resolveProviderAsync(registration.provider as ProviderRecord<TValue>, stack, scopeState)
+        return resolveProviderAsync(
+            registration.provider as ProviderRecord<TValue>,
+            stack,
+            scopeState
+        )
     }
 
     const resolveAll = <TValue>(

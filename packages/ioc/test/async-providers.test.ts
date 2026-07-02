@@ -63,11 +63,9 @@ describe('container async providers and resources', () => {
         const container = createContainer()
         let calls = 0
 
-        const binding = container
-            .bind(COUNTER)
-            .toAsyncFactory(async () => ({
-                value: (calls += 1)
-            }))
+        const binding = container.bind(COUNTER).toAsyncFactory(async () => ({
+            value: (calls += 1)
+        }))
 
         expectTypeOf(binding).toEqualTypeOf<AsyncFactoryBinding>()
 
@@ -202,9 +200,7 @@ describe('container async providers and resources', () => {
         container.bind(SERVICE).toAsyncFactory(async (context) => {
             expectTypeOf(context).toEqualTypeOf<ResolutionContext>()
             expectTypeOf(context.getAsync(LOGGER)).toEqualTypeOf<Promise<Logger>>()
-            expectTypeOf(context.tryGetAsync(MISSING)).toEqualTypeOf<
-                Promise<Missing | undefined>
-            >()
+            expectTypeOf(context.tryGetAsync(MISSING)).toEqualTypeOf<Promise<Missing | undefined>>()
 
             return {
                 logger: await context.getAsync(LOGGER),
@@ -246,13 +242,11 @@ describe('container async providers and resources', () => {
             }
         }
         let factoryCalls = 0
-        const resourceBinding = eagerResource
-            .bind(COUNTER)
-            .toAsyncResource(async () => {
-                factoryCalls += 1
+        const resourceBinding = eagerResource.bind(COUNTER).toAsyncResource(async () => {
+            factoryCalls += 1
 
-                return resource
-            })
+            return resource
+        })
 
         expectTypeOf(resourceBinding).toEqualTypeOf<AsyncResourceBinding>()
         missingOwnership.bind(COUNTER).toAsyncResource(async () => resource)
@@ -271,9 +265,12 @@ describe('container async providers and resources', () => {
         const transientFactory = createContainer()
         const scopedResource = createContainer()
 
-        transientFactory.bind(COUNTER).toAsyncFactory(async () => ({
-            value: 1
-        })).eager()
+        transientFactory
+            .bind(COUNTER)
+            .toAsyncFactory(async () => ({
+                value: 1
+            }))
+            .eager()
         scopedResource
             .bind(COUNTER)
             .toAsyncResource(async () => ({

@@ -230,10 +230,16 @@ function shouldRenderStringWithoutQuotes(key: string): boolean {
     )
 }
 
-function shouldRenderStringArrayAsPath(key: string, values: readonly unknown[]): values is string[] {
-    return (key === 'tokenIds' || key.endsWith('Path')) && values.every((value) => {
-        return typeof value === 'string'
-    })
+function shouldRenderStringArrayAsPath(
+    key: string,
+    values: readonly unknown[]
+): values is string[] {
+    return (
+        (key === 'tokenIds' || key.endsWith('Path')) &&
+        values.every((value) => {
+            return typeof value === 'string'
+        })
+    )
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

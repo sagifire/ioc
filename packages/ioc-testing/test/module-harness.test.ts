@@ -241,9 +241,7 @@ describe('fake modules and module harnesses', () => {
 
         expect(runtime.get(AUTH_READER).currentUserId()).toBe('fake-user')
         expect(runtime.get(FACTORY_AUTH_READER).currentUserId()).toBe('factory-fake-user')
-        expect((await runtime.getAsync(ASYNC_AUTH_READER)).currentUserId()).toBe(
-            'async-fake-user'
-        )
+        expect((await runtime.getAsync(ASYNC_AUTH_READER)).currentUserId()).toBe('async-fake-user')
         expect(factoryCalls).toBe(1)
         expect(asyncFactoryCalls).toBe(1)
         expect(runtime.inspect().modules).toEqual([
@@ -253,11 +251,7 @@ describe('fake modules and module harnesses', () => {
                     valueType: 'object'
                 },
                 requiredPortIds: [],
-                capabilityIds: [
-                    AUTH_READER.id,
-                    FACTORY_AUTH_READER.id,
-                    ASYNC_AUTH_READER.id
-                ]
+                capabilityIds: [AUTH_READER.id, FACTORY_AUTH_READER.id, ASYNC_AUTH_READER.id]
             }
         ])
 
@@ -371,13 +365,11 @@ describe('fake modules and module harnesses', () => {
 
         const runtime = await harness.compose()
 
-        expect(runtime.inspect().modules.map((moduleDefinition) => moduleDefinition.id)).toEqual(
-            [
-                'testing-harness-audited-contact-requests',
-                'testing-harness-clock-support',
-                'testing-harness-fake-auth-support'
-            ]
-        )
+        expect(runtime.inspect().modules.map((moduleDefinition) => moduleDefinition.id)).toEqual([
+            'testing-harness-audited-contact-requests',
+            'testing-harness-clock-support',
+            'testing-harness-fake-auth-support'
+        ])
         expect(runtime.get(AUDITED_CONTACT_REQUESTS_PUBLIC_API).submit()).toBe(
             'module-fake-user@2026-07-01'
         )

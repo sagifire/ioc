@@ -399,13 +399,9 @@ describe('test composer overrides', () => {
             ]
         }).compose()
 
-        expect(productionRuntime.get(CONTACT_REQUESTS_PUBLIC_API).submit()).toBe(
-            'production-user'
-        )
+        expect(productionRuntime.get(CONTACT_REQUESTS_PUBLIC_API).submit()).toBe('production-user')
         expect(testRuntime.get(CONTACT_REQUESTS_PUBLIC_API).submit()).toBe('test-user')
-        expect(productionRuntime.get(CONTACT_REQUESTS_PUBLIC_API).submit()).toBe(
-            'production-user'
-        )
+        expect(productionRuntime.get(CONTACT_REQUESTS_PUBLIC_API).submit()).toBe('production-user')
 
         await testRuntime.dispose()
         await productionRuntime.dispose()

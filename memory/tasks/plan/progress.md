@@ -413,10 +413,10 @@
   - Summary: Stage 15 Changesets/versioning/changelog setup.
   - Current: RUN-001
 - [TASK-07.02-0058-stage-15-ci-quality-gates](TASK-07.02-0058-stage-15-ci-quality-gates/index.md)
-  - Status: backlog
+  - Status: done
   - Type: chore
   - Execution Mode: autonomous-implementation
-  - Summary: Stage 15 GitHub Actions CI quality gates for build/test/typecheck/lint.
+  - Summary: Stage 15 GitHub Actions CI quality gates for build/test/typecheck/format/lint.
   - Current: RUN-001
 - [TASK-07.02-0059-stage-15-pack-dry-run-validation](TASK-07.02-0059-stage-15-pack-dry-run-validation/index.md)
   - Status: backlog

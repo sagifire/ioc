@@ -1079,14 +1079,26 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 - Stage 15 Changesets/versioning/changelog RUN-001 не виконував npm publish, не додавав
   GitHub Actions release workflow, не створював secrets/tokens, не змінював runtime
   behavior або public API.
+- `TASK-07.02-0058-stage-15-ci-quality-gates` RUN-001 виконаний агентом і завершений
+  після task-level human review approval.
+- Stage 15 CI quality gates RUN-001 додав `.github/workflows/ci.yml` для GitHub Actions
+  CI on `push` to `master` and `pull_request`, with read-only repository permissions,
+  Node.js 24, exact `pnpm@11.7.0`, lockfile-aware `pnpm install --frozen-lockfile` and
+  root gates: `pnpm build`, `pnpm typecheck`, `pnpm format`, `pnpm lint` and
+  `pnpm test`.
+- Stage 15 CI quality gates RUN-001 також виправив pre-existing Prettier drift у 14
+  TypeScript source/test files, щоб `pnpm format` міг бути реальним CI gate.
+- Stage 15 CI quality gates RUN-001 не додавав npm publish workflow, release tags,
+  Changesets release PR behavior, provenance publishing, npm secrets/tokens, runtime
+  behavior або public API changes.
 
 ## Current Risks
 
 - Binding factory internals не мають static dependency metadata; Stage 10 dependency edge
   model фіксує static required-port -> binding edges only and keeps provider-level cycles
   inside factories under existing container diagnostics.
-- Later Stage 15 release automation tasks remain backlog; CI, package dry-run validation
-  and npm publish workflow are not configured yet.
+- Later Stage 15 release automation tasks remain backlog; package dry-run validation and
+  npm publish workflow are not configured yet.
 - GitHub private vulnerability reporting is an external repository setting; `SECURITY.md`
   documents a safe fallback, but maintainers still need to enable or provide a private
   channel before requesting sensitive vulnerability details.
@@ -1100,7 +1112,7 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 
 ## Next Steps
 
-- Запустити `TASK-07.02-0058-stage-15-ci-quality-gates`.
+- Запустити `TASK-07.02-0059-stage-15-pack-dry-run-validation`.
 
 ## Open Questions
 

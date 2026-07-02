@@ -14,7 +14,12 @@ export type {
     ModuleDslDefinitionInput,
     ModuleDslDefinitionOptions
 } from './dsl'
-export { SagifireIocError, diagnosticFromError, formatDiagnostics, isSagifireIocError } from './diagnostics'
+export {
+    SagifireIocError,
+    diagnosticFromError,
+    formatDiagnostics,
+    isSagifireIocError
+} from './diagnostics'
 export type {
     Diagnostic,
     DiagnosticReport,

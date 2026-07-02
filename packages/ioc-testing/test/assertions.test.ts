@@ -47,9 +47,7 @@ interface ContactRequestsApi {
 
 const AUTH_READER = token<AuthReader>('testing.assertions.auth-reader')
 const CLOCK = token<Clock>('testing.assertions.clock')
-const CONTACT_REQUESTS_PUBLIC_API = token<ContactRequestsApi>(
-    'testing.assertions.public-api'
-)
+const CONTACT_REQUESTS_PUBLIC_API = token<ContactRequestsApi>('testing.assertions.public-api')
 const MISSING = token<AuthReader>('testing.assertions.missing')
 
 const contactRequestsModule = defineModule({
@@ -109,18 +107,18 @@ describe('graph and diagnostic assertions', () => {
         expectTypeOf(graph).toMatchTypeOf<GraphAssertionInput>()
         expectTypeOf(inspection).toMatchTypeOf<GraphAssertionInput>()
         expectTypeOf(runtimeInspection).toMatchTypeOf<GraphAssertionInput>()
-        expectTypeOf<Parameters<typeof assertGraphHasCapability>[1]>().toEqualTypeOf<
-            GraphCapabilityExpectation
-        >()
-        expectTypeOf<Parameters<typeof assertGraphHasRequiredPort>[1]>().toEqualTypeOf<
-            GraphRequiredPortExpectation
-        >()
-        expectTypeOf<Parameters<typeof assertGraphHasBinding>[1]>().toEqualTypeOf<
-            GraphBindingExpectation
-        >()
-        expectTypeOf<Parameters<typeof assertGraphHasEdge>[1]>().toEqualTypeOf<
-            GraphEdgeExpectation
-        >()
+        expectTypeOf<
+            Parameters<typeof assertGraphHasCapability>[1]
+        >().toEqualTypeOf<GraphCapabilityExpectation>()
+        expectTypeOf<
+            Parameters<typeof assertGraphHasRequiredPort>[1]
+        >().toEqualTypeOf<GraphRequiredPortExpectation>()
+        expectTypeOf<
+            Parameters<typeof assertGraphHasBinding>[1]
+        >().toEqualTypeOf<GraphBindingExpectation>()
+        expectTypeOf<
+            Parameters<typeof assertGraphHasEdge>[1]
+        >().toEqualTypeOf<GraphEdgeExpectation>()
 
         assertGraphHasModule(graph, 'testing-assertions-contact-requests')
         assertGraphHasModule(inspection, 'testing-assertions-auth')
@@ -233,9 +231,7 @@ describe('graph and diagnostic assertions', () => {
                 '- binding: "testing-assertions-contact-requests" requires "testing.assertions.clock" through binding "testing.assertions.clock" (external, value)'
             ].join('\n')
         )
-        expect(() => assertGraphHasModule(graph, 'missing-module')).toThrow(
-            GraphAssertionError
-        )
+        expect(() => assertGraphHasModule(graph, 'missing-module')).toThrow(GraphAssertionError)
     })
 
     test('asserts diagnostic reports and error-derived diagnostics', () => {
@@ -253,16 +249,16 @@ describe('graph and diagnostic assertions', () => {
             diagnostics: [diagnosticFromError(missingPortError)]
         }
 
-        expectTypeOf<Parameters<typeof assertDiagnosticReportOk>[0]>().toEqualTypeOf<
-            DiagnosticReport
-        >()
-        expectTypeOf<Parameters<typeof assertDiagnosticReportHasDiagnostic>[1]>().toEqualTypeOf<
-            DiagnosticExpectation
-        >()
+        expectTypeOf<
+            Parameters<typeof assertDiagnosticReportOk>[0]
+        >().toEqualTypeOf<DiagnosticReport>()
+        expectTypeOf<
+            Parameters<typeof assertDiagnosticReportHasDiagnostic>[1]
+        >().toEqualTypeOf<DiagnosticExpectation>()
         expectTypeOf<Parameters<typeof assertErrorDiagnostic>[0]>().toEqualTypeOf<unknown>()
-        expectTypeOf<Parameters<typeof assertErrorDiagnostic>[1]>().toEqualTypeOf<
-            DiagnosticExpectation
-        >()
+        expectTypeOf<
+            Parameters<typeof assertErrorDiagnostic>[1]
+        >().toEqualTypeOf<DiagnosticExpectation>()
 
         assertDiagnosticReportOk(okReport)
         assertDiagnosticReportHasDiagnostic(report, {

@@ -404,11 +404,7 @@ describe('diagnostics error foundation', () => {
             )
         )
         const providerCycle = diagnosticFromError(
-            new ProviderCycleError([
-                'diagnostics.first',
-                'diagnostics.second',
-                'diagnostics.first'
-            ])
+            new ProviderCycleError(['diagnostics.first', 'diagnostics.second', 'diagnostics.first'])
         )
         const asyncAccess = diagnosticFromError(
             new AsyncProviderAccessError('diagnostics.lazy', 'tryGet')
