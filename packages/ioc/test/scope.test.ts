@@ -7,6 +7,7 @@ import {
     ProviderKindMismatchError,
     ProviderNotFoundError,
     ScopeDisposedError,
+    SyncFactoryPromiseError,
     createContainer,
     scopeMultiValue,
     scopeValue,
@@ -175,6 +176,29 @@ describe('container scopes', () => {
         expect(firstScope.get(CLASS_COUNTER)).not.toBe(secondScope.get(CLASS_COUNTER))
     })
 
+    test('rejects Promise results from scoped sync single factories', async () => {
+        const container = createContainer()
+        let calls = 0
+
+        container
+            .bind(COUNTER)
+            .toFactory((() => {
+                calls += 1
+
+                return Promise.resolve({
+                    value: calls
+                })
+            }) as unknown as () => Counter)
+            .scoped()
+
+        const runtime = await container.freeze()
+        const scope = runtime.createScope()
+
+        expect(() => scope.get(COUNTER)).toThrow(SyncFactoryPromiseError)
+        await expect(scope.getAsync(COUNTER)).rejects.toThrow(SyncFactoryPromiseError)
+        expect(calls).toBe(2)
+    })
+
     test('caches scoped multi-provider factory contributions per scope', async () => {
         const container = createContainer()
 
@@ -194,6 +218,25 @@ describe('container scopes', () => {
         expect(firstValues[1]).toBe(secondValues[1])
         expect(firstValues[0]).not.toBe(otherScopeValues[0])
         expect(firstValues[1]).not.toBe(otherScopeValues[1])
+    })
+
+    test('rejects thenable results from scoped sync multi-provider factories', async () => {
+        const container = createContainer()
+        const thenablePlugin = {
+            then(resolve: (value: Plugin) => void): void {
+                resolve(createPlugin('resolved'))
+            }
+        } as unknown as Plugin
+
+        container
+            .add(PLUGINS)
+            .toFactory(() => thenablePlugin)
+            .scoped()
+
+        const runtime = await container.freeze()
+        const scope = runtime.createScope()
+
+        expect(() => scope.getAll(PLUGINS)).toThrow(SyncFactoryPromiseError)
     })
 
     test('passes a scope-bound resolution context to providers resolved through scopes', async () => {

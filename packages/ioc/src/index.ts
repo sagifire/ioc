@@ -102,6 +102,7 @@ export {
     ProviderNotFoundError,
     RuntimeDisposedError,
     ScopeDisposedError,
+    SyncFactoryPromiseError,
     createContainer,
     scopeMultiValue,
     scopeValue

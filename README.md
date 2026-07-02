@@ -65,7 +65,8 @@ try {
 ```
 
 `runtime.get()` is always synchronous. Async providers and resources use explicit
-`getAsync()` access.
+`getAsync()` access. A sync `toFactory()` must return a final sync value; Promise-producing
+factories belong behind `toAsyncFactory()`.
 
 ## Module Composition
 

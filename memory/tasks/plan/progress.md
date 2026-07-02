@@ -461,7 +461,7 @@
   - Summary: Stage 16 closure of `C-001` critical finding from the codebase audit.
   - Current: RUN-001
 - [TASK-07.02-0066-stage-16-sync-factory-promise-guard](TASK-07.02-0066-stage-16-sync-factory-promise-guard/index.md)
-  - Status: backlog
+  - Status: done
   - Type: bugfix
   - Execution Mode: autonomous-implementation
   - Summary: Stage 16 pre-`0.0.1` closure of `H-001` sync factory Promise behavior.

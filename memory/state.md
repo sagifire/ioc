@@ -1168,6 +1168,15 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
   workflow не повернувся до `changesets/action@v2`.
 - Stage 16 critical fixes RUN-001 не закривав non-critical findings `H-001`, `H-002`,
   `M-001` і `L-001`; вони лишаються pre-`0.0.1` blockers у `TASK-0066`-`TASK-0069`.
+- `TASK-07.02-0066-stage-16-sync-factory-promise-guard` RUN-001 виконаний агентом і
+  завершений після task-level human review approval.
+- Stage 16 sync factory Promise guard RUN-001 закрив `H-001` на рівні implementation result:
+  sync `toFactory()` тепер кидає typed `SyncFactoryPromiseError`, якщо JavaScript/untyped
+  misuse повертає `Promise` або thenable, а focused regression tests покривають
+  singleton/transient/scoped/multi-provider and async-over-sync resolution paths.
+- Stage 16 sync factory Promise guard RUN-001 також синхронізував public docs для
+  sync/async factory policy, зберіг `toValue(Promise)` як exact value storage, перевірив
+  `pnpm release:validate` і не змінював package versions, changelogs або publish workflow.
 
 ## Current Risks
 
@@ -1175,8 +1184,9 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
   model фіксує static required-port -> binding edges only and keeps provider-level cycles
   inside factories under existing container diagnostics.
 - Stage 16 audit знайшов pre-`0.0.1` blockers: `C-001`, `H-001`, `H-002`, `M-001` і
-  `L-001`; `C-001` review-approved closed, а version `0.0.1` залишається blocked until
-  remaining accepted audit blockers are review-approved closed or explicitly reclassified.
+  `L-001`; `C-001` and `H-001` review-approved closed, а version `0.0.1` залишається
+  blocked until remaining accepted audit blockers are review-approved closed or explicitly
+  reclassified.
 - Publishable package versions still remain `0.0.0`; version `0.0.1` is intentionally
   blocked until all accepted audit blockers are closed.
 - GitHub private vulnerability reporting is an external repository setting; `SECURITY.md`
@@ -1192,8 +1202,8 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 
 ## Next Steps
 
-- Закрити pre-`0.0.1` blockers `H-001`, `H-002`, `M-001` і `L-001` у
-  `TASK-0066`-`TASK-0069`.
+- Закрити remaining pre-`0.0.1` blockers `H-002`, `M-001` і `L-001` у
+  `TASK-0067`-`TASK-0069`.
 
 ## Open Questions
 

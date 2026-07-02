@@ -74,7 +74,8 @@ runtime.get(LOGGER).info('ready')
 await runtime.dispose()
 ```
 
-`get()` stays synchronous. Lazy async providers and resources are accessed through
+`get()` stays synchronous. A sync `toFactory()` must return a final sync value; factories
+that return `Promise` belong behind `toAsyncFactory()` and are accessed through
 `getAsync()`:
 
 ```ts

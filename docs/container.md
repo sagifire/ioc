@@ -9,7 +9,8 @@ The container has two phases:
 - configuration phase: create a container and register providers;
 - runtime phase: call `freeze()` and resolve from the immutable runtime.
 
-`freeze()` is async, but normal resolution stays sync. `get()` never returns a `Promise`.
+`freeze()` is async, but normal resolution stays sync. `get()` does not initialize lazy
+async providers or turn sync resolution into a `Promise`.
 
 ## Tokens
 
@@ -79,6 +80,14 @@ Supported sync provider forms:
 - `toValue(value)` stores a singleton value.
 - `toFactory(factory)` calls a factory with a typed `ResolutionContext`.
 - `toClass(ClassConstructor)` creates a no-argument class instance.
+
+`toFactory()` must return the final sync value. If a JavaScript caller or type escape makes
+a sync factory return a `Promise` or thenable, resolution throws `SyncFactoryPromiseError`.
+Use `toAsyncFactory()` and `getAsync()` for Promise-producing factories.
+
+`toValue()` stores the exact value you pass. If that value is intentionally a `Promise`,
+the runtime returns that same value; this is ordinary sync value storage, not async provider
+resolution.
 
 `toClass()` does not read constructor metadata. Classes with dependencies should be wired
 through `toFactory()`.
@@ -172,7 +181,9 @@ Multi-provider rules:
 - `bind()` and `add()` cannot be mixed for the same token ID;
 - `get()` and `tryGet()` fail for multi-provider tokens;
 - `getAll()` fails for tokens registered through `bind()`;
-- `add()` supports sync `toValue()` and sync `toFactory()` contributions only.
+- `add()` supports sync `toValue()` and sync `toFactory()` contributions only;
+- `add().toFactory()` contributions also fail with `SyncFactoryPromiseError` if they return
+  a `Promise` or thenable.
 
 Multi-provider factory contributions are transient by default and support
 `singleton()`, `transient()` and `scoped()`.
@@ -276,6 +287,7 @@ Common typed errors include:
 - `ProviderKindMismatchError` for single/multi misuse;
 - `ProviderCycleError` for provider-level dependency cycles;
 - `ContainerFrozenError` for mutation after `freeze()`;
+- `SyncFactoryPromiseError` for sync factories that return a `Promise` or thenable;
 - `InvalidScopeError` and `ScopeDisposedError` for invalid scope usage;
 - `RuntimeDisposedError` for resolving after runtime disposal.
 

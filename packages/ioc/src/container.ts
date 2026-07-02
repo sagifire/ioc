@@ -256,6 +256,30 @@ export class AsyncProviderAccessError extends SagifireIocError<{
     }
 }
 
+export class SyncFactoryPromiseError extends SagifireIocError<{
+    readonly tokenId: string
+}> {
+    override readonly name = 'SyncFactoryPromiseError'
+    override readonly code = 'SAGIFIRE_IOC_SYNC_FACTORY_PROMISE'
+    readonly tokenId: string
+
+    constructor(tokenId: string) {
+        super({
+            code: 'SAGIFIRE_IOC_SYNC_FACTORY_PROMISE',
+            message:
+                `Sync factory for token "${tokenId}" returned a Promise or thenable; ` +
+                'use toAsyncFactory() and getAsync() instead',
+            details: {
+                tokenId
+            }
+        })
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.tokenId = tokenId
+    }
+}
+
 export class RuntimeDisposedError extends SagifireIocError<{
     readonly action: string
 }> {
@@ -455,7 +479,7 @@ function createBindingBuilder<TValue>(
                 execution: {
                     kind: 'sync',
                     create(context): TValue {
-                        return factory(context)
+                        return assertSyncFactoryResult(tokenId, factory(context))
                     }
                 }
             }
@@ -575,7 +599,7 @@ function createMultiBindingBuilder<TValue>(
                 execution: {
                     kind: 'sync',
                     create(context): TValue {
-                        return factory(context)
+                        return assertSyncFactoryResult(tokenId, factory(context))
                     }
                 }
             }
@@ -585,6 +609,26 @@ function createMultiBindingBuilder<TValue>(
             return createLifetimeBinding(tokenId, provider, assertMutable)
         }
     }
+}
+
+function assertSyncFactoryResult<TValue>(tokenId: string, value: TValue): TValue {
+    if (isThenable(value)) {
+        throw new SyncFactoryPromiseError(tokenId)
+    }
+
+    return value
+}
+
+function isThenable(value: unknown): boolean {
+    if (value === null) {
+        return false
+    }
+
+    if (typeof value !== 'object' && typeof value !== 'function') {
+        return false
+    }
+
+    return typeof (value as { readonly then?: unknown }).then === 'function'
 }
 
 function createLifetimeBinding<TValue>(

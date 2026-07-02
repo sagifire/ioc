@@ -6,6 +6,7 @@ import {
     ProviderCycleError,
     ProviderKindMismatchError,
     ProviderNotFoundError,
+    SyncFactoryPromiseError,
     createContainer,
     type ContainerRuntime,
     type MultiBindingBuilder,
@@ -98,6 +99,62 @@ describe('container sync providers', () => {
         expect(transientRuntime.get(COUNTER)).not.toBe(transientRuntime.get(COUNTER))
     })
 
+    test('rejects Promise results from sync single factory providers', async () => {
+        const transientContainer = createContainer()
+        const singletonContainer = createContainer()
+        const promiseFactory = (() => Promise.resolve(createLogger())) as unknown as () => Logger
+        let singletonCalls = 0
+
+        transientContainer.bind(LOGGER).toFactory(promiseFactory)
+        singletonContainer
+            .bind(LOGGER)
+            .toFactory((() => {
+                singletonCalls += 1
+
+                return Promise.resolve(createLogger())
+            }) as unknown as () => Logger)
+            .singleton()
+
+        const transientRuntime = await transientContainer.freeze()
+        const singletonRuntime = await singletonContainer.freeze()
+        let error: unknown
+
+        try {
+            transientRuntime.get(LOGGER)
+        } catch (caught) {
+            error = caught
+        }
+
+        expect(error).toBeInstanceOf(SyncFactoryPromiseError)
+
+        if (error instanceof SyncFactoryPromiseError) {
+            expect(error.code).toBe('SAGIFIRE_IOC_SYNC_FACTORY_PROMISE')
+            expect(error.tokenId).toBe('container.logger')
+            expect(error.details).toEqual({
+                tokenId: 'container.logger'
+            })
+        }
+
+        expect(() => transientRuntime.tryGet(LOGGER)).toThrow(SyncFactoryPromiseError)
+        await expect(transientRuntime.getAsync(LOGGER)).rejects.toThrow(SyncFactoryPromiseError)
+        expect(() => singletonRuntime.get(LOGGER)).toThrow(SyncFactoryPromiseError)
+        expect(() => singletonRuntime.get(LOGGER)).toThrow(SyncFactoryPromiseError)
+        expect(singletonCalls).toBe(2)
+    })
+
+    test('does not treat explicit Promise values as sync factory misuse', async () => {
+        const promiseValue = token<Promise<string>>('container.promise-value')
+        const container = createContainer()
+        const promised = Promise.resolve('ready')
+
+        container.bind(promiseValue).toValue(promised)
+
+        const runtime = await container.freeze()
+
+        expect(runtime.get(promiseValue)).toBe(promised)
+        await expect(runtime.get(promiseValue)).resolves.toBe('ready')
+    })
+
     test('resolves no-argument class providers', async () => {
         class ClassService {
             readonly value = 'created'
@@ -176,6 +233,23 @@ describe('container sync providers', () => {
                 name: 'factory'
             }
         ])
+    })
+
+    test('rejects thenable results from sync multi-provider factories', async () => {
+        const container = createContainer()
+        const thenablePlugin = {
+            then(resolve: (value: Plugin) => void): void {
+                resolve({
+                    name: 'resolved'
+                })
+            }
+        } as unknown as Plugin
+
+        container.add(PLUGINS).toFactory(() => thenablePlugin)
+
+        const runtime = await container.freeze()
+
+        expect(() => runtime.getAll(PLUGINS)).toThrow(SyncFactoryPromiseError)
     })
 
     test('uses token id as canonical multi-provider identity', async () => {

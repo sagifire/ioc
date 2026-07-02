@@ -6,7 +6,8 @@ and resources, but it does not make normal dependency access async by default.
 The central rule is unchanged:
 
 ```text
-get() is synchronous and never returns Promise.
+get() is synchronous: it does not initialize lazy async providers or turn sync resolution
+into Promise-based access.
 ```
 
 Use `getAsync()` when a token may be backed by a lazy async provider or resource.
@@ -43,6 +44,15 @@ const loggerFromAsyncApi = await runtime.getAsync(LOGGER)
 ```
 
 Sync providers are still available through `get()`.
+
+This does not convert `toFactory()` into an async provider API. A sync factory must return
+the final sync value; if it returns a `Promise` or thenable, `get()`, `tryGet()`,
+`getAsync()`, scoped resolution and `getAll()` fail with `SyncFactoryPromiseError`. Use
+`toAsyncFactory()` for Promise-producing factories.
+
+`toValue()` remains exact value storage. If an application intentionally stores a
+`Promise` as a value, `get()` returns that value unchanged; it still has not performed async
+provider initialization.
 
 ## Eager Async Providers
 
@@ -301,7 +311,9 @@ database server.
 
 - Use `get()` only for sync providers and eager singleton async providers.
 - Use `getAsync()` for lazy async providers and async resources.
-- Do not document or build code that expects `get()` to return `Promise`.
+- Use `toAsyncFactory()` for factories that return a `Promise`; sync `toFactory()` results
+  must not be `Promise` or thenable values.
+- Do not document or build code that expects `get()` to perform async provider resolution.
 - Do not use async multi-provider collections; no `getAllAsync()` exists.
 - Do not hide request or operation scope in a global current-context API.
 - Always dispose runtimes and scopes that own initialized resources.

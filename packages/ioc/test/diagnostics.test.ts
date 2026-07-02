@@ -12,6 +12,7 @@ import {
     ProviderNotFoundError,
     RuntimeDisposedError,
     ScopeDisposedError,
+    SyncFactoryPromiseError,
     createContainer
 } from '../src/container.js'
 import { ModuleCycleError } from '../src/composer.js'
@@ -120,6 +121,7 @@ describe('diagnostics error foundation', () => {
         ])
         const frozen = new ContainerFrozenError('bind provider for token "diagnostics.logger"')
         const asyncAccess = new AsyncProviderAccessError('diagnostics.lazy', 'get')
+        const syncFactoryPromise = new SyncFactoryPromiseError('diagnostics.sync-factory')
         const runtimeDisposed = new RuntimeDisposedError('resolve provider for token "x"')
         const invalidLifecycle = new InvalidProviderLifecycleError(
             'diagnostics.resource',
@@ -188,6 +190,13 @@ describe('diagnostics error foundation', () => {
         expect(asyncAccess.details).toEqual({
             tokenId: 'diagnostics.lazy',
             accessMethod: 'get'
+        })
+
+        expect(syncFactoryPromise).toBeInstanceOf(SagifireIocError)
+        expect(syncFactoryPromise).toBeInstanceOf(SyncFactoryPromiseError)
+        expect(syncFactoryPromise.code).toBe('SAGIFIRE_IOC_SYNC_FACTORY_PROMISE')
+        expect(syncFactoryPromise.details).toEqual({
+            tokenId: 'diagnostics.sync-factory'
         })
 
         expect(runtimeDisposed).toBeInstanceOf(SagifireIocError)
@@ -409,6 +418,9 @@ describe('diagnostics error foundation', () => {
         const asyncAccess = diagnosticFromError(
             new AsyncProviderAccessError('diagnostics.lazy', 'tryGet')
         )
+        const syncFactoryPromise = diagnosticFromError(
+            new SyncFactoryPromiseError('diagnostics.sync-factory')
+        )
         const invalidLifecycle = diagnosticFromError(
             new InvalidProviderLifecycleError(
                 'diagnostics.resource',
@@ -433,6 +445,7 @@ describe('diagnostics error foundation', () => {
                     kindMismatch,
                     providerCycle,
                     asyncAccess,
+                    syncFactoryPromise,
                     invalidLifecycle,
                     invalidScope
                 ]
@@ -440,7 +453,7 @@ describe('diagnostics error foundation', () => {
         ).toBe(
             [
                 'Diagnostic report: failed',
-                'Diagnostics: 6',
+                'Diagnostics: 7',
                 '1. [error] SAGIFIRE_IOC_INVALID_TOKEN_ID',
                 '   Message: Invalid token id "bad token": bad reason',
                 '   Details:',
@@ -463,12 +476,16 @@ describe('diagnostics error foundation', () => {
                 '   Details:',
                 '     tokenId: diagnostics.lazy',
                 '     accessMethod: tryGet',
-                '5. [error] SAGIFIRE_IOC_INVALID_PROVIDER_LIFECYCLE',
+                '5. [error] SAGIFIRE_IOC_SYNC_FACTORY_PROMISE',
+                '   Message: Sync factory for token "diagnostics.sync-factory" returned a Promise or thenable; use toAsyncFactory() and getAsync() instead',
+                '   Details:',
+                '     tokenId: diagnostics.sync-factory',
+                '6. [error] SAGIFIRE_IOC_INVALID_PROVIDER_LIFECYCLE',
                 '   Message: Invalid provider lifecycle for token "diagnostics.resource": eager async initialization is valid only for singleton providers',
                 '   Details:',
                 '     tokenId: diagnostics.resource',
                 '     reason: eager async initialization is valid only for singleton providers',
-                '6. [error] SAGIFIRE_IOC_INVALID_SCOPE',
+                '7. [error] SAGIFIRE_IOC_INVALID_SCOPE',
                 '   Message: Cannot resolve scoped provider for token "diagnostics.scoped" without an active scope',
                 '   Details:',
                 '     reason: scoped-provider-without-scope',

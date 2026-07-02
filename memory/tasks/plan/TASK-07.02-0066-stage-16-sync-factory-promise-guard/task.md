@@ -1,6 +1,6 @@
 # TASK-07.02-0066: Stage 16 sync factory Promise guard
 
-Status: backlog
+Status: done
 Type: bugfix
 Execution Mode: autonomous-implementation
 Created: 2026-07-02
@@ -44,15 +44,15 @@ Current Fixation: n/a
 
 ## Acceptance Criteria
 
-- [ ] `H-001` має closure mapping у task result.
-- [ ] Public policy для sync `toFactory()` returning Promise зафіксована в коді/tests/docs
+- [x] `H-001` має closure mapping у task result.
+- [x] Public policy для sync `toFactory()` returning Promise зафіксована в коді/tests/docs
       або явно reclassified with rationale.
-- [ ] Якщо обрано runtime guard, `runtime.get()` і пов'язані sync resolution paths не
+- [x] Якщо обрано runtime guard, `runtime.get()` і пов'язані sync resolution paths не
       повертають Promise із sync factory misuse, а кидають typed diagnostic-friendly error.
-- [ ] Поведінка покрита focused runtime tests, включно з JavaScript/untyped-like misuse.
-- [ ] Sync/async contract у public docs не суперечить фактичній поведінці.
-- [ ] Relevant verification commands run where practical or limitations documented.
-- [ ] Package versions remain unchanged.
+- [x] Поведінка покрита focused runtime tests, включно з JavaScript/untyped-like misuse.
+- [x] Sync/async contract у public docs не суперечить фактичній поведінці.
+- [x] Relevant verification commands run where practical or limitations documented.
+- [x] Package versions remain unchanged.
 
 ## Linked Memory
 
@@ -65,9 +65,9 @@ Current Fixation: n/a
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: planned
+  - Status: completed
   - Purpose: Autonomous implementation run for closing `H-001`.
-  - Result: pending
+  - Result: approved
 
 ## Research
 

@@ -7,6 +7,7 @@ import {
     ProviderCycleError,
     RuntimeDisposedError,
     ScopeDisposedError,
+    SyncFactoryPromiseError,
     createContainer,
     type AsyncFactoryBinding,
     type AsyncResourceBinding,
@@ -57,6 +58,19 @@ describe('container async providers and resources', () => {
         await expect(runtime.getAsync(LOGGER)).resolves.toBe(logger)
         await expect(runtime.tryGetAsync(LOGGER)).resolves.toBe(logger)
         await expect(runtime.tryGetAsync(MISSING)).resolves.toBeUndefined()
+    })
+
+    test('rejects sync factory Promise misuse through async runtime APIs', async () => {
+        const container = createContainer()
+
+        container
+            .bind(LOGGER)
+            .toFactory((() => Promise.resolve(createLogger('misuse'))) as unknown as () => Logger)
+
+        const runtime = await container.freeze()
+
+        await expect(runtime.getAsync(LOGGER)).rejects.toThrow(SyncFactoryPromiseError)
+        await expect(runtime.tryGetAsync(LOGGER)).rejects.toThrow(SyncFactoryPromiseError)
     })
 
     test('initializes eager singleton async factories during freeze and exposes them through get', async () => {
