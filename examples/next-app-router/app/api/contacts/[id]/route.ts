@@ -6,7 +6,7 @@ import {
 } from '../../../../src/contact-requests.js'
 import { json, type JsonResponse } from '../../../../src/http.js'
 import { appRuntime } from '../../../../src/app-runtime.js'
-import { createRequestContext } from '../../../../src/request-context.js'
+import { createRouteRequestContext } from '../../../../src/request-context.js'
 
 export interface RouteRequest {
     readonly method: string
@@ -28,7 +28,7 @@ export function GET(
         {
             request,
             context,
-            requestContext: createRequestContext(context.params.id)
+            requestContext: createRouteRequestContext(request, context.params.id)
         },
         async ({ scope }) => {
             const contactRequests = scope.get(CONTACT_REQUESTS_PUBLIC_API)

@@ -220,14 +220,16 @@ are disposed by the core scope disposal path.
 The helpers do not dispose the cached application runtime automatically. Runtime disposal
 is an application or test ownership decision.
 
-## Example Skeleton
+## Example
 
-See `examples/next-app-router` for the current narrow repository skeleton. It intentionally
-avoids adding Next.js or React dependencies to the workspace and focuses only on the
-adapter boundary pattern:
+See `examples/next-app-router` for the repository App Router boundary example. It
+intentionally avoids adding Next.js or React dependencies to the workspace and focuses on
+the adapter boundary pattern:
 
-- `src/app-runtime.ts` owns the `createNextRuntime()` helper;
-- `src/request-context.ts` creates explicit request/action context values;
+- `src/app-runtime.ts` owns the `createNextRuntime()` helper and explicit composer setup;
+- `src/request-context.ts` creates single and multi request/action context values;
 - route files use `withRouteScope()`;
 - server action files use `withServerActionScope()`;
-- route/action callbacks resolve `CONTACT_REQUESTS_PUBLIC_API` and delegate behavior.
+- route/action callbacks resolve `CONTACT_REQUESTS_PUBLIC_API` and delegate behavior;
+- `src/main.ts` typechecks and runs the simulated route/action flow without framework
+  dependencies.

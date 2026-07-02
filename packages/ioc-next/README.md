@@ -131,4 +131,4 @@ request/response semantics and does not expose hidden current action or current 
 
 - [Next.js integration guide](../../docs/next-integration.md)
 - [Architecture](../../docs/architecture.md)
-- [Example skeleton](../../examples/next-app-router/README.md)
+- [Next App Router example](../../examples/next-app-router/README.md)

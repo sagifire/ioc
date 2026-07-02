@@ -730,7 +730,7 @@ Root source trace:
     - `TASK-07.02-0049-stage-14-testing-next-docs` - done;
     - `TASK-07.02-0050-stage-14-basic-node-module-examples` - done;
     - `TASK-07.02-0051-stage-14-async-db-testing-examples` - done;
-    - `TASK-07.02-0052-stage-14-next-app-router-example-hardening` - backlog;
+    - `TASK-07.02-0052-stage-14-next-app-router-example-hardening` - done;
     - `TASK-07.02-0053-stage-14-migration-final-docs-hardening` - backlog.
   - Implementation Decomposition:
     - Task 1 rewrites root README, package READMEs and docs navigation.

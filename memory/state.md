@@ -1012,6 +1012,14 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
   navigation links and verification through build, typecheck, lint, unit tests and direct
   Node runs. RUN-001 не змінював runtime behavior, public API, package exports, external
   dependencies, release automation або `memory/sources/SPEC.md`.
+- `TASK-07.02-0052-stage-14-next-app-router-example-hardening` RUN-001 виконаний агентом і
+  завершений після task-level human review approval.
+- Stage 14 Next App Router example hardening RUN-001 перетворив
+  `examples/next-app-router` з narrow skeleton на documentation-grade framework-boundary
+  example with cached runtime, explicit request/action context, route scope, server action
+  scope, focused typecheck config and direct Node run harness. RUN-001 не змінював runtime
+  behavior, public API, package exports, external dependencies, release automation, full
+  Next.js app setup або `memory/sources/SPEC.md`.
 
 ## Current Risks
 
@@ -1028,7 +1036,7 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 
 ## Next Steps
 
-- Запустити `TASK-07.02-0052-stage-14-next-app-router-example-hardening`.
+- Запустити `TASK-07.02-0053-stage-14-migration-final-docs-hardening`.
 
 ## Open Questions
 

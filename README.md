@@ -222,8 +222,8 @@ docs map describe the current implemented API surface.
   retry after failed initialization, scoped unit-of-work and disposal.
 - [Testing overrides](examples/testing-overrides/README.md) - isolated test runtimes,
   composer overrides, fake modules, module harnesses and graph/diagnostic assertions.
-- [Next App Router skeleton](examples/next-app-router/README.md) - narrow App Router
-  boundary example for `@sagifire/ioc-next`.
+- [Next App Router](examples/next-app-router/README.md) - cached runtime, explicit
+  request/action context, route scopes and server action scopes for `@sagifire/ioc-next`.
 
 ## Development
 

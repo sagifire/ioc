@@ -1,6 +1,6 @@
 # Run Requirements: RUN-001
 
-Status: pending
+Status: completed
 Agent Role: Agent Executor
 Execution Mode: autonomous-implementation
 Created: 2026-07-02
@@ -31,9 +31,9 @@ Harden `examples/next-app-router` as a Stage 14 example.
 
 ## Acceptance Criteria for This Run
 
-- [ ] Next example is clear and documentation-grade.
-- [ ] Boundary and disposal behavior are visible.
-- [ ] Example verification is recorded in `result.md`.
+- [x] Next example is clear and documentation-grade.
+- [x] Boundary and disposal behavior are visible.
+- [x] Example verification is recorded in `result.md`.
 
 ## Changes from Previous Run
 

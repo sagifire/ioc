@@ -1,6 +1,6 @@
 # TASK-07.02-0052: Stage 14 Next App Router example hardening
 
-Status: backlog
+Status: done
 Type: docs
 Execution Mode: autonomous-implementation
 Created: 2026-07-02
@@ -43,15 +43,15 @@ framework magic.
 
 ## Acceptance Criteria
 
-- [ ] `examples/next-app-router` README explains runtime cache, request context, route
+- [x] `examples/next-app-router` README explains runtime cache, request context, route
   scope and server action scope.
-- [ ] Route/action files stay thin and call module public APIs.
-- [ ] Example avoids hidden discovery and global mutable app/container registries.
-- [ ] Example does not require Next.js install unless the run result records approved
+- [x] Route/action files stay thin and call module public APIs.
+- [x] Example avoids hidden discovery and global mutable app/container registries.
+- [x] Example does not require Next.js install unless the run result records approved
   dependency changes.
-- [ ] Example code is typechecked or otherwise verified through documented commands where
+- [x] Example code is typechecked or otherwise verified through documented commands where
   practical.
-- [ ] Verification is recorded in run result.
+- [x] Verification is recorded in run result.
 
 ## Linked Memory
 
@@ -64,9 +64,9 @@ framework magic.
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: pending
+  - Status: completed
   - Purpose: Autonomous implementation run for Next App Router example hardening.
-  - Result: pending
+  - Result: approved after task-level human review
 
 ## Research
 

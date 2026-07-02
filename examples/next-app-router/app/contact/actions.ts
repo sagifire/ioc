@@ -8,7 +8,7 @@ import {
     type SubmitContactResult
 } from '../../src/contact-requests.js'
 import { appRuntime } from '../../src/app-runtime.js'
-import { createRequestContext } from '../../src/request-context.js'
+import { createActionRequestContext } from '../../src/request-context.js'
 
 export const submitContact = withServerActionScope(
     appRuntime,
@@ -17,7 +17,7 @@ export const submitContact = withServerActionScope(
             context: {
                 actionName: 'submit-contact'
             },
-            actionContext: createRequestContext(input.requestId)
+            actionContext: createActionRequestContext(input)
         }
     },
     async ({ scope }, input): Promise<SubmitContactResult> => {

@@ -370,7 +370,7 @@
   - Summary: Stage 14 `async-db-resource` and `testing-overrides` examples.
   - Current: RUN-001
 - [TASK-07.02-0052-stage-14-next-app-router-example-hardening](TASK-07.02-0052-stage-14-next-app-router-example-hardening/index.md)
-  - Status: backlog
+  - Status: done
   - Type: docs
   - Execution Mode: autonomous-implementation
   - Summary: Stage 14 hardening for `examples/next-app-router`.
