@@ -1,130 +1,295 @@
 # Testing
 
-Status: Stage 12 final testing package hardening.
+`@sagifire/ioc-testing` is the test-only companion package for `@sagifire/ioc`.
+It helps tests build fresh container or composer configuration, apply explicit
+overrides before `freeze()` / `compose()`, inspect the resulting graph and assert
+diagnostics. It never patches an existing frozen `ContainerRuntime` or `ComposedRuntime`.
 
-`@sagifire/ioc-testing` currently exposes isolated runtime helpers, explicit overrides, a
-test composer helper, fake modules, a module harness helper and assertion helpers:
+The package is useful when a test needs one of these workflows:
 
-- `createTestRuntime(configure?)`
-- `createTestRuntime({ configure, overrides })`
-- `override(token)`
-- `createTestComposer(configure?)`
-- `createTestComposer({ modules, configure, overrides })`
-- `fakeModule(definition)` / `fakeModule(id, definition)`
-- `createModuleHarness({ module, supportModules, fakeModules, overrides })`
-- `assertGraphHasModule(graph, moduleId)`
-- `assertGraphHasCapability(graph, expectation)`
-- `assertGraphHasRequiredPort(graph, expectation)`
-- `assertGraphHasBinding(graph, expectation)`
-- `assertGraphHasEdge(graph, expectation)`
-- `assertDiagnosticReportOk(report)`
-- `assertDiagnosticReportHasDiagnostic(report, expectation)`
-- `assertErrorDiagnostic(error, expectation)`
+- an isolated container runtime for provider-level tests;
+- a composed application graph with test bindings;
+- a fake implementation module that replaces a real dependency module;
+- a focused harness around one module under test;
+- readable assertions over graph or diagnostic data.
 
-Runtime helpers create a fresh `@sagifire/ioc` container configuration per call, apply
-explicit test configuration and override declarations before `freeze()` and return a
-frozen `ContainerRuntime`. Overrides are explicit token-level declarations and are never
-applied to an existing frozen runtime.
+All helpers are plain TypeScript helpers. They do not require Vitest at runtime, do not use
+filesystem discovery and do not provide Next.js route/action adapters.
+
+## Imports
 
 ```ts
-const runtime = await createTestRuntime({
-    overrides: [
-        override(LOGGER).toValue(testLogger)
-    ]
-})
+import {
+    assertDiagnosticReportHasDiagnostic,
+    assertDiagnosticReportOk,
+    assertErrorDiagnostic,
+    assertGraphHasBinding,
+    assertGraphHasCapability,
+    assertGraphHasEdge,
+    assertGraphHasModule,
+    assertGraphHasRequiredPort,
+    createModuleHarness,
+    createTestComposer,
+    createTestRuntime,
+    fakeModule,
+    override
+} from '@sagifire/ioc-testing'
 ```
 
-Test composer helpers create a fresh `createComposer()` configuration per call, apply
-modules, explicit composer configuration and overrides before `compose()`, and keep
-validation and graph inspection visible through the existing composer APIs.
+## Isolated Test Runtimes
+
+Use `createTestRuntime()` for container-level tests: provider wiring, lifetimes, async
+resources, disposal behavior or a small set of tokens without module composition.
+
+The helper creates a new core `createContainer()` configuration per call, runs the optional
+configuration callback, applies overrides and then calls `freeze()`.
 
 ```ts
-const composer = createTestComposer({
-    modules: [moduleUnderTest],
-    overrides: [
-        override(REQUIRED_PORT).toFactory((context) => {
-            const dependency = context.get(TEST_DEPENDENCY)
+import { token } from '@sagifire/ioc'
+import { createTestRuntime, override } from '@sagifire/ioc-testing'
 
-            return createFakePort(dependency)
+interface Logger {
+    info(message: string): void
+}
+
+const LOGGER = token<Logger>('test.logger')
+
+const runtime = await createTestRuntime({
+    overrides: [
+        override(LOGGER).toValue({
+            info(): void {}
         })
     ]
 })
 
-const runtime = await composer.compose()
+runtime.get(LOGGER).info('created in an isolated runtime')
+
+await runtime.dispose()
 ```
 
-Fake modules are normal explicit module definitions. They declare provided capabilities and
-generate setup that binds fake values, factories or async factories through the existing
-module setup API:
+`createTestRuntime(configure)` receives the normal core `ContainerBuilder`, so tests can
+use existing `bind()`, `add()`, sync providers, async providers and resources. Override
+declarations support:
+
+- `override(token).toValue(value)`
+- `override(token).toFactory(factory)`
+- `override(token).toClass(ClassConstructor)`
+- `override(token).toAsyncFactory(factory)`
+
+Duplicate overrides for the same token fail with `DuplicateTestOverrideError` before the
+configuration callback runs. A test runtime is independent from every other runtime created
+by the helper.
+
+## Test Composers
+
+Use `createTestComposer()` when the test should exercise modules, required ports,
+composition bindings, validation or inspection.
+
+The helper creates a new core `createComposer()` configuration per call, registers the
+provided modules, runs the optional composer configuration callback, applies overrides as
+explicit composer bindings and returns the normal `Composer` API.
+
+```ts
+const composer = createTestComposer({
+    modules: [contactRequestsModule],
+    overrides: [
+        override(CONTACT_REQUESTS_AUTH_READER).toValue({
+            currentUserId(): string {
+                return 'test-user'
+            }
+        })
+    ]
+})
+
+assertDiagnosticReportOk(composer.validate())
+
+const runtime = await composer.compose()
+const contactRequests = runtime.get(CONTACT_REQUESTS_PUBLIC_API)
+
+await runtime.dispose()
+```
+
+Composer overrides are visible in inspection data as binding records and binding dependency
+edges. They satisfy required ports, but they do not create a fake module and they do not
+turn the overridden token into a public runtime capability by themselves.
+
+## Overrides Or Fake Modules
+
+Choose the smallest helper that matches the behavior under test.
+
+Use an override when the test needs to provide a token value directly:
+
+- a required port should be satisfied by a small test double;
+- a module under test should see a fake external dependency;
+- the graph should record a composition-level binding edge;
+- the test is not trying to model a full provider module.
+
+```ts
+const harness = createModuleHarness({
+    module: contactRequestsModule,
+    overrides: [
+        override(CONTACT_REQUESTS_AUTH_READER).toFactory(() => {
+            return {
+                currentUserId(): string {
+                    return 'override-user'
+                }
+            }
+        })
+    ]
+})
+```
+
+Use a fake module when the test should replace a module-level capability provider:
+
+- the dependency should appear in the module graph as a provider module;
+- graph assertions should verify capability dependency edges;
+- the fake has several provided capabilities;
+- the test should preserve the same module isolation shape as production composition.
 
 ```ts
 const fakeAuthModule = fakeModule('test-auth', {
     provides: [
         {
-            token: AUTH_READER,
-            useValue: fakeAuthReader
+            token: CONTACT_REQUESTS_AUTH_READER,
+            useValue: {
+                currentUserId(): string {
+                    return 'fake-user'
+                }
+            }
         }
     ]
 })
-```
 
-Module harnesses compose one module under test with optional support modules, fake modules
-and explicit required-port overrides:
-
-```ts
 const harness = createModuleHarness({
     module: contactRequestsModule,
     fakeModules: [fakeAuthModule]
 })
-
-const runtime = await harness.compose()
 ```
 
-These helpers reuse core container/composer APIs and do not mutate existing frozen
-`ContainerRuntime` or `ComposedRuntime` instances. Duplicate override declarations fail
-deterministically. Fake modules remain visible through existing composer/runtime
-inspection APIs and module-private providers remain hidden behind normal composed runtime
-capability access. If a test needs to replace a public capability, prefer an explicit fake
-module or support module; overrides are intended for required ports and test wiring before
-composition.
+Fake modules are normal explicit module definitions. They declare `provides` metadata and
+their generated setup binds fake values, factories or async factories through the existing
+module setup API. They remain visible through `composer.getGraph()`, `composer.inspect()`
+and `runtime.inspect()`.
 
-Graph assertions read public `ModuleGraph`, `ComposerInspection` or `RuntimeInspection`
-data only:
+## Module Harnesses
+
+Use `createModuleHarness()` for the common case: one module under test plus the smallest
+set of support modules, fake modules and required-port overrides needed to compose it.
+
+```ts
+const clockSupportModule = fakeModule('test-clock', {
+    provides: [
+        {
+            token: CLOCK,
+            kind: 'shared-service',
+            useValue: {
+                now(): string {
+                    return '2026-07-02'
+                }
+            }
+        }
+    ]
+})
+
+const harness = createModuleHarness({
+    module: auditedContactRequestsModule,
+    supportModules: [clockSupportModule],
+    fakeModules: [fakeAuthModule]
+})
+
+assertDiagnosticReportOk(harness.validate())
+
+const graph = harness.getGraph()
+const runtime = await harness.compose()
+
+await runtime.dispose()
+```
+
+The harness exposes:
+
+- `module`, `supportModules`, `fakeModules` and `modules`;
+- the underlying `composer`;
+- `validate()`;
+- `inspect()`;
+- `getGraph()`;
+- `prepare()`;
+- `compose()`.
+
+The harness does not weaken module privacy. Module-private providers stay private, public
+resolution still goes through declared capabilities and scoped providers/resources keep the
+same core lifecycle rules.
+
+## Graph Assertions
+
+Graph assertions read public inspection data only. They accept `ModuleGraph`,
+`ComposerInspection` or `RuntimeInspection`.
 
 ```ts
 assertGraphHasModule(harness.getGraph(), 'contact-requests')
-assertGraphHasRequiredPort(harness.inspect(), {
+
+assertGraphHasCapability(harness.inspect(), {
     moduleId: 'contact-requests',
-    tokenId: AUTH_READER.id,
-    satisfiedBy: 'binding'
+    tokenId: CONTACT_REQUESTS_PUBLIC_API.id,
+    kind: 'public-api'
 })
+
+assertGraphHasRequiredPort(harness.getGraph(), {
+    moduleId: 'contact-requests',
+    tokenId: CONTACT_REQUESTS_AUTH_READER.id,
+    satisfiedBy: 'capability'
+})
+
+assertGraphHasBinding(harness.getGraph(), {
+    tokenId: CLOCK.id,
+    kind: 'value',
+    providerKind: 'value'
+})
+
 assertGraphHasEdge(harness.getGraph(), {
-    edgeKind: 'binding',
-    requiredTokenId: AUTH_READER.id,
-    bindingTokenId: AUTH_READER.id
+    edgeKind: 'capability',
+    consumerModuleId: 'contact-requests',
+    requiredTokenId: CONTACT_REQUESTS_AUTH_READER.id,
+    providerModuleId: 'test-auth',
+    capabilityTokenId: CONTACT_REQUESTS_AUTH_READER.id
 })
 ```
 
-Diagnostic assertions read public `DiagnosticReport` data or diagnostics derived from
-typed errors:
+Failed graph assertions throw `GraphAssertionError` with deterministic plain-text messages
+that include the available modules, capabilities, required ports, bindings or dependency
+edges.
+
+## Diagnostic Assertions
+
+Diagnostic assertions work with the core diagnostics model:
 
 ```ts
-assertDiagnosticReportOk(harness.validate())
-assertDiagnosticReportHasDiagnostic(harness.validate(), {
-    code: 'SAGIFIRE_IOC_MISSING_REQUIRED_PORT'
+assertDiagnosticReportOk(composer.validate())
+
+assertDiagnosticReportHasDiagnostic(composer.validate(), {
+    code: 'SAGIFIRE_IOC_MISSING_REQUIRED_PORT',
+    severity: 'error',
+    messageIncludes: CONTACT_REQUESTS_AUTH_READER.id
 })
+
 assertErrorDiagnostic(error, {
     code: 'SAGIFIRE_IOC_DUPLICATE_MODULE_ID'
 })
 ```
 
-Assertion failures throw deterministic plain `Error` subclasses and do not require a
-runtime dependency on Vitest internals.
+Use `assertDiagnosticReportOk()` when a report must be valid and empty. Use
+`assertDiagnosticReportHasDiagnostic()` when the test expects a specific diagnostic code,
+severity, message or details. Use `assertErrorDiagnostic()` when code under test throws a
+typed IoC error and the test should assert the diagnostic derived from that error.
 
-Boundary rules:
+Failed diagnostic assertions throw `DiagnosticAssertionError`. Inputs are not mutated.
 
-- `@sagifire/ioc-testing` may depend on `@sagifire/ioc`.
-- `@sagifire/ioc` must not import `@sagifire/ioc-testing`.
-- The testing package must not import or implement Next.js, React, route handler or server
-  action adapters.
-- Testing helpers must not use filesystem or fixture auto-discovery.
+## Boundaries
+
+`@sagifire/ioc-testing` depends on `@sagifire/ioc`, but the core package does not import
+the testing package. The helpers create fresh test configuration and apply overrides before
+runtime freeze or composition. They do not mutate frozen runtimes, monkey-patch core
+internals, read private provider values, infer hidden dependencies by executing factories
+for assertion setup or discover fixtures from the filesystem.
+
+Next.js request context, route handler scopes and server action scopes belong to
+`@sagifire/ioc-next`, not to the testing package.

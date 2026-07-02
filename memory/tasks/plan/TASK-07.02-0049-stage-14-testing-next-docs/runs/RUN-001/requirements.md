@@ -1,6 +1,6 @@
 # Run Requirements: RUN-001
 
-Status: pending
+Status: completed
 Agent Role: Agent Executor
 Execution Mode: autonomous-implementation
 Created: 2026-07-02
@@ -31,10 +31,10 @@ Write testing and Next integration documentation.
 
 ## Acceptance Criteria for This Run
 
-- [ ] Testing helper workflows are documented accurately.
-- [ ] Next adapter workflows are documented accurately.
-- [ ] Frozen runtime immutability and explicit context boundaries are clear.
-- [ ] Verification is recorded in `result.md`.
+- [x] Testing helper workflows are documented accurately.
+- [x] Next adapter workflows are documented accurately.
+- [x] Frozen runtime immutability and explicit context boundaries are clear.
+- [x] Verification is recorded in `result.md`.
 
 ## Changes from Previous Run
 

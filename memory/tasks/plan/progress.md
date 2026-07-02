@@ -352,7 +352,7 @@
   - Summary: Stage 14 composer, modules and diagnostics documentation.
   - Current: RUN-001
 - [TASK-07.02-0049-stage-14-testing-next-docs](TASK-07.02-0049-stage-14-testing-next-docs/index.md)
-  - Status: backlog
+  - Status: done
   - Type: docs
   - Execution Mode: autonomous-implementation
   - Summary: Stage 14 testing and Next integration documentation.

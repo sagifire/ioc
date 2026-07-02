@@ -988,6 +988,14 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
   graph inspection, typed diagnostics, formatting, module cycle diagnostics and diagnostic
   assertions. RUN-001 не змінював runtime behavior, public API, package exports, examples
   або `memory/sources/SPEC.md`.
+- `TASK-07.02-0049-stage-14-testing-next-docs` RUN-001 виконаний агентом і завершений
+  після task-level human review approval.
+- Stage 14 testing/Next docs RUN-001 переписав `docs/testing.md` and
+  `docs/next-integration.md` як durable workflow guides for isolated test runtimes,
+  overrides, fake modules, module harnesses, graph/diagnostic assertions, cached Next
+  runtime, explicit request/action context, route scopes, server action scopes and thin
+  framework boundaries. RUN-001 не змінював runtime behavior, public API, package exports,
+  examples, framework dependencies або `memory/sources/SPEC.md`.
 
 ## Current Risks
 
@@ -1004,7 +1012,7 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 
 ## Next Steps
 
-- Запустити `TASK-07.02-0049-stage-14-testing-next-docs`.
+- Запустити `TASK-07.02-0050-stage-14-basic-node-module-examples`.
 
 ## Open Questions
 

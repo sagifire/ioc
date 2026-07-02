@@ -1,6 +1,6 @@
 # TASK-07.02-0049: Stage 14 testing and Next docs
 
-Status: backlog
+Status: done
 Type: docs
 Execution Mode: autonomous-implementation
 Created: 2026-07-02
@@ -40,15 +40,15 @@ Current docs list the APIs but need a durable workflow-oriented guide.
 
 ## Acceptance Criteria
 
-- [ ] Testing docs explain all current `@sagifire/ioc-testing` helper families.
-- [ ] Testing docs distinguish overrides, fake modules and module harnesses.
-- [ ] Next docs explain cached runtime, explicit request context, route scopes and server
+- [x] Testing docs explain all current `@sagifire/ioc-testing` helper families.
+- [x] Testing docs distinguish overrides, fake modules and module harnesses.
+- [x] Next docs explain cached runtime, explicit request context, route scopes and server
   action scopes.
-- [ ] Next docs state business logic should stay behind module public APIs.
-- [ ] Docs explicitly say helpers do not mutate frozen runtimes.
-- [ ] Docs avoid claiming full Next.js app dependency/install is required.
-- [ ] Relevant docs formatting checks pass.
-- [ ] Verification is recorded in run result.
+- [x] Next docs state business logic should stay behind module public APIs.
+- [x] Docs explicitly say helpers do not mutate frozen runtimes.
+- [x] Docs avoid claiming full Next.js app dependency/install is required.
+- [x] Relevant docs formatting checks pass.
+- [x] Verification is recorded in run result.
 
 ## Linked Memory
 
@@ -61,9 +61,9 @@ Current docs list the APIs but need a durable workflow-oriented guide.
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: pending
+  - Status: completed
   - Purpose: Autonomous implementation run for testing and Next docs.
-  - Result: pending
+  - Result: approved after task-level human review
 
 ## Research
 
