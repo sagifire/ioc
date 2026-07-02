@@ -419,7 +419,7 @@
   - Summary: Stage 15 GitHub Actions CI quality gates for build/test/typecheck/format/lint.
   - Current: RUN-001
 - [TASK-07.02-0059-stage-15-pack-dry-run-validation](TASK-07.02-0059-stage-15-pack-dry-run-validation/index.md)
-  - Status: backlog
+  - Status: done
   - Type: chore
   - Execution Mode: autonomous-implementation
   - Summary: Stage 15 npm package dry-run validation, package contents and export smoke

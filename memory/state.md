@@ -1091,14 +1091,24 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 - Stage 15 CI quality gates RUN-001 не додавав npm publish workflow, release tags,
   Changesets release PR behavior, provenance publishing, npm secrets/tokens, runtime
   behavior або public API changes.
+- `TASK-07.02-0059-stage-15-pack-dry-run-validation` RUN-001 виконаний агентом і
+  завершений після task-level human review approval.
+- Stage 15 package dry-run validation RUN-001 додав `pnpm pack:dry-run`, який будує
+  packages, пакує `@sagifire/ioc`, `@sagifire/ioc-next` and `@sagifire/ioc-testing`,
+  перевіряє tarball contents/metadata/exports, встановлює локальні tarballs у
+  `.tmp/package-dry-run/smoke` and виконує runtime ESM plus TypeScript declaration smoke
+  checks from packed artifacts.
+- Stage 15 package dry-run validation RUN-001 не виконував npm publish, не додавав release
+  workflow, не створював secrets/tokens, не змінював runtime behavior, public API або
+  package exports.
 
 ## Current Risks
 
 - Binding factory internals не мають static dependency metadata; Stage 10 dependency edge
   model фіксує static required-port -> binding edges only and keeps provider-level cycles
   inside factories under existing container diagnostics.
-- Later Stage 15 release automation tasks remain backlog; package dry-run validation and
-  npm publish workflow are not configured yet.
+- Later Stage 15 release automation tasks remain backlog; npm publish workflow is not
+  configured yet.
 - GitHub private vulnerability reporting is an external repository setting; `SECURITY.md`
   documents a safe fallback, but maintainers still need to enable or provide a private
   channel before requesting sensitive vulnerability details.
@@ -1112,7 +1122,7 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 
 ## Next Steps
 
-- Запустити `TASK-07.02-0059-stage-15-pack-dry-run-validation`.
+- Запустити `TASK-07.02-0060-stage-15-npm-publish-workflow-provenance`.
 
 ## Open Questions
 
