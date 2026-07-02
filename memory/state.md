@@ -1207,6 +1207,18 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 - Stage 16 Changesets status docs RUN-001 також перевірив Changesets status/help behavior,
   не додав alternative status command без safer CLI evidence і не змінював package
   versions, changelogs, scripts або publish workflow.
+- `TASK-07.02-0065-stage-16-version-0-0-1-stabilization-handoff` RUN-001 виконаний
+  агентом і завершений після task-level human review approval.
+- Stage 16 version/stabilization handoff RUN-001 зафіксував publishable package versions
+  `@sagifire/ioc`, `@sagifire/ioc-next` and `@sagifire/ioc-testing` at `0.0.1` through
+  existing Changesets version flow, оновив package changelogs, root/package release status
+  docs and Project Memory stabilization handoff state.
+- Stage 16 version/stabilization handoff RUN-001 підтвердив, що audit report and blocker
+  tasks `C-001`, `H-001`, `H-002`, `M-001` and `L-001` are review-approved closed,
+  виконав final `pnpm release:validate` with build, typecheck, format, lint, tests and
+  package dry-run validation, and did not perform actual npm publish.
+- `TASK-07.02-0065-stage-16-version-0-0-1-stabilization-handoff` завершена після
+  task-level human review approval.
 
 ## Current Risks
 
@@ -1215,9 +1227,8 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
   inside factories under existing container diagnostics.
 - Stage 16 audit blockers `C-001`, `H-001`, `H-002`, `M-001` and `L-001` are
   review-approved closed.
-- Publishable package versions still remain `0.0.0`; version `0.0.1` fixation is now the
-  next Stage 16 handoff task and must still avoid actual npm publish without explicit human
-  approval.
+- Publishable package versions are fixed at `0.0.1`; actual npm publishing remains pending
+  and still requires explicit human approval plus external GitHub/npm credentials/settings.
 - GitHub private vulnerability reporting is an external repository setting; `SECURITY.md`
   documents a safe fallback, but maintainers still need to enable or provide a private
   channel before requesting sensitive vulnerability details.
@@ -1231,7 +1242,8 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 
 ## Next Steps
 
-- Виконати `TASK-07.02-0065-stage-16-version-0-0-1-stabilization-handoff`.
+- Stage 16 `0.0.1` stabilization handoff завершено. Actual npm publish лишається окремою
+  майбутньою дією і потребує explicit human approval plus external GitHub/npm settings.
 
 ## Open Questions
 

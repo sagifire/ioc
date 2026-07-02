@@ -6,10 +6,10 @@ This package creates fresh test-only container/composer configuration before
 `freeze()` or `compose()`. It never patches an existing frozen `ContainerRuntime` or
 `ComposedRuntime`.
 
-The package is currently used from the workspace. The manifest is `0.0.0` and
+The package is currently used from the workspace. The manifest is `0.0.1` and
 `Apache-2.0` with npm publish metadata, Changesets versioning, package dry-run validation
-and a manual npm publish workflow. No released version has been published from this
-repository yet.
+and a manual npm publish workflow. It has not been published to npm from this repository
+yet.
 
 ## Imports
 

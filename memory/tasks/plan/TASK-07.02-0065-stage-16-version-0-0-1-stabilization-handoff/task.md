@@ -1,6 +1,6 @@
 # TASK-07.02-0065: Stage 16 version 0.0.1 and stabilization handoff
 
-Status: backlog
+Status: done
 Type: chore
 Execution Mode: autonomous-implementation
 Created: 2026-07-02
@@ -48,16 +48,16 @@ all review-approved audit blockers are closed: `C-001`, `H-001`, `H-002`, `M-001
 
 ## Acceptance Criteria
 
-- [ ] Audit report exists and is completed/done.
-- [ ] Critical audit findings are closed or explicitly reclassified with rationale.
-- [ ] `H-001`, `H-002`, `M-001` and `L-001` follow-up tasks are closed or explicitly
+- [x] Audit report exists and is completed/done.
+- [x] Critical audit findings are closed or explicitly reclassified with rationale.
+- [x] `H-001`, `H-002`, `M-001` and `L-001` follow-up tasks are closed or explicitly
       reclassified with rationale.
-- [ ] Publishable package manifests are fixed at `0.0.1`.
-- [ ] Package changelogs include `0.0.1` entries.
-- [ ] Public docs no longer claim only `0.0.0` workspace state where that becomes stale.
-- [ ] Final release/stabilization validation is run or limitations are documented.
-- [ ] No actual npm publish is performed without explicit human approval.
-- [ ] Project Memory records transition into stabilization mode.
+- [x] Publishable package manifests are fixed at `0.0.1`.
+- [x] Package changelogs include `0.0.1` entries.
+- [x] Public docs no longer claim only `0.0.0` workspace state where that becomes stale.
+- [x] Final release/stabilization validation is run or limitations are documented.
+- [x] No actual npm publish is performed without explicit human approval.
+- [x] Project Memory records transition into stabilization mode.
 
 ## Linked Memory
 
@@ -77,9 +77,9 @@ all review-approved audit blockers are closed: `C-001`, `H-001`, `H-002`, `M-001
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: planned
+  - Status: completed
   - Purpose: Autonomous implementation run for `0.0.1` version and stabilization handoff.
-  - Result: pending
+  - Result: completed and approved after human review
 
 ## Research
 

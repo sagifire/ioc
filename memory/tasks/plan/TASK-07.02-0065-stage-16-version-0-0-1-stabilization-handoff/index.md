@@ -2,8 +2,7 @@
 
 ## Purpose
 
-Backlog implementation task for Stage 16 version `0.0.1` fixation and stabilization
-handoff.
+Implementation task for Stage 16 version `0.0.1` fixation and stabilization handoff.
 
 ## Files
 

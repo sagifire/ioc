@@ -1,6 +1,6 @@
 {
     "name": "@sagifire/ioc-testing",
-    "version": "0.0.0",
+    "version": "0.0.1",
     "description": "Testing helpers, overrides, fake modules and graph assertions for @sagifire/ioc.",
     "type": "module",
     "sideEffects": false,

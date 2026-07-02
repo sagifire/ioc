@@ -862,22 +862,36 @@ Root source trace:
       task-level потреби;
     - не редагувати `memory/sources/SPEC.md`.
 
-## Planned
+## Current
 
-- Stage 16: `0.0.1` stabilization audit and critical fixes.
-  - Status: planned; planning task завершена після task-level human review approval.
+- Stage 16: `0.0.1` stabilization audit, blocker closure and version handoff.
+  - Status: done after task-level human review.
   - Source: human directive від 2026-07-02.
   - Planning Task: `TASK-07.02-0062-stage-16-implementation-planning`.
   - Operational Tasks:
-    - `TASK-07.02-0063-stage-16-codebase-audit-report` - backlog;
-    - `TASK-07.02-0064-stage-16-critical-fixes-from-audit` - backlog;
-    - `TASK-07.02-0065-stage-16-version-0-0-1-stabilization-handoff` - backlog.
+    - `TASK-07.02-0063-stage-16-codebase-audit-report` - done;
+    - `TASK-07.02-0064-stage-16-critical-fixes-from-audit` - done;
+    - `TASK-07.02-0066-stage-16-sync-factory-promise-guard` - done;
+    - `TASK-07.02-0067-stage-16-composer-duplicate-binding-validation` - done;
+    - `TASK-07.02-0068-stage-16-freeze-failure-retry-policy` - done;
+    - `TASK-07.02-0069-stage-16-changeset-status-docs` - done;
+    - `TASK-07.02-0065-stage-16-version-0-0-1-stabilization-handoff` - done.
   - Implementation Decomposition:
     - Task 1 проводить аудит кодової бази і пише audit report повністю українською
       мовою.
     - Task 2 закриває кожну audit finding із критичністю `critical`.
     - Task 3 фіксує publishable package versions at `0.0.1` і переводить проект у
       stabilization mode після critical closure.
+  - Implemented:
+    - audit report completed in Ukrainian;
+    - critical finding `C-001` and review-approved follow-up blockers `H-001`, `H-002`,
+      `M-001` and `L-001` closed;
+    - publishable package manifests and package changelogs fixed at `0.0.1` through the
+      existing Changesets flow;
+    - root/package release-status docs synchronized with `0.0.1` version fixation and
+      pending npm publish state;
+    - final `pnpm release:validate` passed, including package dry-run validation for
+      `0.0.1` tarballs.
   - Decisions:
     - Stage 16 стартує тільки після завершення Stage 15 release/governance readiness.
     - Аудит і виправлення розділені, щоб audit findings лишались reviewable.
@@ -910,3 +924,6 @@ Root source trace:
     - не змінювати runtime behavior поза межами critical fixes;
     - не виконувати actual npm publish без explicit human approval;
     - не редагувати `memory/sources/SPEC.md`.
+  - Remaining:
+    - actual npm publish remains pending and requires explicit human approval plus external
+      GitHub/npm settings.

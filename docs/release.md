@@ -6,13 +6,13 @@ npm/GitHub environment supports it.
 
 ## Current Package Status
 
-The publishable package manifests are currently `0.0.0`, and the root and package
-changelogs record no released versions yet. Release automation is present, but repository
-files alone do not mean the packages have been published.
+The publishable package manifests are fixed at `0.0.1`, and the package changelogs include
+`0.0.1` entries. Release automation is present, but repository files and version fixation
+alone do not mean the packages have been published to npm.
 
-The first real npm publish requires a reviewed Changesets version PR, explicit manual
-workflow dispatch with `publish_to_npm` set to `publish`, and the external settings listed
-below.
+The first real npm publish requires reviewed version/changelog state on `master`, explicit
+manual workflow dispatch with `publish_to_npm` set to `publish`, and the external settings
+listed below.
 
 ## Release PR
 

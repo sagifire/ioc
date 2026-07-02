@@ -6,9 +6,10 @@ request/operation scopes, module composition, diagnostics, testing helpers and t
 Next.js App Router boundary helpers without decorators, `reflect-metadata` or filesystem
 discovery.
 
-This repository is currently a development workspace. Package manifests use version
-`0.0.0` and `Apache-2.0`, with Changesets, CI, package dry-run validation and a manual npm
-publish workflow. No released package version has been published from this repository yet.
+This repository is currently a stabilization workspace. Publishable package manifests are
+fixed at version `0.0.1` and `Apache-2.0`, with Changesets, CI, package dry-run validation
+and a manual npm publish workflow. No npm package has been published from this repository
+yet.
 The package names and import paths below describe the implemented public API in this
 workspace.
 
@@ -23,8 +24,8 @@ workspace.
 
 ## Install Shape
 
-The current package changelogs record `0.0.0` with no released versions yet. After the
-first human-approved npm publish, the intended install shape is:
+The current package changelogs include `0.0.1` entries. After the first human-approved npm
+publish, the intended install shape is:
 
 ```sh
 pnpm add @sagifire/ioc
