@@ -1004,6 +1004,14 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
   verification through build, typecheck, lint, unit tests and direct Node runs. RUN-001 не
   змінював runtime behavior, public API, package exports, external dependencies, release
   automation або `memory/sources/SPEC.md`.
+- `TASK-07.02-0051-stage-14-async-db-testing-examples` RUN-001 виконаний агентом і
+  завершений після task-level human review approval.
+- Stage 14 async-db-resource/testing-overrides examples RUN-001 додав executable
+  `examples/async-db-resource` and `examples/testing-overrides` with README commands,
+  focused typecheck configs, runnable `.tmp` compile configs, root/docs/package README
+  navigation links and verification through build, typecheck, lint, unit tests and direct
+  Node runs. RUN-001 не змінював runtime behavior, public API, package exports, external
+  dependencies, release automation або `memory/sources/SPEC.md`.
 
 ## Current Risks
 
@@ -1020,7 +1028,7 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 
 ## Next Steps
 
-- Запустити `TASK-07.02-0051-stage-14-async-db-testing-examples`.
+- Запустити `TASK-07.02-0052-stage-14-next-app-router-example-hardening`.
 
 ## Open Questions
 

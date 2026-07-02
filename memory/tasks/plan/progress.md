@@ -364,7 +364,7 @@
   - Summary: Stage 14 `basic-node` and `module-composition` examples.
   - Current: RUN-001
 - [TASK-07.02-0051-stage-14-async-db-testing-examples](TASK-07.02-0051-stage-14-async-db-testing-examples/index.md)
-  - Status: backlog
+  - Status: done
   - Type: docs
   - Execution Mode: autonomous-implementation
   - Summary: Stage 14 `async-db-resource` and `testing-overrides` examples.

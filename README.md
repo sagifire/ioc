@@ -218,6 +218,10 @@ docs map describe the current implemented API surface.
 - [Module composition](examples/module-composition/README.md) - modules, capabilities,
   required ports, explicit binding adapters, validation, inspection and composed runtime
   resolution.
+- [Async DB resource](examples/async-db-resource/README.md) - lazy async database resource,
+  retry after failed initialization, scoped unit-of-work and disposal.
+- [Testing overrides](examples/testing-overrides/README.md) - isolated test runtimes,
+  composer overrides, fake modules, module harnesses and graph/diagnostic assertions.
 - [Next App Router skeleton](examples/next-app-router/README.md) - narrow App Router
   boundary example for `@sagifire/ioc-next`.
 

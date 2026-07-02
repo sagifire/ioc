@@ -290,6 +290,13 @@ container.bind(USER_DIRECTORY).toAsyncFactory(async (context) => {
 The context is scope-bound when the provider is resolved through a scope. That means
 `context.getAsync(REQUEST_ID)` can see scope-local values only in scoped resolution.
 
+## Runnable Example
+
+See [`examples/async-db-resource`](../examples/async-db-resource/README.md) for a complete
+workspace example with an in-memory database resource, retry after failed lazy
+initialization, scoped unit-of-work disposal and runtime disposal. It uses no external
+database server.
+
 ## Sync/Async Boundary Checklist
 
 - Use `get()` only for sync providers and eager singleton async providers.

@@ -173,6 +173,7 @@ inference.
 - [Architecture](../../docs/architecture.md)
 - [Container](../../docs/container.md)
 - [Async model](../../docs/async-model.md)
+- [Async DB resource example](../../examples/async-db-resource/README.md)
 - [Composer](../../docs/composer.md)
 - [Modules](../../docs/modules.md)
 - [Diagnostics](../../docs/diagnostics.md)

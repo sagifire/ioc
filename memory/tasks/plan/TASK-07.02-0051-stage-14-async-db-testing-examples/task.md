@@ -1,6 +1,6 @@
 # TASK-07.02-0051: Stage 14 async-db-resource and testing-overrides examples
 
-Status: backlog
+Status: done
 Type: docs
 Execution Mode: autonomous-implementation
 Created: 2026-07-02
@@ -43,13 +43,13 @@ mutating frozen runtime.
 
 ## Acceptance Criteria
 
-- [ ] `examples/async-db-resource` exists and demonstrates async resource lifecycle.
-- [ ] `examples/testing-overrides` exists and demonstrates testing helpers.
-- [ ] Examples avoid external service requirements by default.
-- [ ] Examples do not mutate frozen `ContainerRuntime` or `ComposedRuntime`.
-- [ ] Example READMEs explain commands and expected behavior.
-- [ ] Examples are runnable or typechecked through documented commands where practical.
-- [ ] Verification is recorded in run result.
+- [x] `examples/async-db-resource` exists and demonstrates async resource lifecycle.
+- [x] `examples/testing-overrides` exists and demonstrates testing helpers.
+- [x] Examples avoid external service requirements by default.
+- [x] Examples do not mutate frozen `ContainerRuntime` or `ComposedRuntime`.
+- [x] Example READMEs explain commands and expected behavior.
+- [x] Examples are runnable or typechecked through documented commands where practical.
+- [x] Verification is recorded in run result.
 
 ## Linked Memory
 
@@ -62,10 +62,10 @@ mutating frozen runtime.
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: pending
+  - Status: completed
   - Purpose: Autonomous implementation run for async-db-resource and testing-overrides
     examples.
-  - Result: pending
+  - Result: approved after task-level human review
 
 ## Research
 

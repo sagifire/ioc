@@ -283,6 +283,13 @@ typed IoC error and the test should assert the diagnostic derived from that erro
 
 Failed diagnostic assertions throw `DiagnosticAssertionError`. Inputs are not mutated.
 
+## Runnable Example
+
+See [`examples/testing-overrides`](../examples/testing-overrides/README.md) for a complete
+workspace example that uses `createTestRuntime()`, `createTestComposer()`, `override()`,
+`fakeModule()`, `createModuleHarness()` and graph/diagnostic assertions without mutating
+frozen runtimes.
+
 ## Boundaries
 
 `@sagifire/ioc-testing` depends on `@sagifire/ioc`, but the core package does not import

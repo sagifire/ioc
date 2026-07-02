@@ -1,6 +1,6 @@
 # Run Requirements: RUN-001
 
-Status: pending
+Status: completed
 Agent Role: Agent Executor
 Execution Mode: autonomous-implementation
 Created: 2026-07-02
@@ -31,10 +31,10 @@ Add `async-db-resource` and `testing-overrides` examples.
 
 ## Acceptance Criteria for This Run
 
-- [ ] Async resource example is present and verified.
-- [ ] Testing overrides example is present and verified.
-- [ ] Example docs explain commands and behavior.
-- [ ] Verification is recorded in `result.md`.
+- [x] Async resource example is present and verified.
+- [x] Testing overrides example is present and verified.
+- [x] Example docs explain commands and behavior.
+- [x] Verification is recorded in `result.md`.
 
 ## Changes from Previous Run
 

@@ -170,5 +170,6 @@ runtime dependency on Vitest internals.
 ## More Documentation
 
 - [Testing guide](../../docs/testing.md)
+- [Testing overrides example](../../examples/testing-overrides/README.md)
 - [Diagnostics](../../docs/diagnostics.md)
 - [Composer](../../docs/composer.md)

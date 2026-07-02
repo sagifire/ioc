@@ -1,0 +1,12 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "declaration": false,
+        "declarationMap": false,
+        "noEmit": false,
+        "outDir": "../../.tmp/examples/async-db-resource",
+        "paths": {},
+        "rootDir": "src",
+        "sourceMap": false
+    }
+}
