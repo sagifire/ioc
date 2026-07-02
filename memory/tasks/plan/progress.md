@@ -407,7 +407,7 @@
     package contents.
   - Current: RUN-001
 - [TASK-07.02-0057-stage-15-changesets-versioning-changelog](TASK-07.02-0057-stage-15-changesets-versioning-changelog/index.md)
-  - Status: backlog
+  - Status: done
   - Type: chore
   - Execution Mode: autonomous-implementation
   - Summary: Stage 15 Changesets/versioning/changelog setup.

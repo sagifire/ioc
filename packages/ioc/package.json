@@ -90,6 +90,7 @@
         "dist/lifecycle.js",
         "dist/lifecycle.js.map",
         "dist/lifecycle.d.ts",
+        "CHANGELOG.md",
         "README.md",
         "LICENSE",
         "NOTICE"

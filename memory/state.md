@@ -1070,14 +1070,23 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 - Stage 15 package publish metadata RUN-001 не реалізовував Changesets, changelog
   generation, CI, package dry-run validation automation, npm publish workflow, runtime
   behavior або package export changes.
+- `TASK-07.02-0057-stage-15-changesets-versioning-changelog` RUN-001 виконаний агентом і
+  завершений після task-level human review approval.
+- Stage 15 Changesets/versioning/changelog RUN-001 додав Changesets tooling,
+  `.changeset/` config, synchronized fixed-version group для `@sagifire/ioc`,
+  `@sagifire/ioc-next` and `@sagifire/ioc-testing`, root scripts, package changelog
+  placeholders and a no-release empty changeset for setup changes.
+- Stage 15 Changesets/versioning/changelog RUN-001 не виконував npm publish, не додавав
+  GitHub Actions release workflow, не створював secrets/tokens, не змінював runtime
+  behavior або public API.
 
 ## Current Risks
 
 - Binding factory internals не мають static dependency metadata; Stage 10 dependency edge
   model фіксує static required-port -> binding edges only and keeps provider-level cycles
   inside factories under existing container diagnostics.
-- Later Stage 15 release automation tasks remain backlog; Changesets, CI, package dry-run
-  validation and npm publish workflow are not configured yet.
+- Later Stage 15 release automation tasks remain backlog; CI, package dry-run validation
+  and npm publish workflow are not configured yet.
 - GitHub private vulnerability reporting is an external repository setting; `SECURITY.md`
   documents a safe fallback, but maintainers still need to enable or provide a private
   channel before requesting sensitive vulnerability details.
@@ -1091,7 +1100,7 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 
 ## Next Steps
 
-- Запустити `TASK-07.02-0057-stage-15-changesets-versioning-changelog`.
+- Запустити `TASK-07.02-0058-stage-15-ci-quality-gates`.
 
 ## Open Questions
 
