@@ -1,6 +1,6 @@
 # TASK-07.02-0069: Stage 16 changeset status docs
 
-Status: backlog
+Status: done
 Type: docs
 Execution Mode: autonomous-implementation
 Created: 2026-07-02
@@ -43,14 +43,16 @@ changeset:status` workflow має бути задокументований та
 
 ## Acceptance Criteria
 
-- [ ] `L-001` має closure mapping у task result.
-- [ ] `.changeset/README.md` або інший canonical release doc пояснює, коли
+- [x] `L-001` має closure mapping у task result.
+- [x] `.changeset/README.md` або інший canonical release doc пояснює, коли
       `pnpm changeset:status` може падати через відсутність divergence.
-- [ ] Якщо додано альтернативну команду, її призначення й обмеження задокументовані.
-- [ ] Docs wording не створює хибного враження, що `changeset:status` завжди працює на
+- [x] Якщо додано альтернативну команду, її призначення й обмеження задокументовані. Not
+      applicable: альтернативну команду не додано, бо перевірка не підтвердила safer
+      Changesets CLI status variant.
+- [x] Docs wording не створює хибного враження, що `changeset:status` завжди працює на
       чистому `master`.
-- [ ] Relevant verification commands run where practical or limitations documented.
-- [ ] Package versions remain unchanged.
+- [x] Relevant verification commands run where practical or limitations documented.
+- [x] Package versions remain unchanged.
 
 ## Linked Memory
 
@@ -62,9 +64,9 @@ changeset:status` workflow має бути задокументований та
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: planned
+  - Status: completed
   - Purpose: Autonomous implementation run for closing `L-001`.
-  - Result: pending
+  - Result: approved
 
 ## Research
 

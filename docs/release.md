@@ -44,6 +44,13 @@ pnpm release:validate
 
 It runs build, typecheck, formatting check, lint, tests and package dry-run validation.
 
+Use `pnpm changeset:status` only when you want a Changesets view of pending version and
+changelog changes on a branch that Git can compare with the configured base branch
+(`master`). It depends on Git resolving a merge base against `master`, so it can fail in
+local checkouts where `master` is missing, unsynced, unsafe for the current Git user,
+shallow, or otherwise has no usable comparison point. A clean trusted `master` may report
+that no packages would be bumped; that is not a substitute for `pnpm release:validate`.
+
 ## Required External Settings
 
 Publishing requires repository and npm settings that are not stored in this repository:

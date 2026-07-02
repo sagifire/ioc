@@ -479,7 +479,7 @@
   - Summary: Stage 16 pre-`0.0.1` closure of `M-001` failed `freeze()` policy.
   - Current: RUN-001
 - [TASK-07.02-0069-stage-16-changeset-status-docs](TASK-07.02-0069-stage-16-changeset-status-docs/index.md)
-  - Status: backlog
+  - Status: done
   - Type: docs
   - Execution Mode: autonomous-implementation
   - Summary: Stage 16 pre-`0.0.1` closure of `L-001` Changesets status docs.

@@ -2,8 +2,7 @@
 
 ## Purpose
 
-Backlog docs/chore task for closing Stage 16 audit finding `L-001` before version
-`0.0.1`.
+Completed docs task for closing Stage 16 audit finding `L-001` before version `0.0.1`.
 
 ## Files
 

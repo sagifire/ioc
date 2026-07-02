@@ -1198,18 +1198,26 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
   resources from failed eager attempts, focused async provider/resource regression tests,
   public docs sync, перевірив `pnpm release:validate` і не змінював package versions,
   changelogs або publish workflow.
+- `TASK-07.02-0069-stage-16-changeset-status-docs` RUN-001 виконаний агентом і завершений
+  після task-level human review approval.
+- Stage 16 Changesets status docs RUN-001 закрив `L-001` на рівні implementation result:
+  `.changeset/README.md` and `docs/release.md` тепер документують, що
+  `pnpm changeset:status` є branch-aware helper with `master` comparison preconditions and
+  не є універсальним local release-readiness check.
+- Stage 16 Changesets status docs RUN-001 також перевірив Changesets status/help behavior,
+  не додав alternative status command без safer CLI evidence і не змінював package
+  versions, changelogs, scripts або publish workflow.
 
 ## Current Risks
 
 - Binding factory internals не мають static dependency metadata; Stage 10 dependency edge
   model фіксує static required-port -> binding edges only and keeps provider-level cycles
   inside factories under existing container diagnostics.
-- Stage 16 audit знайшов pre-`0.0.1` blockers: `C-001`, `H-001`, `H-002`, `M-001` і
-  `L-001`; `C-001`, `H-001`, `H-002` and `M-001` review-approved closed, а version
-  `0.0.1` залишається blocked until remaining accepted audit blockers are review-approved
-  closed or explicitly reclassified.
-- Publishable package versions still remain `0.0.0`; version `0.0.1` is intentionally
-  blocked until all accepted audit blockers are closed.
+- Stage 16 audit blockers `C-001`, `H-001`, `H-002`, `M-001` and `L-001` are
+  review-approved closed.
+- Publishable package versions still remain `0.0.0`; version `0.0.1` fixation is now the
+  next Stage 16 handoff task and must still avoid actual npm publish without explicit human
+  approval.
 - GitHub private vulnerability reporting is an external repository setting; `SECURITY.md`
   documents a safe fallback, but maintainers still need to enable or provide a private
   channel before requesting sensitive vulnerability details.
@@ -1223,7 +1231,7 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 
 ## Next Steps
 
-- Закрити remaining pre-`0.0.1` blocker `L-001` у `TASK-07.02-0069`.
+- Виконати `TASK-07.02-0065-stage-16-version-0-0-1-stabilization-handoff`.
 
 ## Open Questions
 
