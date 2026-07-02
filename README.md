@@ -8,8 +8,9 @@ discovery.
 
 This repository is currently a development workspace. Package manifests use version
 `0.0.0` and `Apache-2.0`, with Changesets, CI, package dry-run validation and a manual npm
-publish workflow. The package names and import paths below describe the implemented public
-API in this workspace.
+publish workflow. No released package version has been published from this repository yet.
+The package names and import paths below describe the implemented public API in this
+workspace.
 
 ## Packages
 
@@ -22,8 +23,8 @@ API in this workspace.
 
 ## Install Shape
 
-The packages are not published from this repository yet. After the first approved publish,
-the intended install shape is:
+The current package changelogs record `0.0.0` with no released versions yet. After the
+first human-approved npm publish, the intended install shape is:
 
 ```sh
 pnpm add @sagifire/ioc
@@ -208,9 +209,12 @@ logic inside framework handlers.
 - [Testing](docs/testing.md)
 - [Next.js integration](docs/next-integration.md)
 - [Migration from DI containers](docs/migration-from-di-container.md)
+- [Release workflow](docs/release.md)
 
 The guides and examples describe the current implemented API surface in this workspace.
-Release packaging remains separate future work.
+Release automation is implemented through Changesets, CI, package dry-run validation and a
+manual npm publish workflow. Actual npm publishing still requires explicit human approval
+and external GitHub/npm settings.
 
 ## Examples
 
@@ -233,6 +237,9 @@ Release packaging remains separate future work.
 - [Contributing](CONTRIBUTING.md) - contribution flow and GitHub Issues support channel.
 - [Security](SECURITY.md) - security-sensitive reporting policy.
 - [Trademarks](TRADEMARKS.md) - `@sagifire/ioc` product mark usage guidance.
+- [Changelog](CHANGELOG.md) - release history and Changesets changelog notes.
+- [Release workflow](docs/release.md) - release PRs, validation, manual publish and
+  provenance notes.
 
 ## Development
 

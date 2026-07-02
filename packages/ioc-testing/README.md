@@ -8,7 +8,8 @@ This package creates fresh test-only container/composer configuration before
 
 The package is currently used from the workspace. The manifest is `0.0.0` and
 `Apache-2.0` with npm publish metadata, Changesets versioning, package dry-run validation
-and a manual npm publish workflow.
+and a manual npm publish workflow. No released version has been published from this
+repository yet.
 
 ## Imports
 
@@ -176,6 +177,9 @@ runtime dependency on Vitest internals.
   channel.
 - [Security](../../SECURITY.md) - security-sensitive reporting policy.
 - [Trademarks](../../TRADEMARKS.md) - `@sagifire/ioc` product mark usage guidance.
+- [Changelog](CHANGELOG.md) - package release history.
+- [Release workflow](../../docs/release.md) - release PRs, validation, manual publish and
+  provenance notes.
 
 ## More Documentation
 

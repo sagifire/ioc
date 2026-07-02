@@ -4,6 +4,16 @@ This repository uses Changesets for versioning and changelog updates, GitHub Act
 release validation and npm publishing, and npm provenance for published packages where the
 npm/GitHub environment supports it.
 
+## Current Package Status
+
+The publishable package manifests are currently `0.0.0`, and the root and package
+changelogs record no released versions yet. Release automation is present, but repository
+files alone do not mean the packages have been published.
+
+The first real npm publish requires a reviewed Changesets version PR, explicit manual
+workflow dispatch with `publish_to_npm` set to `publish`, and the external settings listed
+below.
+
 ## Release PR
 
 On each push to `master`, `.github/workflows/release.yml` runs the local release validation

@@ -433,7 +433,7 @@
     actual publish.
   - Current: RUN-001
 - [TASK-07.02-0061-stage-15-release-docs-final-hardening](TASK-07.02-0061-stage-15-release-docs-final-hardening/index.md)
-  - Status: backlog
+  - Status: done
   - Type: docs
   - Execution Mode: autonomous-implementation
   - Summary: Stage 15 release docs, final consistency checks and Project Memory sync.

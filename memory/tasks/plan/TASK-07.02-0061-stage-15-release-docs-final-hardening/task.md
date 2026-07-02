@@ -1,6 +1,6 @@
 # TASK-07.02-0061: Stage 15 release docs and final hardening
 
-Status: backlog
+Status: done
 Type: docs
 Execution Mode: autonomous-implementation
 Created: 2026-07-02
@@ -45,13 +45,13 @@ what external npm/GitHub settings have been completed.
 
 ## Acceptance Criteria
 
-- [ ] Public docs accurately describe the implemented release/governance state.
-- [ ] Governance artifact links are discoverable.
-- [ ] Stale Stage 15 placeholder or "not implemented" release statements are removed or
+- [x] Public docs accurately describe the implemented release/governance state.
+- [x] Governance artifact links are discoverable.
+- [x] Stale Stage 15 placeholder or "not implemented" release statements are removed or
   kept only when still true.
-- [ ] Final release checks are run or limitations are documented.
-- [ ] Project Memory is synced with final Stage 15 status and next operational step.
-- [ ] No unapproved npm publish is performed.
+- [x] Final release checks are run or limitations are documented.
+- [x] Project Memory is synced with final Stage 15 status and next operational step.
+- [x] No unapproved npm publish is performed.
 
 ## Linked Memory
 
@@ -68,9 +68,9 @@ what external npm/GitHub settings have been completed.
 ## Runs
 
 - [RUN-001](runs/RUN-001/index.md)
-  - Status: planned
+  - Status: completed
   - Purpose: Autonomous implementation run for final release docs/hardening.
-  - Result: pending
+  - Result: release docs and Project Memory synced; approved after human review.
 
 ## Research
 

@@ -1111,13 +1111,30 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 - Stage 15 npm publish workflow/provenance RUN-001 не виконував actual npm publish, не
   створював secrets/tokens/repository settings, не змінював runtime behavior, public API
   або package exports.
+- `TASK-07.02-0061-stage-15-release-docs-final-hardening` RUN-001 виконаний агентом і
+  переведений у `review`.
+- Stage 15 release docs/final hardening RUN-001 синхронізував root/package README,
+  `CHANGELOG.md` and `docs/release.md` with the implemented release/governance model:
+  package manifests remain `0.0.0` with no released versions yet, release automation is
+  implemented through Changesets, CI, package dry-run validation and manual npm publish
+  workflow, and actual publish still requires explicit human approval plus external
+  GitHub/npm settings.
+- Stage 15 release docs/final hardening RUN-001 перевірив stale release/publishing claims
+  and ran `pnpm release:validate`, including build, typecheck, format, lint, tests and
+  package dry-run validation.
+- Stage 15 release docs/final hardening RUN-001 не виконував actual npm publish, не
+  створював secrets/tokens/repository settings, не змінював runtime behavior, public API,
+  package versions або package exports.
+- `TASK-07.02-0061-stage-15-release-docs-final-hardening` завершена після task-level
+  human review approval.
+- Stage 15 release automation and repository governance readiness завершено після approval
+  фінальної release docs/final hardening task.
 
 ## Current Risks
 
 - Binding factory internals не мають static dependency metadata; Stage 10 dependency edge
   model фіксує static required-port -> binding edges only and keeps provider-level cycles
   inside factories under existing container diagnostics.
-- Stage 15 final release docs/hardening task remains backlog.
 - GitHub private vulnerability reporting is an external repository setting; `SECURITY.md`
   documents a safe fallback, but maintainers still need to enable or provide a private
   channel before requesting sensitive vulnerability details.
@@ -1131,7 +1148,7 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 
 ## Next Steps
 
-- Запустити `TASK-07.02-0061-stage-15-release-docs-final-hardening`.
+- Немає активної Stage implementation task.
 
 ## Open Questions
 

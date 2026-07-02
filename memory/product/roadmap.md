@@ -792,20 +792,20 @@ Root source trace:
     - не додавати full Next.js dependency install without explicit task-level approval;
     - не реалізовувати Stage 15 release automation.
 
-## Next
+## Completed
 
 - Stage 15: Release automation.
-  - Status: planned; implementation tasks created after Stage 14 human confirmation.
+  - Status: done after task-level human review.
   - Source: `SPEC.md` section 45.
   - Planning Task: `TASK-07.02-0054-stage-15-implementation-planning`.
   - Implementation Tasks:
     - `TASK-07.02-0055-stage-15-repository-governance-artifacts` - done;
     - `TASK-07.02-0056-stage-15-package-publish-metadata` - done;
-    - `TASK-07.02-0057-stage-15-changesets-versioning-changelog` - backlog;
-    - `TASK-07.02-0058-stage-15-ci-quality-gates` - backlog;
-    - `TASK-07.02-0059-stage-15-pack-dry-run-validation` - backlog;
-    - `TASK-07.02-0060-stage-15-npm-publish-workflow-provenance` - backlog;
-    - `TASK-07.02-0061-stage-15-release-docs-final-hardening` - backlog.
+    - `TASK-07.02-0057-stage-15-changesets-versioning-changelog` - done;
+    - `TASK-07.02-0058-stage-15-ci-quality-gates` - done;
+    - `TASK-07.02-0059-stage-15-pack-dry-run-validation` - done;
+    - `TASK-07.02-0060-stage-15-npm-publish-workflow-provenance` - done;
+    - `TASK-07.02-0061-stage-15-release-docs-final-hardening` - done.
   - Implementation Decomposition:
     - Task 1 replaces placeholder governance artifacts and sets Apache 2.0 package license
       metadata.
