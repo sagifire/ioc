@@ -28,6 +28,9 @@ Source trace: `SPEC.md` sections 1-54 and `AGENTS.md` architecture/workflow rule
 | REQ-GOV-003 | Provide repository governance artifacts: `LICENSE`, `NOTICE`, `CONTRIBUTING.md`, `SECURITY.md` and `TRADEMARKS.md`. | accepted |
 | REQ-SUPPORT-001 | Use GitHub Issues as the primary ordinary project contact/support channel. | accepted |
 | REQ-RELEASE-001 | Add release automation with versioning, changelog generation, CI, npm package dry-run validation, npm publish workflow and provenance support where practical. | accepted |
+| REQ-STABILIZATION-001 | Before fixing version `0.0.1`, perform a codebase audit covering errors, deviations from stated functionality, expected behavior and risks, with the audit report fully in Ukrainian. | accepted |
+| REQ-STABILIZATION-002 | Close every critical finding from the Stage 16 audit before fixing publishable package versions at `0.0.1`. | accepted |
+| REQ-RELEASE-002 | Fix publishable package versions and changelogs at `0.0.1` only after audit and critical-fix closure, preserving the existing no-unapproved-publish rule. | accepted |
 
 ## Requirement Status Rule
 

@@ -1129,12 +1129,29 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
   human review approval.
 - Stage 15 release automation and repository governance readiness завершено після approval
   фінальної release docs/final hardening task.
+- `TASK-07.02-0062-stage-16-implementation-planning` створена як окрема
+  interactive-memory-update задача для планування Stage 16.
+- Stage 16 `0.0.1` stabilization заплановано як три послідовні operational tasks:
+  `TASK-07.02-0063-stage-16-codebase-audit-report`,
+  `TASK-07.02-0064-stage-16-critical-fixes-from-audit` and
+  `TASK-07.02-0065-stage-16-version-0-0-1-stabilization-handoff`.
+- Для Stage 16 прийнято, що audit report має бути повністю українською мовою.
+- Для Stage 16 прийнято, що version `0.0.1` не фіксується до завершення audit task і
+  closure всіх critical audit findings.
+- Для Stage 16 прийнято використовувати existing Changesets/release tooling для version
+  fixation, а actual npm publish залишається забороненим без explicit human approval.
+- `TASK-07.02-0062-stage-16-implementation-planning` виконана агентом і переведена в
+  `review`.
 
 ## Current Risks
 
 - Binding factory internals не мають static dependency metadata; Stage 10 dependency edge
   model фіксує static required-port -> binding edges only and keeps provider-level cycles
   inside factories under existing container diagnostics.
+- Stage 16 audit ще не виконаний; до audit report немає підтвердження, що codebase не має
+  critical defects before `0.0.1`.
+- Publishable package versions still remain `0.0.0`; version `0.0.1` is intentionally
+  blocked until critical audit closure.
 - GitHub private vulnerability reporting is an external repository setting; `SECURITY.md`
   documents a safe fallback, but maintainers still need to enable or provide a private
   channel before requesting sensitive vulnerability details.
@@ -1148,7 +1165,10 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 
 ## Next Steps
 
-- Немає активної Stage implementation task.
+- Провести human review для
+  `TASK-07.02-0062-stage-16-implementation-planning`.
+- Після approval запустити
+  `TASK-07.02-0063-stage-16-codebase-audit-report`.
 
 ## Open Questions
 

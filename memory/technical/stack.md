@@ -190,6 +190,22 @@ Stage 15 repository artifacts:
 Actual npm publishing requires explicit human approval and external credentials/settings.
 Repository files may reference secret names, but must not contain tokens or secrets.
 
+## Stabilization Tooling
+
+Stage 16 uses the existing Stage 15 release toolchain for `0.0.1` stabilization:
+
+- Changesets for publishable package version and changelog fixation;
+- `pnpm release:validate` as the final local release/stabilization gate where practical;
+- `pnpm pack:dry-run` for packed artifact and export smoke validation;
+- GitHub Actions CI/release workflows as repository automation, without performing actual
+  npm publish unless explicitly approved.
+
+Stage 16 audit artifacts live in task memory under
+`memory/tasks/plan/TASK-07.02-0063-stage-16-codebase-audit-report/research/`.
+
+Version `0.0.1` must not be fixed before the audit is complete and all critical audit
+findings are closed or explicitly reclassified with rationale.
+
 ## Build Tooling
 
 Stage 2 build tool: `tsup`.

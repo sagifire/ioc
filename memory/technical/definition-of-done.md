@@ -56,7 +56,10 @@ The repository must provide:
 - repository governance docs;
 - security and contribution policy;
 - product mark guidance;
-- release workflow.
+- release workflow;
+- pre-`0.0.1` stabilization audit;
+- critical audit finding closure;
+- `0.0.1` version fixation for publishable packages.
 
 ## Architectural Definition Of Done
 
@@ -88,3 +91,4 @@ The implementation is safe when:
 - no package boundary is violated;
 - no hidden framework-specific dependency leaks into core.
 - release workflows do not commit secrets or publish without explicit human approval.
+- version `0.0.1` is not fixed while critical stabilization audit findings remain open.

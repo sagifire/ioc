@@ -111,6 +111,13 @@
   - Summary: Планування реалізації Stage 15 release automation and repository governance
     readiness і підготовка декількох implementation tasks.
   - Current: FIX-001
+- [TASK-07.02-0062-stage-16-implementation-planning](TASK-07.02-0062-stage-16-implementation-planning/index.md)
+  - Status: review
+  - Type: memory-update
+  - Execution Mode: interactive-memory-update
+  - Summary: Планування Stage 16 `0.0.1` stabilization audit, critical fixes and version
+    handoff.
+  - Current: FIX-001
 
 ## Stage 2 Implementation
 
@@ -437,6 +444,28 @@
   - Type: docs
   - Execution Mode: autonomous-implementation
   - Summary: Stage 15 release docs, final consistency checks and Project Memory sync.
+  - Current: RUN-001
+
+## Stage 16 Stabilization
+
+- [TASK-07.02-0063-stage-16-codebase-audit-report](TASK-07.02-0063-stage-16-codebase-audit-report/index.md)
+  - Status: backlog
+  - Type: research
+  - Execution Mode: autonomous-research
+  - Summary: Stage 16 pre-`0.0.1` codebase audit report повністю українською мовою.
+  - Current: RSCH-001
+- [TASK-07.02-0064-stage-16-critical-fixes-from-audit](TASK-07.02-0064-stage-16-critical-fixes-from-audit/index.md)
+  - Status: backlog
+  - Type: bugfix
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 16 closure of all critical findings from the codebase audit.
+  - Current: RUN-001
+- [TASK-07.02-0065-stage-16-version-0-0-1-stabilization-handoff](TASK-07.02-0065-stage-16-version-0-0-1-stabilization-handoff/index.md)
+  - Status: backlog
+  - Type: chore
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 16 version `0.0.1` fixation and stabilization handoff after audit and
+    critical fixes.
   - Current: RUN-001
 
 ## Format

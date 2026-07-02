@@ -23,6 +23,11 @@ or ordinary memory-update tasks.
     `memory/domain/open-questions.md`, `memory/technical/architecture.md`,
     `memory/technical/stack.md`, `memory/technical/rules.md`,
     `memory/technical/testing.md`, `memory/technical/definition-of-done.md`.
+- Human Stage 16 directive, 2026-07-02:
+  - Canonical targets: `memory/product/requirements.md`, `memory/product/roadmap.md`,
+    `memory/domain/glossary.md`, `memory/technical/stack.md`,
+    `memory/technical/rules.md`, `memory/technical/testing.md`,
+    `memory/technical/definition-of-done.md`.
 
 ## `SPEC.md` Section Map
 
@@ -116,6 +121,14 @@ or ordinary memory-update tasks.
   - `memory/product/roadmap.md`
   - `memory/technical/rules.md`
   - `memory/technical/stack.md`
+- Human Stage 16 directive, `0.0.1` stabilization audit and critical fixes:
+  - `memory/product/requirements.md`
+  - `memory/product/roadmap.md`
+  - `memory/domain/glossary.md`
+  - `memory/technical/stack.md`
+  - `memory/technical/rules.md`
+  - `memory/technical/testing.md`
+  - `memory/technical/definition-of-done.md`
 
 ## Source Handling
 

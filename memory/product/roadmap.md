@@ -6,6 +6,9 @@ Project roadmap starts with Project Memory bootstrap. After Stage 1, implementat
 follow `SPEC.md` sections 32-45 in the same order, shifted by one stage number in this
 roadmap.
 
+Stage 16 is a human-directed post-Stage-15 stabilization extension. It is not sourced from
+historical `SPEC.md` sections 32-45.
+
 Root source trace:
 
 - `SPEC.md` sections 32-45 - original staged implementation plan.
@@ -72,6 +75,11 @@ Root source trace:
 - `TASK-07.02-0059` - Stage 15 package dry-run validation implementation task.
 - `TASK-07.02-0060` - Stage 15 npm publish workflow/provenance implementation task.
 - `TASK-07.02-0061` - Stage 15 release docs/final hardening implementation task.
+- `TASK-07.02-0062` - Stage 16 implementation planning task.
+- `TASK-07.02-0063` - Stage 16 codebase audit report research task.
+- `TASK-07.02-0064` - Stage 16 critical fixes from audit implementation task.
+- `TASK-07.02-0065` - Stage 16 version `0.0.1` and stabilization handoff implementation
+  task.
 
 ## Completed
 
@@ -852,4 +860,53 @@ Root source trace:
       details in GitHub Issues;
     - не змінювати runtime behavior, public API або package boundaries без окремої
       task-level потреби;
+    - не редагувати `memory/sources/SPEC.md`.
+
+## Planned
+
+- Stage 16: `0.0.1` stabilization audit and critical fixes.
+  - Status: planned; planning task is in review.
+  - Source: human directive від 2026-07-02.
+  - Planning Task: `TASK-07.02-0062-stage-16-implementation-planning`.
+  - Operational Tasks:
+    - `TASK-07.02-0063-stage-16-codebase-audit-report` - backlog;
+    - `TASK-07.02-0064-stage-16-critical-fixes-from-audit` - backlog;
+    - `TASK-07.02-0065-stage-16-version-0-0-1-stabilization-handoff` - backlog.
+  - Implementation Decomposition:
+    - Task 1 проводить аудит кодової бази і пише audit report повністю українською
+      мовою.
+    - Task 2 закриває кожну audit finding із критичністю `critical`.
+    - Task 3 фіксує publishable package versions at `0.0.1` і переводить проект у
+      stabilization mode після critical closure.
+  - Decisions:
+    - Stage 16 стартує тільки після завершення Stage 15 release/governance readiness.
+    - Аудит і виправлення розділені, щоб audit findings лишались reviewable.
+    - Audit report має бути повністю українською мовою.
+    - Critical findings мають бути закриті до фіксації version `0.0.1`.
+    - Non-critical findings мають стати follow-up tasks або documented risks, якщо вони не
+      блокують critical fix чи final validation.
+    - Existing Changesets/release tooling є default path для version `0.0.1`.
+    - Actual npm publish залишається заблокованим без explicit human approval.
+  - Audit Scope:
+    - поведінка source code;
+    - public API and package exports;
+    - tests and type tests;
+    - docs and examples;
+    - release/versioning automation;
+    - Project Memory consistency;
+    - architecture/package boundary risks.
+  - Acceptance:
+    - існує повністю український audit report;
+    - audit findings мають severity and evidence;
+    - усі `critical` findings закриті або явно reclassified with rationale;
+    - behavior changes from critical fixes мають tests;
+    - publishable package manifests and changelogs fixed at `0.0.1`;
+    - final release/stabilization validation проходить або limitations documented;
+    - actual npm publish не виконується без explicit human approval.
+  - Guardrails:
+    - не фіксувати `0.0.1`, доки critical audit findings лишаються open;
+    - не змішувати аудит і виправлення в одній task;
+    - не робити broad refactor без прямої прив'язки до audit finding;
+    - не змінювати runtime behavior поза межами critical fixes;
+    - не виконувати actual npm publish без explicit human approval;
     - не редагувати `memory/sources/SPEC.md`.

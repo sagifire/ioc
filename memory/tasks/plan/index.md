@@ -189,6 +189,18 @@
 - [TASK-07.02-0061-stage-15-release-docs-final-hardening](TASK-07.02-0061-stage-15-release-docs-final-hardening/index.md)
   - Type: folder
   - Purpose: Задача реалізації Stage 15 release docs and final hardening.
+- [TASK-07.02-0062-stage-16-implementation-planning](TASK-07.02-0062-stage-16-implementation-planning/index.md)
+  - Type: folder
+  - Purpose: Планування Stage 16 `0.0.1` stabilization audit and critical fixes.
+- [TASK-07.02-0063-stage-16-codebase-audit-report](TASK-07.02-0063-stage-16-codebase-audit-report/index.md)
+  - Type: folder
+  - Purpose: Задача аудиту Stage 16 перед фіксацією `0.0.1`.
+- [TASK-07.02-0064-stage-16-critical-fixes-from-audit](TASK-07.02-0064-stage-16-critical-fixes-from-audit/index.md)
+  - Type: folder
+  - Purpose: Задача закриття critical findings із Stage 16 audit report.
+- [TASK-07.02-0065-stage-16-version-0-0-1-stabilization-handoff](TASK-07.02-0065-stage-16-version-0-0-1-stabilization-handoff/index.md)
+  - Type: folder
+  - Purpose: Задача фіксації version `0.0.1` and stabilization handoff.
 
 ## Files
 

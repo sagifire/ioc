@@ -476,3 +476,54 @@ Stage 15 must not add:
 - hidden discovery, decorators, `reflect-metadata` or service locator behavior;
 - credential management outside repository files;
 - edits to `memory/sources/SPEC.md`.
+
+## Stage 16 Stabilization Rules
+
+Stage 16 adds a pre-`0.0.1` stabilization audit, critical-fix closure and version handoff.
+It must preserve the architecture boundaries and release safety rules established by
+earlier stages.
+
+Stage 16 allowed scope:
+
+- codebase audit covering source behavior, public API, tests, docs/examples, package
+  exports, release/versioning and Project Memory consistency;
+- fully Ukrainian audit report;
+- fixes for audit findings classified as `critical`;
+- tests and verification for behavior-changing critical fixes;
+- version and changelog fixation for publishable packages at `0.0.1`;
+- release-status docs and Project Memory sync for stabilization handoff.
+
+Stage 16 audit rules:
+
+- audit report must be fully Ukrainian;
+- audit task must not change code, package versions, changelogs or release workflows;
+- findings must include severity, evidence, impact and recommended next action;
+- severity `critical` means the finding blocks `0.0.1` readiness until fixed or
+  explicitly reclassified with rationale.
+
+Stage 16 critical-fix rules:
+
+- fix root causes, not only symptoms;
+- close every critical finding before version `0.0.1` is fixed;
+- add or update tests for every behavior change;
+- do not silently close non-critical findings; convert them to follow-up tasks or
+  documented risks unless they block a critical fix or final validation;
+- avoid broad refactors without direct audit-finding scope.
+
+Stage 16 version rules:
+
+- use the existing Changesets/versioning flow unless a concrete blocker is documented;
+- fix publishable package versions and changelogs at `0.0.1` only after critical closure;
+- keep the root workspace private and do not treat root workspace version as a publishable
+  package version unless a task documents why it must change;
+- run `pnpm release:validate` where practical before declaring the version handoff
+  review-ready;
+- do not execute actual npm publish without explicit human approval.
+
+Stage 16 must not add:
+
+- new broad product features;
+- new framework dependencies in `@sagifire/ioc`;
+- hidden discovery, decorators, `reflect-metadata` or service locator behavior;
+- publish credentials or external repository/npm settings;
+- edits to `memory/sources/SPEC.md`.

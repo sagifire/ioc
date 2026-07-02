@@ -23,6 +23,9 @@
 | Package dry-run validation | Stage 15 verification that built npm package artifacts contain intended files and usable exports before real publish. |
 | npm provenance | npm publish metadata proving the package was published through a trusted CI workflow where supported. |
 | Publish workflow | GitHub Actions release workflow that publishes validated packages to npm using repository secrets and explicit human-controlled triggers. |
+| Stabilization audit | Stage 16 pre-`0.0.1` audit of code behavior, public API, tests, docs/examples, package exports, release readiness and risks. |
+| Critical audit finding | Audit finding whose impact can invalidate `0.0.1` readiness; all critical findings must be closed or explicitly reclassified before version fixation. |
+| `0.0.1` release candidate | First intended public package version after Stage 16 audit and critical-fix closure; npm publish still requires explicit human approval. |
 | Token | Typed dependency identity object with stable runtime `id`; object identity is not required for matching. |
 | Token namespace | Helper that creates stable prefixed token IDs, for example `contact-requests.public-api`. |
 | Provider | Registration that knows how to produce a token value through value, factory, class, async factory or async resource binding. |

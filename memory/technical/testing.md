@@ -321,3 +321,17 @@ task must not execute actual publish without explicit human approval.
 
 Stage 15 final release hardening must re-run relevant release checks, scan docs for stale
 release/publishing claims and sync Project Memory with the final Stage 15 state.
+
+Stage 16 audit must record what was inspected and which verification commands were run.
+The audit should cover code behavior, public API, tests/type tests, package exports,
+docs/examples, release/versioning automation, package boundaries and Project Memory
+consistency. If a check is not run, the audit report must document the reason.
+
+Stage 16 critical fixes must add or update tests for every behavior-changing fix. The run
+result must map every critical audit finding to its fix, verification or explicit
+reclassification rationale. Non-critical findings must not be silently counted as closed.
+
+Stage 16 version `0.0.1` handoff must run `pnpm release:validate` where practical after
+version/changelog updates. The task result must record package version state, changelog
+state, packed artifact validation and whether npm publish remains pending or was
+explicitly approved separately.
