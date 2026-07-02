@@ -112,7 +112,7 @@
     readiness і підготовка декількох implementation tasks.
   - Current: FIX-001
 - [TASK-07.02-0062-stage-16-implementation-planning](TASK-07.02-0062-stage-16-implementation-planning/index.md)
-  - Status: review
+  - Status: done
   - Type: memory-update
   - Execution Mode: interactive-memory-update
   - Summary: Планування Stage 16 `0.0.1` stabilization audit, critical fixes and version

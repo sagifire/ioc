@@ -865,7 +865,7 @@ Root source trace:
 ## Planned
 
 - Stage 16: `0.0.1` stabilization audit and critical fixes.
-  - Status: planned; planning task is in review.
+  - Status: planned; planning task завершена після task-level human review approval.
   - Source: human directive від 2026-07-02.
   - Planning Task: `TASK-07.02-0062-stage-16-implementation-planning`.
   - Operational Tasks:

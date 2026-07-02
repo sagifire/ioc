@@ -1140,8 +1140,8 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
   closure всіх critical audit findings.
 - Для Stage 16 прийнято використовувати existing Changesets/release tooling для version
   fixation, а actual npm publish залишається забороненим без explicit human approval.
-- `TASK-07.02-0062-stage-16-implementation-planning` виконана агентом і переведена в
-  `review`.
+- `TASK-07.02-0062-stage-16-implementation-planning` завершена після task-level human
+  review approval.
 
 ## Current Risks
 
@@ -1165,10 +1165,7 @@ Stage 12 `@sagifire/ioc-testing` завершено після approval фіна
 
 ## Next Steps
 
-- Провести human review для
-  `TASK-07.02-0062-stage-16-implementation-planning`.
-- Після approval запустити
-  `TASK-07.02-0063-stage-16-codebase-audit-report`.
+- Запустити `TASK-07.02-0063-stage-16-codebase-audit-report`.
 
 ## Open Questions
 

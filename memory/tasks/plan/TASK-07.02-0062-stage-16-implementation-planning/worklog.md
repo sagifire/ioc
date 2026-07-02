@@ -64,3 +64,7 @@
   - audit task має `RSCH-001`;
   - implementation tasks мають `RUN-001` placeholders.
 - Виконано self-review, planning task переведено в `review`.
+- Отримано task-level human review approval:
+  "Я зробив ревю, можеш завершувати задачу."
+- Planning task переведено з `review` у `done`; `state.md`, `progress.md`, `task.md` і
+  `FIX-001.md` синхронізовано.
