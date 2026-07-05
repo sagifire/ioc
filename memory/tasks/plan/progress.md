@@ -597,11 +597,11 @@
     implementation.
   - Current: RUN-001
 - [TASK-07.05-0085-stage-17-dsl-ergonomics-hardening](TASK-07.05-0085-stage-17-dsl-ergonomics-hardening/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Phase 5 DSL ergonomics after object API stabilization.
-  - Current: n/a
+  - Current: RUN-001
 - [TASK-07.05-0086-stage-17-0-0-2-docs-examples](TASK-07.05-0086-stage-17-0-0-2-docs-examples/index.md)
   - Status: backlog
   - Type: docs

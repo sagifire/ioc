@@ -375,7 +375,9 @@ DSL надає ergonomic configurators:
 - `module()`;
 - `defineApp()`;
 - bind helper DSL;
-- `adapt()`.
+- `add()` helper DSL for composition-root multi contributions;
+- `adapt(token, factory)` compatibility helper;
+- `adapter(target).from(source).using(factory)` graph-aware adapter helper.
 
 DSL rules:
 
@@ -383,6 +385,8 @@ DSL rules:
 - object configuration remains fully usable;
 - DSL не створює second runtime/container/composer model;
 - DSL не приховує dependency graph;
+- graph-aware DSL adapters require explicit source declarations;
+- compatibility `adapt(token, factory)` не інферить adapter-source graph edges;
 - DSL не виконує filesystem discovery;
 - DSL не робить object API legacy.
 

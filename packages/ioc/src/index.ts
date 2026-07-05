@@ -1,13 +1,19 @@
 export { InvalidTokenIdError, contributionToken, multiToken, namespace, token } from './tokens'
 export type { ContributionToken, MultiToken, Token, TokenNamespace, TokenOptions } from './tokens'
-export { adapt, bind, defineApp, module } from './dsl'
+export { adapt, adapter, add, bind, defineApp, module } from './dsl'
 export type {
+    AdapterDslBuilder,
+    AdapterUsingDslBuilder,
+    AddDslBuilder,
+    AppDslAdapterBindingDefinition,
     AppDslAsyncFactoryBindingDefinition,
     AppDslBindingDefinition,
     AppDslClassBindingDefinition,
     AppDslDefinition,
     AppDslDefinitionInput,
     AppDslFactoryBindingDefinition,
+    AppDslMultiFactoryBindingDefinition,
+    AppDslMultiValueBindingDefinition,
     AppDslValueBindingDefinition,
     BindDslBuilder,
     ModuleDslDefinition,

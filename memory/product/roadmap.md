@@ -229,6 +229,11 @@ Stage 17 працює з feature request для `0.0.2`, але audit не пр�
 - `multiToken()` / `contributionToken()` helper API is additive type-level ergonomics only:
   runtime identity remains token ID based and ordinary `token()` remains valid for multi
   capabilities.
+- DSL ergonomics for `0.0.2` are additive:
+  - `add(token)` supports composition-root multi contributions;
+  - `adapter(target).from(source).using(factory)` supports graph-aware adapter declarations;
+  - existing `adapt(token, factory)` remains backward compatible and does not infer source
+    edges.
 
 ### `0.0.2` implementation phases
 

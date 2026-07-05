@@ -62,6 +62,30 @@ memory/tasks/plan/TASK-07.05-0073-stage-17-0-0-2-implementation-planning/
 Остання implementation task:
 
 ```text
+memory/tasks/plan/TASK-07.05-0085-stage-17-dsl-ergonomics-hardening/
+```
+
+Статус задачі: `done` після human review approval від 2026-07-05.
+
+Результат RUN-001:
+
+- DSL `module()` покрито explicit cardinality declarations для finalized `0.0.2` object
+  API;
+- додано `add(token)` DSL helper для composition-root multi contributions;
+- додано graph-aware `adapter(target).from(source).using(factory)` DSL helper;
+- existing `adapt(token, factory)` збережено як backward-compatible context-factory binding
+  helper без inferred source edges;
+- `defineApp()` компілює new DSL declarations у existing composer object API без separate
+  graph model;
+- parity/compatibility tests додано;
+- full quality gates пройшли;
+- human review approval отримано, задачу завершено.
+
+## Попередня implementation task
+
+Попередня implementation task:
+
+```text
 memory/tasks/plan/TASK-07.05-0084-stage-17-multitoken-contributiontoken-ergonomics/
 ```
 
@@ -79,12 +103,12 @@ memory/tasks/plan/TASK-07.05-0084-stage-17-multitoken-contributiontoken-ergonomi
   metadata;
 - ordinary `token()` лишається fully usable для multi capabilities;
 - overload-based TypeScript rejection для `bind(multiToken)` / `get(multiToken)` не додано;
-- full quality gates пройшли.
+- full quality gates пройшли;
 - human review approval отримано, задачу завершено.
 
-## Попередня implementation task
+## Передпопередня implementation task
 
-Попередня implementation task:
+Передпопередня implementation task:
 
 ```text
 memory/tasks/plan/TASK-07.05-0083-stage-17-testing-helpers-new-primitives/
@@ -102,12 +126,12 @@ memory/tasks/plan/TASK-07.05-0083-stage-17-testing-helpers-new-primitives/
   value/factory providers;
 - додано child scope assertion helpers через public scope APIs;
 - minimal testing docs sync виконано;
-- full quality gates пройшли.
+- full quality gates пройшли;
 - human review approval отримано, задачу завершено.
 
-## Передпопередня implementation task
+## Раніша implementation task
 
-Передпопередня implementation task:
+Раніша implementation task:
 
 ```text
 memory/tasks/plan/TASK-07.05-0082-stage-17-child-scope-runtime-semantics/
@@ -158,12 +182,15 @@ memory/tasks/plan/TASK-07.05-0080-stage-17-adapter-cycle-diagnostics/
   sensitive vulnerability details потрібне зовнішнє підтвердження.
 - `MultiToken` / `ContributionToken` прийнято як type-level helper only; docs/examples
   мають явно не обіцяти compile-time rejection для `bind()` / `get()`.
+- DSL має два adapter helper paths: compatibility `adapt(token, factory)` без source-edge
+  inference і graph-aware `adapter(target).from(source).using(factory)` з explicit source
+  edges; docs/examples task має пояснити migration path.
 
 ## Наступні кроки
 
-1. Стартувати `TASK-07.05-0085-stage-17-dsl-ergonomics-hardening`.
-2. Виконувати `0.0.2` phases послідовно: testing/ergonomics,
-   docs/examples, full audit, stabilization handoff.
+1. Стартувати `TASK-07.05-0086-stage-17-0-0-2-docs-examples`.
+2. Далі виконувати `0.0.2` phases послідовно: docs/examples, full audit,
+   stabilization handoff.
 
 ## Відкриті питання
 

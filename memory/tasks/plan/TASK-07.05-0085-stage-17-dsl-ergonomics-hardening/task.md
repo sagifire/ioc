@@ -1,11 +1,11 @@
 # TASK-07.05-0085: DSL ergonomics hardening
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-05
 Owner Role: Implementation Agent
-Current Run: n/a
+Current Run: RUN-001
 Current Research: n/a
 Current Fixation: n/a
 
@@ -37,11 +37,11 @@ Phase 5: Testing and API ergonomics.
 
 ## Acceptance Criteria
 
-- [ ] DSL supports finalized `0.0.2` object API where accepted.
-- [ ] Existing DSL users remain backward compatible.
-- [ ] DSL does not hide dependency graph semantics.
-- [ ] Object API remains fully usable without DSL.
-- [ ] Tests cover parity and compatibility.
+- [x] DSL supports finalized `0.0.2` object API where accepted.
+- [x] Existing DSL users remain backward compatible.
+- [x] DSL does not hide dependency graph semantics.
+- [x] Object API remains fully usable without DSL.
+- [x] Tests cover parity and compatibility.
 
 ## Dependencies
 
@@ -54,4 +54,4 @@ Phase 5: Testing and API ergonomics.
 
 ## Runs
 
-Run artifacts треба створити під час запуску задачі.
+- [RUN-001](runs/RUN-001/result.md)

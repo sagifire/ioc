@@ -423,6 +423,20 @@ Stage 17 почався як audit/decision gate для `0.0.2` feature request 
   with branded multi tokens; declaration validation and runtime cardinality gating remain
   the enforcement layer.
 
+### `0.0.2` DSL ergonomics rules
+
+- DSL cardinality declarations compile to the same `provides` / `requires` object
+  configuration fields.
+- `add(token)` DSL helper compiles to `composer.add(token)` for composition-root multi
+  contributions.
+- `adapter(target).from(source).using(factory)` DSL helper compiles to graph-aware
+  `composer.adapt(target).from(source).using(factory)`.
+- Existing DSL `adapt(token, factory)` remains backward-compatible and does not infer
+  adapter-source graph edges.
+- Adapter source edges in DSL must be declared explicitly; DSL must not inspect factory
+  bodies or execute factories to infer graph dependencies.
+- Object configuration API remains fully usable without DSL.
+
 ### `0.0.2` general guardrails
 
 - diagnostic codes лишаються у namespace `SAGIFIRE_IOC_*`;

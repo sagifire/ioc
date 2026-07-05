@@ -2,6 +2,7 @@ import { describe, expect, expectTypeOf, test } from 'vitest'
 
 import {
     type ComposedRuntime,
+    type ComposerAdapterFactory,
     createComposer,
     defineModule,
     DuplicateModuleDependencyError,
@@ -16,13 +17,20 @@ import {
     type ModuleSetupContext
 } from '../src/composer.js'
 import {
+    add,
     adapt,
+    adapter,
     bind,
     defineApp,
     module as moduleDsl,
+    type AdapterDslBuilder,
+    type AddDslBuilder,
+    type AppDslAdapterBindingDefinition,
     type AppDslAsyncFactoryBindingDefinition,
     type AppDslDefinition,
     type AppDslFactoryBindingDefinition,
+    type AppDslMultiFactoryBindingDefinition,
+    type AppDslMultiValueBindingDefinition,
     type AppDslValueBindingDefinition,
     type BindDslBuilder,
     type ModuleDslDefinition,
@@ -43,6 +51,10 @@ interface ContactRequestsPublicApi {
     submit(): string
 }
 
+interface PermissionsPublicApi {
+    canSubmit(): boolean
+}
+
 type TokenValue<TToken> = TToken extends Token<infer TValue> ? TValue : never
 
 const AUTH_READER = token<AuthReader>('dsl.auth-reader')
@@ -51,6 +63,8 @@ const AUTH_PUBLIC_API = token<AuthPublicApi>('dsl.auth-public-api')
 const CONTACT_REQUESTS_PUBLIC_API = token<ContactRequestsPublicApi>(
     'dsl.contact-requests-public-api'
 )
+const PERMISSIONS_PUBLIC_API = token<PermissionsPublicApi>('dsl.permissions-public-api')
+const AUDIT_EVENTS = token<string>('dsl.audit-events')
 const VALUE_AUTH_READER = token<AuthReader>('dsl.value-auth-reader')
 const FACTORY_AUTH_READER = token<AuthReader>('dsl.factory-auth-reader')
 const CLASS_AUTH_READER = token<AuthReader>('dsl.class-auth-reader')
@@ -124,6 +138,52 @@ describe('module DSL foundation', () => {
         expect(Object.isFrozen(moduleDefinition)).toBe(true)
         expect(Object.isFrozen(moduleDefinition.requires)).toBe(true)
         expect(Object.isFrozen(moduleDefinition.provides)).toBe(true)
+    })
+
+    test('normalizes explicit multi cardinality for required ports and capabilities', () => {
+        const moduleDefinition = moduleDsl('dsl-multi-cardinality', {
+            requires: [
+                {
+                    token: AUDIT_EVENTS,
+                    required: false,
+                    cardinality: 'multi'
+                }
+            ],
+            provides: [
+                {
+                    token: AUDIT_EVENTS,
+                    kind: 'event-subscriber',
+                    cardinality: 'multi'
+                }
+            ],
+            setup(context): void {
+                context.add(AUDIT_EVENTS).toValue('module-event')
+            }
+        })
+
+        expect(moduleDefinition.requires).toEqual([
+            {
+                token: AUDIT_EVENTS,
+                required: false,
+                kind: 'external',
+                cardinality: 'multi'
+            }
+        ])
+        expect(moduleDefinition.provides).toEqual([
+            {
+                token: AUDIT_EVENTS,
+                kind: 'event-subscriber',
+                cardinality: 'multi'
+            }
+        ])
+        expectTypeOf(moduleDefinition.requires[0].cardinality).toEqualTypeOf<ModuleCardinality>()
+        expectTypeOf(moduleDefinition.provides[0].cardinality).toEqualTypeOf<ModuleCardinality>()
+        expectTypeOf<
+            TokenValue<(typeof moduleDefinition.requires)[0]['token']>
+        >().toEqualTypeOf<string>()
+        expectTypeOf<
+            TokenValue<(typeof moduleDefinition.provides)[0]['token']>
+        >().toEqualTypeOf<string>()
     })
 
     test('supports id shorthand and remains compatible with composer use', async () => {
@@ -823,6 +883,299 @@ describe('bind/adapt DSL', () => {
         expect(publicApi.submit()).toBe('value-user|factory-user|class-user|async-user')
         expect(factoryCalls).toBe(1)
         expect(asyncFactoryCalls).toBe(1)
+
+        await runtime.dispose()
+    })
+
+    test('adds composition-root multi contributions through defineApp', async () => {
+        const firstAuditModule = moduleDsl('dsl-add-first-audit', {
+            provides: [
+                {
+                    token: AUDIT_EVENTS,
+                    kind: 'event-subscriber',
+                    cardinality: 'multi'
+                }
+            ],
+            setup(context): void {
+                context.add(AUDIT_EVENTS).toValue('module-first')
+            }
+        })
+        const secondAuditModule = moduleDsl('dsl-add-second-audit', {
+            provides: [
+                {
+                    token: AUDIT_EVENTS,
+                    kind: 'event-subscriber',
+                    cardinality: 'multi'
+                }
+            ],
+            setup(context): void {
+                context.add(AUDIT_EVENTS).toValue('module-second')
+            }
+        })
+        const consumerModule = moduleDsl('dsl-add-audit-consumer', {
+            requires: [
+                {
+                    token: AUDIT_EVENTS,
+                    cardinality: 'multi'
+                }
+            ],
+            setup(): void {}
+        })
+        const objectComposer = createComposer()
+            .use(firstAuditModule)
+            .use(secondAuditModule)
+            .use(consumerModule)
+        let dslFactoryCalls = 0
+
+        objectComposer.add(AUDIT_EVENTS).toValue('root-first')
+        objectComposer
+            .add(AUDIT_EVENTS)
+            .toFactory(() => {
+                return 'root-second'
+            })
+            .singleton()
+
+        const addBuilder = add(AUDIT_EVENTS)
+        const rootValue = addBuilder.toValue('root-first')
+        const rootFactory = add(AUDIT_EVENTS)
+            .toFactory(() => {
+                dslFactoryCalls += 1
+
+                return 'root-second'
+            })
+            .singleton()
+        const app = defineApp({
+            modules: [firstAuditModule, secondAuditModule, consumerModule],
+            bindings: [rootValue, rootFactory]
+        })
+
+        expectTypeOf(addBuilder).toEqualTypeOf<AddDslBuilder<string>>()
+        expectTypeOf(rootValue).toEqualTypeOf<AppDslMultiValueBindingDefinition<string>>()
+        expectTypeOf(rootFactory).toEqualTypeOf<AppDslMultiFactoryBindingDefinition<string>>()
+        expect(rootFactory.lifetime).toBe('singleton')
+        expect(app.validate()).toEqual(objectComposer.validate())
+        expect(app.getGraph()).toEqual(objectComposer.getGraph())
+        expect(app.getGraph().requiredPorts).toEqual([
+            {
+                moduleId: 'dsl-add-audit-consumer',
+                tokenId: 'dsl.audit-events',
+                required: true,
+                kind: 'external',
+                cardinality: 'multi',
+                providerCount: 4,
+                satisfiedBy: 'capability'
+            }
+        ])
+        expect(app.getGraph().capabilities[0]?.providers).toEqual([
+            {
+                source: 'module',
+                moduleId: 'dsl-add-first-audit',
+                registrationKind: 'add',
+                registrationIndex: 0
+            },
+            {
+                source: 'module',
+                moduleId: 'dsl-add-second-audit',
+                registrationKind: 'add',
+                registrationIndex: 1
+            },
+            {
+                source: 'composition-root',
+                registrationKind: 'add',
+                registrationIndex: 2
+            },
+            {
+                source: 'composition-root',
+                registrationKind: 'add',
+                registrationIndex: 3
+            }
+        ])
+        expect(dslFactoryCalls).toBe(0)
+
+        const runtime = await app.compose()
+
+        expect(dslFactoryCalls).toBe(0)
+        expect(runtime.getAll(AUDIT_EVENTS)).toEqual([
+            'module-first',
+            'module-second',
+            'root-first',
+            'root-second'
+        ])
+        expect(dslFactoryCalls).toBe(1)
+        expect(runtime.inspect().providerRegistrations[2]).toEqual({
+            source: 'composition-root',
+            tokenId: 'dsl.audit-events',
+            capabilityKind: 'event-subscriber',
+            cardinality: 'multi',
+            visibility: 'exported',
+            registrationKind: 'multi',
+            providers: [
+                {
+                    providerKind: 'value',
+                    registrationIndex: 2,
+                    lifetime: 'singleton'
+                },
+                {
+                    providerKind: 'factory',
+                    registrationIndex: 3,
+                    lifetime: 'singleton'
+                }
+            ]
+        })
+
+        await runtime.dispose()
+    })
+
+    test('registers graph-aware adapter declarations with explicit source edges', async () => {
+        const authModule = moduleDsl('dsl-graph-adapter-auth', {
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(AUTH_PUBLIC_API).toValue({
+                    requireUser(): string {
+                        return 'graph-adapter-user'
+                    }
+                })
+            }
+        })
+        const permissionsModule = moduleDsl('dsl-graph-adapter-permissions', {
+            provides: [
+                {
+                    token: PERMISSIONS_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(PERMISSIONS_PUBLIC_API).toValue({
+                    canSubmit(): boolean {
+                        return true
+                    }
+                })
+            }
+        })
+        const contactRequestsModule = moduleDsl('dsl-graph-adapter-contact-requests', {
+            requires: [
+                {
+                    token: AUTH_READER
+                }
+            ],
+            provides: [
+                {
+                    token: CONTACT_REQUESTS_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(CONTACT_REQUESTS_PUBLIC_API).toFactory((resolutionContext) => {
+                    const authReader = resolutionContext.get(AUTH_READER)
+
+                    return {
+                        submit(): string {
+                            return authReader.currentUserId()
+                        }
+                    }
+                })
+            }
+        })
+        const adapterSources = {
+            auth: AUTH_PUBLIC_API,
+            permissions: PERMISSIONS_PUBLIC_API
+        }
+        const objectComposer = createComposer()
+            .use(authModule)
+            .use(permissionsModule)
+            .use(contactRequestsModule)
+        let dslAdapterCalls = 0
+
+        objectComposer
+            .adapt(AUTH_READER)
+            .from(adapterSources)
+            .using(({ auth, permissions }) => {
+                return {
+                    currentUserId(): string {
+                        return permissions.canSubmit() ? auth.requireUser() : 'denied'
+                    }
+                }
+            })
+
+        const adapterBuilder = adapter(AUTH_READER)
+        const adapterBinding = adapterBuilder
+            .from(adapterSources)
+            .using(({ auth, permissions }) => {
+                dslAdapterCalls += 1
+                expectTypeOf(auth).toEqualTypeOf<AuthPublicApi>()
+                expectTypeOf(permissions).toEqualTypeOf<PermissionsPublicApi>()
+
+                return {
+                    currentUserId(): string {
+                        return permissions.canSubmit() ? auth.requireUser() : 'denied'
+                    }
+                }
+            })
+        const app = defineApp({
+            modules: [authModule, permissionsModule, contactRequestsModule],
+            bindings: [adapterBinding]
+        })
+
+        expectTypeOf(adapterBuilder).toEqualTypeOf<AdapterDslBuilder<AuthReader>>()
+        expectTypeOf(adapterBinding).toMatchTypeOf<AppDslAdapterBindingDefinition<AuthReader>>()
+        expectTypeOf(adapterBinding.useAdapter).toEqualTypeOf<
+            ComposerAdapterFactory<typeof adapterSources, AuthReader>
+        >()
+        expectTypeOf<TokenValue<typeof adapterBinding.source.auth>>().toEqualTypeOf<AuthPublicApi>()
+        expect(app.validate()).toEqual(objectComposer.validate())
+        expect(app.getGraph()).toEqual(objectComposer.getGraph())
+        expect(app.inspect().edges).toContainEqual({
+            edgeKind: 'adapter-source',
+            consumerModuleId: 'dsl-graph-adapter-contact-requests',
+            requiredTokenId: 'dsl.auth-reader',
+            dependencyKind: 'external',
+            adapterTargetTokenId: 'dsl.auth-reader',
+            adapterSourceTokenId: 'dsl.auth-public-api',
+            adapterSourceKind: 'object',
+            adapterSourceProperty: 'auth',
+            sourceProvider: {
+                source: 'module',
+                providerKind: 'capability',
+                moduleId: 'dsl-graph-adapter-auth',
+                tokenId: 'dsl.auth-public-api',
+                capabilityKind: 'public-api',
+                cardinality: 'single',
+                registrationKind: 'bind',
+                registrationIndex: 0
+            }
+        })
+        expect(app.inspect().edges).toContainEqual({
+            edgeKind: 'adapter-source',
+            consumerModuleId: 'dsl-graph-adapter-contact-requests',
+            requiredTokenId: 'dsl.auth-reader',
+            dependencyKind: 'external',
+            adapterTargetTokenId: 'dsl.auth-reader',
+            adapterSourceTokenId: 'dsl.permissions-public-api',
+            adapterSourceKind: 'object',
+            adapterSourceProperty: 'permissions',
+            sourceProvider: {
+                source: 'module',
+                providerKind: 'capability',
+                moduleId: 'dsl-graph-adapter-permissions',
+                tokenId: 'dsl.permissions-public-api',
+                capabilityKind: 'public-api',
+                cardinality: 'single',
+                registrationKind: 'bind',
+                registrationIndex: 0
+            }
+        })
+        expect(dslAdapterCalls).toBe(0)
+
+        const runtime = await app.compose()
+
+        expect(dslAdapterCalls).toBe(0)
+        expect(runtime.get(CONTACT_REQUESTS_PUBLIC_API).submit()).toBe('graph-adapter-user')
+        expect(dslAdapterCalls).toBe(1)
 
         await runtime.dispose()
     })

@@ -3,6 +3,9 @@ import {
     defineModule,
     type ComposedRuntime,
     type Composer,
+    type ComposerAdapterFactory,
+    type ComposerAdapterResolvedSource,
+    type ComposerAdapterSource,
     type ComposerAsyncBindingFactory,
     type ComposerBindingFactory,
     type ComposerInspection,
@@ -16,7 +19,7 @@ import {
     type ModuleGraph,
     type PreparedComposition
 } from './composer'
-import type { ClassConstructor } from './container'
+import type { ClassConstructor, LifetimeBinding, ProviderLifetime } from './container'
 import type { DiagnosticReport } from './diagnostics'
 import type { Token } from './tokens'
 
@@ -75,6 +78,9 @@ export type AppDslBindingDefinition<TValue = unknown> =
     | AppDslFactoryBindingDefinition<TValue>
     | AppDslClassBindingDefinition<TValue>
     | AppDslAsyncFactoryBindingDefinition<TValue>
+    | AppDslMultiValueBindingDefinition<TValue>
+    | AppDslMultiFactoryBindingDefinition<TValue>
+    | AppDslAdapterBindingDefinition<TValue>
 
 export interface AppDslValueBindingDefinition<TValue = unknown> {
     readonly token: Token<TValue>
@@ -96,6 +102,29 @@ export interface AppDslAsyncFactoryBindingDefinition<TValue = unknown> {
     readonly useAsyncFactory: ComposerAsyncBindingFactory<TValue>
 }
 
+export interface AppDslMultiValueBindingDefinition<TValue = unknown> {
+    readonly token: Token<TValue>
+    readonly addValue: TValue
+}
+
+export interface AppDslMultiFactoryBindingDefinition<TValue = unknown> {
+    readonly token: Token<TValue>
+    readonly addFactory: ComposerBindingFactory<TValue>
+    readonly lifetime: ProviderLifetime | undefined
+    singleton(): AppDslMultiFactoryBindingDefinition<TValue>
+    transient(): AppDslMultiFactoryBindingDefinition<TValue>
+    scoped(): AppDslMultiFactoryBindingDefinition<TValue>
+}
+
+export interface AppDslAdapterBindingDefinition<
+    TValue = unknown,
+    TSource extends ComposerAdapterSource = ComposerAdapterSource
+> {
+    readonly token: Token<TValue>
+    readonly source: TSource
+    useAdapter(source: ComposerAdapterResolvedSource<TSource>): TValue
+}
+
 export interface BindDslBuilder<TValue> {
     toValue(value: TValue): AppDslValueBindingDefinition<TValue>
     toFactory(factory: ComposerBindingFactory<TValue>): AppDslFactoryBindingDefinition<TValue>
@@ -103,6 +132,23 @@ export interface BindDslBuilder<TValue> {
     toAsyncFactory(
         factory: ComposerAsyncBindingFactory<TValue>
     ): AppDslAsyncFactoryBindingDefinition<TValue>
+}
+
+export interface AddDslBuilder<TValue> {
+    toValue(value: TValue): AppDslMultiValueBindingDefinition<TValue>
+    toFactory(factory: ComposerBindingFactory<TValue>): AppDslMultiFactoryBindingDefinition<TValue>
+}
+
+export interface AdapterDslBuilder<TValue> {
+    from<const TSource extends ComposerAdapterSource>(
+        source: TSource
+    ): AdapterUsingDslBuilder<TValue, TSource>
+}
+
+export interface AdapterUsingDslBuilder<TValue, TSource extends ComposerAdapterSource> {
+    using(
+        factory: ComposerAdapterFactory<TSource, TValue>
+    ): AppDslAdapterBindingDefinition<TValue, TSource>
 }
 
 export interface AppDslDefinitionInput<
@@ -252,6 +298,58 @@ function createBindDsl<TValue>(bindingToken: Token<TValue>): BindDslBuilder<TVal
     })
 }
 
+function createAddDsl<TValue>(bindingToken: Token<TValue>): AddDslBuilder<TValue> {
+    return Object.freeze({
+        toValue(value: TValue): AppDslMultiValueBindingDefinition<TValue> {
+            return Object.freeze({
+                token: bindingToken,
+                addValue: value
+            })
+        },
+
+        toFactory(
+            factory: ComposerBindingFactory<TValue>
+        ): AppDslMultiFactoryBindingDefinition<TValue> {
+            return createAppDslMultiFactoryBinding(bindingToken, factory)
+        }
+    })
+}
+
+function createAppDslMultiFactoryBinding<TValue>(
+    bindingToken: Token<TValue>,
+    factory: ComposerBindingFactory<TValue>
+): AppDslMultiFactoryBindingDefinition<TValue> {
+    let lifetime: ProviderLifetime | undefined
+    const binding: AppDslMultiFactoryBindingDefinition<TValue> = {
+        token: bindingToken,
+        addFactory: factory,
+
+        get lifetime(): ProviderLifetime | undefined {
+            return lifetime
+        },
+
+        singleton(): AppDslMultiFactoryBindingDefinition<TValue> {
+            lifetime = 'singleton'
+
+            return this
+        },
+
+        transient(): AppDslMultiFactoryBindingDefinition<TValue> {
+            lifetime = 'transient'
+
+            return this
+        },
+
+        scoped(): AppDslMultiFactoryBindingDefinition<TValue> {
+            lifetime = 'scoped'
+
+            return this
+        }
+    }
+
+    return Object.freeze(binding)
+}
+
 function adaptDsl<TValue>(
     bindingToken: Token<TValue>,
     factory: ComposerBindingFactory<TValue>
@@ -262,7 +360,47 @@ function adaptDsl<TValue>(
     })
 }
 
+function createAdapterDsl<TValue>(bindingToken: Token<TValue>): AdapterDslBuilder<TValue> {
+    return Object.freeze({
+        from<const TSource extends ComposerAdapterSource>(
+            source: TSource
+        ): AdapterUsingDslBuilder<TValue, TSource> {
+            return Object.freeze({
+                using(
+                    factory: ComposerAdapterFactory<TSource, TValue>
+                ): AppDslAdapterBindingDefinition<TValue, TSource> {
+                    return Object.freeze({
+                        token: bindingToken,
+                        source,
+                        useAdapter: factory
+                    })
+                }
+            })
+        }
+    })
+}
+
 function applyAppDslBinding(composer: Composer, binding: AppDslBindingDefinition): void {
+    if ('addValue' in binding) {
+        composer.add(binding.token).toValue(binding.addValue)
+
+        return
+    }
+
+    if ('addFactory' in binding) {
+        const lifetimeBinding = composer.add(binding.token).toFactory(binding.addFactory)
+
+        applyAppDslProviderLifetime(lifetimeBinding, binding.lifetime)
+
+        return
+    }
+
+    if ('useAdapter' in binding) {
+        applyAppDslAdapterBinding(composer, binding)
+
+        return
+    }
+
     const builder = composer.bind(binding.token)
 
     if ('useValue' in binding) {
@@ -286,7 +424,37 @@ function applyAppDslBinding(composer: Composer, binding: AppDslBindingDefinition
     builder.toAsyncFactory(binding.useAsyncFactory)
 }
 
+function applyAppDslAdapterBinding<TValue, TSource extends ComposerAdapterSource>(
+    composer: Composer,
+    binding: AppDslAdapterBindingDefinition<TValue, TSource>
+): void {
+    composer.adapt(binding.token).from(binding.source).using(binding.useAdapter)
+}
+
+function applyAppDslProviderLifetime(
+    binding: LifetimeBinding,
+    lifetime: ProviderLifetime | undefined
+): void {
+    if (lifetime === 'singleton') {
+        binding.singleton()
+
+        return
+    }
+
+    if (lifetime === 'scoped') {
+        binding.scoped()
+
+        return
+    }
+
+    if (lifetime === 'transient') {
+        binding.transient()
+    }
+}
+
 export { adaptDsl as adapt }
+export { createAdapterDsl as adapter }
+export { createAddDsl as add }
 export { createBindDsl as bind }
 export { createModuleDsl as module }
 export { defineAppDsl as defineApp }
