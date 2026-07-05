@@ -59,7 +59,28 @@ memory/tasks/plan/TASK-07.05-0073-stage-17-0-0-2-implementation-planning/
 
 ## Остання implementation task
 
-Остання завершена implementation task:
+Остання implementation task:
+
+```text
+memory/tasks/plan/TASK-07.05-0078-stage-17-graph-aware-adapter-api/
+```
+
+Статус задачі: `done` після human review approval від 2026-07-05.
+
+Результат RUN-001:
+
+- `Composer.adapt(target).from(source).using(factory)` додано як additive graph-aware
+  adapter object API;
+- single token source and object source forms підтримані з TypeScript inference;
+- `using()` отримує тільки resolved source value/object, без resolver context;
+- adapter source metadata доступна через binding metadata без factory execution;
+- existing `composer.bind().toFactory()` and DSL `adapt(token, factory)` лишилися
+  backward compatible;
+- повні quality gates пройшли.
+
+## Попередня implementation task
+
+Попередня implementation task:
 
 ```text
 memory/tasks/plan/TASK-07.05-0089-stage-17-composer-add-multi-contributions/
@@ -81,9 +102,9 @@ memory/tasks/plan/TASK-07.05-0089-stage-17-composer-add-multi-contributions/
 - `runtime.get(token)` для public multi token лишається gated через
   `SAGIFIRE_IOC_GET_USED_FOR_MULTI_TOKEN`.
 
-## Попередня implementation task
+## Передпопередня implementation task
 
-Попередня implementation task зі статусом `done` після human review:
+Передпопередня implementation task зі статусом `done` після human review:
 
 ```text
 memory/tasks/plan/TASK-07.05-0077-stage-17-multi-capability-inspection-diagnostics/
@@ -106,8 +127,8 @@ memory/tasks/plan/TASK-07.05-0077-stage-17-multi-capability-inspection-diagnosti
 
 ## Поточні ризики
 
-- Graph-aware adapter source validation, adapter-aware cycles і lifecycle child-scope-и
-  лишаються ризиковими точками `0.0.2`.
+- Adapter source validation, adapter-aware cycles і lifecycle child-scope-и лишаються
+  ризиковими точками `0.0.2`.
 - `0.0.1` зафіксований у локальній пам'яті як stabilization handoff; фактичний npm publish
   не треба стверджувати без окремої перевірки.
 - Security process readiness не дорівнює наявності npm security contact; перед запитом
@@ -117,7 +138,7 @@ memory/tasks/plan/TASK-07.05-0077-stage-17-multi-capability-inspection-diagnosti
 
 ## Наступні кроки
 
-1. Стартувати `TASK-07.05-0078-stage-17-graph-aware-adapter-api`.
+1. Стартувати `TASK-07.05-0079-stage-17-adapter-source-validation-inspection`.
 2. Виконувати `0.0.2` phases послідовно: adapters, child scopes, testing/ergonomics,
    docs/examples, full audit, stabilization handoff.
 

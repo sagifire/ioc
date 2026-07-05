@@ -1,11 +1,11 @@
 # TASK-07.05-0078: Graph-aware adapter API
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-05
 Owner Role: Implementation Agent
-Current Run: n/a
+Current Run: RUN-001
 Current Research: n/a
 Current Fixation: n/a
 
@@ -57,14 +57,14 @@ composer
 
 ## Acceptance Criteria
 
-- [ ] `composer.adapt(target).from(source).using(factory)` registers a graph-aware adapter.
-- [ ] Object source form preserves property names and type inference.
-- [ ] Adapter factory receives source values only, not resolver context.
-- [ ] Existing `bind().toFactory()` continues to work.
-- [ ] Existing DSL `adapt(token, factory)` continues to work.
-- [ ] Adapter metadata is available for later validation/inspection without factory
+- [x] `composer.adapt(target).from(source).using(factory)` registers a graph-aware adapter.
+- [x] Object source form preserves property names and type inference.
+- [x] Adapter factory receives source values only, not resolver context.
+- [x] Existing `bind().toFactory()` continues to work.
+- [x] Existing DSL `adapt(token, factory)` continues to work.
+- [x] Adapter metadata is available for later validation/inspection without factory
       execution.
-- [ ] Relevant runtime and type tests pass.
+- [x] Relevant runtime and type tests pass.
 
 ## Dependencies
 
@@ -78,4 +78,4 @@ composer
 
 ## Runs
 
-Run artifacts треба створити під час запуску задачі.
+- [RUN-001](runs/RUN-001/requirements.md)

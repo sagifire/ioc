@@ -554,11 +554,11 @@
     inspection/provider identity model.
   - Current: RUN-001
 - [TASK-07.05-0078-stage-17-graph-aware-adapter-api](TASK-07.05-0078-stage-17-graph-aware-adapter-api/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Phase 3 graph-aware adapter object API без resolver context у `using()`.
-  - Current: n/a
+  - Current: RUN-001
 - [TASK-07.05-0079-stage-17-adapter-source-validation-inspection](TASK-07.05-0079-stage-17-adapter-source-validation-inspection/index.md)
   - Status: backlog
   - Type: feature

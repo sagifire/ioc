@@ -109,7 +109,7 @@ export interface ModuleDefinitionInput<
 
 type Awaitable<TValue> = TValue | Promise<TValue>
 
-export type ComposerBindingKind = 'value' | 'factory' | 'class' | 'async-factory'
+export type ComposerBindingKind = 'value' | 'factory' | 'class' | 'async-factory' | 'adapter'
 
 export type InspectionProviderKind =
     'value' | 'factory' | 'class' | 'async-factory' | 'async-resource'
@@ -140,6 +140,25 @@ export type ComposerAsyncBindingFactory<TValue> = (
     context: ComposerBindingContext
 ) => Awaitable<TValue>
 
+export type ComposerAdapterSource =
+    | Token<unknown>
+    | {
+          readonly [property: string]: Token<unknown>
+      }
+
+export type ComposerAdapterResolvedSource<TSource extends ComposerAdapterSource> =
+    TSource extends Token<infer TValue>
+        ? TValue
+        : {
+              readonly [TProperty in keyof TSource]: TSource[TProperty] extends Token<infer TValue>
+                  ? TValue
+                  : never
+          }
+
+export type ComposerAdapterFactory<TSource extends ComposerAdapterSource, TValue> = (
+    source: ComposerAdapterResolvedSource<TSource>
+) => TValue
+
 export interface ComposerBindingBuilder<TValue> {
     toValue(value: TValue): void
     toFactory(factory: ComposerBindingFactory<TValue>): void
@@ -152,10 +171,21 @@ export interface ComposerMultiBindingBuilder<TValue> {
     toFactory(factory: ComposerBindingFactory<TValue>): LifetimeBinding
 }
 
+export interface ComposerAdapterBuilder<TValue> {
+    from<const TSource extends ComposerAdapterSource>(
+        source: TSource
+    ): ComposerAdapterUsingBuilder<TValue, TSource>
+}
+
+export interface ComposerAdapterUsingBuilder<TValue, TSource extends ComposerAdapterSource> {
+    using(factory: ComposerAdapterFactory<TSource, TValue>): void
+}
+
 export interface Composer {
     use(moduleDefinition: ModuleDefinition): Composer
     bind<TValue>(token: Token<TValue>): ComposerBindingBuilder<TValue>
     add<TValue>(token: Token<TValue>): ComposerMultiBindingBuilder<TValue>
+    adapt<TValue>(token: Token<TValue>): ComposerAdapterBuilder<TValue>
     validate(): DiagnosticReport
     inspect(): ComposerInspection
     getGraph(): ModuleGraph
@@ -222,6 +252,25 @@ export interface CompositionBindingMetadata {
     readonly providerKind: InspectionProviderKind
     readonly lifetime?: ProviderLifetime
     readonly initialization?: AsyncProviderInitializationMode
+    readonly adapterSource?: ComposerAdapterSourceMetadata
+}
+
+export type ComposerAdapterSourceMetadata =
+    ComposerAdapterTokenSourceMetadata | ComposerAdapterObjectSourceMetadata
+
+export interface ComposerAdapterTokenSourceMetadata {
+    readonly kind: 'token'
+    readonly tokenId: string
+}
+
+export interface ComposerAdapterObjectSourceMetadata {
+    readonly kind: 'object'
+    readonly properties: readonly ComposerAdapterObjectSourcePropertyMetadata[]
+}
+
+export interface ComposerAdapterObjectSourcePropertyMetadata {
+    readonly property: string
+    readonly tokenId: string
 }
 
 export interface ModuleDependencyEdgeBase {
@@ -1068,6 +1117,27 @@ type ComposerBindingRecord =
           readonly token: Token<unknown>
           readonly factory: ComposerAsyncBindingFactory<unknown>
       }
+    | {
+          readonly kind: 'adapter'
+          readonly token: Token<unknown>
+          readonly source: ComposerAdapterSourceRecord
+          readonly factory: (source: unknown) => unknown
+      }
+
+type ComposerAdapterSourceRecord =
+    | {
+          readonly kind: 'token'
+          readonly token: Token<unknown>
+      }
+    | {
+          readonly kind: 'object'
+          readonly entries: readonly ComposerAdapterObjectSourceEntry[]
+      }
+
+interface ComposerAdapterObjectSourceEntry {
+    readonly property: string
+    readonly token: Token<unknown>
+}
 
 type ComposerMultiBindingRecord =
     | {
@@ -1242,6 +1312,10 @@ export function createComposer(): Composer {
             return createComposerMultiBindingBuilder(bindingToken, multiBindings)
         },
 
+        adapt<TValue>(bindingToken: Token<TValue>): ComposerAdapterBuilder<TValue> {
+            return createComposerAdapterBuilder(bindingToken, bindings)
+        },
+
         validate(): DiagnosticReport {
             return validateComposer(modules, bindings, multiBindings)
         },
@@ -1332,6 +1406,55 @@ function createComposerMultiBindingBuilder<TValue>(
             return createDeferredLifetimeBinding(providerRegistration)
         }
     }
+}
+
+function createComposerAdapterBuilder<TValue>(
+    bindingToken: Token<TValue>,
+    bindings: ComposerBindingRecord[]
+): ComposerAdapterBuilder<TValue> {
+    return {
+        from<const TSource extends ComposerAdapterSource>(
+            source: TSource
+        ): ComposerAdapterUsingBuilder<TValue, TSource> {
+            const adapterSource = createComposerAdapterSourceRecord(source)
+
+            return Object.freeze({
+                using(factory: ComposerAdapterFactory<TSource, TValue>): void {
+                    bindings.push({
+                        kind: 'adapter',
+                        token: bindingToken,
+                        source: adapterSource,
+                        factory: factory as (source: unknown) => unknown
+                    })
+                }
+            })
+        }
+    }
+}
+
+function createComposerAdapterSourceRecord(
+    source: ComposerAdapterSource
+): ComposerAdapterSourceRecord {
+    if (isToken(source)) {
+        return Object.freeze({
+            kind: 'token',
+            token: source
+        })
+    }
+
+    const entries = Object.freeze(
+        Object.entries(source).map(([property, sourceToken]) => {
+            return Object.freeze({
+                property,
+                token: sourceToken
+            })
+        })
+    )
+
+    return Object.freeze({
+        kind: 'object',
+        entries
+    })
 }
 
 function createComposerInspection(
@@ -1704,12 +1827,45 @@ function createCompositionBindingMetadata(
         })
     }
 
+    if (binding.kind === 'adapter') {
+        return Object.freeze({
+            tokenId: binding.token.id,
+            kind: binding.kind,
+            providerKind: 'factory',
+            lifetime: 'transient',
+            adapterSource: createComposerAdapterSourceMetadata(binding.source)
+        })
+    }
+
     return Object.freeze({
         tokenId: binding.token.id,
         kind: binding.kind,
         providerKind: 'async-factory',
         lifetime: 'transient',
         initialization: 'lazy'
+    })
+}
+
+function createComposerAdapterSourceMetadata(
+    source: ComposerAdapterSourceRecord
+): ComposerAdapterSourceMetadata {
+    if (source.kind === 'token') {
+        return Object.freeze({
+            kind: 'token',
+            tokenId: source.token.id
+        })
+    }
+
+    return Object.freeze({
+        kind: 'object',
+        properties: Object.freeze(
+            source.entries.map((entry) => {
+                return Object.freeze({
+                    property: entry.property,
+                    tokenId: entry.token.id
+                })
+            })
+        )
     })
 }
 
@@ -1948,6 +2104,12 @@ function applyComposerBindings(
             builder.toFactory((context) => {
                 return binding.factory(createComposerBindingResolutionContext(context, access))
             })
+        } else if (binding.kind === 'adapter') {
+            builder.toFactory((context) => {
+                return binding.factory(
+                    resolveComposerAdapterSource(binding.source, context, access)
+                )
+            })
         } else if (binding.kind === 'class') {
             builder.toClass(binding.classConstructor)
         } else {
@@ -1956,6 +2118,26 @@ function applyComposerBindings(
             })
         }
     }
+}
+
+function resolveComposerAdapterSource(
+    source: ComposerAdapterSourceRecord,
+    context: ResolutionContext,
+    access: CompositionAccessModel
+): unknown {
+    const bindingContext = createComposerBindingResolutionContext(context, access)
+
+    if (source.kind === 'token') {
+        return bindingContext.get(source.token)
+    }
+
+    const resolvedSource: Record<string, unknown> = {}
+
+    for (const entry of source.entries) {
+        resolvedSource[entry.property] = bindingContext.get(entry.token)
+    }
+
+    return Object.freeze(resolvedSource)
 }
 
 function applyComposerMultiBindings(
@@ -4268,6 +4450,10 @@ function isModuleCardinality(value: unknown): value is ModuleCardinality {
 
 function isModuleCapabilityKind(value: unknown): value is ModuleCapabilityKind {
     return moduleCapabilityKinds.includes(value as ModuleCapabilityKind)
+}
+
+function isToken(value: unknown): value is Token<unknown> {
+    return isRecord(value) && typeof value.id === 'string' && value.id.length > 0
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

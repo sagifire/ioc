@@ -31,6 +31,11 @@ import {
     type CapabilityProviderRegistrationKind,
     type CapabilityProviderSource,
     type Composer,
+    type ComposerAdapterBuilder,
+    type ComposerAdapterFactory,
+    type ComposerAdapterResolvedSource,
+    type ComposerAdapterSourceMetadata,
+    type ComposerAdapterUsingBuilder,
     type ComposerBindingBuilder,
     type ComposerBindingContext,
     type ComposerInspection,
@@ -94,6 +99,10 @@ interface NotificationPublicApi {
     notify(): string
 }
 
+interface PermissionsPublicApi {
+    canSubmit(): boolean
+}
+
 interface ResourcePublicApi {
     status(): string
 }
@@ -107,6 +116,7 @@ const CONTACT_REQUESTS_PUBLIC_API = token<ContactRequestsPublicApi>(
     'composer.contact-requests-public-api'
 )
 const NOTIFICATION_PUBLIC_API = token<NotificationPublicApi>('composer.notification-public-api')
+const PERMISSIONS_PUBLIC_API = token<PermissionsPublicApi>('composer.permissions-public-api')
 const VALUE_AUTH_READER = token<AuthReader>('composer.value-auth-reader')
 const FACTORY_AUTH_READER = token<AuthReader>('composer.factory-auth-reader')
 const CLASS_AUTH_READER = token<AuthReader>('composer.class-auth-reader')
@@ -668,6 +678,217 @@ describe('composer builder and static validation', () => {
         })
         expect(factoryCalls).toBe(0)
         expect(asyncFactoryCalls).toBe(0)
+    })
+
+    test('registers graph-aware single-source adapters without exposing a resolver context', async () => {
+        const authModule = defineModule({
+            id: 'adapter-single-auth',
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(AUTH_PUBLIC_API).toValue({
+                    requireUser(): string {
+                        return 'adapter-user'
+                    }
+                })
+            }
+        })
+        const contactRequestsModule = defineModule({
+            id: 'adapter-single-contact-requests',
+            requires: [
+                {
+                    token: AUTH_READER
+                }
+            ],
+            provides: [
+                {
+                    token: CONTACT_REQUESTS_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(CONTACT_REQUESTS_PUBLIC_API).toFactory((resolutionContext) => {
+                    const authReader = resolutionContext.get(AUTH_READER)
+
+                    return {
+                        submit(): string {
+                            return authReader.currentUserId()
+                        }
+                    }
+                })
+            }
+        })
+        const composer = createComposer().use(authModule).use(contactRequestsModule)
+        let adapterCalls = 0
+
+        composer
+            .adapt(AUTH_READER)
+            .from(AUTH_PUBLIC_API)
+            .using(function createAuthReaderAdapter(auth): AuthReader {
+                adapterCalls += 1
+                expect(arguments.length).toBe(1)
+
+                return {
+                    currentUserId(): string {
+                        return auth.requireUser()
+                    }
+                }
+            })
+
+        expect(composer.validate()).toEqual({
+            ok: true,
+            diagnostics: []
+        })
+        expect(composer.getGraph().bindings).toEqual([
+            {
+                tokenId: 'composer.auth-reader',
+                kind: 'adapter',
+                providerKind: 'factory',
+                lifetime: 'transient',
+                adapterSource: {
+                    kind: 'token',
+                    tokenId: 'composer.auth-public-api'
+                }
+            }
+        ])
+        expect(composer.getGraph().edges).toEqual([
+            {
+                edgeKind: 'binding',
+                consumerModuleId: 'adapter-single-contact-requests',
+                requiredTokenId: 'composer.auth-reader',
+                dependencyKind: 'external',
+                bindingTokenId: 'composer.auth-reader',
+                bindingKind: 'adapter'
+            }
+        ])
+        expect(adapterCalls).toBe(0)
+
+        const runtime = await composer.compose()
+
+        expect(adapterCalls).toBe(0)
+        expect(runtime.get(CONTACT_REQUESTS_PUBLIC_API).submit()).toBe('adapter-user')
+        expect(adapterCalls).toBe(1)
+
+        await runtime.dispose()
+    })
+
+    test('registers graph-aware object-source adapters and preserves source properties', async () => {
+        const authModule = defineModule({
+            id: 'adapter-object-auth',
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(AUTH_PUBLIC_API).toValue({
+                    requireUser(): string {
+                        return 'object-adapter-user'
+                    }
+                })
+            }
+        })
+        const permissionsModule = defineModule({
+            id: 'adapter-object-permissions',
+            provides: [
+                {
+                    token: PERMISSIONS_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(PERMISSIONS_PUBLIC_API).toValue({
+                    canSubmit(): boolean {
+                        return true
+                    }
+                })
+            }
+        })
+        const contactRequestsModule = defineModule({
+            id: 'adapter-object-contact-requests',
+            requires: [
+                {
+                    token: AUTH_READER
+                }
+            ],
+            provides: [
+                {
+                    token: CONTACT_REQUESTS_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(CONTACT_REQUESTS_PUBLIC_API).toFactory((resolutionContext) => {
+                    const authReader = resolutionContext.get(AUTH_READER)
+
+                    return {
+                        submit(): string {
+                            return authReader.currentUserId()
+                        }
+                    }
+                })
+            }
+        })
+        const composer = createComposer()
+            .use(authModule)
+            .use(permissionsModule)
+            .use(contactRequestsModule)
+        let adapterCalls = 0
+
+        composer
+            .adapt(AUTH_READER)
+            .from({
+                auth: AUTH_PUBLIC_API,
+                permissions: PERMISSIONS_PUBLIC_API
+            })
+            .using(({ auth, permissions }) => {
+                adapterCalls += 1
+
+                return {
+                    currentUserId(): string {
+                        if (!permissions.canSubmit()) {
+                            return 'denied'
+                        }
+
+                        return auth.requireUser()
+                    }
+                }
+            })
+
+        expect(composer.inspect().bindings).toEqual([
+            {
+                tokenId: 'composer.auth-reader',
+                kind: 'adapter',
+                providerKind: 'factory',
+                lifetime: 'transient',
+                adapterSource: {
+                    kind: 'object',
+                    properties: [
+                        {
+                            property: 'auth',
+                            tokenId: 'composer.auth-public-api'
+                        },
+                        {
+                            property: 'permissions',
+                            tokenId: 'composer.permissions-public-api'
+                        }
+                    ]
+                }
+            }
+        ])
+        expect(adapterCalls).toBe(0)
+
+        const runtime = await composer.compose()
+
+        expect(runtime.get(CONTACT_REQUESTS_PUBLIC_API).submit()).toBe('object-adapter-user')
+        expect(adapterCalls).toBe(1)
+
+        await runtime.dispose()
     })
 
     test('reports duplicate composer bindings before prepare and compose reach container', async () => {
@@ -1355,10 +1576,34 @@ describe('composer builder and static validation', () => {
         const composer = createComposer()
         const binding = composer.bind(AUTH_READER)
         const multiBinding = composer.add(AUDIT_EVENTS)
+        const adapter = composer.adapt(AUTH_READER)
+        const adapterUsing = adapter.from(AUTH_PUBLIC_API)
+        const adapterSources = {
+            auth: AUTH_PUBLIC_API,
+            permissions: PERMISSIONS_PUBLIC_API
+        } as const
+        const objectAdapterUsing = composer.adapt(AUTH_READER).from(adapterSources)
 
         expectTypeOf(composer).toEqualTypeOf<Composer>()
         expectTypeOf(binding).toEqualTypeOf<ComposerBindingBuilder<AuthReader>>()
         expectTypeOf(multiBinding).toEqualTypeOf<ComposerMultiBindingBuilder<string>>()
+        expectTypeOf(adapter).toEqualTypeOf<ComposerAdapterBuilder<AuthReader>>()
+        expectTypeOf(adapterUsing).toEqualTypeOf<
+            ComposerAdapterUsingBuilder<AuthReader, typeof AUTH_PUBLIC_API>
+        >()
+        expectTypeOf(objectAdapterUsing).toEqualTypeOf<
+            ComposerAdapterUsingBuilder<AuthReader, typeof adapterSources>
+        >()
+        expectTypeOf<
+            ComposerAdapterResolvedSource<typeof AUTH_PUBLIC_API>
+        >().toEqualTypeOf<AuthPublicApi>()
+        expectTypeOf<ComposerAdapterResolvedSource<typeof adapterSources>>().toEqualTypeOf<{
+            readonly auth: AuthPublicApi
+            readonly permissions: PermissionsPublicApi
+        }>()
+        expectTypeOf<
+            Parameters<ComposerAdapterFactory<typeof AUTH_PUBLIC_API, AuthReader>>
+        >().toEqualTypeOf<[AuthPublicApi]>()
 
         binding.toFactory((context) => {
             expectTypeOf(context).toEqualTypeOf<ComposerBindingContext>()
@@ -1389,6 +1634,26 @@ describe('composer builder and static validation', () => {
             expectTypeOf(context.getAll(AUDIT_EVENTS)).toEqualTypeOf<string[]>()
 
             return 'typed-event'
+        })
+        adapterUsing.using((auth) => {
+            expectTypeOf(auth).toEqualTypeOf<AuthPublicApi>()
+            expectTypeOf(auth).not.toEqualTypeOf<ComposerBindingContext>()
+
+            return {
+                currentUserId(): string {
+                    return auth.requireUser()
+                }
+            }
+        })
+        objectAdapterUsing.using(({ auth, permissions }) => {
+            expectTypeOf(auth).toEqualTypeOf<AuthPublicApi>()
+            expectTypeOf(permissions).toEqualTypeOf<PermissionsPublicApi>()
+
+            return {
+                currentUserId(): string {
+                    return permissions.canSubmit() ? auth.requireUser() : 'denied'
+                }
+            }
         })
 
         expectTypeOf(lifetime).toEqualTypeOf<LifetimeBinding>()
@@ -3314,7 +3579,9 @@ describe('inspection api', () => {
         }>()
         expectTypeOf<DuplicateComposerBindingErrorDetails>().toEqualTypeOf<{
             readonly tokenId: string
-            readonly bindingKinds: readonly ('value' | 'factory' | 'class' | 'async-factory')[]
+            readonly bindingKinds: readonly (
+                'value' | 'factory' | 'class' | 'async-factory' | 'adapter'
+            )[]
         }>()
         expectTypeOf<InvalidComposerMultiBindingErrorDetails>().toEqualTypeOf<{
             readonly tokenId: string
@@ -3324,9 +3591,24 @@ describe('inspection api', () => {
         }>()
         expectTypeOf<ComposerBindingCardinalityConflictErrorDetails>().toEqualTypeOf<{
             readonly tokenId: string
-            readonly bindingKinds: readonly ('value' | 'factory' | 'class' | 'async-factory')[]
+            readonly bindingKinds: readonly (
+                'value' | 'factory' | 'class' | 'async-factory' | 'adapter'
+            )[]
             readonly multiBindingKinds: readonly ('value' | 'factory')[]
         }>()
+        expectTypeOf<ComposerAdapterSourceMetadata>().toEqualTypeOf<
+            | {
+                  readonly kind: 'token'
+                  readonly tokenId: string
+              }
+            | {
+                  readonly kind: 'object'
+                  readonly properties: readonly {
+                      readonly property: string
+                      readonly tokenId: string
+                  }[]
+              }
+        >()
 
         const cycleError = new ModuleCycleError({
             moduleIdPath: ['typed-a', 'typed-b', 'typed-a'],

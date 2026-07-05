@@ -2,10 +2,13 @@
 
 ## Призначення
 
-Backlog implementation task для graph-aware adapter object API.
+Implementation task для graph-aware adapter object API.
 
 ## Файли
 
 - [Task](task.md)
   - Type: file
   - Purpose: Scope and acceptance для `composer.adapt().from().using()`.
+- [Runs](runs/index.md)
+  - Type: folder
+  - Purpose: Autonomous implementation run artifacts.
