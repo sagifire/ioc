@@ -339,30 +339,55 @@ function assertPackageEntry(packageName, packageEntries, requiredEntry) {
 
 function createRuntimeSmokeSource() {
     return `import {
+    AdapterSourceCardinalityMismatchError,
+    AdapterSourceMissingError,
+    AdapterSourcePrivateError,
+    AdapterTargetInvalidError,
+    CapabilityCardinalityConflictError,
+    CapabilityRegistrationCardinalityMismatchError,
+    ComposerBindingCardinalityConflictError,
+    DuplicateSingleCapabilityError,
+    GetAllUsedForSingleTokenError,
+    GetUsedForMultiTokenError,
+    InvalidComposerMultiBindingError,
+    RequiredMultiCapabilityMissingError,
+    RequiredPortCardinalityMismatchError,
+    adapter,
+    add,
+    contributionToken,
     createComposer,
     createContainer,
     defineApp,
     defineModule,
     diagnosticFromError,
     formatDiagnostics,
+    multiToken,
     module as defineModuleDsl,
     token
 } from '@sagifire/ioc'
-import { token as tokenFromSubpath } from '@sagifire/ioc/tokens'
+import { contributionToken as contributionTokenFromSubpath, multiToken as multiTokenFromSubpath, token as tokenFromSubpath } from '@sagifire/ioc/tokens'
 import { createContainer as createContainerFromSubpath, scopeValue } from '@sagifire/ioc/container'
-import { defineModule as defineModuleFromSubpath } from '@sagifire/ioc/composer'
-import { module as moduleFromDslSubpath, bind } from '@sagifire/ioc/dsl'
+import { AdapterSourceMissingError as AdapterSourceMissingErrorFromSubpath, defineModule as defineModuleFromSubpath } from '@sagifire/ioc/composer'
+import { add as addFromDslSubpath, adapter as adapterFromDslSubpath, bind, module as moduleFromDslSubpath } from '@sagifire/ioc/dsl'
 import { diagnosticFromError as diagnosticFromSubpath } from '@sagifire/ioc/diagnostics'
 import { createNextRequestContext, createNextRuntime, nextRequestValue, withRouteScope, withServerActionScope } from '@sagifire/ioc-next'
 import { assertDiagnosticReportOk, assertGraphHasCapability, assertGraphHasModule, createModuleHarness, createTestRuntime, fakeModule, override } from '@sagifire/ioc-testing'
 
 const valueToken = token('smoke.value')
 const secondaryToken = tokenFromSubpath('smoke.secondary')
+const pluginToken = multiToken('smoke.plugins')
+const contribution = contributionToken('smoke.contribution')
+const subpathPluginToken = multiTokenFromSubpath('smoke.subpath-plugins')
+const subpathContribution = contributionTokenFromSubpath('smoke.subpath-contribution')
 const container = createContainer()
 container.bind(valueToken).toValue('container')
 const runtime = await container.freeze()
 
 assertEqual(runtime.get(valueToken), 'container', 'root container export')
+assertEqual(pluginToken.id, 'smoke.plugins', 'root multiToken export')
+assertEqual(contribution.id, 'smoke.contribution', 'root contributionToken export')
+assertEqual(subpathPluginToken.id, 'smoke.subpath-plugins', 'tokens subpath multiToken export')
+assertEqual(subpathContribution.id, 'smoke.subpath-contribution', 'tokens subpath contributionToken export')
 
 const subpathContainer = createContainerFromSubpath()
 subpathContainer.bind(secondaryToken).toValue('subpath')
@@ -413,8 +438,116 @@ const app = defineApp({
 assertDiagnosticReportOk(app.validate())
 assertEqual((await app.compose()).get(secondaryToken), 'bound', 'DSL root export')
 
-void defineModuleFromSubpath
-void moduleFromDslSubpath
+const multiSummaryToken = token('smoke.multi-summary')
+const multiProviderModule = defineModuleFromSubpath({
+    id: 'smoke.multi-provider',
+    provides: [
+        {
+            token: pluginToken,
+            kind: 'public-api',
+            cardinality: 'multi'
+        }
+    ],
+    setup(context) {
+        context.add(pluginToken).toValue('module-plugin')
+    }
+})
+const multiConsumerModule = moduleFromDslSubpath('smoke.multi-consumer', {
+    requires: [
+        {
+            token: pluginToken,
+            cardinality: 'multi'
+        }
+    ],
+    provides: [
+        {
+            token: multiSummaryToken,
+            kind: 'public-api'
+        }
+    ],
+    setup(context) {
+        context.bind(multiSummaryToken).toFactory((providerContext) => {
+            return providerContext.getAll(pluginToken).join(',')
+        })
+    }
+})
+const multiApp = defineApp({
+    modules: [multiProviderModule, multiConsumerModule],
+    bindings: [add(pluginToken).toValue('root-plugin')]
+})
+const multiRuntime = await multiApp.compose()
+
+assertDiagnosticReportOk(multiApp.validate())
+assertEqual(multiRuntime.get(multiSummaryToken), 'module-plugin,root-plugin', 'DSL add root export')
+
+const authApiToken = token('smoke.auth-api')
+const authReaderToken = token('smoke.auth-reader')
+const authSummaryToken = token('smoke.auth-summary')
+const authProviderModule = defineModule({
+    id: 'smoke.auth-provider',
+    provides: [
+        {
+            token: authApiToken,
+            kind: 'public-api'
+        }
+    ],
+    setup(context) {
+        context.bind(authApiToken).toValue({
+            read() {
+                return 'adapted'
+            }
+        })
+    }
+})
+const authConsumerModule = defineModule({
+    id: 'smoke.auth-consumer',
+    requires: [
+        {
+            token: authReaderToken
+        }
+    ],
+    provides: [
+        {
+            token: authSummaryToken,
+            kind: 'public-api'
+        }
+    ],
+    setup(context) {
+        context.bind(authSummaryToken).toFactory((providerContext) => {
+            return providerContext.get(authReaderToken).read()
+        })
+    }
+})
+const adapterApp = defineApp({
+    modules: [authProviderModule, authConsumerModule],
+    bindings: [
+        adapter(authReaderToken).from(authApiToken).using((authApi) => {
+            return {
+                read() {
+                    return authApi.read()
+                }
+            }
+        })
+    ]
+})
+const adapterRuntime = await adapterApp.compose()
+
+assertDiagnosticReportOk(adapterApp.validate())
+assertEqual(adapterRuntime.get(authSummaryToken), 'adapted', 'DSL adapter root export')
+
+const subpathAddBinding = addFromDslSubpath(subpathPluginToken).toValue('subpath-plugin')
+const subpathAdapterBinding = adapterFromDslSubpath(authReaderToken)
+    .from(authApiToken)
+    .using((authApi) => {
+        return {
+            read() {
+                return authApi.read()
+            }
+        }
+    })
+
+assertEqual(subpathAddBinding.addValue, 'subpath-plugin', 'DSL subpath add export')
+assertEqual(subpathAdapterBinding.source, authApiToken, 'DSL subpath adapter export')
 
 const diagnosticText = formatDiagnostics({
     ok: false,
@@ -428,6 +561,51 @@ if (!diagnosticText.includes('smoke diagnostic')) {
 if (diagnosticFromSubpath(new Error('subpath diagnostic')).severity !== 'error') {
     throw new Error('diagnostics subpath export failed')
 }
+
+const stage17ErrorCodes = [
+    new DuplicateSingleCapabilityError(valueToken.id, ['a', 'b']).code,
+    new CapabilityCardinalityConflictError(valueToken.id, ['single'], ['multi']).code,
+    new RequiredMultiCapabilityMissingError('smoke.module', pluginToken.id, 'external').code,
+    new RequiredPortCardinalityMismatchError(
+        'smoke.module',
+        pluginToken.id,
+        'external',
+        'multi',
+        'single',
+        'capability'
+    ).code,
+    new InvalidComposerMultiBindingError(pluginToken.id, 'value', 'single-capability').code,
+    new AdapterSourceMissingError(authReaderToken.id, authApiToken.id).code,
+    new AdapterSourcePrivateError(authReaderToken.id, authApiToken.id, 'source').code,
+    new AdapterSourceCardinalityMismatchError(authReaderToken.id, pluginToken.id, 'capability').code,
+    new AdapterTargetInvalidError(authReaderToken.id).code,
+    new ComposerBindingCardinalityConflictError(valueToken.id, ['value'], ['value']).code,
+    new CapabilityRegistrationCardinalityMismatchError(
+        'smoke.module',
+        pluginToken.id,
+        'multi',
+        'bind'
+    ).code,
+    new GetUsedForMultiTokenError(pluginToken.id).code,
+    new GetAllUsedForSingleTokenError(valueToken.id).code,
+    new AdapterSourceMissingErrorFromSubpath(authReaderToken.id, authApiToken.id).code
+]
+
+assertIncludes(
+    stage17ErrorCodes,
+    'SAGIFIRE_IOC_CAPABILITY_CARDINALITY_CONFLICT',
+    'Stage 17 cardinality diagnostic export'
+)
+assertIncludes(
+    stage17ErrorCodes,
+    'SAGIFIRE_IOC_ADAPTER_SOURCE_MISSING',
+    'Stage 17 adapter diagnostic export'
+)
+assertIncludes(
+    stage17ErrorCodes,
+    'SAGIFIRE_IOC_GET_USED_FOR_MULTI_TOKEN',
+    'Stage 17 runtime gating diagnostic export'
+)
 
 const nextRuntime = createNextRuntime(async () => runtime)
 const routeContext = createNextRequestContext({
@@ -493,9 +671,18 @@ assertGraphHasCapability(harness.getGraph(), {
     tokenId: valueToken.id
 })
 
+await adapterRuntime.dispose()
+await multiRuntime.dispose()
+
 function assertEqual(actual, expected, label) {
     if (actual !== expected) {
         throw new Error(\`\${label} failed: expected \${expected}, got \${actual}\`)
+    }
+}
+
+function assertIncludes(values, expected, label) {
+    if (!values.includes(expected)) {
+        throw new Error(\`\${label} failed: missing \${expected}\`)
     }
 }
 `
@@ -503,21 +690,34 @@ function assertEqual(actual, expected, label) {
 
 function createTypeSmokeSource() {
     return `import {
+    adapter,
+    add,
+    contributionToken,
     createContainer,
+    multiToken,
     token,
     type ContainerRuntime,
     type DiagnosticReport,
+    type ContributionToken,
+    type ModuleCardinality,
+    type MultiToken,
     type Token
 } from '@sagifire/ioc'
 import { namespace } from '@sagifire/ioc/tokens'
 import { createComposer, type Composer } from '@sagifire/ioc/composer'
-import { defineApp, module as defineModuleDsl } from '@sagifire/ioc/dsl'
+import { add as addFromDslSubpath, adapter as adapterFromDslSubpath, defineApp, module as defineModuleDsl } from '@sagifire/ioc/dsl'
 import { formatDiagnostics } from '@sagifire/ioc/diagnostics'
 import { createNextRequestContext, nextRequestValue, type NextRequestContext } from '@sagifire/ioc-next'
 import { createTestRuntime, override, type TestOverride } from '@sagifire/ioc-testing'
 
 const valueToken: Token<string> = token<string>('types.value')
 const namespacedToken: Token<number> = namespace('types').token<number>('count')
+const pluginToken: MultiToken<string> = multiToken<string>('types.plugins')
+const contribution: ContributionToken<string> = contributionToken<string>('types.contribution')
+const namespacedPlugin: MultiToken<string> = namespace('types').multiToken<string>('plugins')
+const namespacedContribution: ContributionToken<string> =
+    namespace('types').contributionToken<string>('contribution')
+const cardinality: ModuleCardinality = 'multi'
 const container = createContainer()
 container.bind(valueToken).toValue('value')
 
@@ -540,6 +740,18 @@ const dslModule = defineModuleDsl('types.module', {
 const app = defineApp({
     modules: [dslModule]
 })
+const addBinding = add(pluginToken).toValue('root-plugin')
+const adapterBinding = adapter(valueToken).from(namespacedToken).using((count) => {
+    return count.toString()
+})
+const subpathAddBinding = addFromDslSubpath(pluginToken).toFactory(() => {
+    return 'subpath-plugin'
+})
+const subpathAdapterBinding = adapterFromDslSubpath(valueToken)
+    .from(namespacedToken)
+    .using((count) => {
+        return count.toString()
+    })
 const report: DiagnosticReport = app.validate()
 const formatted: string = formatDiagnostics(report)
 const requestContext: NextRequestContext = createNextRequestContext({
@@ -551,6 +763,14 @@ const testRuntime = createTestRuntime({
 })
 
 void namespacedToken
+void contribution
+void namespacedPlugin
+void namespacedContribution
+void cardinality
+void addBinding
+void adapterBinding
+void subpathAddBinding
+void subpathAdapterBinding
 void composer
 void formatted
 void requestContext

@@ -37,7 +37,8 @@ memory/sources/sagifire_ioc_0_0_2_feature_request_uk.md
 ```
 
 Результат Stage 17 audit: пропозиції не прийняті суцільно. Після human decision створено
-phased implementation planning task для `0.0.2`.
+phased implementation planning task для `0.0.2`; implementation backlog і stabilization
+handoff завершені після людського рев'ю.
 
 ## Остання planning task
 
@@ -76,12 +77,35 @@ memory/tasks/plan/TASK-07.05-0087-stage-17-0-0-2-full-audit/
 - знайдено `L-001`: packed/export smoke checks не покривають явно нові `0.0.2` helper
   exports;
 - `pnpm release:validate` проходить;
-- stabilization handoff `TASK-07.05-0088` має закрити або reclassify `H-001` і закрити
-  або явно defer `L-001`.
+- stabilization handoff `TASK-07.05-0088` закрив `H-001` і `L-001` після human review
+  approval.
 
 ## Остання implementation task
 
 Остання implementation task:
+
+```text
+memory/tasks/plan/TASK-07.05-0088-stage-17-0-0-2-stabilization-handoff/
+```
+
+Статус задачі: `done` після human review approval від 2026-07-05.
+
+Результат RUN-001:
+
+- `H-001` з full audit закрито: `examples/next-app-router` тепер явно declares
+  `REQUEST_TAGS` як multi capability у token/provides/requires, README синхронізовано, а
+  direct-run harness перевіряє cardinality через graph inspection;
+- `L-001` закрито як smoke hardening: package export tests і packed tarball smoke явно
+  імпортують і мінімально виконують Stage 17 helper/error exports;
+- додано `scripts/validate-examples.mjs` і `pnpm test:examples`; `pnpm test` тепер включає
+  documented direct runs для всіх examples, включно з `examples/next-app-router`;
+- `pnpm release:validate` проходить;
+- actual npm publish, version bump і changelog/versioning changes не виконувалися;
+- human review approval отримано, задачу завершено.
+
+## Попередня implementation task
+
+Попередня implementation task:
 
 ```text
 memory/tasks/plan/TASK-07.05-0086-stage-17-0-0-2-docs-examples/
@@ -233,16 +257,14 @@ memory/tasks/plan/TASK-07.05-0080-stage-17-adapter-cycle-diagnostics/
 - DSL має два adapter helper paths: compatibility `adapt(token, factory)` без source-edge
   inference і graph-aware `adapter(target).from(source).using(factory)` з explicit source
   edges.
-- `examples/next-app-router` має release-blocking docs/example mismatch до закриття
-  `H-001` у stabilization handoff.
+- Actual npm publish для `0.0.2` не виконано й не дозволено цією задачею.
 
 ## Наступні кроки
 
-1. Стартувати `TASK-07.05-0088-stage-17-0-0-2-stabilization-handoff`.
-2. У `TASK-07.05-0088` закрити або явно reclassify `H-001` перед final `0.0.2`
-   stabilization handoff.
-3. У `TASK-07.05-0088` закрити або явно defer `L-001` як lightweight smoke hardening.
+1. Окремо ухвалити release/version/publish дії для фактичного `0.0.2` publish, якщо вони
+   потрібні.
 
 ## Відкриті питання
 
-- Чи потрібен окремий release-status verification task перед роботою над `0.0.2`?
+- Чи потрібен окремий release-status verification / publish-planning task перед фактичним
+  `0.0.2` publish?

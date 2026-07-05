@@ -22,8 +22,8 @@ executed without framework dependencies.
 
 ## File Map
 
-- `src/contact-requests.ts` defines the request context tokens, contact request module and
-  public API capability.
+- `src/contact-requests.ts` defines the single `REQUEST_ID`, multi `REQUEST_TAGS`, contact
+  request module and public API capability.
 - `src/app-runtime.ts` builds the explicit composer and owns one `createNextRuntime()`
   helper instance.
 - `src/request-context.ts` converts route/action input into explicit single and multi
@@ -69,6 +69,6 @@ request/action access. Request and action data enters the graph only through exp
 token/value declarations supplied to the invocation scope.
 
 When the cached helper wraps a composed runtime, scope-local context tokens must be part of
-the explicit public capability surface. The `requestContextModule` provides `REQUEST_ID`
-and `REQUEST_TAGS`; route/action invocations override or extend them with scope-local
-values.
+the explicit public capability surface. The `requestContextModule` provides `REQUEST_ID` as
+a single capability and `REQUEST_TAGS` as a multi capability; route/action invocations
+override or extend them with scope-local values.

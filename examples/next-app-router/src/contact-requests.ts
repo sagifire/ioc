@@ -32,7 +32,7 @@ export interface ContactRequestsPublicApi {
 const examplesNext = namespace('examples.next')
 
 export const REQUEST_ID = examplesNext.token<string>('request-id')
-export const REQUEST_TAGS = examplesNext.token<string>('request-tags')
+export const REQUEST_TAGS = examplesNext.multiToken<string>('request-tags')
 export const CONTACT_REQUESTS_PUBLIC_API = examplesNext.token<ContactRequestsPublicApi>(
     'contact-requests.public-api'
 )
@@ -46,7 +46,8 @@ export const requestContextModule = defineModule({
         },
         {
             token: REQUEST_TAGS,
-            kind: 'shared-service'
+            kind: 'shared-service',
+            cardinality: 'multi'
         }
     ],
     setup(context): void {
@@ -64,7 +65,8 @@ export const contactRequestsModule = defineModule({
             token: REQUEST_ID
         },
         {
-            token: REQUEST_TAGS
+            token: REQUEST_TAGS,
+            cardinality: 'multi'
         }
     ],
     provides: [

@@ -615,11 +615,11 @@
   - Summary: Phase 7 full audit before `0.0.2` stabilization, approved after human review.
   - Current: RSCH-001
 - [TASK-07.05-0088-stage-17-0-0-2-stabilization-handoff](TASK-07.05-0088-stage-17-0-0-2-stabilization-handoff/index.md)
-  - Status: backlog
+  - Status: done
   - Type: chore
   - Execution Mode: autonomous-implementation
   - Summary: Phase 7 stabilization handoff after full audit, including `H-001` and `L-001`.
-  - Current: n/a
+  - Current: RUN-001
 
 ## Format
 

@@ -1,11 +1,11 @@
 # TASK-07.05-0088: `0.0.2` stabilization handoff
 
-Status: backlog
+Status: done
 Type: chore
 Execution Mode: autonomous-implementation
 Created: 2026-07-05
 Owner Role: Stabilization Agent
-Current Run: n/a
+Current Run: RUN-001
 Current Research: n/a
 Current Fixation: n/a
 
@@ -50,17 +50,17 @@ Phase 7: Full audit and stabilization. Це остання фаза.
 
 ## Acceptance Criteria
 
-- [ ] `H-001` is closed, reclassified with rationale or split into an explicit blocking
+- [x] `H-001` is closed, reclassified with rationale or split into an explicit blocking
       follow-up task.
-- [ ] `L-001` is closed as stabilization smoke hardening or explicitly deferred with
+- [x] `L-001` is closed as stabilization smoke hardening or explicitly deferred with
       rationale.
-- [ ] All release-blocking audit findings are closed, reclassified with rationale or split
+- [x] All release-blocking audit findings are closed, reclassified with rationale or split
       into explicit blocking follow-up tasks.
-- [ ] Full validation commands pass or blockers are documented.
-- [ ] Public API, docs and examples are consistent.
-- [ ] Project Memory records final stabilization state.
-- [ ] Actual publish is not performed without explicit human approval.
-- [ ] Task ends in `review` and requires task-level human approval before `done`.
+- [x] Full validation commands pass or blockers are documented.
+- [x] Public API, docs and examples are consistent.
+- [x] Project Memory records final stabilization state.
+- [x] Actual publish is not performed without explicit human approval.
+- [x] Task ends in `review` and requires task-level human approval before `done`.
 
 ## Dependencies
 
@@ -76,4 +76,4 @@ Phase 7: Full audit and stabilization. Це остання фаза.
 
 ## Runs
 
-Run artifacts треба створити під час запуску задачі.
+- [RUN-001](runs/RUN-001/result.md)

@@ -1,4 +1,4 @@
-import { formatDiagnostics } from '@sagifire/ioc'
+import { formatDiagnostics, type ModuleCardinality } from '@sagifire/ioc'
 
 import { GET } from '../app/api/contacts/[id]/route.js'
 import { submitContact } from '../app/contact/actions.js'
@@ -20,9 +20,9 @@ async function main(): Promise<void> {
         throw new Error(formatDiagnostics(inspection.validation))
     }
 
-    assertCapability(inspection.capabilities, REQUEST_ID.id)
-    assertCapability(inspection.capabilities, REQUEST_TAGS.id)
-    assertCapability(inspection.capabilities, CONTACT_REQUESTS_PUBLIC_API.id)
+    assertCapability(inspection.capabilities, REQUEST_ID.id, 'single')
+    assertCapability(inspection.capabilities, REQUEST_TAGS.id, 'multi')
+    assertCapability(inspection.capabilities, CONTACT_REQUESTS_PUBLIC_API.id, 'single')
 
     const runtime = await appRuntime.getRuntime()
 
@@ -57,14 +57,16 @@ async function main(): Promise<void> {
 }
 
 function assertCapability(
-    capabilities: readonly { readonly tokenId: string }[],
-    tokenId: string
+    capabilities: readonly { readonly tokenId: string; readonly cardinality: ModuleCardinality }[],
+    tokenId: string,
+    cardinality: ModuleCardinality
 ): void {
     const capability = capabilities.find((candidate) => {
         return candidate.tokenId === tokenId
     })
 
     assert(capability !== undefined, `expected graph capability ${tokenId}`)
+    assertEqual(capability.cardinality, cardinality, `graph capability ${tokenId} cardinality`)
 }
 
 function assertContactResponse(response: JsonResponse<ContactSummary>): void {
