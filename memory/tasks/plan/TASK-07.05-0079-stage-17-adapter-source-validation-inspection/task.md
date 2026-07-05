@@ -1,11 +1,11 @@
 # TASK-07.05-0079: Adapter source validation and inspection
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-05
 Owner Role: Implementation Agent
-Current Run: n/a
+Current Run: RUN-001
 Current Research: n/a
 Current Fixation: n/a
 
@@ -55,13 +55,13 @@ slice. The graph edge must still be present so the next task can use it.
 
 ## Acceptance Criteria
 
-- [ ] Adapter target validation catches invalid target tokens.
-- [ ] Missing adapter source produces deterministic diagnostic.
-- [ ] Private provider source is rejected.
-- [ ] Multi source token is rejected in first slice unless explicit support is added.
-- [ ] Adapter factory is not executed during validation or inspection.
-- [ ] Graph inspection exposes adapter-source edges.
-- [ ] Existing non-graph-aware bindings keep current behavior.
+- [x] Adapter target validation catches invalid target tokens.
+- [x] Missing adapter source produces deterministic diagnostic.
+- [x] Private provider source is rejected.
+- [x] Multi source token is rejected in first slice unless explicit support is added.
+- [x] Adapter factory is not executed during validation or inspection.
+- [x] Graph inspection exposes adapter-source edges.
+- [x] Existing non-graph-aware bindings keep current behavior.
 
 ## Dependencies
 
@@ -74,4 +74,4 @@ slice. The graph edge must still be present so the next task can use it.
 
 ## Runs
 
-Run artifacts треба створити під час запуску задачі.
+- [RUN-001](runs/RUN-001/requirements.md)

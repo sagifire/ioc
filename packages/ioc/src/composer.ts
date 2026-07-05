@@ -116,7 +116,7 @@ export type InspectionProviderKind =
 
 export type RequiredPortSatisfaction = 'binding' | 'capability' | 'optional' | 'missing'
 
-export type ModuleDependencyEdgeKind = 'capability' | 'binding'
+export type ModuleDependencyEdgeKind = 'capability' | 'binding' | 'adapter-source'
 
 export type CapabilityProviderRegistrationKind = 'bind' | 'add'
 
@@ -261,6 +261,7 @@ export type ComposerAdapterSourceMetadata =
 export interface ComposerAdapterTokenSourceMetadata {
     readonly kind: 'token'
     readonly tokenId: string
+    readonly providers: readonly ComposerAdapterSourceProviderMetadata[]
 }
 
 export interface ComposerAdapterObjectSourceMetadata {
@@ -271,6 +272,41 @@ export interface ComposerAdapterObjectSourceMetadata {
 export interface ComposerAdapterObjectSourcePropertyMetadata {
     readonly property: string
     readonly tokenId: string
+    readonly providers: readonly ComposerAdapterSourceProviderMetadata[]
+}
+
+export type ComposerAdapterSourceProviderMetadata =
+    | ComposerAdapterSourceCapabilityProviderMetadata
+    | ComposerAdapterSourceBindingProviderMetadata
+    | ComposerAdapterSourceMultiBindingProviderMetadata
+
+export interface ComposerAdapterSourceCapabilityProviderMetadata {
+    readonly source: 'module'
+    readonly providerKind: 'capability'
+    readonly moduleId: string
+    readonly tokenId: string
+    readonly capabilityKind: ModuleCapabilityKind
+    readonly cardinality: ModuleCardinality
+    readonly registrationKind: CapabilityProviderRegistrationKind
+    readonly registrationIndex: number
+}
+
+export interface ComposerAdapterSourceBindingProviderMetadata {
+    readonly source: 'composition-root'
+    readonly providerKind: 'binding'
+    readonly tokenId: string
+    readonly bindingKind: ComposerBindingKind
+    readonly cardinality: 'single'
+    readonly registrationIndex: number
+}
+
+export interface ComposerAdapterSourceMultiBindingProviderMetadata {
+    readonly source: 'composition-root'
+    readonly providerKind: 'multi-binding'
+    readonly tokenId: string
+    readonly bindingKind: ComposerMultiBindingKind
+    readonly cardinality: 'multi'
+    readonly registrationIndex: number
 }
 
 export interface ModuleDependencyEdgeBase {
@@ -293,7 +329,17 @@ export interface BindingDependencyEdge extends ModuleDependencyEdgeBase {
     readonly bindingKind: ComposerBindingKind
 }
 
-export type ModuleDependencyEdge = CapabilityDependencyEdge | BindingDependencyEdge
+export interface AdapterSourceDependencyEdge extends ModuleDependencyEdgeBase {
+    readonly edgeKind: 'adapter-source'
+    readonly adapterTargetTokenId: string
+    readonly adapterSourceTokenId: string
+    readonly adapterSourceKind: 'token' | 'object'
+    readonly adapterSourceProperty?: string
+    readonly sourceProvider?: ComposerAdapterSourceProviderMetadata
+}
+
+export type ModuleDependencyEdge =
+    CapabilityDependencyEdge | BindingDependencyEdge | AdapterSourceDependencyEdge
 
 export interface ProviderRegistrationProviderSummary {
     readonly providerKind: InspectionProviderKind
@@ -430,6 +476,24 @@ export interface InvalidComposerMultiBindingErrorDetails {
     readonly tokenId: string
     readonly bindingKind: ComposerMultiBindingKind
     readonly reason: InvalidComposerMultiBindingReason
+}
+
+export interface AdapterSourceErrorDetails {
+    readonly targetTokenId: string
+    readonly sourceTokenId: string
+    readonly sourceProperty?: string
+}
+
+export interface AdapterSourceCardinalityMismatchErrorDetails extends AdapterSourceErrorDetails {
+    readonly expectedCardinality: 'single'
+    readonly actualCardinality: 'multi'
+    readonly providerSource: 'capability' | 'multi-binding'
+}
+
+export interface AdapterTargetInvalidErrorDetails {
+    readonly targetTokenId: string
+    readonly bindingKind: 'adapter'
+    readonly reason: 'missing-external-required-port'
 }
 
 export interface ComposerBindingCardinalityConflictErrorDetails {
@@ -808,6 +872,146 @@ export class InvalidComposerMultiBindingError extends SagifireIocError<InvalidCo
     }
 }
 
+export class AdapterSourceMissingError extends SagifireIocError<AdapterSourceErrorDetails> {
+    override readonly name = 'AdapterSourceMissingError'
+    override readonly code = 'SAGIFIRE_IOC_ADAPTER_SOURCE_MISSING'
+    readonly targetTokenId: string
+    readonly sourceTokenId: string
+    readonly sourceProperty: string | undefined
+
+    constructor(targetTokenId: string, sourceTokenId: string, sourceProperty?: string) {
+        const details = createAdapterSourceErrorDetails(
+            targetTokenId,
+            sourceTokenId,
+            sourceProperty
+        )
+
+        super({
+            code: 'SAGIFIRE_IOC_ADAPTER_SOURCE_MISSING',
+            message: formatAdapterSourceMessage(
+                targetTokenId,
+                sourceTokenId,
+                sourceProperty,
+                'is not provided by a public capability or composition binding'
+            ),
+            details
+        })
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.targetTokenId = targetTokenId
+        this.sourceTokenId = sourceTokenId
+        this.sourceProperty = sourceProperty
+    }
+}
+
+export class AdapterSourcePrivateError extends SagifireIocError<AdapterSourceErrorDetails> {
+    override readonly name = 'AdapterSourcePrivateError'
+    override readonly code = 'SAGIFIRE_IOC_ADAPTER_SOURCE_PRIVATE'
+    readonly targetTokenId: string
+    readonly sourceTokenId: string
+    readonly sourceProperty: string | undefined
+
+    constructor(targetTokenId: string, sourceTokenId: string, sourceProperty?: string) {
+        const details = createAdapterSourceErrorDetails(
+            targetTokenId,
+            sourceTokenId,
+            sourceProperty
+        )
+
+        super({
+            code: 'SAGIFIRE_IOC_ADAPTER_SOURCE_PRIVATE',
+            message: formatAdapterSourceMessage(
+                targetTokenId,
+                sourceTokenId,
+                sourceProperty,
+                'matches a module-private provider'
+            ),
+            details
+        })
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.targetTokenId = targetTokenId
+        this.sourceTokenId = sourceTokenId
+        this.sourceProperty = sourceProperty
+    }
+}
+
+export class AdapterSourceCardinalityMismatchError extends SagifireIocError<AdapterSourceCardinalityMismatchErrorDetails> {
+    override readonly name = 'AdapterSourceCardinalityMismatchError'
+    override readonly code = 'SAGIFIRE_IOC_ADAPTER_SOURCE_CARDINALITY_MISMATCH'
+    readonly targetTokenId: string
+    readonly sourceTokenId: string
+    readonly sourceProperty: string | undefined
+    readonly expectedCardinality = 'single' as const
+    readonly actualCardinality = 'multi' as const
+    readonly providerSource: 'capability' | 'multi-binding'
+
+    constructor(
+        targetTokenId: string,
+        sourceTokenId: string,
+        providerSource: 'capability' | 'multi-binding',
+        sourceProperty?: string
+    ) {
+        const baseDetails = createAdapterSourceErrorDetails(
+            targetTokenId,
+            sourceTokenId,
+            sourceProperty
+        )
+        const details = Object.freeze({
+            ...baseDetails,
+            expectedCardinality: 'single' as const,
+            actualCardinality: 'multi' as const,
+            providerSource
+        })
+
+        super({
+            code: 'SAGIFIRE_IOC_ADAPTER_SOURCE_CARDINALITY_MISMATCH',
+            message: formatAdapterSourceMessage(
+                targetTokenId,
+                sourceTokenId,
+                sourceProperty,
+                `expects a single source but ${providerSource} is multi`
+            ),
+            details
+        })
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.targetTokenId = targetTokenId
+        this.sourceTokenId = sourceTokenId
+        this.sourceProperty = sourceProperty
+        this.providerSource = providerSource
+    }
+}
+
+export class AdapterTargetInvalidError extends SagifireIocError<AdapterTargetInvalidErrorDetails> {
+    override readonly name = 'AdapterTargetInvalidError'
+    override readonly code = 'SAGIFIRE_IOC_ADAPTER_TARGET_INVALID'
+    readonly targetTokenId: string
+    readonly bindingKind = 'adapter' as const
+    readonly reason = 'missing-external-required-port' as const
+
+    constructor(targetTokenId: string) {
+        super({
+            code: 'SAGIFIRE_IOC_ADAPTER_TARGET_INVALID',
+            message:
+                `Invalid adapter target "${targetTokenId}": ` +
+                'target is not declared as an external required port',
+            details: {
+                targetTokenId,
+                bindingKind: 'adapter',
+                reason: 'missing-external-required-port'
+            }
+        })
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.targetTokenId = targetTokenId
+    }
+}
+
 export class ComposerBindingCardinalityConflictError extends SagifireIocError<ComposerBindingCardinalityConflictErrorDetails> {
     override readonly name = 'ComposerBindingCardinalityConflictError'
     override readonly code = 'SAGIFIRE_IOC_COMPOSER_BINDING_CARDINALITY_CONFLICT'
@@ -1139,6 +1343,11 @@ interface ComposerAdapterObjectSourceEntry {
     readonly token: Token<unknown>
 }
 
+interface ComposerAdapterSourceEntryRecord {
+    readonly property?: string
+    readonly token: Token<unknown>
+}
+
 type ComposerMultiBindingRecord =
     | {
           readonly kind: 'value'
@@ -1457,6 +1666,27 @@ function createComposerAdapterSourceRecord(
     })
 }
 
+function getComposerAdapterSourceEntries(
+    source: ComposerAdapterSourceRecord
+): readonly ComposerAdapterSourceEntryRecord[] {
+    if (source.kind === 'token') {
+        return Object.freeze([
+            Object.freeze({
+                token: source.token
+            })
+        ])
+    }
+
+    return Object.freeze(
+        source.entries.map((entry) => {
+            return Object.freeze({
+                property: entry.property,
+                token: entry.token
+            })
+        })
+    )
+}
+
 function createComposerInspection(
     modules: readonly ModuleDefinition[],
     bindings: readonly ComposerBindingRecord[],
@@ -1545,13 +1775,20 @@ function createModuleGraph(
     )
     const bindingMetadata = Object.freeze(
         bindingSnapshot.map((binding) => {
-            return createCompositionBindingMetadata(binding)
+            return createCompositionBindingMetadata(
+                binding,
+                capabilityDeclarationsByTokenId,
+                bindingsByTokenId,
+                multiBindingsByTokenId
+            )
         })
     )
     const edges = createModuleDependencyEdges(
         moduleSnapshot,
         capabilitiesByTokenId,
-        bindingsByTokenId
+        capabilityDeclarationsByTokenId,
+        bindingsByTokenId,
+        multiBindingsByTokenId
     )
 
     return Object.freeze({
@@ -1597,7 +1834,11 @@ async function buildCompositionRuntime(
     const moduleSnapshot = [...modules]
     const bindingSnapshot = [...bindings]
     const multiBindingSnapshot = [...multiBindings]
-    const staticValidation = validateComposer(moduleSnapshot, bindingSnapshot, multiBindingSnapshot)
+    const staticValidation = validateComposerBeforeSetup(
+        moduleSnapshot,
+        bindingSnapshot,
+        multiBindingSnapshot
+    )
 
     if (!staticValidation.ok) {
         throw new ComposerValidationError(staticValidation)
@@ -1625,7 +1866,10 @@ async function buildCompositionRuntime(
 
     applyComposerMultiBindings(container, multiBindingSnapshot, access)
 
-    const providerValidation = validateDeclaredProviderRegistrations(moduleSnapshot, access)
+    const providerValidation = mergeDiagnosticReports(
+        validateDeclaredProviderRegistrations(moduleSnapshot, access),
+        validateAdapterSourcesAfterSetup(bindingSnapshot, access)
+    )
 
     if (!providerValidation.ok) {
         throw new ComposerValidationError(providerValidation)
@@ -1798,7 +2042,10 @@ function createCapabilityProviderMetadata(
 }
 
 function createCompositionBindingMetadata(
-    binding: ComposerBindingRecord
+    binding: ComposerBindingRecord,
+    capabilitiesByTokenId: ReadonlyMap<string, readonly CapabilityDeclarationRecord[]>,
+    bindingsByTokenId: ReadonlyMap<string, ComposerBindingRecord>,
+    multiBindingsByTokenId: ReadonlyMap<string, readonly ComposerMultiBindingRecord[]>
 ): CompositionBindingMetadata {
     if (binding.kind === 'value') {
         return Object.freeze({
@@ -1833,7 +2080,12 @@ function createCompositionBindingMetadata(
             kind: binding.kind,
             providerKind: 'factory',
             lifetime: 'transient',
-            adapterSource: createComposerAdapterSourceMetadata(binding.source)
+            adapterSource: createComposerAdapterSourceMetadata(
+                binding.source,
+                capabilitiesByTokenId,
+                bindingsByTokenId,
+                multiBindingsByTokenId
+            )
         })
     }
 
@@ -1847,12 +2099,21 @@ function createCompositionBindingMetadata(
 }
 
 function createComposerAdapterSourceMetadata(
-    source: ComposerAdapterSourceRecord
+    source: ComposerAdapterSourceRecord,
+    capabilitiesByTokenId: ReadonlyMap<string, readonly CapabilityDeclarationRecord[]>,
+    bindingsByTokenId: ReadonlyMap<string, ComposerBindingRecord>,
+    multiBindingsByTokenId: ReadonlyMap<string, readonly ComposerMultiBindingRecord[]>
 ): ComposerAdapterSourceMetadata {
     if (source.kind === 'token') {
         return Object.freeze({
             kind: 'token',
-            tokenId: source.token.id
+            tokenId: source.token.id,
+            providers: createComposerAdapterSourceProviderMetadata(
+                source.token.id,
+                capabilitiesByTokenId,
+                bindingsByTokenId,
+                multiBindingsByTokenId
+            )
         })
     }
 
@@ -1862,17 +2123,73 @@ function createComposerAdapterSourceMetadata(
             source.entries.map((entry) => {
                 return Object.freeze({
                     property: entry.property,
-                    tokenId: entry.token.id
+                    tokenId: entry.token.id,
+                    providers: createComposerAdapterSourceProviderMetadata(
+                        entry.token.id,
+                        capabilitiesByTokenId,
+                        bindingsByTokenId,
+                        multiBindingsByTokenId
+                    )
                 })
             })
         )
     })
 }
 
+function createComposerAdapterSourceProviderMetadata(
+    tokenId: string,
+    capabilitiesByTokenId: ReadonlyMap<string, readonly CapabilityDeclarationRecord[]>,
+    bindingsByTokenId: ReadonlyMap<string, ComposerBindingRecord>,
+    multiBindingsByTokenId: ReadonlyMap<string, readonly ComposerMultiBindingRecord[]>
+): readonly ComposerAdapterSourceProviderMetadata[] {
+    const capabilities = capabilitiesByTokenId.get(tokenId) ?? []
+    const capabilityProviders = capabilities.map((capability, index) => {
+        return Object.freeze({
+            source: 'module' as const,
+            providerKind: 'capability' as const,
+            moduleId: capability.moduleId,
+            tokenId,
+            capabilityKind: capability.kind,
+            cardinality: capability.cardinality,
+            registrationKind: capability.cardinality === 'multi' ? 'add' : 'bind',
+            registrationIndex: index
+        })
+    })
+    const binding = bindingsByTokenId.get(tokenId)
+    const bindingProviders =
+        binding === undefined
+            ? []
+            : [
+                  Object.freeze({
+                      source: 'composition-root' as const,
+                      providerKind: 'binding' as const,
+                      tokenId,
+                      bindingKind: binding.kind,
+                      cardinality: 'single' as const,
+                      registrationIndex: capabilityProviders.length
+                  })
+              ]
+    const multiBindings = multiBindingsByTokenId.get(tokenId) ?? []
+    const multiBindingProviders = multiBindings.map((multiBinding, index) => {
+        return Object.freeze({
+            source: 'composition-root' as const,
+            providerKind: 'multi-binding' as const,
+            tokenId,
+            bindingKind: multiBinding.kind,
+            cardinality: 'multi' as const,
+            registrationIndex: capabilityProviders.length + bindingProviders.length + index
+        })
+    })
+
+    return Object.freeze([...capabilityProviders, ...bindingProviders, ...multiBindingProviders])
+}
+
 function createModuleDependencyEdges(
     modules: readonly ModuleDefinition[],
     capabilitiesByTokenId: ReadonlyMap<string, CapabilityDependencyRecord>,
-    bindingsByTokenId: ReadonlyMap<string, ComposerBindingRecord>
+    capabilityDeclarationsByTokenId: ReadonlyMap<string, readonly CapabilityDeclarationRecord[]>,
+    bindingsByTokenId: ReadonlyMap<string, ComposerBindingRecord>,
+    multiBindingsByTokenId: ReadonlyMap<string, readonly ComposerMultiBindingRecord[]>
 ): readonly ModuleDependencyEdge[] {
     const edges: ModuleDependencyEdge[] = []
 
@@ -1886,6 +2203,19 @@ function createModuleDependencyEdges(
 
             if (binding !== undefined) {
                 edges.push(createBindingDependencyEdge(moduleDefinition, dependency, binding))
+
+                if (binding.kind === 'adapter') {
+                    edges.push(
+                        ...createAdapterSourceDependencyEdges(
+                            moduleDefinition,
+                            dependency,
+                            binding,
+                            capabilityDeclarationsByTokenId,
+                            bindingsByTokenId,
+                            multiBindingsByTokenId
+                        )
+                    )
+                }
 
                 continue
             }
@@ -1929,6 +2259,76 @@ function createBindingDependencyEdge(
         dependencyKind: dependency.kind,
         bindingTokenId: binding.token.id,
         bindingKind: binding.kind
+    })
+}
+
+function createAdapterSourceDependencyEdges(
+    moduleDefinition: ModuleDefinition,
+    dependency: ModuleDependencyDefinition,
+    binding: Extract<ComposerBindingRecord, { readonly kind: 'adapter' }>,
+    capabilitiesByTokenId: ReadonlyMap<string, readonly CapabilityDeclarationRecord[]>,
+    bindingsByTokenId: ReadonlyMap<string, ComposerBindingRecord>,
+    multiBindingsByTokenId: ReadonlyMap<string, readonly ComposerMultiBindingRecord[]>
+): readonly AdapterSourceDependencyEdge[] {
+    return Object.freeze(
+        getComposerAdapterSourceEntries(binding.source).flatMap((entry) => {
+            const sourceProviders = createComposerAdapterSourceProviderMetadata(
+                entry.token.id,
+                capabilitiesByTokenId,
+                bindingsByTokenId,
+                multiBindingsByTokenId
+            )
+
+            if (sourceProviders.length === 0) {
+                return [
+                    createAdapterSourceDependencyEdge(moduleDefinition, dependency, binding, entry)
+                ]
+            }
+
+            return sourceProviders.map((sourceProvider) => {
+                return createAdapterSourceDependencyEdge(
+                    moduleDefinition,
+                    dependency,
+                    binding,
+                    entry,
+                    sourceProvider
+                )
+            })
+        })
+    )
+}
+
+function createAdapterSourceDependencyEdge(
+    moduleDefinition: ModuleDefinition,
+    dependency: ModuleDependencyDefinition,
+    binding: Extract<ComposerBindingRecord, { readonly kind: 'adapter' }>,
+    entry: ComposerAdapterSourceEntryRecord,
+    sourceProvider?: ComposerAdapterSourceProviderMetadata
+): AdapterSourceDependencyEdge {
+    const base = {
+        edgeKind: 'adapter-source' as const,
+        consumerModuleId: moduleDefinition.id,
+        requiredTokenId: dependency.token.id,
+        dependencyKind: dependency.kind,
+        adapterTargetTokenId: binding.token.id,
+        adapterSourceTokenId: entry.token.id,
+        adapterSourceKind: binding.source.kind
+    }
+    const edge =
+        entry.property === undefined
+            ? base
+            : {
+                  ...base,
+                  adapterSourceProperty: entry.property
+              }
+
+    if (sourceProvider === undefined) {
+        return Object.freeze(edge)
+    }
+
+    return Object.freeze({
+        ...edge,
+        sourceProvider
     })
 }
 
@@ -2807,6 +3207,29 @@ function validateComposer(
     bindings: readonly ComposerBindingRecord[],
     multiBindings: readonly ComposerMultiBindingRecord[]
 ): DiagnosticReport {
+    return validateComposerModel(modules, bindings, multiBindings, {
+        includeAdapterSourceMissingDiagnostics: true
+    })
+}
+
+function validateComposerBeforeSetup(
+    modules: readonly ModuleDefinition[],
+    bindings: readonly ComposerBindingRecord[],
+    multiBindings: readonly ComposerMultiBindingRecord[]
+): DiagnosticReport {
+    return validateComposerModel(modules, bindings, multiBindings, {
+        includeAdapterSourceMissingDiagnostics: false
+    })
+}
+
+function validateComposerModel(
+    modules: readonly ModuleDefinition[],
+    bindings: readonly ComposerBindingRecord[],
+    multiBindings: readonly ComposerMultiBindingRecord[],
+    options: {
+        readonly includeAdapterSourceMissingDiagnostics: boolean
+    }
+): DiagnosticReport {
     const diagnostics: Diagnostic[] = []
 
     appendDuplicateModuleIdDiagnostics(diagnostics, modules)
@@ -2819,6 +3242,7 @@ function validateComposer(
     const capabilitiesByTokenId = collectCapabilityDeclarationsByTokenId(modules)
     const bindingsByTokenId = collectFirstBindingByTokenId(bindings)
     const multiBindingTokenIds = collectComposerMultiBindingTokenIds(multiBindings)
+    const externalRequiredPortTokenIds = collectRequiredPortTokenIdsByKind(modules, 'external')
 
     appendDuplicateBindingDiagnostics(diagnostics, bindings)
     appendComposerBindingCardinalityConflictDiagnostics(
@@ -2842,6 +3266,15 @@ function validateComposer(
         bindingsByTokenId
     )
     appendInvalidBindingDiagnostics(diagnostics, bindings, requiredPortTokenIds)
+    appendInvalidAdapterTargetDiagnostics(diagnostics, bindings, externalRequiredPortTokenIds)
+    appendAdapterSourceDiagnostics(
+        diagnostics,
+        bindings,
+        capabilitiesByTokenId,
+        bindingTokenIds,
+        multiBindingTokenIds,
+        options.includeAdapterSourceMissingDiagnostics
+    )
     appendInvalidComposerMultiBindingDiagnostics(
         diagnostics,
         multiBindings,
@@ -3229,10 +3662,102 @@ function appendInvalidBindingDiagnostics(
     requiredPortTokenIds: ReadonlySet<string>
 ): void {
     for (const binding of bindings) {
+        if (binding.kind === 'adapter') {
+            continue
+        }
+
         if (!requiredPortTokenIds.has(binding.token.id)) {
             diagnostics.push(
                 diagnosticFromError(new InvalidComposerBindingError(binding.token.id, binding.kind))
             )
+        }
+    }
+}
+
+function appendInvalidAdapterTargetDiagnostics(
+    diagnostics: Diagnostic[],
+    bindings: readonly ComposerBindingRecord[],
+    externalRequiredPortTokenIds: ReadonlySet<string>
+): void {
+    for (const binding of bindings) {
+        if (binding.kind !== 'adapter') {
+            continue
+        }
+
+        if (!externalRequiredPortTokenIds.has(binding.token.id)) {
+            diagnostics.push(diagnosticFromError(new AdapterTargetInvalidError(binding.token.id)))
+        }
+    }
+}
+
+function appendAdapterSourceDiagnostics(
+    diagnostics: Diagnostic[],
+    bindings: readonly ComposerBindingRecord[],
+    capabilitiesByTokenId: ReadonlyMap<string, readonly CapabilityDeclarationRecord[]>,
+    bindingTokenIds: ReadonlySet<string>,
+    multiBindingTokenIds: ReadonlySet<string>,
+    includeMissingDiagnostics: boolean
+): void {
+    for (const binding of bindings) {
+        if (binding.kind !== 'adapter') {
+            continue
+        }
+
+        for (const sourceEntry of getComposerAdapterSourceEntries(binding.source)) {
+            const tokenId = sourceEntry.token.id
+            const capabilities = capabilitiesByTokenId.get(tokenId) ?? []
+            const hasSingleCapability = capabilities.some((capability) => {
+                return capability.cardinality === 'single'
+            })
+            const hasMultiCapability = capabilities.some((capability) => {
+                return capability.cardinality === 'multi'
+            })
+
+            if (hasMultiCapability) {
+                diagnostics.push(
+                    diagnosticFromError(
+                        new AdapterSourceCardinalityMismatchError(
+                            binding.token.id,
+                            tokenId,
+                            'capability',
+                            sourceEntry.property
+                        )
+                    )
+                )
+
+                continue
+            }
+
+            if (multiBindingTokenIds.has(tokenId)) {
+                diagnostics.push(
+                    diagnosticFromError(
+                        new AdapterSourceCardinalityMismatchError(
+                            binding.token.id,
+                            tokenId,
+                            'multi-binding',
+                            sourceEntry.property
+                        )
+                    )
+                )
+
+                continue
+            }
+
+            if (hasSingleCapability || bindingTokenIds.has(tokenId)) {
+                continue
+            }
+
+            if (includeMissingDiagnostics) {
+                diagnostics.push(
+                    diagnosticFromError(
+                        new AdapterSourceMissingError(
+                            binding.token.id,
+                            tokenId,
+                            sourceEntry.property
+                        )
+                    )
+                )
+            }
         }
     }
 }
@@ -3296,8 +3821,15 @@ function appendModuleCycleDiagnostics(
     bindings: readonly ComposerBindingRecord[]
 ): void {
     const capabilitiesByTokenId = collectFirstCapabilityByTokenId(modules)
+    const capabilityDeclarationsByTokenId = collectCapabilityDeclarationsByTokenId(modules)
     const bindingsByTokenId = collectFirstBindingByTokenId(bindings)
-    const edges = createModuleDependencyEdges(modules, capabilitiesByTokenId, bindingsByTokenId)
+    const edges = createModuleDependencyEdges(
+        modules,
+        capabilitiesByTokenId,
+        capabilityDeclarationsByTokenId,
+        bindingsByTokenId,
+        new Map<string, readonly ComposerMultiBindingRecord[]>()
+    )
     const cycles = detectModuleCycles(modules, edges)
 
     for (const cycle of cycles) {
@@ -3618,6 +4150,23 @@ function collectRequiredPortTokenIds(modules: readonly ModuleDefinition[]): Read
     return tokenIds
 }
 
+function collectRequiredPortTokenIdsByKind(
+    modules: readonly ModuleDefinition[],
+    dependencyKind: ModuleDependencyKind
+): ReadonlySet<string> {
+    const tokenIds = new Set<string>()
+
+    for (const moduleDefinition of modules) {
+        for (const dependency of moduleDefinition.requires) {
+            if (dependency.kind === dependencyKind) {
+                tokenIds.add(dependency.token.id)
+            }
+        }
+    }
+
+    return tokenIds
+}
+
 function collectRequiredTokenIdsByModuleId(
     modules: readonly ModuleDefinition[]
 ): ReadonlyMap<string, ReadonlySet<string>> {
@@ -3916,6 +4465,59 @@ function validateDeclaredProviderRegistrations(
     return createDiagnosticReport(diagnostics)
 }
 
+function validateAdapterSourcesAfterSetup(
+    bindings: readonly ComposerBindingRecord[],
+    access: CompositionAccessModel
+): DiagnosticReport {
+    const diagnostics: Diagnostic[] = []
+
+    for (const binding of bindings) {
+        if (binding.kind !== 'adapter') {
+            continue
+        }
+
+        for (const sourceEntry of getComposerAdapterSourceEntries(binding.source)) {
+            const tokenId = sourceEntry.token.id
+
+            if (access.publicTokenIds.has(tokenId) || access.bindingTokenIds.has(tokenId)) {
+                continue
+            }
+
+            if (hasPrivateProviderTokenId(access, tokenId)) {
+                diagnostics.push(
+                    diagnosticFromError(
+                        new AdapterSourcePrivateError(
+                            binding.token.id,
+                            tokenId,
+                            sourceEntry.property
+                        )
+                    )
+                )
+
+                continue
+            }
+
+            diagnostics.push(
+                diagnosticFromError(
+                    new AdapterSourceMissingError(binding.token.id, tokenId, sourceEntry.property)
+                )
+            )
+        }
+    }
+
+    return createDiagnosticReport(diagnostics)
+}
+
+function hasPrivateProviderTokenId(access: CompositionAccessModel, tokenId: string): boolean {
+    for (const privateTokens of access.privateTokensByModuleId.values()) {
+        if (privateTokens.has(tokenId)) {
+            return true
+        }
+    }
+
+    return false
+}
+
 function findRegisteredModuleCapability(
     access: CompositionAccessModel,
     moduleId: string,
@@ -4003,6 +4605,14 @@ function createDiagnosticReport(diagnostics: readonly Diagnostic[]): DiagnosticR
         ok: reportDiagnostics.length === 0,
         diagnostics: reportDiagnostics
     })
+}
+
+function mergeDiagnosticReports(...reports: readonly DiagnosticReport[]): DiagnosticReport {
+    return createDiagnosticReport(
+        reports.flatMap((report) => {
+            return report.diagnostics
+        })
+    )
 }
 
 function createModuleDefinition<
@@ -4414,6 +5024,39 @@ function formatInvalidComposerMultiBindingReason(
     }
 
     return 'target is not a declared public multi capability'
+}
+
+function createAdapterSourceErrorDetails(
+    targetTokenId: string,
+    sourceTokenId: string,
+    sourceProperty: string | undefined
+): AdapterSourceErrorDetails {
+    if (sourceProperty === undefined) {
+        return Object.freeze({
+            targetTokenId,
+            sourceTokenId
+        })
+    }
+
+    return Object.freeze({
+        targetTokenId,
+        sourceTokenId,
+        sourceProperty
+    })
+}
+
+function formatAdapterSourceMessage(
+    targetTokenId: string,
+    sourceTokenId: string,
+    sourceProperty: string | undefined,
+    reason: string
+): string {
+    const propertyDetail = sourceProperty === undefined ? '' : ` property "${sourceProperty}"`
+
+    return (
+        `Invalid adapter source${propertyDetail} "${sourceTokenId}" for target ` +
+        `"${targetTokenId}": ${reason}`
+    )
 }
 
 function formatPrivateProviderAccessMessage(

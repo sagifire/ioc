@@ -232,7 +232,8 @@ export interface GraphBindingExpectation {
     readonly providerKind?: InspectionProviderKind
 }
 
-export type GraphEdgeExpectation = GraphCapabilityEdgeExpectation | GraphBindingEdgeExpectation
+export type GraphEdgeExpectation =
+    GraphCapabilityEdgeExpectation | GraphBindingEdgeExpectation | GraphAdapterSourceEdgeExpectation
 
 export interface GraphCapabilityEdgeExpectation {
     readonly edgeKind: 'capability'
@@ -251,6 +252,17 @@ export interface GraphBindingEdgeExpectation {
     readonly dependencyKind?: ModuleDependencyKind
     readonly bindingTokenId?: string
     readonly bindingKind?: ComposerBindingKind
+}
+
+export interface GraphAdapterSourceEdgeExpectation {
+    readonly edgeKind: 'adapter-source'
+    readonly consumerModuleId?: string
+    readonly requiredTokenId?: string
+    readonly dependencyKind?: ModuleDependencyKind
+    readonly adapterTargetTokenId?: string
+    readonly adapterSourceTokenId?: string
+    readonly adapterSourceKind?: 'token' | 'object'
+    readonly adapterSourceProperty?: string
 }
 
 export interface DiagnosticExpectation {
@@ -868,6 +880,19 @@ function matchesGraphEdge(edge: ModuleDependencyEdge, expectation: GraphEdgeExpe
         )
     }
 
+    if (expectation.edgeKind === 'adapter-source') {
+        return (
+            edge.edgeKind === 'adapter-source' &&
+            matchesOptional(edge.consumerModuleId, expectation.consumerModuleId) &&
+            matchesOptional(edge.requiredTokenId, expectation.requiredTokenId) &&
+            matchesOptional(edge.dependencyKind, expectation.dependencyKind) &&
+            matchesOptional(edge.adapterTargetTokenId, expectation.adapterTargetTokenId) &&
+            matchesOptional(edge.adapterSourceTokenId, expectation.adapterSourceTokenId) &&
+            matchesOptional(edge.adapterSourceKind, expectation.adapterSourceKind) &&
+            matchesOptional(edge.adapterSourceProperty, expectation.adapterSourceProperty)
+        )
+    }
+
     return (
         edge.edgeKind === 'binding' &&
         matchesOptional(edge.consumerModuleId, expectation.consumerModuleId) &&
@@ -1013,6 +1038,22 @@ function formatEdgeExpectation(expectation: GraphEdgeExpectation): string {
         ])
     }
 
+    if (expectation.edgeKind === 'adapter-source') {
+        return formatExpectationParts([
+            'adapter source dependency edge',
+            formatOptionalExpectationPart('consumerModuleId', expectation.consumerModuleId),
+            formatOptionalExpectationPart('requiredTokenId', expectation.requiredTokenId),
+            formatOptionalExpectationPart('dependencyKind', expectation.dependencyKind),
+            formatOptionalExpectationPart('adapterTargetTokenId', expectation.adapterTargetTokenId),
+            formatOptionalExpectationPart('adapterSourceTokenId', expectation.adapterSourceTokenId),
+            formatOptionalExpectationPart('adapterSourceKind', expectation.adapterSourceKind),
+            formatOptionalExpectationPart(
+                'adapterSourceProperty',
+                expectation.adapterSourceProperty
+            )
+        ])
+    }
+
     return formatExpectationParts([
         'binding dependency edge',
         formatOptionalExpectationPart('consumerModuleId', expectation.consumerModuleId),
@@ -1029,6 +1070,19 @@ function formatGraphEdge(edge: ModuleDependencyEdge): string {
             `capability: "${edge.consumerModuleId}" requires "${edge.requiredTokenId}" ` +
             `from "${edge.providerModuleId}" capability "${edge.capabilityTokenId}" ` +
             `(${edge.dependencyKind}, ${edge.capabilityKind})`
+        )
+    }
+
+    if (edge.edgeKind === 'adapter-source') {
+        const property =
+            edge.adapterSourceProperty === undefined
+                ? ''
+                : ` property "${edge.adapterSourceProperty}"`
+
+        return (
+            `adapter-source: "${edge.consumerModuleId}" adapter "${edge.adapterTargetTokenId}" ` +
+            `uses${property} "${edge.adapterSourceTokenId}" (${edge.dependencyKind}, ` +
+            `${edge.adapterSourceKind})`
         )
     }
 

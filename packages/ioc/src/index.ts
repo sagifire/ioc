@@ -27,6 +27,10 @@ export type {
     SagifireIocErrorOptions
 } from './diagnostics'
 export {
+    AdapterSourceCardinalityMismatchError,
+    AdapterSourceMissingError,
+    AdapterSourcePrivateError,
+    AdapterTargetInvalidError,
     CapabilityCardinalityConflictError,
     CapabilityRegistrationCardinalityMismatchError,
     ComposerBindingCardinalityConflictError,
@@ -51,6 +55,10 @@ export {
     defineModule
 } from './composer'
 export type {
+    AdapterSourceCardinalityMismatchErrorDetails,
+    AdapterSourceDependencyEdge,
+    AdapterSourceErrorDetails,
+    AdapterTargetInvalidErrorDetails,
     ComposedRuntime,
     Composer,
     ComposerAdapterBuilder,
@@ -59,7 +67,11 @@ export type {
     ComposerAdapterObjectSourcePropertyMetadata,
     ComposerAdapterResolvedSource,
     ComposerAdapterSource,
+    ComposerAdapterSourceBindingProviderMetadata,
+    ComposerAdapterSourceCapabilityProviderMetadata,
     ComposerAdapterSourceMetadata,
+    ComposerAdapterSourceMultiBindingProviderMetadata,
+    ComposerAdapterSourceProviderMetadata,
     ComposerAdapterTokenSourceMetadata,
     ComposerAdapterUsingBuilder,
     ComposerAsyncBindingFactory,

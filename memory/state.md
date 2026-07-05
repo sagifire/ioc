@@ -62,6 +62,31 @@ memory/tasks/plan/TASK-07.05-0073-stage-17-0-0-2-implementation-planning/
 Остання implementation task:
 
 ```text
+memory/tasks/plan/TASK-07.05-0079-stage-17-adapter-source-validation-inspection/
+```
+
+Статус задачі: `done` після human review approval від 2026-07-05.
+
+Результат RUN-001:
+
+- adapter target validation вимагає external required port target і дає
+  `SAGIFIRE_IOC_ADAPTER_TARGET_INVALID`;
+- adapter source validation додає diagnostics
+  `SAGIFIRE_IOC_ADAPTER_SOURCE_MISSING`,
+  `SAGIFIRE_IOC_ADAPTER_SOURCE_PRIVATE` і
+  `SAGIFIRE_IOC_ADAPTER_SOURCE_CARDINALITY_MISMATCH`;
+- single public capability and explicit composition-root binding sources підтримані;
+- multi source token лишається rejected у першому slice;
+- `composer.getGraph()`, `composer.inspect()` і `runtime.inspect()` показують
+  `adapter-source` edges and source provider metadata;
+- `@sagifire/ioc-testing` graph assertions підтримують `adapter-source` edge expectations;
+- повні quality gates пройшли.
+
+## Попередня implementation task
+
+Попередня implementation task:
+
+```text
 memory/tasks/plan/TASK-07.05-0078-stage-17-graph-aware-adapter-api/
 ```
 
@@ -78,9 +103,9 @@ memory/tasks/plan/TASK-07.05-0078-stage-17-graph-aware-adapter-api/
   backward compatible;
 - повні quality gates пройшли.
 
-## Попередня implementation task
+## Передпопередня implementation task
 
-Попередня implementation task:
+Передпопередня implementation task зі статусом `done` після human review:
 
 ```text
 memory/tasks/plan/TASK-07.05-0089-stage-17-composer-add-multi-contributions/
@@ -102,33 +127,9 @@ memory/tasks/plan/TASK-07.05-0089-stage-17-composer-add-multi-contributions/
 - `runtime.get(token)` для public multi token лишається gated через
   `SAGIFIRE_IOC_GET_USED_FOR_MULTI_TOKEN`.
 
-## Передпопередня implementation task
-
-Передпопередня implementation task зі статусом `done` після human review:
-
-```text
-memory/tasks/plan/TASK-07.05-0077-stage-17-multi-capability-inspection-diagnostics/
-```
-
-Статус задачі: `done` після human review approval від 2026-07-05.
-
-Результат RUN-001:
-
-- `composer.getGraph()` і `composer.inspect()` показують `cardinality` для capabilities і
-  required ports;
-- required port inspection показує `providerCount` і satisfaction state для optional/required
-  multi dependencies;
-- graph capability metadata показує declaration-level provider/contributor list із
-  `registrationKind: 'bind' | 'add'` і deterministic `registrationIndex`;
-- `runtime.inspect().providerRegistrations` показує exported provider cardinality і
-  per-provider `registrationIndex`, який відповідає `getAll()` resolution order;
-- `formatDiagnostics()` читабельно форматує cardinality/provider registration detail fields;
-- private provider tokens/values не експортуються через inspection.
-
 ## Поточні ризики
 
-- Adapter source validation, adapter-aware cycles і lifecycle child-scope-и лишаються
-  ризиковими точками `0.0.2`.
+- Adapter-aware cycles і lifecycle child-scope-и лишаються ризиковими точками `0.0.2`.
 - `0.0.1` зафіксований у локальній пам'яті як stabilization handoff; фактичний npm publish
   не треба стверджувати без окремої перевірки.
 - Security process readiness не дорівнює наявності npm security contact; перед запитом
@@ -138,7 +139,7 @@ memory/tasks/plan/TASK-07.05-0077-stage-17-multi-capability-inspection-diagnosti
 
 ## Наступні кроки
 
-1. Стартувати `TASK-07.05-0079-stage-17-adapter-source-validation-inspection`.
+1. Стартувати `TASK-07.05-0080-stage-17-adapter-cycle-diagnostics`.
 2. Виконувати `0.0.2` phases послідовно: adapters, child scopes, testing/ergonomics,
    docs/examples, full audit, stabilization handoff.
 

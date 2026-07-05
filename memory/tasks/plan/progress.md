@@ -560,11 +560,11 @@
   - Summary: Phase 3 graph-aware adapter object API без resolver context у `using()`.
   - Current: RUN-001
 - [TASK-07.05-0079-stage-17-adapter-source-validation-inspection](TASK-07.05-0079-stage-17-adapter-source-validation-inspection/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Phase 3 adapter source validation and adapter-source graph visibility.
-  - Current: n/a
+  - Current: RUN-001
 - [TASK-07.05-0080-stage-17-adapter-cycle-diagnostics](TASK-07.05-0080-stage-17-adapter-cycle-diagnostics/index.md)
   - Status: backlog
   - Type: feature

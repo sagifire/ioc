@@ -1,6 +1,10 @@
 import { describe, expect, expectTypeOf, test } from 'vitest'
 
 import {
+    AdapterSourceCardinalityMismatchError,
+    AdapterSourceMissingError,
+    AdapterSourcePrivateError,
+    AdapterTargetInvalidError,
     CapabilityCardinalityConflictError,
     CapabilityRegistrationCardinalityMismatchError,
     ComposerBindingCardinalityConflictError,
@@ -21,6 +25,10 @@ import {
     PrivateProviderAccessError,
     RequiredMultiCapabilityMissingError,
     RequiredPortCardinalityMismatchError,
+    type AdapterSourceCardinalityMismatchErrorDetails,
+    type AdapterSourceDependencyEdge,
+    type AdapterSourceErrorDetails,
+    type AdapterTargetInvalidErrorDetails,
     type ComposedRuntime,
     createComposer,
     defineModule,
@@ -34,7 +42,11 @@ import {
     type ComposerAdapterBuilder,
     type ComposerAdapterFactory,
     type ComposerAdapterResolvedSource,
+    type ComposerAdapterSourceBindingProviderMetadata,
+    type ComposerAdapterSourceCapabilityProviderMetadata,
     type ComposerAdapterSourceMetadata,
+    type ComposerAdapterSourceMultiBindingProviderMetadata,
+    type ComposerAdapterSourceProviderMetadata,
     type ComposerAdapterUsingBuilder,
     type ComposerBindingBuilder,
     type ComposerBindingContext,
@@ -751,7 +763,19 @@ describe('composer builder and static validation', () => {
                 lifetime: 'transient',
                 adapterSource: {
                     kind: 'token',
-                    tokenId: 'composer.auth-public-api'
+                    tokenId: 'composer.auth-public-api',
+                    providers: [
+                        {
+                            source: 'module',
+                            providerKind: 'capability',
+                            moduleId: 'adapter-single-auth',
+                            tokenId: 'composer.auth-public-api',
+                            capabilityKind: 'public-api',
+                            cardinality: 'single',
+                            registrationKind: 'bind',
+                            registrationIndex: 0
+                        }
+                    ]
                 }
             }
         ])
@@ -763,6 +787,25 @@ describe('composer builder and static validation', () => {
                 dependencyKind: 'external',
                 bindingTokenId: 'composer.auth-reader',
                 bindingKind: 'adapter'
+            },
+            {
+                edgeKind: 'adapter-source',
+                consumerModuleId: 'adapter-single-contact-requests',
+                requiredTokenId: 'composer.auth-reader',
+                dependencyKind: 'external',
+                adapterTargetTokenId: 'composer.auth-reader',
+                adapterSourceTokenId: 'composer.auth-public-api',
+                adapterSourceKind: 'token',
+                sourceProvider: {
+                    source: 'module',
+                    providerKind: 'capability',
+                    moduleId: 'adapter-single-auth',
+                    tokenId: 'composer.auth-public-api',
+                    capabilityKind: 'public-api',
+                    cardinality: 'single',
+                    registrationKind: 'bind',
+                    registrationIndex: 0
+                }
             }
         ])
         expect(adapterCalls).toBe(0)
@@ -871,11 +914,35 @@ describe('composer builder and static validation', () => {
                     properties: [
                         {
                             property: 'auth',
-                            tokenId: 'composer.auth-public-api'
+                            tokenId: 'composer.auth-public-api',
+                            providers: [
+                                {
+                                    source: 'module',
+                                    providerKind: 'capability',
+                                    moduleId: 'adapter-object-auth',
+                                    tokenId: 'composer.auth-public-api',
+                                    capabilityKind: 'public-api',
+                                    cardinality: 'single',
+                                    registrationKind: 'bind',
+                                    registrationIndex: 0
+                                }
+                            ]
                         },
                         {
                             property: 'permissions',
-                            tokenId: 'composer.permissions-public-api'
+                            tokenId: 'composer.permissions-public-api',
+                            providers: [
+                                {
+                                    source: 'module',
+                                    providerKind: 'capability',
+                                    moduleId: 'adapter-object-permissions',
+                                    tokenId: 'composer.permissions-public-api',
+                                    capabilityKind: 'public-api',
+                                    cardinality: 'single',
+                                    registrationKind: 'bind',
+                                    registrationIndex: 0
+                                }
+                            ]
                         }
                     ]
                 }
@@ -889,6 +956,301 @@ describe('composer builder and static validation', () => {
         expect(adapterCalls).toBe(1)
 
         await runtime.dispose()
+    })
+
+    test('exposes composition-root adapter source provider metadata', () => {
+        const consumerModule = defineModule({
+            id: 'adapter-root-source-consumer',
+            requires: [
+                {
+                    token: AUTH_READER
+                },
+                {
+                    token: PERMISSIONS_PUBLIC_API
+                }
+            ],
+            setup(): void {}
+        })
+        const composer = createComposer().use(consumerModule)
+        let adapterCalls = 0
+
+        composer.bind(PERMISSIONS_PUBLIC_API).toValue({
+            canSubmit(): boolean {
+                return true
+            }
+        })
+        composer
+            .adapt(AUTH_READER)
+            .from(PERMISSIONS_PUBLIC_API)
+            .using((permissions) => {
+                adapterCalls += 1
+
+                return {
+                    currentUserId(): string {
+                        return permissions.canSubmit() ? 'allowed' : 'denied'
+                    }
+                }
+            })
+
+        expect(composer.validate()).toEqual({
+            ok: true,
+            diagnostics: []
+        })
+        expect(composer.inspect().bindings[1]?.adapterSource).toEqual({
+            kind: 'token',
+            tokenId: 'composer.permissions-public-api',
+            providers: [
+                {
+                    source: 'composition-root',
+                    providerKind: 'binding',
+                    tokenId: 'composer.permissions-public-api',
+                    bindingKind: 'value',
+                    cardinality: 'single',
+                    registrationIndex: 0
+                }
+            ]
+        })
+        expect(adapterCalls).toBe(0)
+    })
+
+    test('reports graph-aware adapter targets that are not external required ports', () => {
+        const sourceModule = defineModule({
+            id: 'adapter-invalid-target-source',
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(AUTH_PUBLIC_API).toValue({
+                    requireUser(): string {
+                        return 'source-user'
+                    }
+                })
+            }
+        })
+        const sharedConsumerModule = defineModule({
+            id: 'adapter-invalid-target-shared-consumer',
+            requires: [
+                {
+                    token: AUTH_READER,
+                    kind: 'shared'
+                }
+            ],
+            setup(): void {}
+        })
+        const composer = createComposer().use(sourceModule).use(sharedConsumerModule)
+
+        composer
+            .adapt(AUTH_READER)
+            .from(AUTH_PUBLIC_API)
+            .using((auth) => {
+                return {
+                    currentUserId(): string {
+                        return auth.requireUser()
+                    }
+                }
+            })
+
+        const expectedReport = {
+            ok: false,
+            diagnostics: [
+                {
+                    code: 'SAGIFIRE_IOC_ADAPTER_TARGET_INVALID',
+                    severity: 'error',
+                    message:
+                        'Invalid adapter target "composer.auth-reader": ' +
+                        'target is not declared as an external required port',
+                    details: {
+                        targetTokenId: 'composer.auth-reader',
+                        bindingKind: 'adapter',
+                        reason: 'missing-external-required-port'
+                    }
+                }
+            ]
+        }
+
+        expect(composer.validate()).toEqual(expectedReport)
+        expect(composer.inspect().validation).toEqual(expectedReport)
+        expect(new AdapterTargetInvalidError(AUTH_READER.id)).toBeInstanceOf(
+            AdapterTargetInvalidError
+        )
+    })
+
+    test('reports missing graph-aware adapter sources without executing adapter factory', () => {
+        const consumerModule = defineModule({
+            id: 'adapter-missing-source-consumer',
+            requires: [
+                {
+                    token: AUTH_READER
+                }
+            ],
+            setup(): void {}
+        })
+        const composer = createComposer().use(consumerModule)
+        let adapterCalls = 0
+
+        composer
+            .adapt(AUTH_READER)
+            .from(AUTH_PUBLIC_API)
+            .using((auth) => {
+                adapterCalls += 1
+
+                return {
+                    currentUserId(): string {
+                        return auth.requireUser()
+                    }
+                }
+            })
+
+        expect(composer.validate()).toEqual({
+            ok: false,
+            diagnostics: [
+                {
+                    code: 'SAGIFIRE_IOC_ADAPTER_SOURCE_MISSING',
+                    severity: 'error',
+                    message:
+                        'Invalid adapter source "composer.auth-public-api" for target ' +
+                        '"composer.auth-reader": is not provided by a public capability or ' +
+                        'composition binding',
+                    details: {
+                        targetTokenId: 'composer.auth-reader',
+                        sourceTokenId: 'composer.auth-public-api'
+                    }
+                }
+            ]
+        })
+        expect(composer.inspect().bindings[0]?.adapterSource).toEqual({
+            kind: 'token',
+            tokenId: 'composer.auth-public-api',
+            providers: []
+        })
+        expect(adapterCalls).toBe(0)
+        expect(new AdapterSourceMissingError(AUTH_READER.id, AUTH_PUBLIC_API.id)).toBeInstanceOf(
+            AdapterSourceMissingError
+        )
+    })
+
+    test('reports private graph-aware adapter sources after module setup without factory execution', async () => {
+        const privateOwner = defineModule({
+            id: 'adapter-private-source-owner',
+            setup(context): void {
+                context.bind(AUTH_SECRET).toValue({
+                    secret: 'hidden-source'
+                })
+            }
+        })
+        const consumerModule = defineModule({
+            id: 'adapter-private-source-consumer',
+            requires: [
+                {
+                    token: AUTH_READER
+                }
+            ],
+            setup(): void {}
+        })
+        const composer = createComposer().use(privateOwner).use(consumerModule)
+        let adapterCalls = 0
+
+        composer
+            .adapt(AUTH_READER)
+            .from(AUTH_SECRET)
+            .using((secret) => {
+                adapterCalls += 1
+
+                return {
+                    currentUserId(): string {
+                        return secret.secret
+                    }
+                }
+            })
+
+        await expect(composer.prepare()).rejects.toMatchObject({
+            code: 'SAGIFIRE_IOC_COMPOSER_VALIDATION_FAILED',
+            report: {
+                ok: false,
+                diagnostics: [
+                    {
+                        code: 'SAGIFIRE_IOC_ADAPTER_SOURCE_PRIVATE',
+                        severity: 'error',
+                        message:
+                            'Invalid adapter source "composer.auth-secret" for target ' +
+                            '"composer.auth-reader": matches a module-private provider',
+                        details: {
+                            targetTokenId: 'composer.auth-reader',
+                            sourceTokenId: 'composer.auth-secret'
+                        }
+                    }
+                ]
+            }
+        })
+        expect(adapterCalls).toBe(0)
+        expect(new AdapterSourcePrivateError(AUTH_READER.id, AUTH_SECRET.id)).toBeInstanceOf(
+            AdapterSourcePrivateError
+        )
+    })
+
+    test('reports multi graph-aware adapter sources in the first validation slice', () => {
+        const auditModule = defineModule({
+            id: 'adapter-multi-source-audit',
+            provides: [
+                {
+                    token: AUDIT_EVENTS,
+                    kind: 'event-subscriber',
+                    cardinality: 'multi'
+                }
+            ],
+            setup(): void {}
+        })
+        const consumerModule = defineModule({
+            id: 'adapter-multi-source-consumer',
+            requires: [
+                {
+                    token: AUTH_READER
+                }
+            ],
+            setup(): void {}
+        })
+        const composer = createComposer().use(auditModule).use(consumerModule)
+        let adapterCalls = 0
+
+        composer
+            .adapt(AUTH_READER)
+            .from(AUDIT_EVENTS)
+            .using((event) => {
+                adapterCalls += 1
+
+                return {
+                    currentUserId(): string {
+                        return event
+                    }
+                }
+            })
+
+        expect(composer.validate()).toEqual({
+            ok: false,
+            diagnostics: [
+                {
+                    code: 'SAGIFIRE_IOC_ADAPTER_SOURCE_CARDINALITY_MISMATCH',
+                    severity: 'error',
+                    message:
+                        'Invalid adapter source "composer.audit-events" for target ' +
+                        '"composer.auth-reader": expects a single source but capability is multi',
+                    details: {
+                        targetTokenId: 'composer.auth-reader',
+                        sourceTokenId: 'composer.audit-events',
+                        expectedCardinality: 'single',
+                        actualCardinality: 'multi',
+                        providerSource: 'capability'
+                    }
+                }
+            ]
+        })
+        expect(adapterCalls).toBe(0)
+        expect(
+            new AdapterSourceCardinalityMismatchError(AUTH_READER.id, AUDIT_EVENTS.id, 'capability')
+        ).toBeInstanceOf(AdapterSourceCardinalityMismatchError)
     })
 
     test('reports duplicate composer bindings before prepare and compose reach container', async () => {
@@ -3566,11 +3928,14 @@ describe('inspection api', () => {
         expectTypeOf<RequiredPortSatisfaction>().toEqualTypeOf<
             'binding' | 'capability' | 'optional' | 'missing'
         >()
-        expectTypeOf<ModuleDependencyEdgeKind>().toEqualTypeOf<'capability' | 'binding'>()
+        expectTypeOf<ModuleDependencyEdgeKind>().toEqualTypeOf<
+            'capability' | 'binding' | 'adapter-source'
+        >()
         expectTypeOf<CapabilityDependencyEdge>().toMatchTypeOf<ModuleDependencyEdgeBase>()
         expectTypeOf<BindingDependencyEdge>().toMatchTypeOf<ModuleDependencyEdgeBase>()
+        expectTypeOf<AdapterSourceDependencyEdge>().toMatchTypeOf<ModuleDependencyEdgeBase>()
         expectTypeOf<ModuleDependencyEdge>().toMatchTypeOf<
-            CapabilityDependencyEdge | BindingDependencyEdge
+            CapabilityDependencyEdge | BindingDependencyEdge | AdapterSourceDependencyEdge
         >()
         expectTypeOf<ModuleCycleErrorDetails>().toEqualTypeOf<{
             readonly moduleIdPath: readonly string[]
@@ -3596,16 +3961,41 @@ describe('inspection api', () => {
             )[]
             readonly multiBindingKinds: readonly ('value' | 'factory')[]
         }>()
+        expectTypeOf<AdapterSourceErrorDetails>().toEqualTypeOf<{
+            readonly targetTokenId: string
+            readonly sourceTokenId: string
+            readonly sourceProperty?: string
+        }>()
+        expectTypeOf<AdapterSourceCardinalityMismatchErrorDetails>().toEqualTypeOf<{
+            readonly targetTokenId: string
+            readonly sourceTokenId: string
+            readonly sourceProperty?: string
+            readonly expectedCardinality: 'single'
+            readonly actualCardinality: 'multi'
+            readonly providerSource: 'capability' | 'multi-binding'
+        }>()
+        expectTypeOf<AdapterTargetInvalidErrorDetails>().toEqualTypeOf<{
+            readonly targetTokenId: string
+            readonly bindingKind: 'adapter'
+            readonly reason: 'missing-external-required-port'
+        }>()
+        expectTypeOf<ComposerAdapterSourceProviderMetadata>().toEqualTypeOf<
+            | ComposerAdapterSourceCapabilityProviderMetadata
+            | ComposerAdapterSourceBindingProviderMetadata
+            | ComposerAdapterSourceMultiBindingProviderMetadata
+        >()
         expectTypeOf<ComposerAdapterSourceMetadata>().toEqualTypeOf<
             | {
                   readonly kind: 'token'
                   readonly tokenId: string
+                  readonly providers: readonly ComposerAdapterSourceProviderMetadata[]
               }
             | {
                   readonly kind: 'object'
                   readonly properties: readonly {
                       readonly property: string
                       readonly tokenId: string
+                      readonly providers: readonly ComposerAdapterSourceProviderMetadata[]
                   }[]
               }
         >()
