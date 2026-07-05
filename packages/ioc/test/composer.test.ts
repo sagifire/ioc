@@ -3,6 +3,7 @@ import { describe, expect, expectTypeOf, test } from 'vitest'
 import {
     CapabilityCardinalityConflictError,
     CapabilityRegistrationCardinalityMismatchError,
+    ComposerBindingCardinalityConflictError,
     ComposerValidationError,
     DuplicateComposerBindingError,
     DuplicateModuleIdError,
@@ -12,6 +13,7 @@ import {
     GetAllUsedForSingleTokenError,
     GetUsedForMultiTokenError,
     InvalidComposerBindingError,
+    InvalidComposerMultiBindingError,
     InvalidModuleDefinitionError,
     MissingModuleProviderError,
     MissingRequiredPortError,
@@ -27,13 +29,17 @@ import {
     type CapabilityDependencyEdge,
     type CapabilityProviderMetadata,
     type CapabilityProviderRegistrationKind,
+    type CapabilityProviderSource,
     type Composer,
     type ComposerBindingBuilder,
     type ComposerBindingContext,
     type ComposerInspection,
+    type ComposerMultiBindingBuilder,
     type CompositionBindingMetadata,
+    type ComposerBindingCardinalityConflictErrorDetails,
     type DuplicateComposerBindingErrorDetails,
     type InspectionProviderKind,
+    type InvalidComposerMultiBindingErrorDetails,
     type ModuleCardinality,
     type ModuleCapabilityDefinition,
     type ModuleCapabilityDefinitionInput,
@@ -52,6 +58,7 @@ import {
     type ModuleSetupResult,
     type PreparedComposition,
     type ProviderRegistrationProviderSummary,
+    type ProviderRegistrationSource,
     type ProviderRegistrationSummary,
     type RequiredPortMetadata,
     type RequiredPortSatisfaction,
@@ -63,7 +70,12 @@ import {
     ProviderCycleError,
     RuntimeDisposedError
 } from '../src/container.js'
-import type { BindingBuilder, MultiBindingBuilder, Scope } from '../src/container.js'
+import type {
+    BindingBuilder,
+    LifetimeBinding,
+    MultiBindingBuilder,
+    Scope
+} from '../src/container.js'
 import { type Token, token } from '../src/tokens.js'
 
 interface AuthReader {
@@ -1342,9 +1354,11 @@ describe('composer builder and static validation', () => {
     test('preserves composer binding token and factory context inference', () => {
         const composer = createComposer()
         const binding = composer.bind(AUTH_READER)
+        const multiBinding = composer.add(AUDIT_EVENTS)
 
         expectTypeOf(composer).toEqualTypeOf<Composer>()
         expectTypeOf(binding).toEqualTypeOf<ComposerBindingBuilder<AuthReader>>()
+        expectTypeOf(multiBinding).toEqualTypeOf<ComposerMultiBindingBuilder<string>>()
 
         binding.toFactory((context) => {
             expectTypeOf(context).toEqualTypeOf<ComposerBindingContext>()
@@ -1367,6 +1381,17 @@ describe('composer builder and static validation', () => {
 
             return context.get(AUTH_READER)
         })
+
+        const lifetime = multiBinding.toFactory((context) => {
+            expectTypeOf(context).toEqualTypeOf<ComposerBindingContext>()
+            expectTypeOf(context.get(AUTH_PUBLIC_API)).toEqualTypeOf<AuthPublicApi>()
+            expectTypeOf(context.tryGet(AUTH_PUBLIC_API)).toEqualTypeOf<AuthPublicApi | undefined>()
+            expectTypeOf(context.getAll(AUDIT_EVENTS)).toEqualTypeOf<string[]>()
+
+            return 'typed-event'
+        })
+
+        expectTypeOf(lifetime).toEqualTypeOf<LifetimeBinding>()
     })
 })
 
@@ -1462,12 +1487,14 @@ describe('module setup and private providers', () => {
             ],
             capabilities: [
                 {
+                    source: 'module',
                     moduleId: 'setup-auth',
                     tokenId: 'composer.auth-public-api',
                     kind: 'public-api',
                     registrationKind: 'single'
                 },
                 {
+                    source: 'module',
                     moduleId: 'setup-contact-requests',
                     tokenId: 'composer.contact-requests-public-api',
                     kind: 'public-api',
@@ -1775,6 +1802,7 @@ describe('module setup and private providers', () => {
         expect(runtime.getAll(AUDIT_EVENTS)).toEqual(['first', 'second'])
         expect(runtime.inspect().providerRegistrations).toEqual([
             {
+                source: 'module',
                 moduleId: 'prepare-first-audit-contributor',
                 tokenId: 'composer.audit-events',
                 capabilityKind: 'event-subscriber',
@@ -1790,6 +1818,7 @@ describe('module setup and private providers', () => {
                 ]
             },
             {
+                source: 'module',
                 moduleId: 'prepare-second-audit-contributor',
                 tokenId: 'composer.audit-events',
                 capabilityKind: 'event-subscriber',
@@ -1895,6 +1924,366 @@ describe('module setup and private providers', () => {
     })
 })
 
+describe('composition-root multi contributions', () => {
+    test('adds root multi contributions after module setup contributions', async () => {
+        let rootFactoryCalls = 0
+        const firstAuditModule = defineModule({
+            id: 'root-add-first-audit',
+            provides: [
+                {
+                    token: AUDIT_EVENTS,
+                    kind: 'event-subscriber',
+                    cardinality: 'multi'
+                }
+            ],
+            setup(context): void {
+                context.add(AUDIT_EVENTS).toValue('module-first')
+            }
+        })
+        const secondAuditModule = defineModule({
+            id: 'root-add-second-audit',
+            provides: [
+                {
+                    token: AUDIT_EVENTS,
+                    kind: 'event-subscriber',
+                    cardinality: 'multi'
+                }
+            ],
+            setup(context): void {
+                context.add(AUDIT_EVENTS).toValue('module-second')
+            }
+        })
+        const consumerModule = defineModule({
+            id: 'root-add-audit-consumer',
+            requires: [
+                {
+                    token: AUDIT_EVENTS,
+                    cardinality: 'multi'
+                }
+            ],
+            setup(): void {}
+        })
+        const composer = createComposer()
+            .use(firstAuditModule)
+            .use(secondAuditModule)
+            .use(consumerModule)
+
+        composer.add(AUDIT_EVENTS).toValue('root-first')
+        composer
+            .add(AUDIT_EVENTS)
+            .toFactory(() => {
+                rootFactoryCalls += 1
+
+                return 'root-second'
+            })
+            .singleton()
+
+        const expectedGraphProviders = [
+            {
+                source: 'module',
+                moduleId: 'root-add-first-audit',
+                registrationKind: 'add',
+                registrationIndex: 0
+            },
+            {
+                source: 'module',
+                moduleId: 'root-add-second-audit',
+                registrationKind: 'add',
+                registrationIndex: 1
+            },
+            {
+                source: 'composition-root',
+                registrationKind: 'add',
+                registrationIndex: 2
+            },
+            {
+                source: 'composition-root',
+                registrationKind: 'add',
+                registrationIndex: 3
+            }
+        ]
+        const graph = composer.getGraph()
+        const validation = composer.validate()
+
+        expect(rootFactoryCalls).toBe(0)
+        expect(validation).toEqual({
+            ok: true,
+            diagnostics: []
+        })
+        expect(graph.capabilities).toEqual([
+            {
+                moduleId: 'root-add-first-audit',
+                tokenId: 'composer.audit-events',
+                kind: 'event-subscriber',
+                cardinality: 'multi',
+                providers: expectedGraphProviders
+            },
+            {
+                moduleId: 'root-add-second-audit',
+                tokenId: 'composer.audit-events',
+                kind: 'event-subscriber',
+                cardinality: 'multi',
+                providers: expectedGraphProviders
+            }
+        ])
+        expect(graph.requiredPorts).toEqual([
+            {
+                moduleId: 'root-add-audit-consumer',
+                tokenId: 'composer.audit-events',
+                required: true,
+                kind: 'external',
+                cardinality: 'multi',
+                providerCount: 4,
+                satisfiedBy: 'capability'
+            }
+        ])
+
+        const runtime = await composer.compose()
+        const inspection = runtime.inspect()
+
+        expect(rootFactoryCalls).toBe(0)
+        expect(inspection.providerRegistrations).toEqual([
+            {
+                source: 'module',
+                moduleId: 'root-add-first-audit',
+                tokenId: 'composer.audit-events',
+                capabilityKind: 'event-subscriber',
+                cardinality: 'multi',
+                visibility: 'exported',
+                registrationKind: 'multi',
+                providers: [
+                    {
+                        providerKind: 'value',
+                        registrationIndex: 0,
+                        lifetime: 'singleton'
+                    }
+                ]
+            },
+            {
+                source: 'module',
+                moduleId: 'root-add-second-audit',
+                tokenId: 'composer.audit-events',
+                capabilityKind: 'event-subscriber',
+                cardinality: 'multi',
+                visibility: 'exported',
+                registrationKind: 'multi',
+                providers: [
+                    {
+                        providerKind: 'value',
+                        registrationIndex: 1,
+                        lifetime: 'singleton'
+                    }
+                ]
+            },
+            {
+                source: 'composition-root',
+                tokenId: 'composer.audit-events',
+                capabilityKind: 'event-subscriber',
+                cardinality: 'multi',
+                visibility: 'exported',
+                registrationKind: 'multi',
+                providers: [
+                    {
+                        providerKind: 'value',
+                        registrationIndex: 2,
+                        lifetime: 'singleton'
+                    },
+                    {
+                        providerKind: 'factory',
+                        registrationIndex: 3,
+                        lifetime: 'singleton'
+                    }
+                ]
+            }
+        ])
+        expect(() => runtime.get(AUDIT_EVENTS)).toThrow(GetUsedForMultiTokenError)
+        expect(runtime.getAll(AUDIT_EVENTS)).toEqual([
+            'module-first',
+            'module-second',
+            'root-first',
+            'root-second'
+        ])
+        expect(rootFactoryCalls).toBe(1)
+
+        await runtime.dispose()
+    })
+
+    test('reports typed diagnostics for invalid root multi contribution targets', async () => {
+        let privateOwnerSetupCalls = 0
+        const singleCapabilityModule = defineModule({
+            id: 'root-add-single-capability',
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(AUTH_PUBLIC_API).toValue({
+                    requireUser(): string {
+                        return 'single-user'
+                    }
+                })
+            }
+        })
+        const requiredOnlyModule = defineModule({
+            id: 'root-add-required-only',
+            requires: [
+                {
+                    token: AUTH_READER,
+                    required: false
+                }
+            ],
+            setup(): void {}
+        })
+        const privateOwnerModule = defineModule({
+            id: 'root-add-private-owner',
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                privateOwnerSetupCalls += 1
+                context.add(AUTH_SECRET).toValue({
+                    secret: 'private'
+                })
+                context.bind(AUTH_PUBLIC_API).toValue({
+                    requireUser(): string {
+                        return 'private-owner'
+                    }
+                })
+            }
+        })
+        const singleCapabilityComposer = createComposer().use(singleCapabilityModule)
+        const requiredOnlyComposer = createComposer().use(requiredOnlyModule)
+        const undeclaredComposer = createComposer()
+        const privateTokenComposer = createComposer().use(privateOwnerModule)
+
+        singleCapabilityComposer.add(AUTH_PUBLIC_API).toValue({
+            requireUser(): string {
+                return 'root'
+            }
+        })
+        requiredOnlyComposer.add(AUTH_READER).toValue({
+            currentUserId(): string {
+                return 'root'
+            }
+        })
+        undeclaredComposer.add(OPTIONAL_AUTH_READER).toValue({
+            currentUserId(): string {
+                return 'root'
+            }
+        })
+        privateTokenComposer.add(AUTH_SECRET).toValue({
+            secret: 'root'
+        })
+
+        expect(singleCapabilityComposer.validate().diagnostics).toContainEqual({
+            code: 'SAGIFIRE_IOC_INVALID_COMPOSER_MULTI_BINDING',
+            severity: 'error',
+            message:
+                'Invalid composer multi binding for token "composer.auth-public-api": ' +
+                'target is declared as a single public capability',
+            details: {
+                tokenId: 'composer.auth-public-api',
+                bindingKind: 'value',
+                reason: 'single-capability'
+            }
+        })
+        expect(requiredOnlyComposer.validate().diagnostics).toContainEqual({
+            code: 'SAGIFIRE_IOC_INVALID_COMPOSER_MULTI_BINDING',
+            severity: 'error',
+            message:
+                'Invalid composer multi binding for token "composer.auth-reader": ' +
+                'target is declared only as a required port',
+            details: {
+                tokenId: 'composer.auth-reader',
+                bindingKind: 'value',
+                reason: 'required-port-only'
+            }
+        })
+        expect(undeclaredComposer.validate().diagnostics).toContainEqual({
+            code: 'SAGIFIRE_IOC_INVALID_COMPOSER_MULTI_BINDING',
+            severity: 'error',
+            message:
+                'Invalid composer multi binding for token "composer.optional-auth-reader": ' +
+                'target is not a declared public multi capability',
+            details: {
+                tokenId: 'composer.optional-auth-reader',
+                bindingKind: 'value',
+                reason: 'missing-public-multi-capability'
+            }
+        })
+        await expect(privateTokenComposer.compose()).rejects.toMatchObject({
+            code: 'SAGIFIRE_IOC_COMPOSER_VALIDATION_FAILED',
+            report: {
+                diagnostics: [
+                    {
+                        code: 'SAGIFIRE_IOC_INVALID_COMPOSER_MULTI_BINDING',
+                        details: {
+                            tokenId: 'composer.auth-secret',
+                            bindingKind: 'value',
+                            reason: 'missing-public-multi-capability'
+                        }
+                    }
+                ]
+            }
+        })
+        expect(privateOwnerSetupCalls).toBe(0)
+        expect(
+            new InvalidComposerMultiBindingError(AUTH_PUBLIC_API.id, 'value', 'single-capability')
+        ).toBeInstanceOf(InvalidComposerMultiBindingError)
+    })
+
+    test('reports typed diagnostics when root bind and add target the same token', () => {
+        const providerModule = defineModule({
+            id: 'root-add-conflict-provider',
+            provides: [
+                {
+                    token: AUDIT_EVENTS,
+                    kind: 'event-subscriber',
+                    cardinality: 'multi'
+                }
+            ],
+            setup(context): void {
+                context.add(AUDIT_EVENTS).toValue('module')
+            }
+        })
+        const consumerModule = defineModule({
+            id: 'root-add-conflict-consumer',
+            requires: [
+                {
+                    token: AUDIT_EVENTS,
+                    required: false
+                }
+            ],
+            setup(): void {}
+        })
+        const composer = createComposer().use(providerModule).use(consumerModule)
+
+        composer.bind(AUDIT_EVENTS).toValue('single-root')
+        composer.add(AUDIT_EVENTS).toValue('multi-root')
+
+        expect(composer.validate().diagnostics).toContainEqual({
+            code: 'SAGIFIRE_IOC_COMPOSER_BINDING_CARDINALITY_CONFLICT',
+            severity: 'error',
+            message:
+                'Composer binding cardinality conflict for token "composer.audit-events": ' +
+                'bind() and add() cannot target the same token',
+            details: {
+                tokenId: 'composer.audit-events',
+                bindingKinds: ['value'],
+                multiBindingKinds: ['value']
+            }
+        })
+        expect(
+            new ComposerBindingCardinalityConflictError(AUDIT_EVENTS.id, ['value'], ['value'])
+        ).toBeInstanceOf(ComposerBindingCardinalityConflictError)
+    })
+})
+
 describe('inspection api', () => {
     test('inspects composer graph metadata deterministically without exposing provider values', () => {
         const authModule = defineModule({
@@ -1995,6 +2384,7 @@ describe('inspection api', () => {
                 cardinality: 'single',
                 providers: [
                     {
+                        source: 'module',
                         moduleId: 'inspect-auth',
                         registrationKind: 'bind',
                         registrationIndex: 0
@@ -2009,6 +2399,7 @@ describe('inspection api', () => {
                 cardinality: 'single',
                 providers: [
                     {
+                        source: 'module',
                         moduleId: 'inspect-contact-requests',
                         registrationKind: 'bind',
                         registrationIndex: 0
@@ -2124,11 +2515,13 @@ describe('inspection api', () => {
         const inspection = composer.inspect()
         const expectedProviders = [
             {
+                source: 'module',
                 moduleId: 'inspect-multi-first-audit',
                 registrationKind: 'add',
                 registrationIndex: 0
             },
             {
+                source: 'module',
                 moduleId: 'inspect-multi-second-audit',
                 registrationKind: 'add',
                 registrationIndex: 1
@@ -2482,6 +2875,7 @@ describe('inspection api', () => {
         ])
         expect(inspection.providerRegistrations).toEqual([
             {
+                source: 'module',
                 moduleId: 'inspect-runtime-auth',
                 tokenId: 'composer.auth-public-api',
                 capabilityKind: 'public-api',
@@ -2497,6 +2891,7 @@ describe('inspection api', () => {
                 ]
             },
             {
+                source: 'module',
                 moduleId: 'inspect-runtime-contact-requests',
                 tokenId: 'composer.contact-requests-public-api',
                 capabilityKind: 'public-api',
@@ -2512,6 +2907,7 @@ describe('inspection api', () => {
                 ]
             },
             {
+                source: 'module',
                 moduleId: 'inspect-runtime-audit',
                 tokenId: 'composer.audit-events',
                 capabilityKind: 'event-subscriber',
@@ -2532,6 +2928,7 @@ describe('inspection api', () => {
                 ]
             },
             {
+                source: 'module',
                 moduleId: 'inspect-runtime-resource',
                 tokenId: 'composer.resource-public-api',
                 capabilityKind: 'shared-service',
@@ -2825,6 +3222,7 @@ describe('inspection api', () => {
         })
         expect(inspection.providerRegistrations).toEqual([
             {
+                source: 'module',
                 moduleId: 'inspect-runtime-lazy-contact-requests',
                 tokenId: 'composer.contact-requests-public-api',
                 capabilityKind: 'public-api',
@@ -2840,6 +3238,7 @@ describe('inspection api', () => {
                 ]
             },
             {
+                source: 'module',
                 moduleId: 'inspect-runtime-lazy-resource',
                 tokenId: 'composer.resource-public-api',
                 capabilityKind: 'shared-service',
@@ -2891,8 +3290,11 @@ describe('inspection api', () => {
             'value' | 'factory' | 'class' | 'async-factory' | 'async-resource'
         >()
         expectTypeOf<CapabilityProviderRegistrationKind>().toEqualTypeOf<'bind' | 'add'>()
+        expectTypeOf<CapabilityProviderSource>().toEqualTypeOf<'module' | 'composition-root'>()
+        expectTypeOf<ProviderRegistrationSource>().toEqualTypeOf<'module' | 'composition-root'>()
         expectTypeOf<CapabilityProviderMetadata>().toEqualTypeOf<{
-            readonly moduleId: string
+            readonly source: 'module' | 'composition-root'
+            readonly moduleId?: string
             readonly registrationKind: CapabilityProviderRegistrationKind
             readonly registrationIndex: number
         }>()
@@ -2913,6 +3315,17 @@ describe('inspection api', () => {
         expectTypeOf<DuplicateComposerBindingErrorDetails>().toEqualTypeOf<{
             readonly tokenId: string
             readonly bindingKinds: readonly ('value' | 'factory' | 'class' | 'async-factory')[]
+        }>()
+        expectTypeOf<InvalidComposerMultiBindingErrorDetails>().toEqualTypeOf<{
+            readonly tokenId: string
+            readonly bindingKind: 'value' | 'factory'
+            readonly reason:
+                'missing-public-multi-capability' | 'required-port-only' | 'single-capability'
+        }>()
+        expectTypeOf<ComposerBindingCardinalityConflictErrorDetails>().toEqualTypeOf<{
+            readonly tokenId: string
+            readonly bindingKinds: readonly ('value' | 'factory' | 'class' | 'async-factory')[]
+            readonly multiBindingKinds: readonly ('value' | 'factory')[]
         }>()
 
         const cycleError = new ModuleCycleError({

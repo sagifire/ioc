@@ -191,6 +191,7 @@ describe('module DSL foundation', () => {
                 cardinality: 'single',
                 providers: [
                     {
+                        source: 'module',
                         moduleId: 'dsl-auth',
                         registrationKind: 'bind',
                         registrationIndex: 0
@@ -204,6 +205,7 @@ describe('module DSL foundation', () => {
                 cardinality: 'single',
                 providers: [
                     {
+                        source: 'module',
                         moduleId: 'dsl-contact-requests-composer',
                         registrationKind: 'bind',
                         registrationIndex: 0

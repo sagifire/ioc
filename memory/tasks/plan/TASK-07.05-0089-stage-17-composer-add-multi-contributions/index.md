@@ -11,3 +11,6 @@ Backlog implementation task для explicit composition-root multi contributions
   - Type: file
   - Purpose: Scope and acceptance для введення `composer.add()` після inspection/provider
     identity model.
+- [Runs](runs/index.md)
+  - Type: folder
+  - Purpose: Execution artifacts for implementation runs.

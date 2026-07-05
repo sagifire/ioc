@@ -1,11 +1,11 @@
 # TASK-07.05-0089: Composer add multi contributions
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-05
 Owner Role: Implementation Agent
-Current Run: n/a
+Current Run: RUN-001
 Current Research: n/a
 Current Fixation: n/a
 
@@ -95,19 +95,19 @@ diagnostics remain stable, typed and readable.
 
 ## Acceptance Criteria
 
-- [ ] `Composer` exposes public `add(token)` API for composition-root multi contributions.
-- [ ] `composer.add(token)` succeeds for declared public `multi` capability tokens.
-- [ ] `composer.add(token)` fails with typed diagnostic for single, undeclared, required-only
+- [x] `Composer` exposes public `add(token)` API for composition-root multi contributions.
+- [x] `composer.add(token)` succeeds for declared public `multi` capability tokens.
+- [x] `composer.add(token)` fails with typed diagnostic for single, undeclared, required-only
       or private tokens.
-- [ ] Composition-root contributions resolve through `runtime.getAll(token)` after module
+- [x] Composition-root contributions resolve through `runtime.getAll(token)` after module
       contributions.
-- [ ] Contribution order is deterministic and tested across modules and composition root.
-- [ ] `runtime.get(token)` for multi token with root contributions still fails with
+- [x] Contribution order is deterministic and tested across modules and composition root.
+- [x] `runtime.get(token)` for multi token with root contributions still fails with
       `SAGIFIRE_IOC_GET_USED_FOR_MULTI_TOKEN`.
-- [ ] Public inspection exposes composition-root provider identity and ordering.
-- [ ] Validation and inspection do not execute user factories.
-- [ ] Existing `composer.bind()` behavior remains backward compatible.
-- [ ] Type-level tests cover `Composer.add()` inference.
+- [x] Public inspection exposes composition-root provider identity and ordering.
+- [x] Validation and inspection do not execute user factories.
+- [x] Existing `composer.bind()` behavior remains backward compatible.
+- [x] Type-level tests cover `Composer.add()` inference.
 
 ## Dependencies
 
@@ -122,4 +122,4 @@ diagnostics remain stable, typed and readable.
 
 ## Runs
 
-Run artifacts треба створити під час запуску задачі.
+- [RUN-001](runs/RUN-001/index.md)

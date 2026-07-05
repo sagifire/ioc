@@ -120,6 +120,12 @@ export type ModuleDependencyEdgeKind = 'capability' | 'binding'
 
 export type CapabilityProviderRegistrationKind = 'bind' | 'add'
 
+export type CapabilityProviderSource = 'module' | 'composition-root'
+
+export type ProviderRegistrationSource = 'module' | 'composition-root'
+
+export type ComposerMultiBindingKind = 'value' | 'factory'
+
 export interface ComposerBindingContext {
     get<TValue>(token: Token<TValue>): TValue
     tryGet<TValue>(token: Token<TValue>): TValue | undefined
@@ -141,9 +147,15 @@ export interface ComposerBindingBuilder<TValue> {
     toAsyncFactory(factory: ComposerAsyncBindingFactory<TValue>): void
 }
 
+export interface ComposerMultiBindingBuilder<TValue> {
+    toValue(value: TValue): void
+    toFactory(factory: ComposerBindingFactory<TValue>): LifetimeBinding
+}
+
 export interface Composer {
     use(moduleDefinition: ModuleDefinition): Composer
     bind<TValue>(token: Token<TValue>): ComposerBindingBuilder<TValue>
+    add<TValue>(token: Token<TValue>): ComposerMultiBindingBuilder<TValue>
     validate(): DiagnosticReport
     inspect(): ComposerInspection
     getGraph(): ModuleGraph
@@ -189,7 +201,8 @@ export interface RequiredPortMetadata {
 }
 
 export interface CapabilityProviderMetadata {
-    readonly moduleId: string
+    readonly source: CapabilityProviderSource
+    readonly moduleId?: string
     readonly registrationKind: CapabilityProviderRegistrationKind
     readonly registrationIndex: number
 }
@@ -241,7 +254,8 @@ export interface ProviderRegistrationProviderSummary {
 }
 
 export interface ProviderRegistrationSummary {
-    readonly moduleId: string
+    readonly source: ProviderRegistrationSource
+    readonly moduleId?: string
     readonly tokenId: string
     readonly capabilityKind: ModuleCapabilityKind
     readonly cardinality: ModuleCardinality
@@ -275,7 +289,8 @@ export interface PreparedCompositionModule {
 }
 
 export interface PreparedCompositionCapability {
-    readonly moduleId: string
+    readonly source: ProviderRegistrationSource
+    readonly moduleId?: string
     readonly tokenId: string
     readonly kind: ModuleCapabilityKind
     readonly registrationKind: 'single' | 'multi'
@@ -357,6 +372,21 @@ export interface InvalidComposerBindingErrorDetails {
     readonly tokenId: string
     readonly bindingKind: ComposerBindingKind
     readonly reason: 'missing-required-port'
+}
+
+export type InvalidComposerMultiBindingReason =
+    'missing-public-multi-capability' | 'required-port-only' | 'single-capability'
+
+export interface InvalidComposerMultiBindingErrorDetails {
+    readonly tokenId: string
+    readonly bindingKind: ComposerMultiBindingKind
+    readonly reason: InvalidComposerMultiBindingReason
+}
+
+export interface ComposerBindingCardinalityConflictErrorDetails {
+    readonly tokenId: string
+    readonly bindingKinds: readonly ComposerBindingKind[]
+    readonly multiBindingKinds: readonly ComposerMultiBindingKind[]
 }
 
 export interface DuplicateComposerBindingErrorDetails {
@@ -697,6 +727,73 @@ export class InvalidComposerBindingError extends SagifireIocError<InvalidCompose
     }
 }
 
+export class InvalidComposerMultiBindingError extends SagifireIocError<InvalidComposerMultiBindingErrorDetails> {
+    override readonly name = 'InvalidComposerMultiBindingError'
+    override readonly code = 'SAGIFIRE_IOC_INVALID_COMPOSER_MULTI_BINDING'
+    readonly tokenId: string
+    readonly bindingKind: ComposerMultiBindingKind
+    readonly reason: InvalidComposerMultiBindingReason
+
+    constructor(
+        tokenId: string,
+        bindingKind: ComposerMultiBindingKind,
+        reason: InvalidComposerMultiBindingReason
+    ) {
+        super({
+            code: 'SAGIFIRE_IOC_INVALID_COMPOSER_MULTI_BINDING',
+            message:
+                `Invalid composer multi binding for token "${tokenId}": ` +
+                formatInvalidComposerMultiBindingReason(reason),
+            details: {
+                tokenId,
+                bindingKind,
+                reason
+            }
+        })
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.tokenId = tokenId
+        this.bindingKind = bindingKind
+        this.reason = reason
+    }
+}
+
+export class ComposerBindingCardinalityConflictError extends SagifireIocError<ComposerBindingCardinalityConflictErrorDetails> {
+    override readonly name = 'ComposerBindingCardinalityConflictError'
+    override readonly code = 'SAGIFIRE_IOC_COMPOSER_BINDING_CARDINALITY_CONFLICT'
+    readonly tokenId: string
+    readonly bindingKinds: readonly ComposerBindingKind[]
+    readonly multiBindingKinds: readonly ComposerMultiBindingKind[]
+
+    constructor(
+        tokenId: string,
+        bindingKinds: readonly [ComposerBindingKind, ...ComposerBindingKind[]],
+        multiBindingKinds: readonly [ComposerMultiBindingKind, ...ComposerMultiBindingKind[]]
+    ) {
+        const frozenBindingKinds = Object.freeze([...bindingKinds])
+        const frozenMultiBindingKinds = Object.freeze([...multiBindingKinds])
+
+        super({
+            code: 'SAGIFIRE_IOC_COMPOSER_BINDING_CARDINALITY_CONFLICT',
+            message:
+                `Composer binding cardinality conflict for token "${tokenId}": ` +
+                'bind() and add() cannot target the same token',
+            details: {
+                tokenId,
+                bindingKinds: frozenBindingKinds,
+                multiBindingKinds: frozenMultiBindingKinds
+            }
+        })
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.tokenId = tokenId
+        this.bindingKinds = frozenBindingKinds
+        this.multiBindingKinds = frozenMultiBindingKinds
+    }
+}
+
 export class DuplicateComposerBindingError extends SagifireIocError<DuplicateComposerBindingErrorDetails> {
     override readonly name = 'DuplicateComposerBindingError'
     override readonly code = 'SAGIFIRE_IOC_DUPLICATE_COMPOSER_BINDING'
@@ -972,6 +1069,20 @@ type ComposerBindingRecord =
           readonly factory: ComposerAsyncBindingFactory<unknown>
       }
 
+type ComposerMultiBindingRecord =
+    | {
+          readonly kind: 'value'
+          readonly token: Token<unknown>
+          readonly value: unknown
+          readonly providerRegistration: ProviderRegistrationRecord
+      }
+    | {
+          readonly kind: 'factory'
+          readonly token: Token<unknown>
+          readonly factory: ComposerBindingFactory<unknown>
+          readonly providerRegistration: ProviderRegistrationRecord
+      }
+
 interface CapabilityDependencyRecord {
     readonly moduleId: string
     readonly tokenId: string
@@ -1005,17 +1116,33 @@ interface ProviderRegistrationRecord {
     initialization: AsyncProviderInitializationMode | undefined
 }
 
-interface RegisteredCapabilityProvider {
-    readonly moduleId: string
+interface RegisteredCapabilityProviderBase {
+    readonly source: ProviderRegistrationSource
     readonly tokenId: string
     readonly kind: ModuleCapabilityKind
     readonly registrationKind: ProviderRegistrationKind
     readonly providers: ProviderRegistrationRecord[]
 }
 
+interface RegisteredModuleCapabilityProvider extends RegisteredCapabilityProviderBase {
+    readonly source: 'module'
+    readonly moduleId: string
+}
+
+interface RegisteredCompositionRootCapabilityProvider extends RegisteredCapabilityProviderBase {
+    readonly source: 'composition-root'
+}
+
+type RegisteredCapabilityProvider =
+    RegisteredModuleCapabilityProvider | RegisteredCompositionRootCapabilityProvider
+
 interface CompositionAccessModel {
     readonly publicTokenIds: ReadonlySet<string>
     readonly bindingTokenIds: ReadonlySet<string>
+    readonly capabilityDeclarationsByTokenId: ReadonlyMap<
+        string,
+        readonly CapabilityDeclarationRecord[]
+    >
     readonly requiredTokenIdsByModuleId: ReadonlyMap<string, ReadonlySet<string>>
     readonly providedTokenIdsByModuleId: ReadonlyMap<string, ReadonlySet<string>>
     readonly privateTokensByModuleId: Map<string, Map<string, Token<unknown>>>
@@ -1030,6 +1157,7 @@ interface LiveModuleSetupContext {
 interface BuiltComposition {
     readonly modules: readonly ModuleDefinition[]
     readonly bindings: readonly ComposerBindingRecord[]
+    readonly multiBindings: readonly ComposerMultiBindingRecord[]
     readonly access: CompositionAccessModel
     readonly runtime: ContainerRuntime
 }
@@ -1097,6 +1225,7 @@ export function defineModule<
 export function createComposer(): Composer {
     const modules: ModuleDefinition[] = []
     const bindings: ComposerBindingRecord[] = []
+    const multiBindings: ComposerMultiBindingRecord[] = []
 
     const composer: Composer = {
         use(moduleDefinition: ModuleDefinition): Composer {
@@ -1109,24 +1238,28 @@ export function createComposer(): Composer {
             return createComposerBindingBuilder(bindingToken, bindings)
         },
 
+        add<TValue>(bindingToken: Token<TValue>): ComposerMultiBindingBuilder<TValue> {
+            return createComposerMultiBindingBuilder(bindingToken, multiBindings)
+        },
+
         validate(): DiagnosticReport {
-            return validateComposer(modules, bindings)
+            return validateComposer(modules, bindings, multiBindings)
         },
 
         inspect(): ComposerInspection {
-            return createComposerInspection(modules, bindings)
+            return createComposerInspection(modules, bindings, multiBindings)
         },
 
         getGraph(): ModuleGraph {
-            return createModuleGraph(modules, bindings)
+            return createModuleGraph(modules, bindings, multiBindings)
         },
 
         prepare(): Promise<PreparedComposition> {
-            return prepareComposition(modules, bindings)
+            return prepareComposition(modules, bindings, multiBindings)
         },
 
         compose(): Promise<ComposedRuntime> {
-            return composeRuntime(modules, bindings)
+            return composeRuntime(modules, bindings, multiBindings)
         }
     }
 
@@ -1172,13 +1305,44 @@ function createComposerBindingBuilder<TValue>(
     }
 }
 
+function createComposerMultiBindingBuilder<TValue>(
+    bindingToken: Token<TValue>,
+    multiBindings: ComposerMultiBindingRecord[]
+): ComposerMultiBindingBuilder<TValue> {
+    return {
+        toValue(value: TValue): void {
+            multiBindings.push({
+                kind: 'value',
+                token: bindingToken,
+                value,
+                providerRegistration: createProviderRegistrationRecord('value', 'singleton')
+            })
+        },
+
+        toFactory(factory: ComposerBindingFactory<TValue>): LifetimeBinding {
+            const providerRegistration = createProviderRegistrationRecord('factory', 'transient')
+
+            multiBindings.push({
+                kind: 'factory',
+                token: bindingToken,
+                factory,
+                providerRegistration
+            })
+
+            return createDeferredLifetimeBinding(providerRegistration)
+        }
+    }
+}
+
 function createComposerInspection(
     modules: readonly ModuleDefinition[],
-    bindings: readonly ComposerBindingRecord[]
+    bindings: readonly ComposerBindingRecord[],
+    multiBindings: readonly ComposerMultiBindingRecord[]
 ): ComposerInspection {
     const moduleSnapshot = [...modules]
     const bindingSnapshot = [...bindings]
-    const graph = createModuleGraph(moduleSnapshot, bindingSnapshot)
+    const multiBindingSnapshot = [...multiBindings]
+    const graph = createModuleGraph(moduleSnapshot, bindingSnapshot, multiBindingSnapshot)
 
     return Object.freeze({
         modules: graph.modules,
@@ -1187,16 +1351,17 @@ function createComposerInspection(
         bindings: graph.bindings,
         edges: graph.edges,
         graph,
-        validation: validateComposer(moduleSnapshot, bindingSnapshot)
+        validation: validateComposer(moduleSnapshot, bindingSnapshot, multiBindingSnapshot)
     })
 }
 
 function createRuntimeInspection(
     modules: readonly ModuleDefinition[],
     bindings: readonly ComposerBindingRecord[],
+    multiBindings: readonly ComposerMultiBindingRecord[],
     access: CompositionAccessModel
 ): RuntimeInspection {
-    const graph = createModuleGraph(modules, bindings)
+    const graph = createModuleGraph(modules, bindings, multiBindings)
 
     return Object.freeze({
         modules: graph.modules,
@@ -1205,19 +1370,22 @@ function createRuntimeInspection(
         bindings: graph.bindings,
         edges: graph.edges,
         graph,
-        validation: validateComposer(modules, bindings),
+        validation: validateComposer(modules, bindings, multiBindings),
         providerRegistrations: createProviderRegistrationSummaries(modules, access)
     })
 }
 
 function createModuleGraph(
     modules: readonly ModuleDefinition[],
-    bindings: readonly ComposerBindingRecord[]
+    bindings: readonly ComposerBindingRecord[],
+    multiBindings: readonly ComposerMultiBindingRecord[]
 ): ModuleGraph {
     const moduleSnapshot = [...modules]
     const bindingSnapshot = [...bindings]
+    const multiBindingSnapshot = [...multiBindings]
     const providedTokenIds = collectProvidedTokenIds(moduleSnapshot)
     const bindingTokenIds = collectBindingTokenIds(bindingSnapshot)
+    const multiBindingsByTokenId = collectComposerMultiBindingsByTokenId(multiBindingSnapshot)
     const capabilitiesByTokenId = collectFirstCapabilityByTokenId(moduleSnapshot)
     const capabilityDeclarationsByTokenId = collectCapabilityDeclarationsByTokenId(moduleSnapshot)
     const bindingsByTokenId = collectFirstBindingByTokenId(bindingSnapshot)
@@ -1234,7 +1402,8 @@ function createModuleGraph(
                     dependency,
                     providedTokenIds,
                     bindingTokenIds,
-                    capabilityDeclarationsByTokenId
+                    capabilityDeclarationsByTokenId,
+                    multiBindingsByTokenId
                 )
             })
         })
@@ -1245,7 +1414,8 @@ function createModuleGraph(
                 return createCapabilityMetadata(
                     moduleDefinition,
                     capability,
-                    capabilityDeclarationsByTokenId
+                    capabilityDeclarationsByTokenId,
+                    multiBindingsByTokenId
                 )
             })
         })
@@ -1272,34 +1442,39 @@ function createModuleGraph(
 
 async function prepareComposition(
     modules: readonly ModuleDefinition[],
-    bindings: readonly ComposerBindingRecord[]
+    bindings: readonly ComposerBindingRecord[],
+    multiBindings: readonly ComposerMultiBindingRecord[]
 ): Promise<PreparedComposition> {
-    const composition = await buildCompositionRuntime(modules, bindings)
+    const composition = await buildCompositionRuntime(modules, bindings, multiBindings)
 
     return createPreparedComposition(composition.modules, composition.access)
 }
 
 async function composeRuntime(
     modules: readonly ModuleDefinition[],
-    bindings: readonly ComposerBindingRecord[]
+    bindings: readonly ComposerBindingRecord[],
+    multiBindings: readonly ComposerMultiBindingRecord[]
 ): Promise<ComposedRuntime> {
-    const composition = await buildCompositionRuntime(modules, bindings)
+    const composition = await buildCompositionRuntime(modules, bindings, multiBindings)
 
     return createComposedRuntime(
         composition.runtime,
         composition.modules,
         composition.bindings,
+        composition.multiBindings,
         composition.access
     )
 }
 
 async function buildCompositionRuntime(
     modules: readonly ModuleDefinition[],
-    bindings: readonly ComposerBindingRecord[]
+    bindings: readonly ComposerBindingRecord[],
+    multiBindings: readonly ComposerMultiBindingRecord[]
 ): Promise<BuiltComposition> {
     const moduleSnapshot = [...modules]
     const bindingSnapshot = [...bindings]
-    const staticValidation = validateComposer(moduleSnapshot, bindingSnapshot)
+    const multiBindingSnapshot = [...multiBindings]
+    const staticValidation = validateComposer(moduleSnapshot, bindingSnapshot, multiBindingSnapshot)
 
     if (!staticValidation.ok) {
         throw new ComposerValidationError(staticValidation)
@@ -1325,6 +1500,8 @@ async function buildCompositionRuntime(
         await moduleDefinition.setup(setupContext.context)
     }
 
+    applyComposerMultiBindings(container, multiBindingSnapshot, access)
+
     const providerValidation = validateDeclaredProviderRegistrations(moduleSnapshot, access)
 
     if (!providerValidation.ok) {
@@ -1342,6 +1519,7 @@ async function buildCompositionRuntime(
     return {
         modules: moduleSnapshot,
         bindings: bindingSnapshot,
+        multiBindings: multiBindingSnapshot,
         access,
         runtime
     }
@@ -1354,6 +1532,7 @@ function createCompositionAccessModel(
     return {
         publicTokenIds: collectProvidedTokenIds(modules),
         bindingTokenIds: collectBindingTokenIds(bindings),
+        capabilityDeclarationsByTokenId: collectCapabilityDeclarationsByTokenId(modules),
         requiredTokenIdsByModuleId: collectRequiredTokenIdsByModuleId(modules),
         providedTokenIdsByModuleId: collectProvidedTokenIdsByModuleId(modules),
         privateTokensByModuleId: new Map<string, Map<string, Token<unknown>>>(),
@@ -1410,7 +1589,8 @@ function createRequiredPortMetadata(
     dependency: ModuleDependencyDefinition,
     providedTokenIds: ReadonlySet<string>,
     bindingTokenIds: ReadonlySet<string>,
-    capabilitiesByTokenId: ReadonlyMap<string, readonly CapabilityDeclarationRecord[]>
+    capabilitiesByTokenId: ReadonlyMap<string, readonly CapabilityDeclarationRecord[]>,
+    multiBindingsByTokenId: ReadonlyMap<string, readonly ComposerMultiBindingRecord[]>
 ): RequiredPortMetadata {
     const base = {
         moduleId: moduleDefinition.id,
@@ -1421,7 +1601,8 @@ function createRequiredPortMetadata(
         providerCount: getRequiredPortProviderCount(
             dependency,
             capabilitiesByTokenId,
-            bindingTokenIds
+            bindingTokenIds,
+            multiBindingsByTokenId
         ),
         satisfiedBy: getRequiredPortSatisfaction(dependency, providedTokenIds, bindingTokenIds)
     }
@@ -1439,14 +1620,19 @@ function createRequiredPortMetadata(
 function createCapabilityMetadata(
     moduleDefinition: ModuleDefinition,
     capability: ModuleCapabilityDefinition,
-    capabilitiesByTokenId: ReadonlyMap<string, readonly CapabilityDeclarationRecord[]>
+    capabilitiesByTokenId: ReadonlyMap<string, readonly CapabilityDeclarationRecord[]>,
+    multiBindingsByTokenId: ReadonlyMap<string, readonly ComposerMultiBindingRecord[]>
 ): CapabilityMetadata {
     const base = {
         moduleId: moduleDefinition.id,
         tokenId: capability.token.id,
         kind: capability.kind,
         cardinality: capability.cardinality ?? 'single',
-        providers: createCapabilityProviderMetadata(capability.token.id, capabilitiesByTokenId)
+        providers: createCapabilityProviderMetadata(
+            capability.token.id,
+            capabilitiesByTokenId,
+            multiBindingsByTokenId
+        )
     }
 
     if (capability.description === undefined) {
@@ -1461,19 +1647,31 @@ function createCapabilityMetadata(
 
 function createCapabilityProviderMetadata(
     tokenId: string,
-    capabilitiesByTokenId: ReadonlyMap<string, readonly CapabilityDeclarationRecord[]>
+    capabilitiesByTokenId: ReadonlyMap<string, readonly CapabilityDeclarationRecord[]>,
+    multiBindingsByTokenId: ReadonlyMap<string, readonly ComposerMultiBindingRecord[]>
 ): readonly CapabilityProviderMetadata[] {
     const capabilities = capabilitiesByTokenId.get(tokenId) ?? []
-
-    return Object.freeze(
-        capabilities.map((capability, index) => {
-            return Object.freeze({
-                moduleId: capability.moduleId,
-                registrationKind: capability.cardinality === 'multi' ? 'add' : 'bind',
-                registrationIndex: index
-            })
+    const moduleProviders = capabilities.map((capability, index) => {
+        return Object.freeze({
+            source: 'module' as const,
+            moduleId: capability.moduleId,
+            registrationKind: capability.cardinality === 'multi' ? 'add' : 'bind',
+            registrationIndex: index
         })
-    )
+    })
+    const rootBindings =
+        getCapabilityProviderCardinality(tokenId, capabilitiesByTokenId) === 'multi'
+            ? (multiBindingsByTokenId.get(tokenId) ?? [])
+            : []
+    const rootProviders = rootBindings.map((_binding, index) => {
+        return Object.freeze({
+            source: 'composition-root' as const,
+            registrationKind: 'add' as const,
+            registrationIndex: moduleProviders.length + index
+        })
+    })
+
+    return Object.freeze([...moduleProviders, ...rootProviders])
 }
 
 function createCompositionBindingMetadata(
@@ -1586,7 +1784,7 @@ function createProviderRegistrationSummaries(
 
     for (const moduleDefinition of modules) {
         for (const capability of moduleDefinition.provides) {
-            const registration = findRegisteredCapability(
+            const registration = findRegisteredModuleCapability(
                 access,
                 moduleDefinition.id,
                 capability.token.id
@@ -1600,25 +1798,42 @@ function createProviderRegistrationSummaries(
         }
     }
 
+    for (const registrations of access.registeredCapabilities.values()) {
+        for (const registration of registrations) {
+            if (registration.source === 'composition-root') {
+                summaries.push(createProviderRegistrationSummary(registration))
+            }
+        }
+    }
+
     return Object.freeze(summaries)
 }
 
 function createProviderRegistrationSummary(
     registration: RegisteredCapabilityProvider
 ): ProviderRegistrationSummary {
-    return Object.freeze({
-        moduleId: registration.moduleId,
+    const base = {
+        source: registration.source,
         tokenId: registration.tokenId,
         capabilityKind: registration.kind,
         cardinality: registration.registrationKind,
-        visibility: 'exported',
+        visibility: 'exported' as const,
         registrationKind: registration.registrationKind,
         providers: Object.freeze(
             registration.providers.map((provider) => {
                 return createProviderRegistrationProviderSummary(provider)
             })
         )
-    })
+    }
+
+    if (registration.source === 'module') {
+        return Object.freeze({
+            ...base,
+            moduleId: registration.moduleId
+        })
+    }
+
+    return Object.freeze(base)
 }
 
 function createProviderRegistrationProviderSummary(
@@ -1679,13 +1894,20 @@ function getRequiredPortSatisfaction(
 function getRequiredPortProviderCount(
     dependency: ModuleDependencyDefinition,
     capabilitiesByTokenId: ReadonlyMap<string, readonly CapabilityDeclarationRecord[]>,
-    bindingTokenIds: ReadonlySet<string>
+    bindingTokenIds: ReadonlySet<string>,
+    multiBindingsByTokenId: ReadonlyMap<string, readonly ComposerMultiBindingRecord[]>
 ): number {
     if (bindingTokenIds.has(dependency.token.id)) {
         return 1
     }
 
-    return capabilitiesByTokenId.get(dependency.token.id)?.length ?? 0
+    const capabilityCount = capabilitiesByTokenId.get(dependency.token.id)?.length ?? 0
+
+    if (capabilityCount === 0 || (dependency.cardinality ?? 'single') !== 'multi') {
+        return capabilityCount
+    }
+
+    return capabilityCount + (multiBindingsByTokenId.get(dependency.token.id)?.length ?? 0)
 }
 
 function createInspectionMetadata(value: unknown): InspectionMetadata | undefined {
@@ -1733,6 +1955,49 @@ function applyComposerBindings(
                 return binding.factory(createComposerBindingResolutionContext(context, access))
             })
         }
+    }
+}
+
+function applyComposerMultiBindings(
+    container: ContainerBuilder,
+    multiBindings: readonly ComposerMultiBindingRecord[],
+    access: CompositionAccessModel
+): void {
+    for (const binding of multiBindings) {
+        const builder = container.add(binding.token)
+
+        if (binding.kind === 'value') {
+            builder.toValue(binding.value)
+        } else {
+            const lifetime = builder.toFactory((context) => {
+                return binding.factory(createComposerBindingResolutionContext(context, access))
+            })
+
+            applyDeferredProviderLifetime(lifetime, binding.providerRegistration.lifetime)
+        }
+
+        recordCompositionRootProvider(binding.token, binding.providerRegistration, access)
+    }
+}
+
+function applyDeferredProviderLifetime(
+    binding: LifetimeBinding,
+    lifetime: ProviderLifetime | undefined
+): void {
+    if (lifetime === 'singleton') {
+        binding.singleton()
+
+        return
+    }
+
+    if (lifetime === 'scoped') {
+        binding.scoped()
+
+        return
+    }
+
+    if (lifetime === 'transient') {
+        binding.transient()
     }
 }
 
@@ -1951,6 +2216,24 @@ function createProviderRegistrationRecord(
     }
 }
 
+function createDeferredLifetimeBinding(
+    providerRegistration: ProviderRegistrationRecord
+): LifetimeBinding {
+    return {
+        singleton(): void {
+            providerRegistration.lifetime = 'singleton'
+        },
+
+        transient(): void {
+            providerRegistration.lifetime = 'transient'
+        },
+
+        scoped(): void {
+            providerRegistration.lifetime = 'scoped'
+        }
+    }
+}
+
 function createInspectableLifetimeBinding(
     binding: LifetimeBinding,
     providerRegistration: ProviderRegistrationRecord
@@ -2136,9 +2419,10 @@ function createComposedRuntime(
     containerRuntime: ContainerRuntime,
     modules: readonly ModuleDefinition[],
     bindings: readonly ComposerBindingRecord[],
+    multiBindings: readonly ComposerMultiBindingRecord[],
     access: CompositionAccessModel
 ): ComposedRuntime {
-    const inspection = createRuntimeInspection(modules, bindings, access)
+    const inspection = createRuntimeInspection(modules, bindings, multiBindings, access)
 
     function withScope<TValue>(callback: ScopeCallback<TValue>): Promise<TValue>
     function withScope<TValue>(
@@ -2338,7 +2622,8 @@ function isScopeLocalTuple(
 
 function validateComposer(
     modules: readonly ModuleDefinition[],
-    bindings: readonly ComposerBindingRecord[]
+    bindings: readonly ComposerBindingRecord[],
+    multiBindings: readonly ComposerMultiBindingRecord[]
 ): DiagnosticReport {
     const diagnostics: Diagnostic[] = []
 
@@ -2351,8 +2636,15 @@ function validateComposer(
     const requiredPortTokenIds = collectRequiredPortTokenIds(modules)
     const capabilitiesByTokenId = collectCapabilityDeclarationsByTokenId(modules)
     const bindingsByTokenId = collectFirstBindingByTokenId(bindings)
+    const multiBindingTokenIds = collectComposerMultiBindingTokenIds(multiBindings)
 
     appendDuplicateBindingDiagnostics(diagnostics, bindings)
+    appendComposerBindingCardinalityConflictDiagnostics(
+        diagnostics,
+        bindings,
+        multiBindings,
+        multiBindingTokenIds
+    )
     appendRequiredPortCardinalityMismatchDiagnostics(
         diagnostics,
         modules,
@@ -2368,6 +2660,12 @@ function validateComposer(
         bindingsByTokenId
     )
     appendInvalidBindingDiagnostics(diagnostics, bindings, requiredPortTokenIds)
+    appendInvalidComposerMultiBindingDiagnostics(
+        diagnostics,
+        multiBindings,
+        capabilitiesByTokenId,
+        requiredPortTokenIds
+    )
     appendModuleCycleDiagnostics(diagnostics, modules, bindings)
 
     return createDiagnosticReport(diagnostics)
@@ -2530,6 +2828,42 @@ function appendDuplicateBindingDiagnostics(
                 )
             )
         }
+    }
+}
+
+function appendComposerBindingCardinalityConflictDiagnostics(
+    diagnostics: Diagnostic[],
+    bindings: readonly ComposerBindingRecord[],
+    multiBindings: readonly ComposerMultiBindingRecord[],
+    multiBindingTokenIds: ReadonlySet<string>
+): void {
+    const bindingKindsByTokenId = collectComposerBindingKindsByTokenId(bindings)
+    const multiBindingKindsByTokenId = collectComposerMultiBindingKindsByTokenId(multiBindings)
+
+    for (const tokenId of multiBindingTokenIds) {
+        const bindingKinds = bindingKindsByTokenId.get(tokenId)
+        const multiBindingKinds = multiBindingKindsByTokenId.get(tokenId)
+
+        if (bindingKinds === undefined || multiBindingKinds === undefined) {
+            continue
+        }
+
+        const [firstBindingKind, ...remainingBindingKinds] = bindingKinds
+        const [firstMultiBindingKind, ...remainingMultiBindingKinds] = multiBindingKinds
+
+        if (firstBindingKind === undefined || firstMultiBindingKind === undefined) {
+            continue
+        }
+
+        diagnostics.push(
+            diagnosticFromError(
+                new ComposerBindingCardinalityConflictError(
+                    tokenId,
+                    [firstBindingKind, ...remainingBindingKinds],
+                    [firstMultiBindingKind, ...remainingMultiBindingKinds]
+                )
+            )
+        )
     }
 }
 
@@ -2721,6 +3055,59 @@ function appendInvalidBindingDiagnostics(
     }
 }
 
+function appendInvalidComposerMultiBindingDiagnostics(
+    diagnostics: Diagnostic[],
+    multiBindings: readonly ComposerMultiBindingRecord[],
+    capabilitiesByTokenId: ReadonlyMap<string, readonly CapabilityDeclarationRecord[]>,
+    requiredPortTokenIds: ReadonlySet<string>
+): void {
+    for (const binding of multiBindings) {
+        const reason = getInvalidComposerMultiBindingReason(
+            binding.token.id,
+            capabilitiesByTokenId,
+            requiredPortTokenIds
+        )
+
+        if (reason === undefined) {
+            continue
+        }
+
+        diagnostics.push(
+            diagnosticFromError(
+                new InvalidComposerMultiBindingError(binding.token.id, binding.kind, reason)
+            )
+        )
+    }
+}
+
+function getInvalidComposerMultiBindingReason(
+    tokenId: string,
+    capabilitiesByTokenId: ReadonlyMap<string, readonly CapabilityDeclarationRecord[]>,
+    requiredPortTokenIds: ReadonlySet<string>
+): InvalidComposerMultiBindingReason | undefined {
+    const capabilities = capabilitiesByTokenId.get(tokenId) ?? []
+    const hasMultiCapability = capabilities.some((capability) => {
+        return capability.cardinality === 'multi'
+    })
+    const hasSingleCapability = capabilities.some((capability) => {
+        return capability.cardinality === 'single'
+    })
+
+    if (hasMultiCapability) {
+        return undefined
+    }
+
+    if (hasSingleCapability) {
+        return 'single-capability'
+    }
+
+    if (requiredPortTokenIds.has(tokenId)) {
+        return 'required-port-only'
+    }
+
+    return 'missing-public-multi-capability'
+}
+
 function appendModuleCycleDiagnostics(
     diagnostics: Diagnostic[],
     modules: readonly ModuleDefinition[],
@@ -2875,6 +3262,72 @@ function collectBindingTokenIds(bindings: readonly ComposerBindingRecord[]): Rea
     }
 
     return tokenIds
+}
+
+function collectComposerMultiBindingTokenIds(
+    multiBindings: readonly ComposerMultiBindingRecord[]
+): ReadonlySet<string> {
+    const tokenIds = new Set<string>()
+
+    for (const binding of multiBindings) {
+        tokenIds.add(binding.token.id)
+    }
+
+    return tokenIds
+}
+
+function collectComposerBindingKindsByTokenId(
+    bindings: readonly ComposerBindingRecord[]
+): ReadonlyMap<string, readonly ComposerBindingKind[]> {
+    const bindingKindsByTokenId = new Map<string, ComposerBindingKind[]>()
+
+    for (const binding of bindings) {
+        const bindingKinds = bindingKindsByTokenId.get(binding.token.id)
+
+        if (bindingKinds === undefined) {
+            bindingKindsByTokenId.set(binding.token.id, [binding.kind])
+        } else {
+            bindingKinds.push(binding.kind)
+        }
+    }
+
+    return bindingKindsByTokenId
+}
+
+function collectComposerMultiBindingKindsByTokenId(
+    multiBindings: readonly ComposerMultiBindingRecord[]
+): ReadonlyMap<string, readonly ComposerMultiBindingKind[]> {
+    const bindingKindsByTokenId = new Map<string, ComposerMultiBindingKind[]>()
+
+    for (const binding of multiBindings) {
+        const bindingKinds = bindingKindsByTokenId.get(binding.token.id)
+
+        if (bindingKinds === undefined) {
+            bindingKindsByTokenId.set(binding.token.id, [binding.kind])
+        } else {
+            bindingKinds.push(binding.kind)
+        }
+    }
+
+    return bindingKindsByTokenId
+}
+
+function collectComposerMultiBindingsByTokenId(
+    multiBindings: readonly ComposerMultiBindingRecord[]
+): ReadonlyMap<string, readonly ComposerMultiBindingRecord[]> {
+    const bindingsByTokenId = new Map<string, ComposerMultiBindingRecord[]>()
+
+    for (const binding of multiBindings) {
+        const bindingsForToken = bindingsByTokenId.get(binding.token.id)
+
+        if (bindingsForToken === undefined) {
+            bindingsByTokenId.set(binding.token.id, [binding])
+        } else {
+            bindingsForToken.push(binding)
+        }
+    }
+
+    return bindingsByTokenId
 }
 
 function collectFirstCapabilityByTokenId(
@@ -3135,7 +3588,7 @@ function recordModuleProvider(
         originalToken.id
     )
 
-    const existingRegistration = findRegisteredCapability(
+    const existingRegistration = findRegisteredModuleCapability(
         access,
         moduleDefinition.id,
         originalToken.id
@@ -3148,6 +3601,7 @@ function recordModuleProvider(
     }
 
     const registration = {
+        source: 'module' as const,
         moduleId: moduleDefinition.id,
         tokenId: originalToken.id,
         kind: capability.kind,
@@ -3163,6 +3617,66 @@ function recordModuleProvider(
     }
 
     existingRegistrations.push(registration)
+}
+
+function recordCompositionRootProvider(
+    originalToken: Token<unknown>,
+    providerRegistration: ProviderRegistrationRecord,
+    access: CompositionAccessModel
+): void {
+    const capability = findFirstPublicMultiCapabilityDeclaration(access, originalToken.id)
+
+    if (capability === undefined) {
+        return
+    }
+
+    providerRegistration.registrationIndex = getNextProviderRegistrationIndex(
+        access,
+        originalToken.id
+    )
+
+    const existingRegistration = findRegisteredCompositionRootCapability(access, originalToken.id)
+
+    if (existingRegistration !== undefined) {
+        existingRegistration.providers.push(providerRegistration)
+
+        return
+    }
+
+    const registration = {
+        source: 'composition-root' as const,
+        tokenId: originalToken.id,
+        kind: capability.kind,
+        registrationKind: 'multi' as const,
+        providers: [providerRegistration]
+    }
+    const existingRegistrations = access.registeredCapabilities.get(originalToken.id)
+
+    if (existingRegistrations === undefined) {
+        access.registeredCapabilities.set(originalToken.id, [registration])
+
+        return
+    }
+
+    existingRegistrations.push(registration)
+}
+
+function findFirstPublicMultiCapabilityDeclaration(
+    access: CompositionAccessModel,
+    tokenId: string
+): CapabilityDeclarationRecord | undefined {
+    return access.capabilityDeclarationsByTokenId.get(tokenId)?.find((capability) => {
+        return capability.cardinality === 'multi'
+    })
+}
+
+function findRegisteredCompositionRootCapability(
+    access: CompositionAccessModel,
+    tokenId: string
+): RegisteredCompositionRootCapabilityProvider | undefined {
+    return access.registeredCapabilities.get(tokenId)?.find((registration) => {
+        return registration.source === 'composition-root'
+    }) as RegisteredCompositionRootCapabilityProvider | undefined
 }
 
 function getNextProviderRegistrationIndex(access: CompositionAccessModel, tokenId: string): number {
@@ -3186,7 +3700,7 @@ function validateDeclaredProviderRegistrations(
     for (const moduleDefinition of modules) {
         for (const capability of moduleDefinition.provides) {
             const declaredCardinality = capability.cardinality ?? 'single'
-            const registeredCapability = findRegisteredCapability(
+            const registeredCapability = findRegisteredModuleCapability(
                 access,
                 moduleDefinition.id,
                 capability.token.id
@@ -3220,14 +3734,14 @@ function validateDeclaredProviderRegistrations(
     return createDiagnosticReport(diagnostics)
 }
 
-function findRegisteredCapability(
+function findRegisteredModuleCapability(
     access: CompositionAccessModel,
     moduleId: string,
     tokenId: string
-): RegisteredCapabilityProvider | undefined {
+): RegisteredModuleCapabilityProvider | undefined {
     return access.registeredCapabilities.get(tokenId)?.find((registration) => {
-        return registration.moduleId === moduleId
-    })
+        return registration.source === 'module' && registration.moduleId === moduleId
+    }) as RegisteredModuleCapabilityProvider | undefined
 }
 
 function createPreparedComposition(
@@ -3245,12 +3759,21 @@ function createPreparedComposition(
                 return capabilitiesForToken
             })
             .map((capability) => {
-                return Object.freeze({
-                    moduleId: capability.moduleId,
+                const base = {
+                    source: capability.source,
                     tokenId: capability.tokenId,
                     kind: capability.kind,
                     registrationKind: capability.registrationKind
-                })
+                }
+
+                if (capability.source === 'module') {
+                    return Object.freeze({
+                        ...base,
+                        moduleId: capability.moduleId
+                    })
+                }
+
+                return Object.freeze(base)
             })
     )
 
@@ -3695,6 +4218,20 @@ function formatInvalidModuleDefinitionMessage(
     }
 
     return `Invalid module definition "${moduleId}": ${reason}`
+}
+
+function formatInvalidComposerMultiBindingReason(
+    reason: InvalidComposerMultiBindingReason
+): string {
+    if (reason === 'single-capability') {
+        return 'target is declared as a single public capability'
+    }
+
+    if (reason === 'required-port-only') {
+        return 'target is declared only as a required port'
+    }
+
+    return 'target is not a declared public multi capability'
 }
 
 function formatPrivateProviderAccessMessage(

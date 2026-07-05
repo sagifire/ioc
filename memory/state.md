@@ -62,6 +62,30 @@ memory/tasks/plan/TASK-07.05-0073-stage-17-0-0-2-implementation-planning/
 Остання завершена implementation task:
 
 ```text
+memory/tasks/plan/TASK-07.05-0089-stage-17-composer-add-multi-contributions/
+```
+
+Статус задачі: `done` після human review approval від 2026-07-05.
+
+Результат RUN-001:
+
+- `Composer.add(token)` додає explicit composition-root multi contributions для declared
+  public `multi` capabilities;
+- root contributions реєструються після module `setup()` contributions і резолвляться через
+  `runtime.getAll(token)` у deterministic order;
+- invalid root additions мають typed diagnostics
+  `SAGIFIRE_IOC_INVALID_COMPOSER_MULTI_BINDING` і
+  `SAGIFIRE_IOC_COMPOSER_BINDING_CARDINALITY_CONFLICT`;
+- public inspection показує `source: 'module' | 'composition-root'` для capability providers
+  і runtime provider registrations;
+- `runtime.get(token)` для public multi token лишається gated через
+  `SAGIFIRE_IOC_GET_USED_FOR_MULTI_TOKEN`.
+
+## Попередня implementation task
+
+Попередня implementation task зі статусом `done` після human review:
+
+```text
 memory/tasks/plan/TASK-07.05-0077-stage-17-multi-capability-inspection-diagnostics/
 ```
 
@@ -80,28 +104,6 @@ memory/tasks/plan/TASK-07.05-0077-stage-17-multi-capability-inspection-diagnosti
 - `formatDiagnostics()` читабельно форматує cardinality/provider registration detail fields;
 - private provider tokens/values не експортуються через inspection.
 
-## Попередня implementation task
-
-Попередня implementation task зі статусом `done` після human review:
-
-```text
-memory/tasks/plan/TASK-07.05-0076-stage-17-multi-capability-runtime-gating/
-```
-
-Статус задачі: `done` після human review approval від 2026-07-05.
-
-Результат RUN-001:
-
-- public multi capabilities резолвляться через `ComposedRuntime.getAll(token)`;
-- public single capabilities продовжують резолвитись через `ComposedRuntime.get(token)`;
-- `get()` / `tryGet()` / async single-value access для public multi token падає typed
-  `SAGIFIRE_IOC_GET_USED_FOR_MULTI_TOKEN`;
-- `getAll()` для public single token падає typed
-  `SAGIFIRE_IOC_GET_ALL_USED_FOR_SINGLE_TOKEN`;
-- optional missing multi dependency повертає `[]` через valid module provider context access;
-- module-private multi providers не експортуються через composed runtime;
-- `composer.add()` не вводився в цьому run.
-
 ## Поточні ризики
 
 - Graph-aware adapter source validation, adapter-aware cycles і lifecycle child-scope-и
@@ -110,16 +112,14 @@ memory/tasks/plan/TASK-07.05-0076-stage-17-multi-capability-runtime-gating/
   не треба стверджувати без окремої перевірки.
 - Security process readiness не дорівнює наявності npm security contact; перед запитом
   sensitive vulnerability details потрібне зовнішнє підтвердження.
-- `composer.add()` для composition-root multi contributions заплановано окремою задачею
-  після inspection/provider identity model.
 - `MultiToken` / `ContributionToken` винесено в окрему ergonomics task після стабілізації
   core cardinality behavior.
 
 ## Наступні кроки
 
-1. Стартувати `TASK-07.05-0089-stage-17-composer-add-multi-contributions`.
-2. Виконувати `0.0.2` phases послідовно: multi-capabilities, adapters, child scopes,
-   testing/ergonomics, docs/examples, full audit, stabilization handoff.
+1. Стартувати `TASK-07.05-0078-stage-17-graph-aware-adapter-api`.
+2. Виконувати `0.0.2` phases послідовно: adapters, child scopes, testing/ergonomics,
+   docs/examples, full audit, stabilization handoff.
 
 ## Відкриті питання
 
