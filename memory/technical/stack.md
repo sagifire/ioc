@@ -1,273 +1,262 @@
-# Stack
+# Технічний стек
 
-Source trace: `SPEC.md` sections 4-6 and 32-45.
+Оновлено: 2026-07-05
 
-## Product Stack
+## Роль документа
 
-`@sagifire/ioc` is a TypeScript/ESM library monorepo managed with `pnpm`.
+Цей документ описує технологічні межі для `@sagifire/ioc` і пов'язаних пакетів. Він не
+замінює `memory/technical/rules.md`; правила з `rules.md` мають вищий пріоритет, коли між
+документами є напруга.
 
-Planned packages:
+## Мова та формат модулів
 
-- `@sagifire/ioc`
-- `@sagifire/ioc-next`
-- `@sagifire/ioc-testing`
+- Основна мова: TypeScript.
+- Формат модулів: ESM.
+- JavaScript callers мають лишатися підтриманими через runtime-friendly API і зрозумілі
+  package exports.
+- Декоратори не є required API.
+- `reflect-metadata` не використовується.
+- Публічні типи мають бути стабільними й достатньо виразними для TypeScript inference.
+- `any` треба уникати; якщо він неминучий, причина має бути локально зрозуміла.
 
-## Runtime Targets
+## Runtime environments
 
-Core package `@sagifire/ioc` must be runtime-agnostic.
+Core package має працювати без Node-only assumptions:
 
-Supported targets:
+- modern Node.js;
+- browser-compatible runtimes;
+- Edge-compatible environments;
+- середовища, сумісні з Workers, де це практично можливо.
 
-- Node.js.
-- Browser.
-- Edge-compatible environments.
-- Workers-compatible environments where possible.
+Core package не імпортує:
 
-Core package must not use:
+- `fs`;
+- `path`;
+- `process`;
+- `Buffer`;
+- Next.js;
+- React;
+- testing helpers;
+- `reflect-metadata`.
 
-- `fs`
-- `path`
-- `process`
-- `Buffer`
-- global mutable registry
-- Next.js APIs
-- React APIs
+Node-specific або framework-specific behavior належить окремим пакетам чи прикладам.
 
-Platform-specific functionality belongs in adapter packages.
+## Package layout
 
-## Next Adapter Package
+### `@sagifire/ioc`
 
-`@sagifire/ioc-next` is the Next.js App Router adapter package.
+Core package містить:
 
-Stage 13 package policy:
+- tokens і namespaces;
+- container runtime;
+- scope runtime;
+- module definitions;
+- composer;
+- diagnostics;
+- object-configuration API;
+- DSL поверх object-configuration API.
 
-- `@sagifire/ioc-next` depends on `@sagifire/ioc`.
-- `@sagifire/ioc` must not depend on `@sagifire/ioc-next`, Next.js or React.
-- Next.js/React dependencies should be peer dependencies, optional dependencies or
-  type-only dev dependencies only when an implementation task proves they are needed.
-- Adapter tests may use simulated request/action flows when that verifies the public
-  lifecycle without requiring a full Next.js application.
-- If a task needs to install or run Next.js, it must request permission for network or
-  dependency changes instead of bypassing them.
+Core package не знає про Next.js, React, filesystem discovery, decorators або global mutable
+container.
 
-## Package Manager
+### `@sagifire/ioc-next`
 
-Use `pnpm`.
+Next adapter package містить лише Next.js App Router helpers:
 
-The repository must be a `pnpm` workspace.
+- cached runtime helper;
+- explicit request context helper;
+- route handler scope helper;
+- server action scope helper;
+- приклади інтеграції на boundary framework.
 
-## Module Format
+Пакет не змінює core API і не створює прихований service locator.
 
-Packages are ESM-first.
+### `@sagifire/ioc-testing`
 
-Each package `package.json` must include:
+Testing package містить:
 
-```json
-{
-    "type": "module",
-    "sideEffects": false
-}
+- isolated test runtime;
+- overrides;
+- test composer;
+- fake modules;
+- module harnesses;
+- graph assertions;
+- diagnostic assertions.
+
+Testing helpers працюють через public API і не мутують frozen production runtime.
+
+## Package exports
+
+`@sagifire/ioc` має підтримувати tree-shaking friendly exports:
+
+```text
+@sagifire/ioc
+@sagifire/ioc/tokens
+@sagifire/ioc/container
+@sagifire/ioc/context
+@sagifire/ioc/composer
+@sagifire/ioc/diagnostics
+@sagifire/ioc/dsl
 ```
 
-## TypeScript Output
+Subpath exports не повинні тягнути зайві runtime layers. Наприклад, token-only import не має
+підвантажувати composer або DSL.
 
-Packages must generate:
+## Build tooling
 
-- JavaScript output.
-- `.d.ts` type declarations.
-- Source maps when they do not create unacceptable package-size or publishing issues.
+Базові інструменти:
 
-## Subpath Exports
+- `pnpm` для workspace;
+- TypeScript для compile/typecheck;
+- ESLint для static checks;
+- Prettier для formatting;
+- Vitest для runtime і type-level tests;
+- Changesets для versioning/changelog;
+- GitHub Actions або equivalent CI для quality gates.
 
-`@sagifire/ioc` must support tree-shaking friendly subpath exports:
+Build scripts мають бути package-boundary aware. Кожен package повинен мати незалежну
+перевірку там, де це має сенс.
 
-- `.`
-- `./tokens`
-- `./container`
-- `./context`
-- `./composer`
-- `./dsl`
-- `./diagnostics`
-- `./lifecycle`
+## Formatting і code style
 
-The main entrypoint must not import heavy or optional parts unnecessarily.
+- Indent: 4 spaces.
+- Quotes: single quotes.
+- Semicolons: none.
+- Trailing commas: none.
+- Орієнтовний print width: 100.
+- Letter spacing у frontend/docs examples не стосується core package.
+- `undefined` треба обробляти явно.
+- Braces використовуються завжди.
 
-## Planned Monorepo Shape
+## Documentation artifacts
 
-Top-level foundation:
+Публічна документація включає:
 
-- `.changeset/`
-- `.github/workflows/`
-- `package.json`
-- `pnpm-workspace.yaml`
-- `pnpm-lock.yaml`
-- `tsconfig.base.json`
-- `tsconfig.json`
-- `eslint.config.js`
-- `prettier.config.js`
-- `vitest.config.ts`
-- `README.md`
-- `LICENSE`
-- `NOTICE`
-- `CONTRIBUTING.md`
-- `SECURITY.md`
-- `TRADEMARKS.md`
-- `CHANGELOG.md`
+- root `README.md`;
+- package README для core/testing/next packages;
+- `docs/architecture.md`;
+- `docs/container.md`;
+- `docs/scopes.md`;
+- `docs/modules.md`;
+- `docs/diagnostics.md`;
+- `docs/testing.md`;
+- `docs/next.md`;
+- `docs/migration-from-di-container.md`;
+- examples у `examples/`.
 
-Packages:
+Docs мають описувати implemented public API. Future ideas мають бути clearly marked або
+винесені в Project Memory tasks.
 
-- `packages/ioc`
-- `packages/ioc-next`
-- `packages/ioc-testing`
+## Verification
 
-Examples:
+Рекомендовані перевірки:
 
-- `examples/next-app-router`
-- `examples/basic-node`
-- `examples/module-composition`
-- `examples/async-db-resource`
-- `examples/testing-overrides`
+- `pnpm build`;
+- `pnpm test`;
+- `pnpm lint`;
+- `pnpm typecheck`, якщо script існує;
+- package dry-run validation перед release;
+- docs/example checks для snippets where practical.
 
-Documentation:
+Якщо dependencies не встановлені або команда потребує network access, агент має попросити
+дозвіл, а не обходити проблему прихованими способами.
 
-- `docs/README.md` or equivalent docs navigation
-- `docs/architecture.md`
-- `docs/container.md`
-- `docs/async-model.md`
-- `docs/composer.md`
-- `docs/modules.md`
-- `docs/next-integration.md`
-- `docs/testing.md`
-- `docs/diagnostics.md`
-- `docs/migration-from-di-container.md`
+## Release tooling
 
-## Documentation And Example Tooling
+Release readiness включає:
 
-Stage 14 documentation and examples should use existing workspace tooling before adding new
-dependencies.
+- Apache 2.0 license artifacts;
+- publish metadata;
+- Changesets;
+- changelog;
+- CI quality gates;
+- package pack/dry-run checks;
+- manual npm publish workflow.
 
-Preferred verification paths:
+Actual npm publish не виконується без explicit human approval. Provenance support бажаний
+where practical, але зовнішні repository/npm settings не треба вигадувати як наявні.
 
-- markdown/docs formatting with existing formatter commands;
-- TypeScript typecheck for example source where examples are wired into workspace
-  configuration;
-- targeted Vitest or package-boundary checks when examples expose behavior that is already
-  testable without external services;
-- documented manual check only when an example is intentionally a framework-shaped skeleton
-  or cannot be executed without installing an external framework.
+## Stage-specific technical notes
 
-Stage 14 should not install Next.js, React, database clients, markdown linters or doc-site
-frameworks unless a task documents a concrete need and asks for permission.
+### Stage 2
 
-## Release And Governance Tooling
+Stage 2 створює тільки foundation монорепозиторію: workspace, package structure,
+TypeScript, ESLint, Prettier, Vitest, build scripts, package export placeholders,
+README/docs skeleton і CI-ready scripts. Container logic не реалізується.
 
-Stage 15 release/governance decisions:
+### Stage 3
 
-- repository and publishable packages use Apache License 2.0;
-- `@sagifire/ioc` is protected as the product mark;
-- GitHub Issues are the primary ordinary support/contact channel;
-- security policy must not ask users to disclose secrets or sensitive vulnerability details
-  in public issues;
-- Changesets is the planned default for versioning and changelog generation unless an
-  implementation task documents a concrete blocker and equivalent replacement;
-- GitHub Actions should provide CI quality gates before publish workflow;
-- npm package dry-run validation should verify package contents and export usability before
-  real publishing;
-- npm publish workflow should support provenance where practical.
+Stage 3 додає typed tokens і namespaces. Tests мають перевіряти token ID validation,
+namespace prefixing і type inference для token values.
 
-Stage 15 repository artifacts:
+### Stage 4
 
-- `LICENSE`
-- `NOTICE`
-- `CONTRIBUTING.md`
-- `SECURITY.md`
-- `TRADEMARKS.md`
-- `CHANGELOG.md`
-- `.changeset/`
-- `.github/workflows/ci.yml`
-- `.github/workflows/release.yml` or equivalent publish workflow
+Stage 4 додає основу синхронного single-provider container: `bind()`, `toValue()`,
+`toFactory()`, `toClass()`, `freeze()`, `get()` і `tryGet()`. `freeze()` лишається
+async-compatible, навіть коли providers синхронні.
 
-Actual npm publishing requires explicit human approval and external credentials/settings.
-Repository files may reference secret names, but must not contain tokens or secrets.
+### Stage 5
 
-## Stabilization Tooling
+Stage 5 додає multi-provider behavior: `add()`, `getAll()`, deterministic order і strict
+single/multi validation. `getAll()` повертає fresh array і не відкриває internal storage.
 
-Stage 16 uses the existing Stage 15 release toolchain for `0.0.1` stabilization:
+### Stage 6
 
-- Changesets for publishable package version and changelog fixation;
-- `pnpm release:validate` as the final local release/stabilization gate where practical;
-- `pnpm pack:dry-run` for packed artifact and export smoke validation;
-- GitHub Actions CI/release workflows as repository automation, without performing actual
-  npm publish unless explicitly approved.
+Stage 6 додає sync scopes, scoped lifetime і scope-local values. Single/multi token kind
+conflicts мають fail, а не silently convert token mode.
 
-Stage 16 audit artifacts live in task memory under
-`memory/tasks/plan/TASK-07.02-0063-stage-16-codebase-audit-report/research/`.
+### Stage 7
 
-Version `0.0.1` must not be fixed before the audit is complete and all critical audit
-findings are closed or explicitly reclassified with rationale.
+Stage 7 додає async providers/resources, `getAsync()`, `tryGetAsync()` і disposal rules.
+Sync `get()` ніколи не повертає `Promise`.
 
-## Build Tooling
+### Stage 8
 
-Stage 2 build tool: `tsup`.
+Stage 8 додає `SagifireIocError`, diagnostic reports і deterministic formatting.
+Diagnostic codes використовують namespace `SAGIFIRE_IOC_*`.
 
-`tsup` is used because the repository needs ESM-first library output, `.d.ts` generation,
-subpath-export-friendly package builds and independent package build scripts.
+### Stage 9
 
-If a later implementation discovers a concrete blocker, the replacement build tool must be
-documented in the relevant task result and synced back to technical memory. Do not switch
-build tooling silently.
+Stage 9 додає module definition і composer. Container не знає про modules; composer
+використовує container/context для assembly application graph.
 
-## Test Tooling
+### Stage 10
 
-Use Vitest for runtime tests.
+Stage 10 додає dependency edge metadata і module cycle diagnostics без execution user
+factories. Inspection не має відкривати provider values або private runtime internals.
 
-Stage 3 token inference assertions use Vitest `expectTypeOf`.
+### Stage 11
 
-Stage 4 container inference assertions use Vitest `expectTypeOf` for `runtime.get()`,
-`runtime.tryGet()` and factory context `get()` / `tryGet()` inference.
+Stage 11 додає DSL як optional layer поверх explicit object configuration. Object API
+лишається first-class і supported.
 
-Stage 5 multi-provider inference assertions use Vitest `expectTypeOf` for `add()`,
-`runtime.getAll()` and factory context `getAll()` inference.
+### Stage 12
 
-Stage 6 scopes inference assertions use Vitest `expectTypeOf` for
-`runtime.createScope()`, `Scope.get()`, `Scope.tryGet()`, `Scope.getAll()`,
-`runtime.withScope()` callback inference and scope-bound factory context inference.
+Stage 12 додає testing package. Helpers мають працювати через public inspection/override
+surfaces і не залежати від private graph internals.
 
-Stage 7 async/resource inference assertions use Vitest `expectTypeOf` for
-`toAsyncFactory()`, `toAsyncResource()`, `runtime.getAsync()`, `runtime.tryGetAsync()`,
-`scope.getAsync()` and async factory context inference.
+### Stage 13
 
-Stage 8 diagnostics assertions use Vitest `expectTypeOf` for `SagifireIocError`,
-diagnostics error options/type guard, `DiagnosticSeverity`, `Diagnostic`,
-`DiagnosticReport` and `formatDiagnostics()`.
+Stage 13 додає Next adapter package. Helpers мають лишатися на framework boundary і не
+створювати hidden current request/action APIs.
 
-Stage 9 composer/module assertions use Vitest `expectTypeOf` for `defineModule()`,
-module metadata/required port/capability inference, `composer.bind()` token inference,
-module setup context resolution, composed runtime token inference and inspection public
-API.
+### Stage 14
 
-Stage 10 module graph assertions use Vitest `expectTypeOf` for dependency edge public
-types and cycle diagnostic public details where applicable. Runtime tests remain Vitest
-tests and must cover deterministic graph edges, cycle diagnostics and non-execution of
-factories during validation/inspection.
+Stage 14 додає documentation і examples. Docs snippets мають відповідати implemented API;
+examples мають використовувати найменший достатній шлях перевірки.
 
-Stage 11 DSL assertions use Vitest `expectTypeOf` for `module()`, `defineApp()`, bind
-helper DSL and `adapt()` inference. Runtime tests remain Vitest tests and must cover
-DSL-to-object/composer conversion, graph inspection parity, export smoke tests and no
-hidden factory execution during validation/inspection.
+### Stage 15
 
-Stage 12 `@sagifire/ioc-testing` assertions use Vitest runtime tests and Vitest
-`expectTypeOf` for testing package helper inference: isolated test runtime, overrides,
-test composer, fake modules, module harnesses and graph/diagnostic assertion helper inputs.
-The testing package should avoid a hard runtime dependency on Vitest internals unless an
-implementation task explicitly documents why plain assertion helpers are insufficient.
+Stage 15 додає release automation і governance readiness. npm publish лишається ручним
+кроком з explicit human approval.
 
-Stage 13 `@sagifire/ioc-next` assertions use Vitest runtime tests and Vitest
-`expectTypeOf` for Next adapter helper inference: cached runtime helper, request context
-helper, route handler scope helper and server action scope helper. Runtime tests should
-cover simulated route/action flows, scope disposal on success/failure, package exports and
-package-boundary checks. A full running Next.js app is not required for Stage 13 unless a
-specific implementation task documents why simulated flows are insufficient.
+### Stage 16
 
-Broader type-level test tooling remains open for later stages if Vitest assertions are not
-enough for more complex public API inference.
+Stage 16 додає pre-`0.0.1` stabilization audit, fixes і release handoff. Critical findings
+закриваються або явно reclassified with rationale.
+
+### Stage 17
+
+Stage 17 є audit/decision gate для `0.0.2` feature request. Implementation tasks мають
+зберегти package boundaries, diagnostic namespace, object API parity і заборону hidden graph
+inference.

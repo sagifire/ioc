@@ -1,17 +1,17 @@
-# Specification Trace
+# Specification trace
 
-## Purpose
+## Призначення
 
-This file maps root source documents to canonical Project Memory targets. It exists to
-avoid hidden shortening of `SPEC.md` during Project Memory bootstrap.
+Цей файл mapping root source documents to canonical Project Memory targets. Він потрібен,
+щоб уникнути прихованого скорочення `SPEC.md` під час Project Memory bootstrap.
 
-Root `SPEC.md` remains available as source reference. Its Project Memory source snapshot is
+Root `SPEC.md` лишається source reference. Його Project Memory source snapshot:
 `memory/sources/SPEC.md`.
 
-`memory/sources/SPEC.md` is historical and immutable. Do not edit it during implementation
-or ordinary memory-update tasks.
+`memory/sources/SPEC.md` є historical and immutable. Не редагувати його під час
+implementation або звичайних memory-update задач.
 
-## Source Documents
+## Source documents
 
 - `AGENTS.md`
   - Canonical targets: `memory/memory-rules.md`, `memory/agents/rules.md`,
@@ -28,6 +28,11 @@ or ordinary memory-update tasks.
     `memory/domain/glossary.md`, `memory/technical/stack.md`,
     `memory/technical/rules.md`, `memory/technical/testing.md`,
     `memory/technical/definition-of-done.md`.
+- Human Stage 17 directive and attached `0.0.2` feature request, 2026-07-04:
+  - Source file: `memory/sources/sagifire_ioc_0_0_2_feature_request_uk.md`.
+  - Canonical targets: `memory/product/requirements.md`, `memory/product/roadmap.md`,
+    `memory/technical/rules.md`, `memory/technical/definition-of-done.md`,
+    `memory/tasks/plan/TASK-07.04-0071-stage-17-feature-request-audit/research/RSCH-001.md`.
 
 ## `SPEC.md` Section Map
 
@@ -129,8 +134,14 @@ or ordinary memory-update tasks.
   - `memory/technical/rules.md`
   - `memory/technical/testing.md`
   - `memory/technical/definition-of-done.md`
+- Human Stage 17 directive and attached `0.0.2` feature request audit:
+  - `memory/product/requirements.md`
+  - `memory/product/roadmap.md`
+  - `memory/technical/rules.md`
+  - `memory/technical/definition-of-done.md`
+  - `memory/tasks/plan/TASK-07.04-0071-stage-17-feature-request-audit/research/RSCH-001.md`
 
-## Source Handling
+## Source handling
 
 `SPEC.md` and `AGENTS.md` are not deleted in this task.
 

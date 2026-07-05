@@ -32,3 +32,5 @@
 30. Не переписувати великі memory documents без явної інструкції.
 31. Не редагувати historical source reference snapshots у `memory/sources/` без окремої human-reviewed задачі на новий snapshot або source migration.
 32. Для реалізації `@sagifire/ioc` використовувати canonical Project Memory files, а не `memory/sources/SPEC.md` як operational source of truth.
+33. Завжди дотримуйся правил роботи з пам'яттю проекту, а коли пишеш документи для неї,
+    перевіряй їх на відповідність цим правилам, особливо щодо української мови.

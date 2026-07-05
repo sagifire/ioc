@@ -1,6 +1,6 @@
-# Product Vision
+# Продуктове бачення
 
-## Product
+## Продукт
 
 `@sagifire/ioc` - TypeScript-native, JavaScript-friendly бібліотека для контрольованої
 модульної композиції залежностей у TypeScript-додатках.
@@ -13,19 +13,19 @@
 
 ## Product Governance
 
-- Project and publishable packages use Apache License 2.0.
-- `@sagifire/ioc` is protected as the product mark for this library family.
-- Primary ordinary contact/support channel is GitHub Issues.
-- Security policy must avoid asking users to disclose secrets or sensitive vulnerability
-  details in public issues.
+- Проект і publishable packages використовують Apache License 2.0.
+- `@sagifire/ioc` захищається як product mark цієї сім'ї бібліотек.
+- Основний звичайний канал contact/support - GitHub Issues.
+- Security policy не повинна просити користувачів розкривати secrets або sensitive
+  vulnerability details у public issues.
 
-Root source trace:
+Trace до root sources:
 
 - `AGENTS.md` - project governance, architecture boundaries, style і workflow.
 - `SPEC.md` sections 1-8 - product goal, architecture idea, package boundaries,
   runtime/build requirements і core principles.
 
-## Audience
+## Аудиторія
 
 - TypeScript application engineers, які будують модульні backend, frontend або full-stack
   application graphs.
@@ -36,7 +36,7 @@ Root source trace:
 - Maintainers бібліотеки, яким потрібні typed diagnostics, testability і контроль package
   boundaries на кожному implementation stage.
 
-## Problem
+## Проблема
 
 У модульних TypeScript-додатках dependency composition часто стає неявною:
 
@@ -48,7 +48,7 @@ Root source trace:
 - DSL приховує dependency graph замість того, щоб бути ergonomic layer над явною
   конфігурацією.
 
-## Value
+## Цінність
 
 `@sagifire/ioc` має дати контрольований composition kernel:
 
@@ -61,15 +61,15 @@ Root source trace:
 - optional DSL без втрати object-configuration API;
 - окремі пакети для Next.js integration і testing support.
 
-## Product Principles
+## Продуктові принципи
 
-- Explicit over magical.
-- Typed tokens over string service names.
-- Composition over filesystem discovery or constructor metadata.
-- Runtime immutability after compose/freeze.
-- Module isolation by default.
-- No hidden dependency access across module boundaries.
-- Async initialization is supported, but normal `get()` remains synchronous.
-- DSL is optional and built over explicit object configuration.
-- Diagnostics must be readable and actionable.
-- Core package must stay independent from Next.js, React and Node-only APIs.
+- Явність замість magic.
+- Typed tokens замість string service names.
+- Composition замість filesystem discovery або constructor metadata.
+- Runtime immutable після `compose()` / `freeze()`.
+- Module isolation за замовчуванням.
+- Без hidden dependency access через module boundaries.
+- Async initialization підтримується, але normal `get()` лишається синхронним.
+- DSL є optional і побудований поверх explicit object configuration.
+- Diagnostics мають бути readable and actionable.
+- Core package має лишатися незалежним від Next.js, React і Node-only APIs.

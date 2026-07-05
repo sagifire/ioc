@@ -118,6 +118,25 @@
   - Summary: Планування Stage 16 `0.0.1` stabilization audit, critical fixes and version
     handoff.
   - Current: FIX-001
+- [TASK-07.04-0070-stage-17-implementation-planning](TASK-07.04-0070-stage-17-implementation-planning/index.md)
+  - Status: done
+  - Type: memory-update
+  - Execution Mode: interactive-memory-update
+  - Summary: Запуск Stage 17 як `0.0.2` feature-request audit and decision gate.
+  - Current: FIX-001
+- [TASK-07.05-0072-memory-language-source-path-normalization](TASK-07.05-0072-memory-language-source-path-normalization/index.md)
+  - Status: done
+  - Type: memory-update
+  - Execution Mode: interactive-memory-update
+  - Summary: Нормалізація мови загальних Project Memory docs і source path для Stage 17
+    feature request.
+  - Current: FIX-001
+- [TASK-07.05-0073-stage-17-0-0-2-implementation-planning](TASK-07.05-0073-stage-17-0-0-2-implementation-planning/index.md)
+  - Status: done
+  - Type: memory-update
+  - Execution Mode: interactive-memory-update
+  - Summary: Фіксація accepted decisions і phased implementation backlog для `0.0.2`.
+  - Current: FIX-001
 
 ## Stage 2 Implementation
 
@@ -491,6 +510,109 @@
   - Summary: Stage 16 version `0.0.1` fixation and stabilization handoff after all audit
     blockers are closed.
   - Current: RUN-001
+
+## Stage 17 Feature Request Audit
+
+- [TASK-07.04-0071-stage-17-feature-request-audit](TASK-07.04-0071-stage-17-feature-request-audit/index.md)
+  - Status: done
+  - Type: research
+  - Execution Mode: autonomous-research
+  - Summary: Stage 17 audit of attached `@sagifire/ioc 0.0.2` feature request.
+  - Current: RSCH-001
+
+## Stage 17 `0.0.2` Implementation Backlog
+
+- [TASK-07.05-0074-stage-17-multi-capability-cardinality-model](TASK-07.05-0074-stage-17-multi-capability-cardinality-model/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Phase 1 cardinality model у `provides` і `requires`.
+  - Current: n/a
+- [TASK-07.05-0075-stage-17-multi-capability-validation](TASK-07.05-0075-stage-17-multi-capability-validation/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Phase 1 validation для single/multi conflicts і registration mismatch.
+  - Current: n/a
+- [TASK-07.05-0076-stage-17-multi-capability-runtime-gating](TASK-07.05-0076-stage-17-multi-capability-runtime-gating/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Phase 2 composed runtime `get()` / `getAll()` cardinality gating.
+  - Current: n/a
+- [TASK-07.05-0077-stage-17-multi-capability-inspection-diagnostics](TASK-07.05-0077-stage-17-multi-capability-inspection-diagnostics/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Phase 2 public inspection and diagnostics for multi-capabilities.
+  - Current: n/a
+- [TASK-07.05-0078-stage-17-graph-aware-adapter-api](TASK-07.05-0078-stage-17-graph-aware-adapter-api/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Phase 3 graph-aware adapter object API без resolver context у `using()`.
+  - Current: n/a
+- [TASK-07.05-0079-stage-17-adapter-source-validation-inspection](TASK-07.05-0079-stage-17-adapter-source-validation-inspection/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Phase 3 adapter source validation and adapter-source graph visibility.
+  - Current: n/a
+- [TASK-07.05-0080-stage-17-adapter-cycle-diagnostics](TASK-07.05-0080-stage-17-adapter-cycle-diagnostics/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Phase 3 adapter-aware cycle diagnostics before `0.0.2` handoff.
+  - Current: n/a
+- [TASK-07.05-0081-stage-17-child-scope-lifecycle-model](TASK-07.05-0081-stage-17-child-scope-lifecycle-model/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Phase 4 child scope lifecycle ownership model.
+  - Current: n/a
+- [TASK-07.05-0082-stage-17-child-scope-runtime-semantics](TASK-07.05-0082-stage-17-child-scope-runtime-semantics/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Phase 4 child scope value inheritance, overrides and separate scoped cache.
+  - Current: n/a
+- [TASK-07.05-0083-stage-17-testing-helpers-new-primitives](TASK-07.05-0083-stage-17-testing-helpers-new-primitives/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Phase 5 testing helpers for multi-capabilities, adapters and child scopes.
+  - Current: n/a
+- [TASK-07.05-0084-stage-17-multitoken-contributiontoken-ergonomics](TASK-07.05-0084-stage-17-multitoken-contributiontoken-ergonomics/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Phase 5 optional `MultiToken` / `ContributionToken` ergonomics decision and
+    implementation.
+  - Current: n/a
+- [TASK-07.05-0085-stage-17-dsl-ergonomics-hardening](TASK-07.05-0085-stage-17-dsl-ergonomics-hardening/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Phase 5 DSL ergonomics after object API stabilization.
+  - Current: n/a
+- [TASK-07.05-0086-stage-17-0-0-2-docs-examples](TASK-07.05-0086-stage-17-0-0-2-docs-examples/index.md)
+  - Status: backlog
+  - Type: docs
+  - Execution Mode: autonomous-implementation
+  - Summary: Phase 6 penultimate docs and examples update for `0.0.2`.
+  - Current: n/a
+- [TASK-07.05-0087-stage-17-0-0-2-full-audit](TASK-07.05-0087-stage-17-0-0-2-full-audit/index.md)
+  - Status: backlog
+  - Type: research
+  - Execution Mode: autonomous-research
+  - Summary: Phase 7 full audit before `0.0.2` stabilization.
+  - Current: n/a
+- [TASK-07.05-0088-stage-17-0-0-2-stabilization-handoff](TASK-07.05-0088-stage-17-0-0-2-stabilization-handoff/index.md)
+  - Status: backlog
+  - Type: chore
+  - Execution Mode: autonomous-implementation
+  - Summary: Phase 7 stabilization handoff after full audit.
+  - Current: n/a
 
 ## Format
 

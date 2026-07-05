@@ -214,6 +214,63 @@
   - Type: folder
   - Purpose: Задача фіксації version `0.0.1` and stabilization handoff після всіх audit
     blockers.
+- [TASK-07.04-0070-stage-17-implementation-planning](TASK-07.04-0070-stage-17-implementation-planning/index.md)
+  - Type: folder
+  - Purpose: Планування Stage 17 `0.0.2` feature-request audit and decision gate.
+- [TASK-07.04-0071-stage-17-feature-request-audit](TASK-07.04-0071-stage-17-feature-request-audit/index.md)
+  - Type: folder
+  - Purpose: Задача аудиту attached `@sagifire/ioc 0.0.2` feature request.
+- [TASK-07.05-0072-memory-language-source-path-normalization](TASK-07.05-0072-memory-language-source-path-normalization/index.md)
+  - Type: folder
+  - Purpose: Нормалізація мови Project Memory і source path для Stage 17 feature request.
+- [TASK-07.05-0073-stage-17-0-0-2-implementation-planning](TASK-07.05-0073-stage-17-0-0-2-implementation-planning/index.md)
+  - Type: folder
+  - Purpose: Планування phased implementation backlog для `0.0.2`.
+- [TASK-07.05-0074-stage-17-multi-capability-cardinality-model](TASK-07.05-0074-stage-17-multi-capability-cardinality-model/index.md)
+  - Type: folder
+  - Purpose: Backlog задача для cardinality model у `provides` і `requires`.
+- [TASK-07.05-0075-stage-17-multi-capability-validation](TASK-07.05-0075-stage-17-multi-capability-validation/index.md)
+  - Type: folder
+  - Purpose: Backlog задача для single/multi validation і registration mismatch.
+- [TASK-07.05-0076-stage-17-multi-capability-runtime-gating](TASK-07.05-0076-stage-17-multi-capability-runtime-gating/index.md)
+  - Type: folder
+  - Purpose: Backlog задача для composed runtime `get()` / `getAll()` cardinality gating.
+- [TASK-07.05-0077-stage-17-multi-capability-inspection-diagnostics](TASK-07.05-0077-stage-17-multi-capability-inspection-diagnostics/index.md)
+  - Type: folder
+  - Purpose: Backlog задача для multi-capability inspection and diagnostics.
+- [TASK-07.05-0078-stage-17-graph-aware-adapter-api](TASK-07.05-0078-stage-17-graph-aware-adapter-api/index.md)
+  - Type: folder
+  - Purpose: Backlog задача для graph-aware adapter object API.
+- [TASK-07.05-0079-stage-17-adapter-source-validation-inspection](TASK-07.05-0079-stage-17-adapter-source-validation-inspection/index.md)
+  - Type: folder
+  - Purpose: Backlog задача для adapter source validation and graph inspection.
+- [TASK-07.05-0080-stage-17-adapter-cycle-diagnostics](TASK-07.05-0080-stage-17-adapter-cycle-diagnostics/index.md)
+  - Type: folder
+  - Purpose: Backlog задача для adapter-aware cycle diagnostics.
+- [TASK-07.05-0081-stage-17-child-scope-lifecycle-model](TASK-07.05-0081-stage-17-child-scope-lifecycle-model/index.md)
+  - Type: folder
+  - Purpose: Backlog задача для child scope lifecycle ownership model.
+- [TASK-07.05-0082-stage-17-child-scope-runtime-semantics](TASK-07.05-0082-stage-17-child-scope-runtime-semantics/index.md)
+  - Type: folder
+  - Purpose: Backlog задача для child scope inheritance, overrides and cache semantics.
+- [TASK-07.05-0083-stage-17-testing-helpers-new-primitives](TASK-07.05-0083-stage-17-testing-helpers-new-primitives/index.md)
+  - Type: folder
+  - Purpose: Backlog задача для testing helpers around new primitives.
+- [TASK-07.05-0084-stage-17-multitoken-contributiontoken-ergonomics](TASK-07.05-0084-stage-17-multitoken-contributiontoken-ergonomics/index.md)
+  - Type: folder
+  - Purpose: Backlog задача для optional `MultiToken` / `ContributionToken` ergonomics.
+- [TASK-07.05-0085-stage-17-dsl-ergonomics-hardening](TASK-07.05-0085-stage-17-dsl-ergonomics-hardening/index.md)
+  - Type: folder
+  - Purpose: Backlog задача для DSL ergonomics after object API stabilization.
+- [TASK-07.05-0086-stage-17-0-0-2-docs-examples](TASK-07.05-0086-stage-17-0-0-2-docs-examples/index.md)
+  - Type: folder
+  - Purpose: Backlog docs задача для `0.0.2` documentation and examples.
+- [TASK-07.05-0087-stage-17-0-0-2-full-audit](TASK-07.05-0087-stage-17-0-0-2-full-audit/index.md)
+  - Type: folder
+  - Purpose: Backlog research задача для full `0.0.2` audit.
+- [TASK-07.05-0088-stage-17-0-0-2-stabilization-handoff](TASK-07.05-0088-stage-17-0-0-2-stabilization-handoff/index.md)
+  - Type: folder
+  - Purpose: Backlog задача для `0.0.2` stabilization handoff.
 
 ## Files
 

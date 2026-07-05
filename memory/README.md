@@ -7,7 +7,7 @@ PDADM MVP Version: 0.3
 
 Цей Starter Kit не описує Product Driven AI Development Methodology як продукт вашого проекту. Усі стартові product/domain/technical файли є placeholders і мають бути адаптовані під реальний проект.
 
-## Purpose
+## Призначення
 
 Project Memory є центральним джерелом істини для:
 
@@ -18,7 +18,7 @@ Project Memory є центральним джерелом істини для:
 - reusable knowledge packages;
 - правил роботи людини й агентів.
 
-## How To Start
+## Як починати роботу
 
 1. Агент починає з `memory/agent-start.md`.
 2. Людина або агент оновлює `memory/state.md`, коли змінюється поточний фокус.
@@ -29,7 +29,7 @@ Project Memory є центральним джерелом істини для:
 7. Перед завершенням роботи агента виконувати self-review і передавати задачу в `review`, а не в `done`.
 8. Перед фіксацією змін у пам'ять перевіряти вплив на документи загального рівня.
 
-## Main Entry Points
+## Головні точки входу
 
 - `memory/agent-start.md` - startup protocol для агентів.
 - `memory/memory-rules.md` - правила роботи з пам'яттю.

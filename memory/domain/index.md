@@ -1,11 +1,11 @@
-# Index: domain
+# Індекс: domain
 
-## Purpose
+## Призначення
 
 Доменна пам'ять `@sagifire/ioc`: поняття бібліотеки, поточний і цільовий стан домену,
 правила й відкриті питання.
 
-## Folders
+## Папки
 
 - [Current Domain](current/index.md)
   - Type: folder
@@ -14,7 +14,7 @@
   - Type: folder
   - Purpose: Запланований доменний стан, розбитий на окремі документи.
 
-## Files
+## Файли
 
 - [Glossary](glossary.md)
   - Type: file
@@ -24,4 +24,4 @@
   - Purpose: Доменні правила та інваріанти.
 - [Open Questions](open-questions.md)
   - Type: file
-  - Purpose: Відкриті доменні та implementation-decision питання.
+  - Purpose: Відкриті доменні питання та питання implementation decision.

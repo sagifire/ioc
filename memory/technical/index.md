@@ -1,17 +1,17 @@
-# Index: Technical
+# Індекс: technical
 
-## Purpose
+## Призначення
 
 Технічна пам'ять `@sagifire/ioc`: архітектура, стек, правила, testing requirements,
 definition of done, trace до root specification і ADR.
 
-## Folders
+## Папки
 
 - [Decisions](decisions/index.md)
   - Type: folder
   - Purpose: ADR-like рішення.
 
-## Files
+## Файли
 
 - [Architecture](architecture.md)
   - Type: file

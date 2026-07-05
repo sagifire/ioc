@@ -1,14 +1,14 @@
-# Index: memory
+# Індекс: memory
 
-## Purpose
+## Призначення
 
 Коренева папка Project Memory Starter Kit 3.0 для проекту, у якому використовується PDADM MVP 0.3.
 
-## Folders
+## Папки
 
 - [Product](product/index.md)
   - Type: folder
-  - Purpose: Продуктова пам'ять: бачення, вимоги, roadmap.
+  - Purpose: Продуктова пам'ять: бачення, вимоги й roadmap.
 - [Domain](domain/index.md)
   - Type: folder
   - Purpose: Доменна пам'ять: поняття, поточна і цільова модель, правила, відкриті питання.
@@ -34,7 +34,7 @@
   - Type: folder
   - Purpose: Історичні source reference snapshots.
 
-## Files
+## Файли
 
 - [Agent Start](agent-start.md)
   - Type: file

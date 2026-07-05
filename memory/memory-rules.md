@@ -5,7 +5,7 @@ PDADM MVP Version: 0.3
 
 Це головний файл правил роботи з `memory/`.
 
-## Language Rule
+## Правило мови
 
 Канонічна мова цієї Project Memory - українська.
 
@@ -13,7 +13,7 @@ PDADM MVP Version: 0.3
 - Назви файлів, API, команди, цитати, зовнішні терміни й вихідні документи можна залишати мовою джерела.
 - Якщо джерело не українською, для reusable knowledge треба додавати український короткий опис або інструкцію використання.
 
-## Startup Rules
+## Startup rules
 
 1. Кожна агентська сесія повинна мати явну `Agent Role`.
 2. На старті агент читає `memory/agent-start.md` і відповідний boot packet.
@@ -23,7 +23,7 @@ PDADM MVP Version: 0.3
 6. `Execution Mode` є властивістю задачі в `task.md`, а не режимом запуску сесії.
 7. Якщо задача вказана, агент визначає workflow за `task.md`, task context і правилами регламенту.
 
-## Task Rules
+## Task rules
 
 1. Кожна задача має `task.md`.
 2. Кожна задача має `Type` і `Execution Mode`.
@@ -44,14 +44,14 @@ PDADM MVP Version: 0.3
 17. `interactive-memory-update` не змінює Project Memory без `fixations/FIX-*.md` і self-review.
 18. Старі run, research або fixation files не переписуються так, ніби попередньої спроби або проблеми не було.
 
-## Domain Rules
+## Domain rules
 
 1. Поточний доменний стан фіксується в `domain/current/`.
 2. Цільовий або бажаний доменний стан фіксується в `domain/target/`.
 3. Поточний і цільовий стан не змішуються.
 4. Декомпозицію доменних документів визначає людина разом з Agent Assistant.
 
-## Wiki Index Rules
+## Wiki index rules
 
 1. Кожна папка Project Memory повинна мати `index.md`.
 2. `index.md` описує тільки прямі дочірні папки й файли.
@@ -61,7 +61,7 @@ PDADM MVP Version: 0.3
 6. Для дочірньої папки посилання веде на її `index.md`.
 7. `index.md` і `tasks/plan/progress.md` не містять секцію `Notes`, локальні правила або agent notes.
 
-## Knowledge Rules
+## Knowledge rules
 
 1. Перед задачами, де можуть знадобитися reusable knowledge, агент перевіряє `memory/knowledge/package-index.md`.
 2. Knowledge package повинен мати `package.md`.
@@ -69,7 +69,7 @@ PDADM MVP Version: 0.3
 4. Агент може створювати draft пакета, додавати приклади, уточнення й changelog notes.
 5. Агент не повинен без явної інструкції масово переписувати core rules, змінювати статус пакета або видаляти приклади.
 
-## Historical Source Reference Rules
+## Historical source reference rules
 
 1. Історичні source reference snapshots живуть у `memory/sources/`.
 2. Source snapshots не є operational source of truth після перенесення в canonical Project Memory.
@@ -78,7 +78,7 @@ PDADM MVP Version: 0.3
 5. `memory/sources/SPEC.md` є historical immutable snapshot початкового `SPEC.md`.
 6. Для реалізації `@sagifire/ioc` використовувати canonical files у `memory/product/`, `memory/domain/` і `memory/technical/`, а не редагувати `memory/sources/SPEC.md`.
 
-## Memory Sync Rules
+## Memory sync rules
 
 Після autonomous implementation run у `result.md` треба зафіксувати:
 
@@ -101,7 +101,7 @@ PDADM MVP Version: 0.3
 
 Не можна подавати `result.md`, `RSCH-*` або `FIX-*` як review-ready, якщо вплив на документи загального рівня не перевірений.
 
-## Forbidden Actions For Agents
+## Заборонені дії для агентів
 
 - Починати роботу без явної ролі.
 - Продовжувати startup reading після boot packet без явної причини.

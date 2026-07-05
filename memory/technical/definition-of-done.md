@@ -1,10 +1,10 @@
-# Definition Of Done
+# Definition of done
 
 Source trace: `SPEC.md` sections 51-53.
 
-## Project-Level Definition Of Done
+## Project-level definition of done
 
-The project is complete when `@sagifire/ioc` implements:
+Проект вважається завершеним, коли `@sagifire/ioc` реалізує:
 
 - typed tokens;
 - namespaces;
@@ -26,7 +26,7 @@ The project is complete when `@sagifire/ioc` implements:
 - runtime inspection;
 - DSL.
 
-The project is complete when `@sagifire/ioc-next` implements:
+Проект вважається завершеним, коли `@sagifire/ioc-next` реалізує:
 
 - Next.js runtime helper;
 - request context helper;
@@ -34,7 +34,7 @@ The project is complete when `@sagifire/ioc-next` implements:
 - server action scope helper;
 - App Router examples.
 
-The project is complete when `@sagifire/ioc-testing` implements:
+Проект вважається завершеним, коли `@sagifire/ioc-testing` реалізує:
 
 - test runtime;
 - test composer;
@@ -42,7 +42,7 @@ The project is complete when `@sagifire/ioc-testing` implements:
 - module harness;
 - graph assertions.
 
-The repository must provide:
+Repository має надати:
 
 - `pnpm` monorepo;
 - build scripts;
@@ -59,36 +59,38 @@ The repository must provide:
 - release workflow;
 - pre-`0.0.1` stabilization audit;
 - critical audit finding closure;
-- `0.0.1` version fixation for publishable packages.
+- `0.0.1` version fixation for publishable packages;
+- аудит `0.0.2` feature proposals перед перетворенням їх на implementation scope.
 
-## Architectural Definition Of Done
+## Architectural definition of done
 
-The architecture is valid when:
+Архітектура валідна, коли:
 
-- core package is independent from Next.js;
-- runtime is immutable after compose/freeze;
-- `get()` is always synchronous;
-- async initialization is supported safely;
-- modules cannot access internals of other modules;
-- required ports are owned by consumer modules;
-- public APIs/capabilities are exported explicitly;
-- bindings connect required ports to providers/adapters;
-- dependency graph can be inspected and validated;
-- diagnostics explain problems clearly;
-- DSL remains optional;
-- testing overrides do not mutate production runtime.
+- core package незалежний від Next.js;
+- runtime immutable після `compose()` / `freeze()`;
+- `get()` завжди синхронний;
+- async initialization підтримується безпечно;
+- modules не мають доступу до internals інших modules;
+- required ports належать consumer modules;
+- public APIs/capabilities експортуються явно;
+- bindings з'єднують required ports з providers/adapters;
+- dependency graph можна інспектувати й валідовувати;
+- diagnostics зрозуміло пояснюють проблеми;
+- DSL лишається optional;
+- testing overrides не мутують production runtime.
 
-## Safety Definition Of Done
+## Safety definition of done
 
-The implementation is safe when:
+Implementation безпечна, коли:
 
-- every stage has tests;
-- every stage has clear acceptance criteria;
-- public API changes are intentional;
-- errors are typed and documented;
-- resources are disposed correctly;
-- no global runtime state exists in core;
-- no package boundary is violated;
-- no hidden framework-specific dependency leaks into core.
-- release workflows do not commit secrets or publish without explicit human approval.
-- version `0.0.1` is not fixed while critical stabilization audit findings remain open.
+- кожен stage має tests;
+- кожен stage має clear acceptance criteria;
+- public API changes є intentional;
+- errors typed and documented;
+- resources disposed correctly;
+- у core немає global runtime state;
+- package boundaries не порушені;
+- hidden framework-specific dependency не протікає в core;
+- release workflows не commit secrets і не publish без explicit human approval;
+- version `0.0.1` не фіксується, доки critical stabilization audit findings лишаються open;
+- `0.0.2` feature implementation не стартує з unaudited monolithic feature request.

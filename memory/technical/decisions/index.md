@@ -1,14 +1,14 @@
-# Index: Technical Decisions
+# Індекс: technical decisions
 
-## Purpose
+## Призначення
 
 ADR-like рішення з технічними або структурними наслідками для проекту.
 
-## Folders
+## Папки
 
 Немає дочірніх папок.
 
-## Files
+## Файли
 
 - [ADR-0001 Project Memory MVP](ADR-0001-project-memory-mvp.md)
   - Type: file

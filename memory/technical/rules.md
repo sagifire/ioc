@@ -1,60 +1,77 @@
-# Technical Rules
+# Технічні правила
 
-Source trace:
+Оновлено: 2026-07-05
 
-- `AGENTS.md` sections `Архітектурні межі`, `Непорушні правила реалізації`,
-  `Стиль коду`, `Робочий процес`.
-- `SPEC.md` sections 7, 8, 42, 43, 45 and 50.
-- `memory/sources/SPEC.md` historical source snapshot.
+## Джерела правил
 
-## Architecture Boundaries
+- `AGENTS.md`.
+- `memory/memory-rules.md`.
+- `memory/agents/rules.md`.
+- `memory/sources/SPEC.md` як historical source snapshot.
+- Canonical product/domain/technical memory.
+- Approved task fixations.
 
-- `@sagifire/ioc` is the core package and must not import Next.js, React, Node-only APIs,
-  `fs`, `path`, `process`, `Buffer`, decorators or `reflect-metadata`.
-- `@sagifire/ioc-next` contains only Next.js App Router adapters/helpers and must not
-  affect the core API.
-- `@sagifire/ioc-testing` contains test utilities, overrides, fake modules, graph
-  assertions and must not mutate frozen production runtime.
-- Container does not know about modules.
-- Context does not know about Next.js.
-- Composer uses container/context to build application graph.
-- DSL is an optional layer over explicit object-configuration API.
-- Next.js adapter lives separately from core.
-- `@sagifire/di-container` stays separate and must not be migrated into this package.
+Якщо правила конфліктують, пріоритет має актуальна canonical Project Memory. Historical
+source snapshots не редагуються під час implementation або memory-update tasks.
 
-## Non-Negotiable Implementation Rules
+## Package boundaries
 
-- Do not add decorators as required API.
-- Do not add `reflect-metadata`.
-- Do not create a global mutable container or service locator.
-- Do not import Next.js or React from `@sagifire/ioc`.
-- Do not use Node-only APIs in `@sagifire/ioc`.
-- Do not make `get()` return `Promise`.
-- Do not mutate runtime after `freeze()` / `compose()`.
-- Do not implement filesystem auto-discovery.
-- Do not hide dependency graph behind DSL magic.
-- Do not expose module private providers through runtime.
-- Do not implement arbitrary runtime plugin marketplace.
-- Avoid `any`; if unavoidable, the reason must be locally obvious.
-- Keep errors typed, readable and diagnostic-friendly.
-- Add tests with every behavior change.
-- Keep package exports tree-shaking friendly.
-- Keep object-configuration API fully usable without DSL.
+- `@sagifire/ioc` є core package.
+- `@sagifire/ioc` не імпортує Next.js, React, Node-only APIs, testing helpers,
+  decorators або `reflect-metadata`.
+- `@sagifire/ioc-next` містить тільки Next.js App Router adapters/helpers.
+- `@sagifire/ioc-testing` містить testing utilities, overrides, fake modules, graph
+  assertions і diagnostic assertions.
+- Container не знає про modules.
+- Context не знає про Next.js.
+- Composer використовує container/context для assembly application graph.
+- DSL є optional layer поверх explicit object-configuration API.
+- Next.js adapter живе поза core package.
 
-## Core Design Principles
+## Непорушні заборони
 
-1. Explicit over magical.
-2. Typed tokens over string service names.
-3. Composition over auto-discovery.
-4. Runtime immutability after compose/freeze.
-5. Module isolation by default.
-6. No hidden dependency access across module boundaries.
-7. Async initialization is supported, but normal `get()` remains sync.
-8. DSL is optional and built over explicit object configuration.
-9. Diagnostics must be readable and actionable.
-10. Core package must be independent from Next.js.
+- Не додавати decorators як required API.
+- Не додавати `reflect-metadata`.
+- Не створювати global mutable container.
+- Не створювати service locator.
+- Не імпортувати Next.js або React з `@sagifire/ioc`.
+- Не використовувати `fs`, `path`, `process` або `Buffer` у core package.
+- Не робити filesystem auto-discovery.
+- Не приховувати dependency graph за DSL magic.
+- Не експортувати private providers модулів через runtime.
+- Не виконувати user factories для graph validation або inspection.
+- Не реалізовувати довільний runtime marketplace для plugins.
+- Не переносити site-engine business concepts у core package.
 
-## Coding Style
+## Runtime rules
+
+- `get()` завжди synchronous і ніколи не повертає `Promise`.
+- Async providers/resources доступні через explicit async APIs.
+- Runtime immutable після `freeze()` / `compose()`.
+- Frozen runtime не мутується testing helpers.
+- Scope disposal має бути idempotent.
+- Runtime disposal не повинен приховано dispose live scopes без explicit policy.
+- Errors мають бути typed, readable і diagnostic-friendly.
+- Package exports мають лишатися tree-shaking friendly.
+- Object-configuration API має лишатися fully usable без DSL.
+
+## Product principles
+
+1. Явність важливіша за магію.
+2. Typed tokens важливіші за string service names.
+3. Composition важливіша за auto-discovery.
+4. Runtime immutable після build.
+5. Module isolation увімкнена by default.
+6. Framework adapters лишаються outside core.
+7. Testing utilities не мутують production runtime.
+8. DSL є optional і будується поверх explicit object configuration.
+9. Diagnostics мають бути readable and actionable.
+10. Core package незалежний від Next.js.
+
+Ці principle names можуть лишатися англійськими як короткі design maxims; пояснення і
+операційні правила в Project Memory мають бути українською.
+
+## Code style
 
 - TypeScript.
 - ESM.
@@ -62,468 +79,344 @@ Source trace:
 - Single quotes.
 - No semicolons.
 - No trailing commas.
-- Avoid `any`.
-- Explicitly handle `undefined`.
-- Always use braces.
-- Approximate print width: 100.
-
-## Workflow Rules
-
-- Implement staged work according to `memory/product/roadmap.md`.
-- Do not skip to the next stage before current stage acceptance criteria are satisfied.
-- Stage 2 creates only repository/build foundation and must not implement container logic.
-- After changes, run relevant checks when available: build, tests, typecheck and lint.
-- If dependencies are not installed or a command requires network access, ask for permission
-  instead of bypassing it.
-- Do not perform broad refactors without task-level need.
-- Change only what the current task requires.
-
-## Historical Source Reference Rules
-
-- `memory/sources/SPEC.md` is a historical immutable source snapshot.
-- Do not edit `memory/sources/SPEC.md` during implementation or ordinary memory-update tasks.
-- If requirements change, update canonical Project Memory files.
-- If a new source snapshot is needed, create it through a separate human-reviewed task.
-- Root `SPEC.md` and `memory/sources/SPEC.md` are source references, not operational source
-  of truth after `TASK-06.26-0002`.
-
-## Stage Scope Guard
-
-For implementation tasks, the task/run must state the roadmap stage. Any behavior outside
-the stage is out of scope unless the user explicitly changes the task.
-
-For Stage 2, allowed implementation scope is limited to workspace, package structure,
-TypeScript, ESLint, Prettier, Vitest, build scripts, package export placeholders,
-README/docs skeleton and CI-ready scripts.
-
-For Stage 3, allowed implementation scope is limited to core token API:
-`Token<TValue>`, `token()`, `namespace()`, token ID validation, root/subpath exports and
-tests.
-
-Stage 3 may introduce a minimal token-specific invalid ID error with a stable code and
-readable message. It must not implement the full diagnostics layer, diagnostic reports or
-diagnostic formatting.
-
-For Stage 4, allowed implementation scope is limited to sync single-provider container
-behavior: `createContainer()`, `bind().toValue()`, `bind().toFactory()`,
-`bind().toClass()`, singleton/transient lifetimes, async-compatible `freeze()`,
-immutable `runtime.get()` / `runtime.tryGet()`, duplicate single-provider token detection,
-provider cycle detection, root/subpath exports and tests.
-
-Stage 4 `toClass()` must stay explicit and no-magic: no decorators, no
-`reflect-metadata`, no constructor parameter names and no constructor metadata. Use
-`toFactory()` for classes that need dependencies.
-
-Stage 4 may introduce minimal container-specific typed errors with stable local codes and
-readable messages. It must not implement the full diagnostics layer, diagnostic reports or
-diagnostic formatting.
-
-For Stage 5, allowed implementation scope is limited to multi-provider container behavior:
-`ContainerBuilder.add()`, `add().toValue()`, `add().toFactory()`, multi-provider factory
-singleton/transient lifetimes, immutable `runtime.getAll()`, sync
-`ResolutionContext.getAll()`, deterministic registration order, fresh `getAll()` result
-arrays, strict single vs multi-provider validation, root/subpath exports and tests.
-
-Stage 5 `getAll()` returns public type `TValue[]`, not `readonly TValue[]`, but each call
-must return a fresh array so caller mutation cannot mutate runtime provider storage.
-
-Stage 5 may introduce minimal multi-provider-specific typed errors with stable local codes
-and readable messages. It must not implement the full diagnostics layer, diagnostic reports
-or diagnostic formatting.
-
-For Stage 6, allowed implementation scope is limited to sync scopes and scoped lifetime:
-`runtime.createScope()`, `runtime.withScope()`, sync `Scope.get()` / `Scope.tryGet()` /
-`Scope.getAll()`, `scope.dispose()`, `.scoped()` lifetime for sync factory/class
-providers and multi-provider factory contributions, scope-local single values,
-scope-local multi values, scope-bound factory resolution context, invalid scope usage
-errors, root/subpath exports and tests.
-
-Stage 6 scope-local precedence is explicit: scope-local single values override runtime
-single-provider resolution for the same token ID inside that scope; scope-local multi
-values extend runtime multi-provider collections in runtime-first, scope-local-after
-order; single/multi token kind conflicts must fail instead of silently converting token
-kind.
-
-Stage 6 must not expose public mutable APIs for adding or replacing scope-local values after
-scope creation.
-
-Stage 6 may introduce minimal scope-specific typed errors with stable local codes and
-readable messages. It must not implement the full diagnostics layer, diagnostic reports or
-diagnostic formatting.
-
-For Stage 7, allowed implementation scope is limited to async single-provider and resource
-behavior: `bind().toAsyncFactory()`, `bind().toAsyncResource()`, valid async lifecycle/mode
-helpers, `runtime.getAsync()`, `runtime.tryGetAsync()`, `scope.getAsync()`,
-`ResolutionContext.getAsync()`, `ResolutionContext.tryGetAsync()`, `runtime.dispose()`,
-async eager initialization during `freeze()`, async lazy initialization on `getAsync()`,
-failed lazy initialization retry behavior, singleton/scoped in-flight initialization
-de-duplication, singleton resource disposal, scoped resource disposal, disposed
-runtime/scope errors, root/subpath exports and tests.
-
-Stage 7 async support is single-provider only. It must not implement async multi-provider
-contributions through `add()`, `getAllAsync()` or `scope.getAllAsync()` without a separate
-roadmap decision.
+- Орієнтовний print width: 100.
+- Уникати `any`.
+- Явно обробляти `undefined`.
+- Завжди використовувати braces.
 
-Stage 7 must keep `get()` sync. Async lazy providers/resources must not be returned from
-`get()` or `tryGet()`; invalid sync access must fail with readable typed
-`AsyncProviderAccessError` or equivalent.
+## Правила роботи з source snapshots
 
-Stage 7 may introduce minimal async/disposal typed errors with stable local codes and
-readable messages: `AsyncProviderAccessError`, `RuntimeDisposedError` and
-`ScopeDisposedError` or equivalents. It must not implement the full diagnostics layer,
-diagnostic reports or diagnostic formatting.
+- Root `SPEC.md` є historical source reference.
+- `memory/sources/SPEC.md` є історичним незмінним source snapshot.
+- `SPEC.md` і `memory/sources/SPEC.md` не є operational source of truth після
+  `TASK-06.26-0002`.
+- Якщо requirements змінюються, треба оновлювати canonical Project Memory files.
+- Якщо потрібен new source snapshot, його треба створити через separate human-reviewed task.
+- Implementation tasks не редагують historical source snapshots.
 
-Stage 7 runtime disposal owns initialized singleton resources only. It must not add hidden
-runtime-owned global/live scope registry or silently dispose live scopes.
+## Правила планування
 
-For Stage 8, allowed implementation scope is limited to diagnostics behavior over the
-already implemented Stage 3-7 core surface:
+- Реалізація йде staged roadmap.
+- Не перескакувати на наступний stage без acceptance criteria поточного stage.
+- Кожна behavior-changing implementation task має мати tests.
+- Memory changes мають синхронізувати state, progress, relevant indexes і task artifacts.
+- Interactive memory update лишається в `review`, доки human review не дозволить `done`.
 
-- diagnostics error foundation: `SagifireIocError`, constructor/options model, optional
-  `details`, optional `cause`, type guard, stable public error code convention and
-  migration of existing public token/container/context/async/scope errors to the shared
-  base class;
-- diagnostic reports and formatting: `DiagnosticSeverity`, `Diagnostic`,
-  `DiagnosticReport`, `formatDiagnostics()` and a minimal typed-error-to-diagnostic bridge
-  if needed.
+## Stage 2 rules
 
-Stage 8 error code convention is `SAGIFIRE_IOC_<AREA>_<REASON>`. Existing Stage 3-7 public
-code strings must be preserved unless a direct conflict is found and documented in the run
-result.
+Stage 2 створює тільки foundation монорепозиторію:
+
+- workspace;
+- package structure;
+- TypeScript;
+- ESLint;
+- Prettier;
+- Vitest;
+- build scripts;
+- package export placeholders;
+- README/docs skeleton;
+- CI-ready scripts.
 
-Stage 8 diagnostics details must be safe structured data. They may include token IDs,
-token ID paths, expected/actual provider kinds, lifecycle modes, actions and scope reasons.
-They must not expose provider values, resource instances, scope-local values or private
-runtime internals.
+Stage 2 не реалізує container logic.
 
-Stage 8 must not change provider resolution semantics, async access semantics, scope
-semantics or disposal ownership while migrating error classes.
+## Stage 3 rules
 
-Stage 8 must not implement composer/module graph diagnostics. Duplicate module IDs,
-missing required ports, invalid bindings, private provider exposure, module cycles,
-runtime inspection and graph validation start with composer stages.
+Stage 3 обмежений typed tokens і namespaces:
 
-Stage 8 formatting must not rely on Node-only APIs, terminal colors, `process`, `Buffer`,
-Next.js, React, decorators or `reflect-metadata`.
+- `Token<TValue>`;
+- `token()`;
+- `namespace()`;
+- token ID validation;
+- public exports;
+- type-level tests.
 
-## Stage 9 Composer Rules
+Container, provider registration, scopes, modules і diagnostics не входять у Stage 3.
 
-Stage 9 starts composer/modules in `@sagifire/ioc`.
+## Stage 4 rules
+
+Stage 4 обмежений sync single-provider container:
 
-Stage 9 must preserve the architecture boundary:
+- `createContainer()`;
+- `bind().toValue()`;
+- `bind().toFactory()`;
+- `bind().toClass()`;
+- singleton/transient lifetimes;
+- async-compatible `freeze()`;
+- immutable runtime `get()` / `tryGet()`;
+- duplicate token diagnostics;
+- provider cycle diagnostics.
 
-- container does not import or know about composer/modules;
-- composer uses container/context to build application graph;
-- DSL remains optional and out of scope until Stage 11;
-- Next.js and React remain outside core.
+`toClass()` має лишатися explicit and no-magic: без decorators, `reflect-metadata`,
+constructor parameter names і constructor metadata.
 
-Stage 9 public runtime visibility:
+## Stage 5 rules
 
-- `composer.bind()` satisfies required ports but does not automatically expose tokens as
-  public runtime capabilities;
-- composed runtime exposes only declared exported capabilities;
-- module private providers must not be public runtime-resolvable;
-- module-bound setup/provider contexts must not resolve another module's private
-  providers.
+Stage 5 обмежений multi-provider container behavior:
 
-Stage 9 validation and diagnostics:
+- `add().toValue()`;
+- `add().toFactory()`;
+- `runtime.getAll()`;
+- `ResolutionContext.getAll()`;
+- deterministic provider order;
+- strict single/multi validation.
 
-- use `SagifireIocError` and `DiagnosticReport` for composer validation failures;
-- include safe structured details such as module IDs, token IDs, dependency kind and
-  binding target;
-- do not expose provider values, resource instances, scope-local values or private runtime
-  internals.
+`getAll()` повертає fresh array. Caller mutation не повинна мутувати runtime provider
+storage.
 
-Stage 9 must not implement module-level cycle detection, capability dependency edges,
-binding dependency edges or cycle path diagnostics. These belong to Stage 10.
+## Stage 6 rules
 
-## Stage 10 Module Graph Rules
+Stage 6 обмежений sync scopes і scoped lifetime:
 
-Stage 10 adds dependency-edge analysis and module cycle diagnostics to composer/module
-graphs in `@sagifire/ioc`.
+- `runtime.createScope()`;
+- `runtime.withScope()`;
+- `Scope.get()`;
+- `Scope.tryGet()`;
+- `Scope.getAll()`;
+- `scope.dispose()`;
+- scoped lifetime;
+- scope-local values.
 
-Stage 10 must preserve the architecture boundary:
-
-- container does not import or know about composer/modules;
-- dependency edges are composer graph metadata, not container behavior;
-- DSL remains optional and out of scope until Stage 11;
-- Next.js and React remain outside core.
-
-Stage 10 graph edge rules:
+Single/multi token kind conflicts мають fail, а не silently convert token kind.
 
-- capability dependency edge represents required port consumer module -> provider module
-  capability;
-- binding dependency edge represents required port consumer module -> explicit composer
-  binding;
-- a binding-satisfied required port must not also create a module-to-module capability
-  edge for the same required port;
-- edge metadata must be deterministic and must not expose provider values, resource
-  instances, scope-local values or private runtime internals.
+## Stage 7 rules
 
-Stage 10 cycle rules:
+Stage 7 додає async providers/resources:
 
-- module cycles are detected over module-to-module capability dependency edges;
-- binding edges do not create module-level cycles by themselves;
-- cycle diagnostics must include safe structured module ID path and token/capability path;
-- valid acyclic graphs must still compose successfully.
+- `toAsyncFactory()`;
+- `toAsyncResource()`;
+- `getAsync()`;
+- `tryGetAsync()`;
+- async resource disposal;
+- retry/cache policy для failed lazy initialization.
 
-Stage 10 validation must not execute binding factories, module provider factories or async
-resources to infer hidden dependencies. Provider-level cycles inside factories remain
-container/runtime diagnostics.
-
-Stage 10 must not implement DSL helpers, `@sagifire/ioc-testing` graph assertions or
-Next.js adapters.
-
-## Stage 11 DSL Rules
-
-Stage 11 adds DSL helpers in `@sagifire/ioc` as an optional ergonomic layer over existing
-object/composer APIs.
-
-Stage 11 must preserve the architecture boundary:
-
-- DSL works over explicit object configuration and composer APIs;
-- object configuration remains fully usable without DSL;
-- container does not import or know about DSL;
-- Next.js and React remain outside core;
-- testing helpers remain outside core package implementation scope.
-
-Stage 11 DSL rules:
-
-- `module()` must create or normalize explicit module definitions compatible with
-  `defineModule()` and `createComposer().use()`.
-- `defineApp()` must convert app-level declarations to existing `createComposer()`,
-  `composer.use()` and `composer.bind()` behavior.
-- bind helper DSL must compile to existing composer binding semantics.
-- `adapt()` must be explicit adapter code for satisfying required ports and must not hide
-  required port ownership.
-- DSL-generated configuration must remain inspectable through existing graph and
-  diagnostics APIs.
-- DSL must not execute user factories/adapters during validation or inspection to infer
-  hidden dependencies.
-
-Stage 11 must not add decorators, `reflect-metadata`, constructor metadata, filesystem
-auto-discovery, global mutable app/container registries, service locator behavior, Next.js
-adapters or `@sagifire/ioc-testing` helpers.
-
-Testing helpers and adapters start only at their respective stages.
-
-## Stage 12 Testing Package Rules
-
-Stage 12 adds testing helpers in `@sagifire/ioc-testing`.
-
-Stage 12 must preserve package boundaries:
-
-- `@sagifire/ioc-testing` may depend on `@sagifire/ioc`;
-- `@sagifire/ioc` must not depend on `@sagifire/ioc-testing`;
-- Next.js and React remain outside Stage 12 testing helper scope;
-- core runtime/container/composer semantics must not change unless a task explicitly
-  identifies a core API gap and updates Project Memory.
-
-Stage 12 helper rules:
-
-- test runtime helpers must create fresh container configuration before `freeze()`;
-- test composer helpers must create fresh composer configuration before `compose()`;
-- overrides must be explicit token-level declarations;
-- overrides must apply before `freeze()` / `compose()`;
-- overrides must not mutate frozen `ContainerRuntime` or `ComposedRuntime`;
-- duplicate overrides should fail deterministically unless a task explicitly documents a
-  different rule;
-- fake modules must be explicit module definitions or compile to explicit module
-  definitions;
-- module harnesses must preserve module-private provider isolation;
-- graph assertions must read public `ModuleGraph`, `ComposerInspection` or
-  `RuntimeInspection` data only;
-- diagnostic assertions must read public `DiagnosticReport` or typed error data only;
-- assertion helpers must produce deterministic readable failures.
-
-Stage 12 must not add:
-
-- runtime monkey-patching;
-- access to private runtime internals;
-- hidden dependency inference by executing factories for assertion setup;
-- filesystem auto-discovery or fixture auto-discovery;
-- decorators or `reflect-metadata`;
-- global mutable runtime/test registry;
-- Next.js adapters, request context helpers, route handler helpers or server action
-  helpers.
-
-## Stage 13 Next Adapter Rules
-
-Stage 13 adds Next.js App Router helpers in `@sagifire/ioc-next`.
-
-Stage 13 must preserve package boundaries:
-
-- `@sagifire/ioc-next` may depend on `@sagifire/ioc`;
-- `@sagifire/ioc` must not depend on `@sagifire/ioc-next`, Next.js or React;
-- `@sagifire/ioc-testing` must not expose or implement Next adapter helpers;
-- core runtime/container/composer semantics must not change unless a task explicitly
-  identifies a core API gap and updates Project Memory.
-
-Stage 13 helper rules:
-
-- cached runtime helper must reuse existing core runtime/composer/app public APIs;
-- runtime cache ownership must be explicit and adapter/application-level, not a hidden core
-  global container;
-- in-flight runtime initialization should be de-duplicated;
-- failed initialization should be retryable unless the task documents an explicit cache
-  poisoning policy;
-- request context helper must model explicit token/value scope-local data;
-- request context helper must not create hidden current-request or async-local service
-  locator behavior;
-- route handler helper must create one scope per route invocation;
-- route handler helper must dispose scope on success and failure;
-- server action helper must create one scope per action invocation;
-- server action helper must dispose scope on success and failure;
-- route/action callbacks must receive runtime, scope and context explicitly;
-- examples must keep business logic behind module public APIs rather than inside framework
-  handlers.
-
-Stage 13 must not add:
-
-- Next.js or React imports to `@sagifire/ioc`;
-- mutation of frozen `ContainerRuntime` or `ComposedRuntime`;
-- filesystem auto-discovery, route scanning or module discovery;
-- decorators, `reflect-metadata` or constructor metadata;
-- hidden global app/container registry or service locator;
-- broad Stage 14 documentation/examples;
-- Stage 15 release automation.
-
-## Stage 14 Documentation And Examples Rules
-
-Stage 14 adds public documentation and repository examples for the implemented Stage 3-13
-API surface.
-
-Stage 14 allowed scope:
-
-- root README and package README updates;
-- deep docs for architecture, container, async model, composer, modules, diagnostics,
-  testing, Next integration and migration;
-- examples for `basic-node`, `module-composition`, `async-db-resource`,
-  `testing-overrides` and `next-app-router`;
-- docs/example navigation, links and consistency hardening;
-- verification scripts or lightweight example wiring only when needed to validate examples.
-
-Stage 14 documentation rules:
-
-- document implemented public API only;
-- keep object-configuration API first-class;
-- present DSL as optional ergonomic convenience, not as required path;
-- explain package boundaries and runtime immutability explicitly;
-- distinguish examples/snippets from release/publishing instructions;
-- if a public API gap is discovered, record a follow-up task instead of silently changing
-  runtime behavior.
-
-Stage 14 example rules:
-
-- examples must keep dependency graph explicit and inspectable;
-- examples must not use decorators, `reflect-metadata`, constructor metadata or filesystem
-  auto-discovery;
-- examples must not create global mutable containers, hidden service locators or hidden
-  current-request/action APIs;
-- testing examples must not mutate frozen `ContainerRuntime` or `ComposedRuntime`;
-- Next examples must keep business logic behind module public APIs and adapter helpers at
-  framework boundaries.
-
-Stage 14 must not add:
-
-- new runtime behavior or public API changes without a separate task-level decision;
-- Stage 15 release automation, changesets, publish workflow or CI release jobs;
-- mandatory Next.js, React, database or documentation-site dependencies without explicit
-  approval;
-- edits to `memory/sources/SPEC.md`.
-
-## Stage 15 Release And Governance Rules
-
-Stage 15 adds release automation and repository governance readiness. It must not change
-runtime semantics.
-
-Stage 15 allowed scope:
-
-- repository governance artifacts: `LICENSE`, `NOTICE`, `CONTRIBUTING.md`, `SECURITY.md`
-  and `TRADEMARKS.md`;
-- package publish metadata for `@sagifire/ioc`, `@sagifire/ioc-next` and
-  `@sagifire/ioc-testing`;
-- Changesets or a documented equivalent for package versioning and changelog generation;
-- GitHub Actions CI quality gates;
-- npm package dry-run validation and packed artifact export smoke checks;
-- npm publish workflow with provenance support where practical;
-- release docs and final Project Memory sync.
-
-Stage 15 governance rules:
-
-- use Apache License 2.0 for repository and publishable packages;
-- protect `@sagifire/ioc` as product mark in `TRADEMARKS.md`;
-- do not claim registered trademark status unless the human explicitly confirms it;
-- use GitHub Issues as the primary ordinary support/contact channel;
-- do not ask users to disclose secrets or sensitive vulnerability details in public issues;
-- if a private vulnerability reporting channel requires repository settings, document the
-  external setting instead of pretending it exists in repository files.
-
-Stage 15 release rules:
-
-- actual npm publish requires explicit human approval;
-- do not create, log or commit npm tokens, GitHub secrets or credentials;
-- workflow files may reference required secret names but must not contain secret values;
-- CI must not require publish credentials for ordinary pull request checks;
-- package dry-run validation must happen before publish workflow is considered ready;
-- release automation must preserve package boundaries, `sideEffects: false` and
-  tree-shaking-friendly exports.
-
-Stage 15 must not add:
-
-- runtime behavior changes or public API changes without a separate task-level decision;
-- Next.js/React dependencies in `@sagifire/ioc`;
-- hidden discovery, decorators, `reflect-metadata` or service locator behavior;
-- credential management outside repository files;
-- edits to `memory/sources/SPEC.md`.
-
-## Stage 16 Stabilization Rules
-
-Stage 16 adds a pre-`0.0.1` stabilization audit, critical-fix closure and version handoff.
-It must preserve the architecture boundaries and release safety rules established by
-earlier stages.
-
-Stage 16 allowed scope:
-
-- codebase audit covering source behavior, public API, tests, docs/examples, package
-  exports, release/versioning and Project Memory consistency;
-- fully Ukrainian audit report;
-- fixes for audit findings classified as `critical`;
-- tests and verification for behavior-changing critical fixes;
-- version and changelog fixation for publishable packages at `0.0.1`;
-- release-status docs and Project Memory sync for stabilization handoff.
-
-Stage 16 audit rules:
-
-- audit report must be fully Ukrainian;
-- audit task must not change code, package versions, changelogs or release workflows;
-- findings must include severity, evidence, impact and recommended next action;
-- severity `critical` means the finding blocks `0.0.1` readiness until fixed or
-  explicitly reclassified with rationale.
-
-Stage 16 critical-fix rules:
-
-- fix root causes, not only symptoms;
-- close every critical finding before version `0.0.1` is fixed;
-- add or update tests for every behavior change;
-- do not silently close non-critical findings; convert them to follow-up tasks or
-  documented risks unless they block a critical fix or final validation;
-- avoid broad refactors without direct audit-finding scope.
-
-Stage 16 version rules:
-
-- use the existing Changesets/versioning flow unless a concrete blocker is documented;
-- fix publishable package versions and changelogs at `0.0.1` only after critical closure;
-- keep the root workspace private and do not treat root workspace version as a publishable
-  package version unless a task documents why it must change;
-- run `pnpm release:validate` where practical before declaring the version handoff
-  review-ready;
-- do not execute actual npm publish without explicit human approval.
-
-Stage 16 must not add:
-
-- new broad product features;
-- new framework dependencies in `@sagifire/ioc`;
-- hidden discovery, decorators, `reflect-metadata` or service locator behavior;
-- publish credentials or external repository/npm settings;
-- edits to `memory/sources/SPEC.md`.
+`get()` лишається synchronous. Runtime disposal володіє тільки initialized singleton
+resources.
+Stage 7 не додає hidden global/live scope registry.
+
+## Stage 8 rules
+
+Stage 8 додає diagnostics foundation:
+
+- `SagifireIocError`;
+- constructor/options model;
+- optional cause;
+- stable error code convention;
+- diagnostic reports;
+- `DiagnosticSeverity`;
+- `Diagnostic`;
+- `DiagnosticReport`;
+- `formatDiagnostics()`;
+- typed migration of Stage 3-7 errors.
+
+Error code convention: `SAGIFIRE_IOC_<AREA>_<REASON>`. Public errors мають включати safe
+details: token IDs, provider kinds, lifecycle modes, actions і scope reasons.
+
+Stage 8 не реалізує composer/module graph diagnostics.
+
+## Stage 9 rules
+
+Stage 9 додає module definition і composer:
+
+- `defineModule()`;
+- `createComposer()`;
+- module setup/private providers;
+- required ports;
+- public capabilities;
+- bindings;
+- composed runtime;
+- safe inspection.
+
+Architecture boundary:
+
+- container не знає про modules;
+- composer builds on container/context;
+- private module providers не available through composed runtime;
+- required ports належать consumer modules;
+- public capabilities експортуються явно.
+
+Stage 9 validation includes missing required ports, duplicate modules, duplicate public
+capabilities, invalid bindings і private provider exposure. Cycle diagnostics належать
+Stage 10.
+
+## Stage 10 rules
+
+Stage 10 додає dependency edge metadata і module cycle diagnostics:
+
+- edge model;
+- deterministic edge order;
+- cycle path diagnostics;
+- runtime inspection hardening.
+
+Validation не виконує user factories. Binding dependency edges не треба виводити через
+hidden runtime tracing. Provider-level cycles лишаються container/provider diagnostics.
+
+## Stage 11 rules
+
+Stage 11 додає DSL:
+
+- `module()`;
+- `defineApp()`;
+- bind helper DSL;
+- `adapt()`;
+- docs/hardening.
+
+DSL компілюється в existing object configuration. Object API не стає legacy або
+unsupported.
+DSL не створює другий runtime, container, composer або graph model.
+
+## Stage 12 rules
+
+Stage 12 додає testing package:
+
+- isolated test runtime;
+- overrides;
+- test composer;
+- fake modules;
+- module harnesses;
+- graph assertions;
+- diagnostic assertions.
+
+Testing package не мутує frozen production runtime, не читає private internals і не створює
+global mutable runtime registry.
+
+## Stage 13 rules
+
+Stage 13 додає Next adapter package:
+
+- cached runtime helper;
+- request context helper;
+- route handler scope helper;
+- server action scope helper;
+- examples/hardening docs.
+
+Next package живе поза core. Helpers не повинні expose hidden current request/action service
+locator APIs.
+
+## Stage 14 rules
+
+Stage 14 перетворює implemented Stage 3-13 behavior на public learning material:
+
+- README files;
+- deep docs;
+- migration guide;
+- examples;
+- docs/example verification.
+
+Docs мають описувати implemented public API only. Future behavior треба позначати явно або
+винести в Project Memory tasks.
+
+## Stage 15 rules
+
+Stage 15 додає release automation і governance readiness:
+
+- `LICENSE`;
+- `NOTICE`;
+- `CONTRIBUTING.md`;
+- `SECURITY.md`;
+- publish metadata;
+- Changesets;
+- CI quality gates;
+- package dry-run validation;
+- manual npm publish workflow;
+- release docs;
+- Project Memory sync.
+
+Actual npm publish не виконується без explicit human approval. External repository/npm
+settings не треба стверджувати як наявні без перевірки.
+
+## Stage 16 rules
+
+Stage 16 додає pre-`0.0.1` stabilization audit:
+
+- codebase audit;
+- critical/high/medium/low findings;
+- required fixes;
+- version handoff;
+- changelog sync;
+- release-status memory sync.
+
+Critical findings мають бути fixed або явно reclassified with rationale. Broad refactors
+без direct audit-finding scope не допускаються.
+
+## Stage 17 rules
+
+Stage 17 почався як audit/decision gate для `0.0.2` feature request і після
+`TASK-07.05-0073` переходить у phased implementation backlog:
+
+- source file: `memory/sources/sagifire_ioc_0_0_2_feature_request_uk.md`;
+- пропозиції не приймаються wholesale;
+- audit визначив logical conflicts, architectural risks, accepted candidates і follow-up
+  decomposition;
+- implementation tasks створені після human decision і мають виконуватися послідовно.
+
+### `0.0.2` cardinality rules
+
+- `cardinality` додається і в `provides`, і в `requires`.
+- Default cardinality is `single`.
+- `requires.kind` лишається dependency kind: `external | shared`; його не можна
+  перевикористовувати для single/multi semantics.
+- Multi required dependency:
+  - `required: true` потребує мінімум один contributor/provider;
+  - `required: false` дозволяє відсутність contributors;
+  - valid `getAll(token)` для optional missing multi dependency повертає `[]`.
+- Single capability: один token може бути provided тільки одним module.
+- Multi capability: один token може бути provided багатьма modules; кожен module є
+  contributor.
+- Один token не може бути single в одному declaration/registration місці й multi в іншому.
+- Validation має враховувати `provides`, `requires`, composer bindings і module setup
+  registrations.
+- Declared multi capability має реєструватися через `add()`.
+- Declared single capability має реєструватися через `bind()`.
+- Duplicate single capability diagnostic: `SAGIFIRE_IOC_DUPLICATE_SINGLE_CAPABILITY`.
+- Cardinality conflict diagnostic: `SAGIFIRE_IOC_CAPABILITY_CARDINALITY_CONFLICT`.
+
+### `0.0.2` runtime and inspection rules
+
+- Composed runtime public surface enforces cardinality:
+  - `get()` for multi token fails;
+  - `getAll()` for single token fails.
+- Runtime gating diagnostics stay in `SAGIFIRE_IOC_*`, with target meanings:
+  - `SAGIFIRE_IOC_GET_USED_FOR_MULTI_TOKEN`;
+  - `SAGIFIRE_IOC_GET_ALL_USED_FOR_SINGLE_TOKEN`.
+- Multi contribution order is deterministic:
+  - effective composer module registration order;
+  - registration order inside each module `setup()`;
+  - composition-root additions after module contributions if `composer.add()` is accepted;
+  - composition-root registration order.
+- Multi-capability inspection must expose token, kind, cardinality, providers,
+  registration kind and registration index without leaking private providers.
+
+### `0.0.2` adapter rules
+
+- Graph-aware adapters are additive API design and must not break existing object API,
+  `bind().toFactory()` or DSL `adapt(token, factory)`.
+- Graph-aware adapter `using()` receives only declared source values; it must not receive
+  `{ get }`, `getAll()` or other generic resolver context.
+- Adapter target token must be required port / external dependency token.
+- Adapter source token must be public capability or explicit valid composition-level source.
+- First adapter slice supports single source capabilities; multi source support requires
+  explicit future design.
+- Adapter factory is not executed during validation, inspection or graph inference.
+- First adapter slice includes graph visibility and source validation, but not
+  adapter-aware cycle detection.
+- Adapter-aware cycle detection must be implemented before `0.0.2` stabilization handoff.
+
+### `0.0.2` child scope rules
+
+- Child scope inherits parent scope values.
+- Child scope can override inherited values.
+- Child scope has its own scoped provider cache.
+- Child scope does not reuse parent scoped provider instances by default.
+- Disposing child does not dispose parent.
+- Parent/child disposal ownership must be explicit and tested, including async failure
+  paths.
+
+### `0.0.2` general guardrails
+
+- diagnostic codes лишаються у namespace `SAGIFIRE_IOC_*`;
+- `get()` лишається synchronous;
+- no decorators;
+- no `reflect-metadata`;
+- no hidden current scope;
+- no filesystem discovery;
+- не додавати site-engine business APIs у core.
