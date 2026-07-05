@@ -62,6 +62,30 @@ memory/tasks/plan/TASK-07.05-0073-stage-17-0-0-2-implementation-planning/
 Остання implementation task:
 
 ```text
+memory/tasks/plan/TASK-07.05-0082-stage-17-child-scope-runtime-semantics/
+```
+
+Статус задачі: `done` після human review approval від 2026-07-05.
+
+Результат RUN-001:
+
+- child scope resolution успадковує parent scope-local single values;
+- child same-kind single values shadow inherited parent values;
+- child scope-local multi values append after inherited parent multi values and after
+  runtime multi-provider values;
+- child creation rejects inherited single/multi kind conflicts with typed
+  `ProviderKindMismatchError`;
+- child scoped provider cache лишається separate from parent scoped cache;
+- parent scoped provider instances are not reused by child by default;
+- factories resolved through child scope see child values and overrides;
+- full quality gates пройшли;
+- human review approval отримано, задачу завершено.
+
+## Попередня implementation task
+
+Попередня implementation task:
+
+```text
 memory/tasks/plan/TASK-07.05-0081-stage-17-child-scope-lifecycle-model/
 ```
 
@@ -79,12 +103,12 @@ memory/tasks/plan/TASK-07.05-0081-stage-17-child-scope-lifecycle-model/
   `ScopeDisposedError`;
 - composed scope wrapper зберігає public capability access checks для child scope options;
 - minimal API reference docs оновлено;
-- quality gates пройшли.
+- quality gates пройшли;
 - human review approval отримано, задачу завершено.
 
-## Попередня implementation task
+## Передпопередня implementation task
 
-Попередня implementation task:
+Передпопередня implementation task зі статусом `done` після human review:
 
 ```text
 memory/tasks/plan/TASK-07.05-0080-stage-17-adapter-cycle-diagnostics/
@@ -103,35 +127,8 @@ memory/tasks/plan/TASK-07.05-0080-stage-17-adapter-cycle-diagnostics/
 - validation не виконує adapter factories або module setup для static cycle rejection;
 - повні quality gates пройшли.
 
-## Передпопередня implementation task
-
-Передпопередня implementation task зі статусом `done` після human review:
-
-```text
-memory/tasks/plan/TASK-07.05-0079-stage-17-adapter-source-validation-inspection/
-```
-
-Статус задачі: `done` після human review approval від 2026-07-05.
-
-Результат RUN-001:
-
-- adapter target validation вимагає external required port target і дає
-  `SAGIFIRE_IOC_ADAPTER_TARGET_INVALID`;
-- adapter source validation додає diagnostics
-  `SAGIFIRE_IOC_ADAPTER_SOURCE_MISSING`,
-  `SAGIFIRE_IOC_ADAPTER_SOURCE_PRIVATE` і
-  `SAGIFIRE_IOC_ADAPTER_SOURCE_CARDINALITY_MISMATCH`;
-- single public capability and explicit composition-root binding sources підтримані;
-- multi source token лишається rejected у першому slice;
-- `composer.getGraph()`, `composer.inspect()` і `runtime.inspect()` показують
-  `adapter-source` edges and source provider metadata;
-- `@sagifire/ioc-testing` graph assertions підтримують `adapter-source` edge expectations;
-- повні quality gates пройшли.
-
 ## Поточні ризики
 
-- Child-scope lifecycle ownership завершено; child value inheritance, overrides and scoped
-  cache semantics лишаються ризиковою точкою наступної задачі.
 - `0.0.1` зафіксований у локальній пам'яті як stabilization handoff; фактичний npm publish
   не треба стверджувати без окремої перевірки.
 - Security process readiness не дорівнює наявності npm security contact; перед запитом
@@ -141,8 +138,8 @@ memory/tasks/plan/TASK-07.05-0079-stage-17-adapter-source-validation-inspection/
 
 ## Наступні кроки
 
-1. Стартувати `TASK-07.05-0082-stage-17-child-scope-runtime-semantics`.
-2. Виконувати `0.0.2` phases послідовно: child scopes, testing/ergonomics,
+1. Стартувати `TASK-07.05-0083-stage-17-testing-helpers-new-primitives`.
+2. Виконувати `0.0.2` phases послідовно: testing/ergonomics,
    docs/examples, full audit, stabilization handoff.
 
 ## Відкриті питання

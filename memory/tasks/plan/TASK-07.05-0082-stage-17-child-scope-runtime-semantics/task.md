@@ -1,11 +1,11 @@
 # TASK-07.05-0082: Child scope runtime semantics
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-05
 Owner Role: Implementation Agent
-Current Run: n/a
+Current Run: RUN-001
 Current Research: n/a
 Current Fixation: n/a
 
@@ -44,13 +44,13 @@ values such as `DB_SESSION`, `CURRENT_USER`, `TENANT_ID`, `LOCALE` or `PREVIEW_M
 
 ## Acceptance Criteria
 
-- [ ] Child scope resolves inherited parent values.
-- [ ] Child overrides shadow parent values.
-- [ ] Child multi values append after parent multi values.
-- [ ] Child scoped provider cache is separate from parent cache.
-- [ ] Parent scoped provider instances are not reused by child by default.
-- [ ] Async disposal and resource behavior remain deterministic.
-- [ ] Existing scope behavior remains backward compatible.
+- [x] Child scope resolves inherited parent values.
+- [x] Child overrides shadow parent values.
+- [x] Child multi values append after parent multi values.
+- [x] Child scoped provider cache is separate from parent cache.
+- [x] Parent scoped provider instances are not reused by child by default.
+- [x] Async disposal and resource behavior remain deterministic.
+- [x] Existing scope behavior remains backward compatible.
 
 ## Dependencies
 
@@ -63,4 +63,4 @@ values such as `DB_SESSION`, `CURRENT_USER`, `TENANT_ID`, `LOCALE` or `PREVIEW_M
 
 ## Runs
 
-Run artifacts треба створити під час запуску задачі.
+- [RUN-001](runs/RUN-001/index.md)

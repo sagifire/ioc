@@ -578,11 +578,11 @@
   - Summary: Phase 4 child scope lifecycle ownership model.
   - Current: RUN-001
 - [TASK-07.05-0082-stage-17-child-scope-runtime-semantics](TASK-07.05-0082-stage-17-child-scope-runtime-semantics/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Phase 4 child scope value inheritance, overrides and separate scoped cache.
-  - Current: n/a
+  - Current: RUN-001
 - [TASK-07.05-0083-stage-17-testing-helpers-new-primitives](TASK-07.05-0083-stage-17-testing-helpers-new-primitives/index.md)
   - Status: backlog
   - Type: feature

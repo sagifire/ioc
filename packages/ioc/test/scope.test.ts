@@ -42,13 +42,23 @@ interface RequestService {
     readonly plugins: Plugin[]
 }
 
+interface ScopedSession {
+    readonly requestId: string
+    readonly userId: string
+    readonly preview: boolean
+    readonly instanceId: number
+}
+
 const REQUEST_ID = token<string>('scope.request-id')
+const USER_ID = token<string>('scope.user-id')
+const PREVIEW_MODE = token<boolean>('scope.preview-mode')
 const LOGGER = token<Logger>('scope.logger')
 const COUNTER = token<Counter>('scope.counter')
 const CLASS_COUNTER = token<Counter>('scope.class-counter')
 const MISSING = token<Missing>('scope.missing')
 const PLUGINS = token<Plugin>('scope.plugins')
 const REQUEST_SERVICE = token<RequestService>('scope.request-service')
+const SCOPED_SESSION = token<ScopedSession>('scope.scoped-session')
 
 describe('container scopes', () => {
     test('resolves scope-local single values before runtime single providers', async () => {
@@ -153,6 +163,116 @@ describe('container scopes', () => {
         expect(() => scope.tryGet(multiOnly)).toThrow(ProviderKindMismatchError)
     })
 
+    test('inherits parent scope-local single values and lets child overrides shadow them', async () => {
+        const container = createContainer()
+
+        container.bind(LOGGER).toValue(createLogger('runtime'))
+
+        const runtime = await container.freeze()
+        const parent = runtime.createScope({
+            values: [
+                [REQUEST_ID, 'request-1'],
+                [USER_ID, 'parent-user'],
+                [PREVIEW_MODE, false]
+            ]
+        })
+        const inheritedChild = parent.createChildScope()
+        const overrideChild = parent.createChildScope({
+            values: [
+                [USER_ID, 'impersonated-user'],
+                [PREVIEW_MODE, true]
+            ]
+        })
+        const grandchild = overrideChild.createChildScope()
+
+        expect(inheritedChild.get(REQUEST_ID)).toBe('request-1')
+        expect(inheritedChild.tryGet(USER_ID)).toBe('parent-user')
+        await expect(inheritedChild.getAsync(PREVIEW_MODE)).resolves.toBe(false)
+        expect(inheritedChild.get(LOGGER)).toEqual(createLogger('runtime'))
+        expect(overrideChild.get(REQUEST_ID)).toBe('request-1')
+        expect(overrideChild.get(USER_ID)).toBe('impersonated-user')
+        expect(overrideChild.get(PREVIEW_MODE)).toBe(true)
+        expect(grandchild.get(USER_ID)).toBe('impersonated-user')
+        expect(parent.get(USER_ID)).toBe('parent-user')
+
+        await parent.dispose()
+    })
+
+    test('inherits parent scope-local multi values and appends child values after them', async () => {
+        const container = createContainer()
+        const runtimePlugin = createPlugin('runtime')
+        const parentPlugin = createPlugin('parent')
+        const childPlugin = createPlugin('child')
+        const grandchildPlugin = createPlugin('grandchild')
+
+        container.add(PLUGINS).toValue(runtimePlugin)
+
+        const runtime = await container.freeze()
+        const parent = runtime.createScope({
+            multiValues: [
+                [PLUGINS, parentPlugin],
+                [MISSING, { value: 'parent-only' }]
+            ]
+        })
+        const child = parent.createChildScope({
+            multiValues: [
+                [PLUGINS, childPlugin],
+                [MISSING, { value: 'child-only' }]
+            ]
+        })
+        const grandchild = child.createChildScope({
+            multiValues: [[PLUGINS, grandchildPlugin]]
+        })
+        const missingValues = child.getAll(MISSING)
+
+        missingValues.push({
+            value: 'mutated'
+        })
+
+        expect(child.getAll(PLUGINS)).toEqual([runtimePlugin, parentPlugin, childPlugin])
+        expect(grandchild.getAll(PLUGINS)).toEqual([
+            runtimePlugin,
+            parentPlugin,
+            childPlugin,
+            grandchildPlugin
+        ])
+        expect(child.getAll(MISSING)).toEqual([
+            {
+                value: 'parent-only'
+            },
+            {
+                value: 'child-only'
+            }
+        ])
+
+        await parent.dispose()
+    })
+
+    test('rejects child scope-local kind conflicts with inherited parent values', async () => {
+        const container = createContainer()
+        const runtime = await container.freeze()
+        const singleParent = runtime.createScope({
+            values: [[REQUEST_ID, 'parent']]
+        })
+        const multiParent = runtime.createScope({
+            multiValues: [[PLUGINS, createPlugin('parent')]]
+        })
+
+        expect(() =>
+            singleParent.createChildScope({
+                multiValues: [[REQUEST_ID, 'child']]
+            })
+        ).toThrow(ProviderKindMismatchError)
+        expect(() =>
+            multiParent.createChildScope({
+                values: [[PLUGINS, createPlugin('child')]]
+            })
+        ).toThrow(ProviderKindMismatchError)
+
+        await singleParent.dispose()
+        await multiParent.dispose()
+    })
+
     test('caches scoped single factory and class providers per scope', async () => {
         const container = createContainer()
         let nextClassCounter = 0
@@ -218,6 +338,70 @@ describe('container scopes', () => {
         expect(firstValues[1]).toBe(secondValues[1])
         expect(firstValues[0]).not.toBe(otherScopeValues[0])
         expect(firstValues[1]).not.toBe(otherScopeValues[1])
+    })
+
+    test('keeps child scoped provider cache separate while factories see child overrides', async () => {
+        const container = createContainer()
+        let instanceId = 0
+
+        container
+            .bind(SCOPED_SESSION)
+            .toFactory(({ get }) => {
+                instanceId += 1
+
+                return {
+                    requestId: get(REQUEST_ID),
+                    userId: get(USER_ID),
+                    preview: get(PREVIEW_MODE),
+                    instanceId
+                }
+            })
+            .scoped()
+
+        const runtime = await container.freeze()
+        const parent = runtime.createScope({
+            values: [
+                [REQUEST_ID, 'request-1'],
+                [USER_ID, 'parent-user'],
+                [PREVIEW_MODE, false]
+            ]
+        })
+        const parentSession = parent.get(SCOPED_SESSION)
+        const inheritedChild = parent.createChildScope()
+        const inheritedChildSession = inheritedChild.get(SCOPED_SESSION)
+        const overrideChild = parent.createChildScope({
+            values: [
+                [USER_ID, 'impersonated-user'],
+                [PREVIEW_MODE, true]
+            ]
+        })
+        const overrideChildSession = overrideChild.get(SCOPED_SESSION)
+
+        expect(parent.get(SCOPED_SESSION)).toBe(parentSession)
+        expect(inheritedChild.get(SCOPED_SESSION)).toBe(inheritedChildSession)
+        expect(overrideChild.get(SCOPED_SESSION)).toBe(overrideChildSession)
+        expect(inheritedChildSession).not.toBe(parentSession)
+        expect(overrideChildSession).not.toBe(parentSession)
+        expect(parentSession).toEqual({
+            requestId: 'request-1',
+            userId: 'parent-user',
+            preview: false,
+            instanceId: 1
+        })
+        expect(inheritedChildSession).toEqual({
+            requestId: 'request-1',
+            userId: 'parent-user',
+            preview: false,
+            instanceId: 2
+        })
+        expect(overrideChildSession).toEqual({
+            requestId: 'request-1',
+            userId: 'impersonated-user',
+            preview: true,
+            instanceId: 3
+        })
+
+        await parent.dispose()
     })
 
     test('rejects thenable results from scoped sync multi-provider factories', async () => {

@@ -398,6 +398,26 @@ interface NormalizedScopeLocalValue {
     readonly value: unknown
 }
 
+type ScopeLocalKind = 'single' | 'multi'
+
+type ScopeLocalSingleResolution =
+    | {
+          readonly kind: 'single'
+          readonly value: unknown
+      }
+    | {
+          readonly kind: 'multi'
+      }
+
+type ScopeLocalMultiResolution =
+    | {
+          readonly kind: 'single'
+      }
+    | {
+          readonly kind: 'multi'
+          readonly values: readonly unknown[]
+      }
+
 type AssertMutable = (action: string) => void
 
 export function createContainer(): ContainerBuilder {
@@ -1254,11 +1274,13 @@ async function createRuntime(
         assertResolutionIsActive(scopeState, `resolve provider for token "${token.id}"`)
 
         if (scopeState !== undefined) {
-            if (scopeState.localSingles.has(token.id)) {
-                return scopeState.localSingles.get(token.id) as TValue
+            const localResolution = findScopeLocalSingle(scopeState, token.id)
+
+            if (localResolution?.kind === 'single') {
+                return localResolution.value as TValue
             }
 
-            if (scopeState.localMultis.has(token.id)) {
+            if (localResolution?.kind === 'multi') {
                 throw new ProviderKindMismatchError(
                     token.id,
                     'single',
@@ -1299,11 +1321,13 @@ async function createRuntime(
         assertResolutionIsActive(scopeState, `resolve provider for token "${token.id}"`)
 
         if (scopeState !== undefined) {
-            if (scopeState.localSingles.has(token.id)) {
-                return scopeState.localSingles.get(token.id) as TValue
+            const localResolution = findScopeLocalSingle(scopeState, token.id)
+
+            if (localResolution?.kind === 'single') {
+                return localResolution.value as TValue
             }
 
-            if (scopeState.localMultis.has(token.id)) {
+            if (localResolution?.kind === 'multi') {
                 throw new ProviderKindMismatchError(
                     token.id,
                     'single',
@@ -1344,11 +1368,13 @@ async function createRuntime(
         assertResolutionIsActive(scopeState, `resolve provider for token "${token.id}"`)
 
         if (scopeState !== undefined) {
-            if (scopeState.localSingles.has(token.id)) {
-                return scopeState.localSingles.get(token.id) as TValue
+            const localResolution = findScopeLocalSingle(scopeState, token.id)
+
+            if (localResolution?.kind === 'single') {
+                return localResolution.value as TValue
             }
 
-            if (scopeState.localMultis.has(token.id)) {
+            if (localResolution?.kind === 'multi') {
                 throw new ProviderKindMismatchError(
                     token.id,
                     'single',
@@ -1388,11 +1414,13 @@ async function createRuntime(
         assertResolutionIsActive(scopeState, `resolve provider for token "${token.id}"`)
 
         if (scopeState !== undefined) {
-            if (scopeState.localSingles.has(token.id)) {
-                return scopeState.localSingles.get(token.id) as TValue
+            const localResolution = findScopeLocalSingle(scopeState, token.id)
+
+            if (localResolution?.kind === 'single') {
+                return localResolution.value as TValue
             }
 
-            if (scopeState.localMultis.has(token.id)) {
+            if (localResolution?.kind === 'multi') {
                 throw new ProviderKindMismatchError(
                     token.id,
                     'single',
@@ -1434,7 +1462,9 @@ async function createRuntime(
         let localMultiValues: readonly unknown[] | undefined
 
         if (scopeState !== undefined) {
-            if (scopeState.localSingles.has(token.id)) {
+            const localResolution = collectScopeLocalMultiValues(scopeState, token.id)
+
+            if (localResolution?.kind === 'single') {
                 throw new ProviderKindMismatchError(
                     token.id,
                     'multi',
@@ -1443,7 +1473,9 @@ async function createRuntime(
                 )
             }
 
-            localMultiValues = scopeState.localMultis.get(token.id)
+            if (localResolution !== undefined) {
+                localMultiValues = localResolution.values
+            }
         }
 
         const registration = registrations.get(token.id)
@@ -1855,6 +1887,18 @@ function createScopeState(
             )
         }
 
+        const inheritedKind =
+            parent === undefined ? undefined : findScopeLocalKind(parent, localValue.tokenId)
+
+        if (inheritedKind === 'multi') {
+            throw new ProviderKindMismatchError(
+                localValue.tokenId,
+                'single',
+                'multi',
+                'create scope-local single value'
+            )
+        }
+
         const registration = registrations.get(localValue.tokenId)
 
         if (registration?.kind === 'multi') {
@@ -1873,6 +1917,18 @@ function createScopeState(
         const localValue = normalizeScopeLocalValue(entry)
 
         if (localSingles.has(localValue.tokenId)) {
+            throw new ProviderKindMismatchError(
+                localValue.tokenId,
+                'multi',
+                'single',
+                'create scope-local multi value'
+            )
+        }
+
+        const inheritedKind =
+            parent === undefined ? undefined : findScopeLocalKind(parent, localValue.tokenId)
+
+        if (inheritedKind === 'single') {
             throw new ProviderKindMismatchError(
                 localValue.tokenId,
                 'multi',
@@ -1909,6 +1965,83 @@ function createScopeState(
         childScopes: [],
         parent,
         disposed: false
+    }
+}
+
+function findScopeLocalKind(scopeState: ScopeState, tokenId: string): ScopeLocalKind | undefined {
+    let currentState: ScopeState | undefined = scopeState
+
+    while (currentState !== undefined) {
+        if (currentState.localSingles.has(tokenId)) {
+            return 'single'
+        }
+
+        if (currentState.localMultis.has(tokenId)) {
+            return 'multi'
+        }
+
+        currentState = currentState.parent
+    }
+
+    return undefined
+}
+
+function findScopeLocalSingle(
+    scopeState: ScopeState,
+    tokenId: string
+): ScopeLocalSingleResolution | undefined {
+    let currentState: ScopeState | undefined = scopeState
+
+    while (currentState !== undefined) {
+        if (currentState.localSingles.has(tokenId)) {
+            return {
+                kind: 'single',
+                value: currentState.localSingles.get(tokenId)
+            }
+        }
+
+        if (currentState.localMultis.has(tokenId)) {
+            return {
+                kind: 'multi'
+            }
+        }
+
+        currentState = currentState.parent
+    }
+
+    return undefined
+}
+
+function collectScopeLocalMultiValues(
+    scopeState: ScopeState,
+    tokenId: string
+): ScopeLocalMultiResolution | undefined {
+    const values: unknown[] = []
+    let currentState: ScopeState | undefined = scopeState
+
+    while (currentState !== undefined) {
+        if (currentState.localSingles.has(tokenId)) {
+            return {
+                kind: 'single'
+            }
+        }
+
+        const localValues = currentState.localMultis.get(tokenId)
+
+        if (localValues !== undefined) {
+            values.unshift(...localValues)
+        }
+
+        currentState = currentState.parent
+    }
+
+    if (values.length === 0) {
+        return undefined
+    }
+
+    return {
+        kind: 'multi',
+        values
     }
 }
 
