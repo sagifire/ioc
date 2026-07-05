@@ -6,6 +6,8 @@ import {
     createComposer,
     createContainer,
     type AsyncProviderFactory,
+    type CapabilityProviderRegistrationKind,
+    type CapabilityProviderSource,
     type ClassConstructor,
     type ComposedRuntime,
     type Composer,
@@ -13,10 +15,12 @@ import {
     type ComposerInspection,
     type ContainerBuilder,
     type ContainerRuntime,
+    type CreateScopeOptions,
     type Diagnostic,
     type DiagnosticReport,
     type DiagnosticSeverity,
     type InspectionProviderKind,
+    type ModuleCardinality,
     type ModuleCapabilityDefinition,
     type ModuleCapabilityKind,
     type ModuleDependencyDefinition,
@@ -30,6 +34,7 @@ import {
     type PreparedComposition,
     type RequiredPortSatisfaction,
     type RuntimeInspection,
+    type Scope,
     type SyncProviderFactory,
     type Token
 } from '@sagifire/ioc'
@@ -40,6 +45,8 @@ export type TestRuntimeConfigurator = (container: ContainerBuilder) => Awaitable
 export type TestComposerConfigurator = (composer: Composer) => void
 
 export type TestOverrideKind = 'value' | 'factory' | 'class' | 'async-factory'
+export type TestMultiOverrideMode = 'append' | 'replace'
+export type TestMultiContributionKind = 'value' | 'factory'
 export type FakeModuleProviderKind = 'value' | 'factory' | 'async-factory'
 
 export interface TestValueOverride<TValue = unknown> {
@@ -72,9 +79,29 @@ export type TestOverride<TValue = unknown> =
     | TestClassOverride<TValue>
     | TestAsyncFactoryOverride<TValue>
 
+export interface TestMultiValueContribution<TValue = unknown> {
+    readonly kind: 'value'
+    readonly value: TValue
+}
+
+export interface TestMultiFactoryContribution<TValue = unknown> {
+    readonly kind: 'factory'
+    readonly factory: SyncProviderFactory<TValue>
+}
+
+export type TestMultiContribution<TValue = unknown> =
+    TestMultiValueContribution<TValue> | TestMultiFactoryContribution<TValue>
+
+export interface TestMultiOverride<TValue = unknown> {
+    readonly mode: TestMultiOverrideMode
+    readonly token: Token<TValue>
+    readonly contributions: readonly TestMultiContribution<TValue>[]
+}
+
 export interface FakeModuleProviderBase<TValue = unknown> {
     readonly token: Token<TValue>
     readonly kind?: ModuleCapabilityKind
+    readonly cardinality?: ModuleCardinality
     readonly description?: string
 }
 
@@ -106,6 +133,15 @@ export interface TestOverrideBuilder<TValue> {
     toAsyncFactory(factory: AsyncProviderFactory<TValue>): TestAsyncFactoryOverride<TValue>
 }
 
+export interface TestMultiOverrideBuilder<TValue> {
+    appendValue(value: TValue): TestMultiOverride<TValue>
+    appendValues(values: readonly TValue[]): TestMultiOverride<TValue>
+    appendFactory(factory: SyncProviderFactory<TValue>): TestMultiOverride<TValue>
+    replaceWithValue(value: TValue): TestMultiOverride<TValue>
+    replaceWithValues(values: readonly TValue[]): TestMultiOverride<TValue>
+    replaceWithFactory(factory: SyncProviderFactory<TValue>): TestMultiOverride<TValue>
+}
+
 type NormalizedFakeModuleDependencies<
     TRequires extends readonly ModuleDependencyDefinitionInput[]
 > = {
@@ -124,6 +160,11 @@ type NormalizedFakeModuleCapabilities<TProvides extends readonly FakeModuleProvi
 
 export interface DuplicateTestOverrideErrorDetails {
     readonly tokenId: string
+}
+
+export interface InvalidFakeModuleProviderErrorDetails {
+    readonly tokenId: string
+    readonly reason: 'multi-async-factory'
 }
 
 export class DuplicateTestOverrideError extends SagifireIocError<DuplicateTestOverrideErrorDetails> {
@@ -146,15 +187,40 @@ export class DuplicateTestOverrideError extends SagifireIocError<DuplicateTestOv
     }
 }
 
+export class InvalidFakeModuleProviderError extends SagifireIocError<InvalidFakeModuleProviderErrorDetails> {
+    override readonly name = 'InvalidFakeModuleProviderError'
+    override readonly code = 'SAGIFIRE_IOC_TESTING_INVALID_FAKE_MODULE_PROVIDER'
+    readonly tokenId: string
+    readonly reason: 'multi-async-factory'
+
+    constructor(tokenId: string, reason: 'multi-async-factory') {
+        super({
+            code: 'SAGIFIRE_IOC_TESTING_INVALID_FAKE_MODULE_PROVIDER',
+            message: `Invalid fake module provider for token "${tokenId}": ${formatInvalidFakeModuleProviderReason(reason)}`,
+            details: {
+                tokenId,
+                reason
+            }
+        })
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.tokenId = tokenId
+        this.reason = reason
+    }
+}
+
 export interface CreateTestRuntimeOptions {
     readonly configure?: TestRuntimeConfigurator
     readonly overrides?: readonly TestOverride[]
+    readonly multiOverrides?: readonly TestMultiOverride[]
 }
 
 export interface CreateTestComposerOptions {
     readonly modules?: readonly ModuleDefinition[]
     readonly configure?: TestComposerConfigurator
     readonly overrides?: readonly TestOverride[]
+    readonly multiOverrides?: readonly TestMultiOverride[]
 }
 
 export interface FakeModuleOptions<
@@ -195,6 +261,7 @@ export interface CreateModuleHarnessOptions<TModule extends ModuleDefinition = M
     readonly fakeModules?: readonly ModuleDefinition[]
     readonly configure?: TestComposerConfigurator
     readonly overrides?: readonly TestOverride[]
+    readonly multiOverrides?: readonly TestMultiOverride[]
 }
 
 export interface ModuleHarness<TModule extends ModuleDefinition = ModuleDefinition> {
@@ -216,6 +283,21 @@ export interface GraphCapabilityExpectation {
     readonly moduleId?: string
     readonly tokenId: string
     readonly kind?: ModuleCapabilityKind
+}
+
+export interface GraphMultiCapabilityExpectation {
+    readonly moduleId?: string
+    readonly tokenId: string
+    readonly kind?: ModuleCapabilityKind
+    readonly providerCount?: number
+}
+
+export interface GraphMultiCapabilityProviderExpectation {
+    readonly tokenId: string
+    readonly source?: CapabilityProviderSource
+    readonly moduleId?: string
+    readonly registrationKind?: CapabilityProviderRegistrationKind
+    readonly registrationIndex?: number
 }
 
 export interface GraphRequiredPortExpectation {
@@ -265,6 +347,24 @@ export interface GraphAdapterSourceEdgeExpectation {
     readonly adapterSourceProperty?: string
 }
 
+export type GraphAdapterSourceExpectation = Omit<GraphAdapterSourceEdgeExpectation, 'edgeKind'>
+
+export interface ChildScopeValueExpectation<TValue = unknown> {
+    readonly parent: Scope
+    readonly token: Token<TValue>
+    readonly options?: CreateScopeOptions
+    readonly expectedValue: TValue
+    readonly expectedParentValue?: TValue
+}
+
+export interface ChildScopeMultiValueExpectation<TValue = unknown> {
+    readonly parent: Scope
+    readonly token: Token<TValue>
+    readonly options?: CreateScopeOptions
+    readonly expectedValues: readonly TValue[]
+    readonly expectedParentValues?: readonly TValue[]
+}
+
 export interface DiagnosticExpectation {
     readonly code?: string
     readonly severity?: DiagnosticSeverity
@@ -293,6 +393,16 @@ export class DiagnosticAssertionError extends Error {
     }
 }
 
+export class ScopeAssertionError extends Error {
+    override readonly name = 'ScopeAssertionError'
+
+    constructor(message: string) {
+        super(message)
+
+        Object.setPrototypeOf(this, new.target.prototype)
+    }
+}
+
 export function createTestRuntime(configure?: TestRuntimeConfigurator): Promise<ContainerRuntime>
 export function createTestRuntime(options?: CreateTestRuntimeOptions): Promise<ContainerRuntime>
 export async function createTestRuntime(
@@ -300,6 +410,7 @@ export async function createTestRuntime(
 ): Promise<ContainerRuntime> {
     const configure = getTestRuntimeConfigurator(input)
     const overrides = getTestRuntimeOverrides(input)
+    const multiOverrides = getTestRuntimeMultiOverrides(input)
 
     assertNoDuplicateTestOverrides(overrides)
 
@@ -310,6 +421,7 @@ export async function createTestRuntime(
     }
 
     applyTestOverridesToContainer(container, overrides)
+    applyTestMultiOverridesToContainer(container, multiOverrides)
 
     return container.freeze()
 }
@@ -322,6 +434,7 @@ export function createTestComposer(
     const modules = getTestComposerModules(input)
     const configure = getTestComposerConfigurator(input)
     const overrides = getTestComposerOverrides(input)
+    const multiOverrides = getTestComposerMultiOverrides(input)
 
     assertNoDuplicateTestOverrides(overrides)
 
@@ -336,6 +449,7 @@ export function createTestComposer(
     }
 
     applyTestOverridesToComposer(composer, overrides)
+    applyTestMultiOverridesToComposer(composer, multiOverrides)
 
     return composer
 }
@@ -392,7 +506,8 @@ export function createModuleHarness<TModule extends ModuleDefinition = ModuleDef
     const composer = createTestComposer({
         modules,
         ...(options.configure === undefined ? {} : { configure: options.configure }),
-        ...(options.overrides === undefined ? {} : { overrides: options.overrides })
+        ...(options.overrides === undefined ? {} : { overrides: options.overrides }),
+        ...(options.multiOverrides === undefined ? {} : { multiOverrides: options.multiOverrides })
     })
 
     return Object.freeze({
@@ -465,6 +580,68 @@ export function assertGraphHasCapability(
             `Expected module graph to contain capability ${formatCapabilityExpectation(expectation)}.`,
             'Available capabilities:',
             ...formatGraphCapabilities(graph)
+        ].join('\n')
+    )
+}
+
+export function assertGraphHasMultiCapability(
+    input: GraphAssertionInput,
+    expectation: GraphMultiCapabilityExpectation
+): void {
+    const graph = getAssertionGraph(input)
+    const matchedCapability = graph.capabilities.find((capability) => {
+        return (
+            capability.cardinality === 'multi' &&
+            capability.tokenId === expectation.tokenId &&
+            matchesOptional(capability.moduleId, expectation.moduleId) &&
+            matchesOptional(capability.kind, expectation.kind) &&
+            matchesOptional(capability.providers.length, expectation.providerCount)
+        )
+    })
+
+    if (matchedCapability !== undefined) {
+        return
+    }
+
+    throw new GraphAssertionError(
+        [
+            `Expected module graph to contain multi capability ${formatMultiCapabilityExpectation(expectation)}.`,
+            'Available multi capabilities:',
+            ...formatGraphMultiCapabilities(graph)
+        ].join('\n')
+    )
+}
+
+export function assertGraphHasMultiCapabilityProvider(
+    input: GraphAssertionInput,
+    expectation: GraphMultiCapabilityProviderExpectation
+): void {
+    const graph = getAssertionGraph(input)
+    const matchedProvider = graph.capabilities
+        .filter((capability) => {
+            return capability.cardinality === 'multi' && capability.tokenId === expectation.tokenId
+        })
+        .flatMap((capability) => {
+            return capability.providers
+        })
+        .find((provider) => {
+            return (
+                matchesOptional(provider.source, expectation.source) &&
+                matchesOptional(provider.moduleId, expectation.moduleId) &&
+                matchesOptional(provider.registrationKind, expectation.registrationKind) &&
+                matchesOptional(provider.registrationIndex, expectation.registrationIndex)
+            )
+        })
+
+    if (matchedProvider !== undefined) {
+        return
+    }
+
+    throw new GraphAssertionError(
+        [
+            `Expected module graph to contain multi capability provider ${formatMultiCapabilityProviderExpectation(expectation)}.`,
+            'Available multi capability providers:',
+            ...formatGraphMultiCapabilityProviders(graph, expectation.tokenId)
         ].join('\n')
     )
 }
@@ -543,6 +720,80 @@ export function assertGraphHasEdge(
             ...formatGraphEdges(graph)
         ].join('\n')
     )
+}
+
+export function assertGraphHasAdapterSourceEdge(
+    input: GraphAssertionInput,
+    expectation: GraphAdapterSourceExpectation
+): void {
+    assertGraphHasEdge(input, {
+        ...expectation,
+        edgeKind: 'adapter-source'
+    })
+}
+
+export async function assertChildScopeHasValue<TValue>(
+    expectation: ChildScopeValueExpectation<TValue>
+): Promise<void> {
+    await withTemporaryChildScope(expectation.parent, expectation.options, (childScope) => {
+        const actualValue = childScope.get(expectation.token)
+
+        if (!valuesEqual(actualValue, expectation.expectedValue)) {
+            throw new ScopeAssertionError(
+                [
+                    `Expected child scope to resolve token "${expectation.token.id}".`,
+                    `Expected: ${stableFormat(expectation.expectedValue)}`,
+                    `Actual: ${stableFormat(actualValue)}`
+                ].join('\n')
+            )
+        }
+    })
+
+    if (hasExpectedParentValue(expectation)) {
+        const actualParentValue = expectation.parent.get(expectation.token)
+
+        if (!valuesEqual(actualParentValue, expectation.expectedParentValue)) {
+            throw new ScopeAssertionError(
+                [
+                    `Expected parent scope to keep token "${expectation.token.id}" after child assertion.`,
+                    `Expected: ${stableFormat(expectation.expectedParentValue)}`,
+                    `Actual: ${stableFormat(actualParentValue)}`
+                ].join('\n')
+            )
+        }
+    }
+}
+
+export async function assertChildScopeHasValues<TValue>(
+    expectation: ChildScopeMultiValueExpectation<TValue>
+): Promise<void> {
+    await withTemporaryChildScope(expectation.parent, expectation.options, (childScope) => {
+        const actualValues = childScope.getAll(expectation.token)
+
+        if (!valuesEqual(actualValues, expectation.expectedValues)) {
+            throw new ScopeAssertionError(
+                [
+                    `Expected child scope to resolve all values for token "${expectation.token.id}".`,
+                    `Expected: ${stableFormat(expectation.expectedValues)}`,
+                    `Actual: ${stableFormat(actualValues)}`
+                ].join('\n')
+            )
+        }
+    })
+
+    if (hasExpectedParentValues(expectation)) {
+        const actualParentValues = expectation.parent.getAll(expectation.token)
+
+        if (!valuesEqual(actualParentValues, expectation.expectedParentValues)) {
+            throw new ScopeAssertionError(
+                [
+                    `Expected parent scope to keep all values for token "${expectation.token.id}" after child assertion.`,
+                    `Expected: ${stableFormat(expectation.expectedParentValues)}`,
+                    `Actual: ${stableFormat(actualParentValues)}`
+                ].join('\n')
+            )
+        }
+    }
 }
 
 export function assertDiagnosticReportOk(report: DiagnosticReport): void {
@@ -637,6 +888,92 @@ function createTestOverride<TValue>(overrideToken: Token<TValue>): TestOverrideB
     })
 }
 
+function createTestMultiOverride<TValue>(
+    overrideToken: Token<TValue>
+): TestMultiOverrideBuilder<TValue> {
+    return Object.freeze({
+        appendValue(value: TValue): TestMultiOverride<TValue> {
+            return createTestMultiOverrideRecord(overrideToken, 'append', [
+                createTestMultiValueContribution(value)
+            ])
+        },
+
+        appendValues(values: readonly TValue[]): TestMultiOverride<TValue> {
+            return createTestMultiOverrideRecord(
+                overrideToken,
+                'append',
+                createTestMultiValueContributions(values)
+            )
+        },
+
+        appendFactory(factory: SyncProviderFactory<TValue>): TestMultiOverride<TValue> {
+            return createTestMultiOverrideRecord(overrideToken, 'append', [
+                createTestMultiFactoryContribution(factory)
+            ])
+        },
+
+        replaceWithValue(value: TValue): TestMultiOverride<TValue> {
+            return createTestMultiOverrideRecord(overrideToken, 'replace', [
+                createTestMultiValueContribution(value)
+            ])
+        },
+
+        replaceWithValues(values: readonly TValue[]): TestMultiOverride<TValue> {
+            return createTestMultiOverrideRecord(
+                overrideToken,
+                'replace',
+                createTestMultiValueContributions(values)
+            )
+        },
+
+        replaceWithFactory(factory: SyncProviderFactory<TValue>): TestMultiOverride<TValue> {
+            return createTestMultiOverrideRecord(overrideToken, 'replace', [
+                createTestMultiFactoryContribution(factory)
+            ])
+        }
+    })
+}
+
+function createTestMultiOverrideRecord<TValue>(
+    overrideToken: Token<TValue>,
+    mode: TestMultiOverrideMode,
+    contributions: readonly TestMultiContribution<TValue>[]
+): TestMultiOverride<TValue> {
+    return Object.freeze({
+        mode,
+        token: overrideToken,
+        contributions: Object.freeze([...contributions])
+    })
+}
+
+function createTestMultiValueContribution<TValue>(
+    value: TValue
+): TestMultiValueContribution<TValue> {
+    return Object.freeze({
+        kind: 'value',
+        value
+    })
+}
+
+function createTestMultiValueContributions<TValue>(
+    values: readonly TValue[]
+): readonly TestMultiValueContribution<TValue>[] {
+    return Object.freeze(
+        values.map((value) => {
+            return createTestMultiValueContribution(value)
+        })
+    )
+}
+
+function createTestMultiFactoryContribution<TValue>(
+    factory: SyncProviderFactory<TValue>
+): TestMultiFactoryContribution<TValue> {
+    return Object.freeze({
+        kind: 'factory',
+        factory
+    })
+}
+
 function createFakeModuleInput<
     TMetadata,
     TRequires extends readonly ModuleDependencyDefinitionInput[],
@@ -707,17 +1044,20 @@ function createFakeModuleCapability<TValue>(
     provider: FakeModuleProvider<TValue>
 ): ModuleCapabilityDefinition<TValue> {
     const kind = provider.kind ?? 'public-api'
+    const cardinality = provider.cardinality ?? 'single'
 
     if (provider.description === undefined) {
         return Object.freeze({
             token: provider.token,
-            kind
+            kind,
+            cardinality
         })
     }
 
     return Object.freeze({
         token: provider.token,
         kind,
+        cardinality,
         description: provider.description
     })
 }
@@ -726,6 +1066,24 @@ function applyFakeModuleProvider<TValue>(
     context: ModuleSetupContext,
     provider: FakeModuleProvider<TValue>
 ): void {
+    if (provider.cardinality === 'multi') {
+        const builder = context.add(provider.token)
+
+        if ('useValue' in provider) {
+            builder.toValue(provider.useValue)
+
+            return
+        }
+
+        if ('useFactory' in provider) {
+            builder.toFactory(provider.useFactory)
+
+            return
+        }
+
+        throw new InvalidFakeModuleProviderError(provider.token.id, 'multi-async-factory')
+    }
+
     const builder = context.bind(provider.token)
 
     if ('useValue' in provider) {
@@ -763,6 +1121,16 @@ function getTestRuntimeOverrides(
     return input?.overrides ?? []
 }
 
+function getTestRuntimeMultiOverrides(
+    input: TestRuntimeConfigurator | CreateTestRuntimeOptions | undefined
+): readonly TestMultiOverride[] {
+    if (typeof input === 'function') {
+        return []
+    }
+
+    return input?.multiOverrides ?? []
+}
+
 function getTestComposerModules(
     input: TestComposerConfigurator | CreateTestComposerOptions | undefined
 ): readonly ModuleDefinition[] {
@@ -793,6 +1161,16 @@ function getTestComposerOverrides(
     return input?.overrides ?? []
 }
 
+function getTestComposerMultiOverrides(
+    input: TestComposerConfigurator | CreateTestComposerOptions | undefined
+): readonly TestMultiOverride[] {
+    if (typeof input === 'function') {
+        return []
+    }
+
+    return input?.multiOverrides ?? []
+}
+
 function assertNoDuplicateTestOverrides(overrides: readonly TestOverride[]): void {
     const tokenIds = new Set<string>()
 
@@ -805,6 +1183,16 @@ function assertNoDuplicateTestOverrides(overrides: readonly TestOverride[]): voi
 
         tokenIds.add(tokenId)
     }
+}
+
+interface NormalizedTestMultiOverride {
+    readonly token: Token<unknown>
+    readonly contributions: readonly TestMultiContribution[]
+}
+
+interface MutableNormalizedTestMultiOverride {
+    token: Token<unknown>
+    contributions: TestMultiContribution[]
 }
 
 function applyTestOverridesToContainer(
@@ -826,6 +1214,23 @@ function applyTestOverridesToContainer(
     }
 }
 
+function applyTestMultiOverridesToContainer(
+    container: ContainerBuilder,
+    overrides: readonly TestMultiOverride[]
+): void {
+    for (const testOverride of normalizeTestMultiOverrides(overrides)) {
+        for (const contribution of testOverride.contributions) {
+            const builder = container.add(testOverride.token)
+
+            if (contribution.kind === 'value') {
+                builder.toValue(contribution.value)
+            } else {
+                builder.toFactory(contribution.factory)
+            }
+        }
+    }
+}
+
 function applyTestOverridesToComposer(
     composer: Composer,
     overrides: readonly TestOverride[]
@@ -843,6 +1248,65 @@ function applyTestOverridesToComposer(
             builder.toAsyncFactory(testOverride.factory)
         }
     }
+}
+
+function applyTestMultiOverridesToComposer(
+    composer: Composer,
+    overrides: readonly TestMultiOverride[]
+): void {
+    for (const testOverride of normalizeTestMultiOverrides(overrides)) {
+        for (const contribution of testOverride.contributions) {
+            const builder = composer.add(testOverride.token)
+
+            if (contribution.kind === 'value') {
+                builder.toValue(contribution.value)
+            } else {
+                builder.toFactory(contribution.factory)
+            }
+        }
+    }
+}
+
+function normalizeTestMultiOverrides(
+    overrides: readonly TestMultiOverride[]
+): readonly NormalizedTestMultiOverride[] {
+    const tokenIds: string[] = []
+    const byTokenId = new Map<string, MutableNormalizedTestMultiOverride>()
+
+    for (const testOverride of overrides) {
+        const tokenId = testOverride.token.id
+        let entry = byTokenId.get(tokenId)
+
+        if (entry === undefined) {
+            entry = {
+                token: testOverride.token,
+                contributions: []
+            }
+            byTokenId.set(tokenId, entry)
+            tokenIds.push(tokenId)
+        }
+
+        if (testOverride.mode === 'replace') {
+            entry.contributions = []
+        }
+
+        entry.contributions.push(...testOverride.contributions)
+    }
+
+    return Object.freeze(
+        tokenIds.map((tokenId) => {
+            const entry = byTokenId.get(tokenId)
+
+            if (entry === undefined) {
+                throw new Error(`Missing normalized multi override for token "${tokenId}"`)
+            }
+
+            return Object.freeze({
+                token: entry.token,
+                contributions: Object.freeze([...entry.contributions])
+            })
+        })
+    )
 }
 
 function getAssertionGraph(input: GraphAssertionInput): ModuleGraph {
@@ -956,6 +1420,50 @@ function formatGraphCapabilities(graph: ModuleGraph): readonly string[] {
     })
 }
 
+function formatGraphMultiCapabilities(graph: ModuleGraph): readonly string[] {
+    const multiCapabilities = graph.capabilities.filter((capability) => {
+        return capability.cardinality === 'multi'
+    })
+
+    if (multiCapabilities.length === 0) {
+        return ['- <none>']
+    }
+
+    return multiCapabilities.map((capability) => {
+        return (
+            `- module "${capability.moduleId}" provides multi "${capability.tokenId}" ` +
+            `(${capability.kind}, providers: ${capability.providers.length})`
+        )
+    })
+}
+
+function formatGraphMultiCapabilityProviders(
+    graph: ModuleGraph,
+    tokenId: string
+): readonly string[] {
+    const providers = graph.capabilities
+        .filter((capability) => {
+            return capability.cardinality === 'multi' && capability.tokenId === tokenId
+        })
+        .flatMap((capability) => {
+            return capability.providers
+        })
+
+    if (providers.length === 0) {
+        return ['- <none>']
+    }
+
+    return providers.map((provider) => {
+        const moduleDetail =
+            provider.moduleId === undefined ? 'composition root' : `module "${provider.moduleId}"`
+
+        return (
+            `- ${moduleDetail} ${provider.registrationKind} provider ` +
+            `#${provider.registrationIndex} (${provider.source})`
+        )
+    })
+}
+
 function formatGraphRequiredPorts(graph: ModuleGraph): readonly string[] {
     if (graph.requiredPorts.length === 0) {
         return ['- <none>']
@@ -1004,6 +1512,27 @@ function formatCapabilityExpectation(expectation: GraphCapabilityExpectation): s
         `token "${expectation.tokenId}"`,
         formatOptionalExpectationPart('module', expectation.moduleId),
         formatOptionalExpectationPart('kind', expectation.kind)
+    ])
+}
+
+function formatMultiCapabilityExpectation(expectation: GraphMultiCapabilityExpectation): string {
+    return formatExpectationParts([
+        `token "${expectation.tokenId}"`,
+        formatOptionalExpectationPart('module', expectation.moduleId),
+        formatOptionalExpectationPart('kind', expectation.kind),
+        formatOptionalExpectationPart('providerCount', expectation.providerCount)
+    ])
+}
+
+function formatMultiCapabilityProviderExpectation(
+    expectation: GraphMultiCapabilityProviderExpectation
+): string {
+    return formatExpectationParts([
+        `token "${expectation.tokenId}"`,
+        formatOptionalExpectationPart('source', expectation.source),
+        formatOptionalExpectationPart('moduleId', expectation.moduleId),
+        formatOptionalExpectationPart('registrationKind', expectation.registrationKind),
+        formatOptionalExpectationPart('registrationIndex', expectation.registrationIndex)
     ])
 }
 
@@ -1136,6 +1665,48 @@ function formatOptionalExpectationPart(
     return `${label}: ${value}`
 }
 
+function withTemporaryChildScope<TValue>(
+    parent: Scope,
+    options: CreateScopeOptions | undefined,
+    callback: (childScope: Scope) => TValue | Promise<TValue>
+): Promise<TValue> {
+    if (options === undefined) {
+        return parent.withChildScope(callback)
+    }
+
+    return parent.withChildScope(options, callback)
+}
+
+function valuesEqual(actual: unknown, expected: unknown): boolean {
+    return stableFormat(actual) === stableFormat(expected)
+}
+
+function hasExpectedParentValue<TValue>(
+    expectation: ChildScopeValueExpectation<TValue>
+): expectation is ChildScopeValueExpectation<TValue> & {
+    readonly expectedParentValue: TValue | undefined
+} {
+    return 'expectedParentValue' in expectation
+}
+
+function hasExpectedParentValues<TValue>(
+    expectation: ChildScopeMultiValueExpectation<TValue>
+): expectation is ChildScopeMultiValueExpectation<TValue> & {
+    readonly expectedParentValues: readonly TValue[] | undefined
+} {
+    return 'expectedParentValues' in expectation
+}
+
+function formatInvalidFakeModuleProviderReason(
+    reason: InvalidFakeModuleProviderErrorDetails['reason']
+): string {
+    if (reason === 'multi-async-factory') {
+        return 'multi fake providers support values and synchronous factories only'
+    }
+
+    return reason
+}
+
 function stableFormat(value: unknown): string {
     if (typeof value === 'string') {
         return JSON.stringify(value)
@@ -1182,4 +1753,4 @@ function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-export { createTestOverride as override }
+export { createTestOverride as override, createTestMultiOverride as multiOverride }

@@ -20,13 +20,19 @@ import {
     assertErrorDiagnostic,
     assertGraphHasBinding,
     assertGraphHasCapability,
+    assertGraphHasAdapterSourceEdge,
     assertGraphHasEdge,
     assertGraphHasModule,
+    assertGraphHasMultiCapability,
+    assertGraphHasMultiCapabilityProvider,
     assertGraphHasRequiredPort,
+    assertChildScopeHasValue,
+    assertChildScopeHasValues,
     createModuleHarness,
     createTestComposer,
     createTestRuntime,
     fakeModule,
+    multiOverride,
     override
 } from '@sagifire/ioc-testing'
 ```
@@ -36,19 +42,26 @@ The package exposes a root export only and depends on `@sagifire/ioc`.
 ## Public Surface
 
 - Runtime helpers: `createTestRuntime(configure?)` and
-  `createTestRuntime({ configure, overrides })`.
+  `createTestRuntime({ configure, overrides, multiOverrides })`.
 - Override declarations: `override(token).toValue()`, `toFactory()`, `toClass()` and
   `toAsyncFactory()`.
+- Multi contribution declarations: `multiOverride(token).appendValue()`, `appendValues()`,
+  `appendFactory()`, `replaceWithValue()`, `replaceWithValues()` and
+  `replaceWithFactory()`.
 - Composer helpers: `createTestComposer(configure?)` and
-  `createTestComposer({ modules, configure, overrides })`.
+  `createTestComposer({ modules, configure, overrides, multiOverrides })`.
 - Fake modules: `fakeModule(definition)` and `fakeModule(id, definition)`.
-- Module harnesses: `createModuleHarness({ module, supportModules, fakeModules, overrides })`.
+- Module harnesses:
+  `createModuleHarness({ module, supportModules, fakeModules, overrides, multiOverrides })`.
 - Graph assertions: `assertGraphHasModule()`, `assertGraphHasCapability()`,
-  `assertGraphHasRequiredPort()`, `assertGraphHasBinding()` and `assertGraphHasEdge()`.
+  `assertGraphHasMultiCapability()`, `assertGraphHasMultiCapabilityProvider()`,
+  `assertGraphHasRequiredPort()`, `assertGraphHasBinding()`, `assertGraphHasEdge()` and
+  `assertGraphHasAdapterSourceEdge()`.
+- Child scope assertions: `assertChildScopeHasValue()` and `assertChildScopeHasValues()`.
 - Diagnostic assertions: `assertDiagnosticReportOk()`,
   `assertDiagnosticReportHasDiagnostic()` and `assertErrorDiagnostic()`.
-- Error classes: `DuplicateTestOverrideError`, `GraphAssertionError` and
-  `DiagnosticAssertionError`.
+- Error classes: `DuplicateTestOverrideError`, `InvalidFakeModuleProviderError`,
+  `GraphAssertionError`, `ScopeAssertionError` and `DiagnosticAssertionError`.
 
 ## Test Runtime
 
@@ -97,6 +110,22 @@ const runtime = await composer.compose()
 
 Composer overrides are visible as explicit binding edges in inspection data.
 
+Multi contribution helpers are also applied to the fresh composer before `compose()`:
+
+```ts
+const composer = createTestComposer({
+    modules: [auditConsumerModule, fakeAuditModule],
+    multiOverrides: [
+        multiOverride(AUDIT_EVENTS).replaceWithValues(['test-started']),
+        multiOverride(AUDIT_EVENTS).appendValue('test-finished')
+    ]
+})
+```
+
+`replaceWith*()` replaces previous test contribution declarations for that token in the
+same helper input. It does not remove module contributions or mutate an existing composed
+runtime.
+
 ## Fake Modules And Harnesses
 
 Fake modules are normal explicit module definitions:
@@ -115,6 +144,9 @@ const fakeAuthModule = fakeModule('test-auth', {
     ]
 })
 ```
+
+For declared multi-capabilities, fake module providers can set `cardinality: 'multi'`;
+value and synchronous factory providers are registered through public `context.add()`.
 
 Module harnesses compose one module under test with support modules, fake modules or
 explicit required-port overrides:
@@ -142,6 +174,32 @@ assertGraphHasEdge(harness.inspect(), {
     edgeKind: 'binding',
     requiredTokenId: CONTACT_AUTH_READER.id,
     bindingTokenId: CONTACT_AUTH_READER.id
+})
+assertGraphHasMultiCapability(harness.getGraph(), {
+    tokenId: AUDIT_EVENTS.id,
+    providerCount: 2
+})
+assertGraphHasMultiCapabilityProvider(harness.getGraph(), {
+    tokenId: AUDIT_EVENTS.id,
+    moduleId: 'audit-module'
+})
+assertGraphHasAdapterSourceEdge(harness.getGraph(), {
+    adapterTargetTokenId: CONTACT_AUTH_READER.id,
+    adapterSourceTokenId: AUTH_PUBLIC_API.id
+})
+```
+
+Child scope assertions create and dispose child scopes through public scope APIs:
+
+```ts
+await assertChildScopeHasValue({
+    parent: requestScope,
+    token: CURRENT_USER_ID,
+    options: {
+        values: [[CURRENT_USER_ID, 'impersonated-user']]
+    },
+    expectedValue: 'impersonated-user',
+    expectedParentValue: 'original-user'
 })
 ```
 

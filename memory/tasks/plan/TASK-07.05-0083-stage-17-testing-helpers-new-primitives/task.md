@@ -1,11 +1,11 @@
 # TASK-07.05-0083: Testing helpers for new primitives
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-05
 Owner Role: Implementation Agent
-Current Run: n/a
+Current Run: RUN-001
 Current Research: n/a
 Current Fixation: n/a
 
@@ -41,12 +41,12 @@ Phase 5: Testing and API ergonomics.
 
 ## Acceptance Criteria
 
-- [ ] Testing helpers can assert multi capability contributors.
-- [ ] Testing helpers can assert adapter source edges.
-- [ ] Multi override helpers work through test composer before compose.
-- [ ] Helpers do not depend on private core internals.
-- [ ] Frozen production runtime is never mutated.
-- [ ] Package exports remain tree-shaking friendly.
+- [x] Testing helpers can assert multi capability contributors.
+- [x] Testing helpers can assert adapter source edges.
+- [x] Multi override helpers work through test composer before compose.
+- [x] Helpers do not depend on private core internals.
+- [x] Frozen production runtime is never mutated.
+- [x] Package exports remain tree-shaking friendly.
 
 ## Dependencies
 
@@ -60,4 +60,6 @@ Phase 5: Testing and API ergonomics.
 
 ## Runs
 
-Run artifacts треба створити під час запуску задачі.
+- [RUN-001](runs/RUN-001/index.md)
+  - Status: complete
+  - Purpose: Testing helpers for multi-capabilities, graph-aware adapters and child scopes.

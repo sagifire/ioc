@@ -62,6 +62,29 @@ memory/tasks/plan/TASK-07.05-0073-stage-17-0-0-2-implementation-planning/
 Остання implementation task:
 
 ```text
+memory/tasks/plan/TASK-07.05-0083-stage-17-testing-helpers-new-primitives/
+```
+
+Статус задачі: `done` після human review approval від 2026-07-05.
+
+Результат RUN-001:
+
+- додано `@sagifire/ioc-testing` helpers для multi capability assertions,
+  contributor/provider assertions і adapter-source edge assertions;
+- додано `multiOverride()` для append/replace test multi contributions before
+  `freeze()` / `compose()`;
+- `fakeModule()` підтримує declared multi capabilities через public `context.add()` для
+  value/factory providers;
+- додано child scope assertion helpers через public scope APIs;
+- minimal testing docs sync виконано;
+- full quality gates пройшли.
+- human review approval отримано, задачу завершено.
+
+## Попередня implementation task
+
+Попередня implementation task:
+
+```text
 memory/tasks/plan/TASK-07.05-0082-stage-17-child-scope-runtime-semantics/
 ```
 
@@ -81,9 +104,9 @@ memory/tasks/plan/TASK-07.05-0082-stage-17-child-scope-runtime-semantics/
 - full quality gates пройшли;
 - human review approval отримано, задачу завершено.
 
-## Попередня implementation task
+## Передпопередня implementation task
 
-Попередня implementation task:
+Передпопередня implementation task:
 
 ```text
 memory/tasks/plan/TASK-07.05-0081-stage-17-child-scope-lifecycle-model/
@@ -106,9 +129,9 @@ memory/tasks/plan/TASK-07.05-0081-stage-17-child-scope-lifecycle-model/
 - quality gates пройшли;
 - human review approval отримано, задачу завершено.
 
-## Передпопередня implementation task
+## Попередня adapter implementation task
 
-Передпопередня implementation task зі статусом `done` після human review:
+Попередня adapter implementation task зі статусом `done` після human review:
 
 ```text
 memory/tasks/plan/TASK-07.05-0080-stage-17-adapter-cycle-diagnostics/
@@ -138,7 +161,7 @@ memory/tasks/plan/TASK-07.05-0080-stage-17-adapter-cycle-diagnostics/
 
 ## Наступні кроки
 
-1. Стартувати `TASK-07.05-0083-stage-17-testing-helpers-new-primitives`.
+1. Стартувати `TASK-07.05-0084-stage-17-multitoken-contributiontoken-ergonomics`.
 2. Виконувати `0.0.2` phases послідовно: testing/ergonomics,
    docs/examples, full audit, stabilization handoff.
 

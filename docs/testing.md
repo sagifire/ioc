@@ -25,13 +25,19 @@ import {
     assertErrorDiagnostic,
     assertGraphHasBinding,
     assertGraphHasCapability,
+    assertGraphHasAdapterSourceEdge,
     assertGraphHasEdge,
     assertGraphHasModule,
+    assertGraphHasMultiCapability,
+    assertGraphHasMultiCapabilityProvider,
     assertGraphHasRequiredPort,
+    assertChildScopeHasValue,
+    assertChildScopeHasValues,
     createModuleHarness,
     createTestComposer,
     createTestRuntime,
     fakeModule,
+    multiOverride,
     override
 } from '@sagifire/ioc-testing'
 ```
@@ -75,10 +81,18 @@ declarations support:
 - `override(token).toFactory(factory)`
 - `override(token).toClass(ClassConstructor)`
 - `override(token).toAsyncFactory(factory)`
+- `multiOverride(token).appendValue(value)`
+- `multiOverride(token).appendValues(values)`
+- `multiOverride(token).appendFactory(factory)`
+- `multiOverride(token).replaceWithValue(value)`
+- `multiOverride(token).replaceWithValues(values)`
+- `multiOverride(token).replaceWithFactory(factory)`
 
 Duplicate overrides for the same token fail with `DuplicateTestOverrideError` before the
 configuration callback runs. A test runtime is independent from every other runtime created
-by the helper.
+by the helper. Multi override `replaceWith*()` entries replace previous test contribution
+declarations for the same token in the same helper input; they do not remove module
+contributions or mutate an existing runtime.
 
 ## Test Composers
 
@@ -112,6 +126,19 @@ await runtime.dispose()
 Composer overrides are visible in inspection data as binding records and binding dependency
 edges. They satisfy required ports, but they do not create a fake module and they do not
 turn the overridden token into a public runtime capability by themselves.
+
+`multiOverrides` use the public `add()` API on the fresh test composer. This is useful for
+declared multi-capabilities:
+
+```ts
+const composer = createTestComposer({
+    modules: [auditConsumerModule, fakeAuditModule],
+    multiOverrides: [
+        multiOverride(AUDIT_EVENTS).replaceWithValues(['test-started']),
+        multiOverride(AUDIT_EVENTS).appendValue('test-finished')
+    ]
+})
+```
 
 ## Overrides Or Fake Modules
 
@@ -170,6 +197,9 @@ Fake modules are normal explicit module definitions. They declare `provides` met
 their generated setup binds fake values, factories or async factories through the existing
 module setup API. They remain visible through `composer.getGraph()`, `composer.inspect()`
 and `runtime.inspect()`.
+
+For multi-capabilities, fake module providers may set `cardinality: 'multi'`. Value and
+synchronous factory providers are then registered through public `context.add()`.
 
 ## Module Harnesses
 
@@ -252,11 +282,53 @@ assertGraphHasEdge(harness.getGraph(), {
     providerModuleId: 'test-auth',
     capabilityTokenId: CONTACT_REQUESTS_AUTH_READER.id
 })
+
+assertGraphHasMultiCapability(harness.getGraph(), {
+    tokenId: AUDIT_EVENTS.id,
+    providerCount: 2
+})
+
+assertGraphHasMultiCapabilityProvider(harness.getGraph(), {
+    tokenId: AUDIT_EVENTS.id,
+    moduleId: 'audit-module'
+})
+
+assertGraphHasAdapterSourceEdge(harness.getGraph(), {
+    adapterTargetTokenId: CONTACT_REQUESTS_AUTH_READER.id,
+    adapterSourceTokenId: AUTH_PUBLIC_API.id
+})
 ```
 
 Failed graph assertions throw `GraphAssertionError` with deterministic plain-text messages
 that include the available modules, capabilities, required ports, bindings or dependency
 edges.
+
+## Child Scope Assertions
+
+Child scope assertions use public scope APIs and dispose the temporary child scope created
+for the assertion:
+
+```ts
+await assertChildScopeHasValue({
+    parent: requestScope,
+    token: CURRENT_USER_ID,
+    options: {
+        values: [[CURRENT_USER_ID, 'impersonated-user']]
+    },
+    expectedValue: 'impersonated-user',
+    expectedParentValue: 'original-user'
+})
+
+await assertChildScopeHasValues({
+    parent: requestScope,
+    token: AUDIT_EVENTS,
+    options: {
+        multiValues: [[AUDIT_EVENTS, 'child-event']]
+    },
+    expectedValues: ['parent-event', 'child-event'],
+    expectedParentValues: ['parent-event']
+})
+```
 
 ## Diagnostic Assertions
 

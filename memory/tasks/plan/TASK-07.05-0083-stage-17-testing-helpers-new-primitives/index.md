@@ -9,3 +9,6 @@ Backlog implementation task для `@sagifire/ioc-testing` helpers навкол�
 - [Task](task.md)
   - Type: file
   - Purpose: Scope and acceptance для testing helpers multi/adapters/child scopes.
+- [Runs](runs/RUN-001/index.md)
+  - Type: folder
+  - Purpose: Implementation run artifacts.

@@ -584,11 +584,11 @@
   - Summary: Phase 4 child scope value inheritance, overrides and separate scoped cache.
   - Current: RUN-001
 - [TASK-07.05-0083-stage-17-testing-helpers-new-primitives](TASK-07.05-0083-stage-17-testing-helpers-new-primitives/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Phase 5 testing helpers for multi-capabilities, adapters and child scopes.
-  - Current: n/a
+  - Current: RUN-001
 - [TASK-07.05-0084-stage-17-multitoken-contributiontoken-ergonomics](TASK-07.05-0084-stage-17-multitoken-contributiontoken-ergonomics/index.md)
   - Status: backlog
   - Type: feature
