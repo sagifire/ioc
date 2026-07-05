@@ -535,16 +535,23 @@
   - Summary: Phase 1 validation для single/multi conflicts і registration mismatch.
   - Current: RUN-001
 - [TASK-07.05-0076-stage-17-multi-capability-runtime-gating](TASK-07.05-0076-stage-17-multi-capability-runtime-gating/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Phase 2 composed runtime `get()` / `getAll()` cardinality gating.
-  - Current: n/a
+  - Current: RUN-001
 - [TASK-07.05-0077-stage-17-multi-capability-inspection-diagnostics](TASK-07.05-0077-stage-17-multi-capability-inspection-diagnostics/index.md)
   - Status: backlog
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Phase 2 public inspection and diagnostics for multi-capabilities.
+  - Current: n/a
+- [TASK-07.05-0089-stage-17-composer-add-multi-contributions](TASK-07.05-0089-stage-17-composer-add-multi-contributions/index.md)
+  - Status: backlog
+  - Type: feature
+  - Execution Mode: autonomous-implementation
+  - Summary: Phase 2 explicit composition-root `composer.add()` multi contributions after
+    inspection/provider identity model.
   - Current: n/a
 - [TASK-07.05-0078-stage-17-graph-aware-adapter-api](TASK-07.05-0078-stage-17-graph-aware-adapter-api/index.md)
   - Status: backlog

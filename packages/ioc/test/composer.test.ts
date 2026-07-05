@@ -9,6 +9,8 @@ import {
     DuplicateModuleCapabilityError,
     DuplicateModuleDependencyError,
     DuplicateSingleCapabilityError,
+    GetAllUsedForSingleTokenError,
+    GetUsedForMultiTokenError,
     InvalidComposerBindingError,
     InvalidModuleDefinitionError,
     MissingModuleProviderError,
@@ -2835,6 +2837,186 @@ describe('composed runtime capabilities', () => {
                 })
             }
         }
+    })
+
+    test('enforces public capability cardinality through runtime get and getAll', async () => {
+        const authModule = defineModule({
+            id: 'runtime-gating-auth',
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(AUTH_PUBLIC_API).toValue({
+                    requireUser(): string {
+                        return 'auth-user'
+                    }
+                })
+            }
+        })
+        const firstAuditModule = defineModule({
+            id: 'runtime-gating-first-audit',
+            provides: [
+                {
+                    token: AUDIT_EVENTS,
+                    kind: 'event-subscriber',
+                    cardinality: 'multi'
+                }
+            ],
+            setup(context): void {
+                context.add(AUDIT_EVENTS).toValue('first-module-first')
+                context.add(AUDIT_EVENTS).toFactory(() => {
+                    return 'first-module-second'
+                })
+            }
+        })
+        const secondAuditModule = defineModule({
+            id: 'runtime-gating-second-audit',
+            provides: [
+                {
+                    token: AUDIT_EVENTS,
+                    kind: 'event-subscriber',
+                    cardinality: 'multi'
+                }
+            ],
+            setup(context): void {
+                context.add(AUDIT_EVENTS).toValue('second-module-first')
+            }
+        })
+        const runtime = await createComposer()
+            .use(firstAuditModule)
+            .use(authModule)
+            .use(secondAuditModule)
+            .compose()
+
+        expect(runtime.get(AUTH_PUBLIC_API).requireUser()).toBe('auth-user')
+        expect(runtime.getAll(AUDIT_EVENTS)).toEqual([
+            'first-module-first',
+            'first-module-second',
+            'second-module-first'
+        ])
+        expect(() => runtime.get(AUDIT_EVENTS)).toThrow(GetUsedForMultiTokenError)
+        expect(() => runtime.getAll(AUTH_PUBLIC_API)).toThrow(GetAllUsedForSingleTokenError)
+
+        try {
+            runtime.get(AUDIT_EVENTS)
+        } catch (error) {
+            expect(error).toBeInstanceOf(GetUsedForMultiTokenError)
+
+            if (error instanceof GetUsedForMultiTokenError) {
+                expect(error.code).toBe('SAGIFIRE_IOC_GET_USED_FOR_MULTI_TOKEN')
+                expect(error.details).toEqual({
+                    tokenId: 'composer.audit-events',
+                    accessMethod: 'get',
+                    cardinality: 'multi'
+                })
+            }
+        }
+
+        try {
+            runtime.getAll(AUTH_PUBLIC_API)
+        } catch (error) {
+            expect(error).toBeInstanceOf(GetAllUsedForSingleTokenError)
+
+            if (error instanceof GetAllUsedForSingleTokenError) {
+                expect(error.code).toBe('SAGIFIRE_IOC_GET_ALL_USED_FOR_SINGLE_TOKEN')
+                expect(error.details).toEqual({
+                    tokenId: 'composer.auth-public-api',
+                    accessMethod: 'getAll',
+                    cardinality: 'single'
+                })
+            }
+        }
+
+        expect(new GetUsedForMultiTokenError(AUDIT_EVENTS.id)).toBeInstanceOf(
+            GetUsedForMultiTokenError
+        )
+        expect(new GetAllUsedForSingleTokenError(AUTH_PUBLIC_API.id)).toBeInstanceOf(
+            GetAllUsedForSingleTokenError
+        )
+
+        await runtime.dispose()
+    })
+
+    test('resolves optional missing multi dependencies as empty arrays inside modules', async () => {
+        const module = defineModule({
+            id: 'runtime-optional-missing-multi-consumer',
+            requires: [
+                {
+                    token: AUDIT_EVENTS,
+                    required: false,
+                    cardinality: 'multi'
+                }
+            ],
+            provides: [
+                {
+                    token: CONTACT_REQUESTS_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(CONTACT_REQUESTS_PUBLIC_API).toFactory((providerContext) => {
+                    const events = providerContext.getAll(AUDIT_EVENTS)
+
+                    return {
+                        submit(): string {
+                            return `events:${events.length}`
+                        }
+                    }
+                })
+            }
+        })
+        const runtime = await createComposer().use(module).compose()
+
+        expect(runtime.get(CONTACT_REQUESTS_PUBLIC_API).submit()).toBe('events:0')
+        expect(() => runtime.getAll(AUDIT_EVENTS)).toThrow(PrivateProviderAccessError)
+
+        await runtime.dispose()
+    })
+
+    test('does not expose module-private multi providers through composed runtime', async () => {
+        const module = defineModule({
+            id: 'runtime-private-multi-provider',
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.add(AUDIT_EVENTS).toValue('private-event')
+                context.bind(AUTH_PUBLIC_API).toFactory((providerContext) => {
+                    return {
+                        requireUser(): string {
+                            return providerContext.getAll(AUDIT_EVENTS).join(',')
+                        }
+                    }
+                })
+            }
+        })
+        const runtime = await createComposer().use(module).compose()
+
+        expect(runtime.get(AUTH_PUBLIC_API).requireUser()).toBe('private-event')
+        expect(() => runtime.getAll(AUDIT_EVENTS)).toThrow(PrivateProviderAccessError)
+
+        try {
+            runtime.getAll(AUDIT_EVENTS)
+        } catch (error) {
+            expect(error).toBeInstanceOf(PrivateProviderAccessError)
+
+            if (error instanceof PrivateProviderAccessError) {
+                expect(error.details).toEqual({
+                    moduleId: undefined,
+                    tokenId: 'composer.audit-events',
+                    requester: 'runtime',
+                    reason: 'token-not-visible'
+                })
+            }
+        }
+
+        await runtime.dispose()
     })
 
     test('preserves scoped providers and wraps public scopes', async () => {

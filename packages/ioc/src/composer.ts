@@ -317,6 +317,18 @@ export interface CapabilityRegistrationCardinalityMismatchErrorDetails {
     readonly registrationKind: ProviderRegistrationKind
 }
 
+export interface GetUsedForMultiTokenErrorDetails {
+    readonly tokenId: string
+    readonly accessMethod: 'get' | 'tryGet' | 'getAsync' | 'tryGetAsync'
+    readonly cardinality: 'multi'
+}
+
+export interface GetAllUsedForSingleTokenErrorDetails {
+    readonly tokenId: string
+    readonly accessMethod: 'getAll'
+    readonly cardinality: 'single'
+}
+
 export interface DuplicateModuleIdErrorDetails {
     readonly moduleId: string
 }
@@ -782,6 +794,62 @@ export class CapabilityRegistrationCardinalityMismatchError extends SagifireIocE
         this.tokenId = tokenId
         this.declaredCardinality = declaredCardinality
         this.registrationKind = registrationKind
+    }
+}
+
+export class GetUsedForMultiTokenError extends SagifireIocError<GetUsedForMultiTokenErrorDetails> {
+    override readonly name = 'GetUsedForMultiTokenError'
+    override readonly code = 'SAGIFIRE_IOC_GET_USED_FOR_MULTI_TOKEN'
+    readonly tokenId: string
+    readonly accessMethod: 'get' | 'tryGet' | 'getAsync' | 'tryGetAsync'
+    readonly cardinality = 'multi' as const
+
+    constructor(
+        tokenId: string,
+        accessMethod: 'get' | 'tryGet' | 'getAsync' | 'tryGetAsync' = 'get'
+    ) {
+        super({
+            code: 'SAGIFIRE_IOC_GET_USED_FOR_MULTI_TOKEN',
+            message:
+                `Composed runtime ${accessMethod}() cannot resolve multi capability ` +
+                `"${tokenId}"; use getAll() instead`,
+            details: {
+                tokenId,
+                accessMethod,
+                cardinality: 'multi'
+            }
+        })
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.tokenId = tokenId
+        this.accessMethod = accessMethod
+    }
+}
+
+export class GetAllUsedForSingleTokenError extends SagifireIocError<GetAllUsedForSingleTokenErrorDetails> {
+    override readonly name = 'GetAllUsedForSingleTokenError'
+    override readonly code = 'SAGIFIRE_IOC_GET_ALL_USED_FOR_SINGLE_TOKEN'
+    readonly tokenId: string
+    readonly accessMethod = 'getAll' as const
+    readonly cardinality = 'single' as const
+
+    constructor(tokenId: string) {
+        super({
+            code: 'SAGIFIRE_IOC_GET_ALL_USED_FOR_SINGLE_TOKEN',
+            message:
+                `Composed runtime getAll() cannot resolve single capability "${tokenId}"; ` +
+                'use get() instead',
+            details: {
+                tokenId,
+                accessMethod: 'getAll',
+                cardinality: 'single'
+            }
+        })
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.tokenId = tokenId
     }
 }
 
@@ -2040,15 +2108,21 @@ function createComposedRuntime(
 
     const runtime: ComposedRuntime = {
         get<TValue>(resolutionToken: Token<TValue>): TValue {
-            return containerRuntime.get(resolvePublicCapabilityToken(resolutionToken, access))
+            return containerRuntime.get(
+                resolvePublicSingleCapabilityToken(resolutionToken, access, 'get')
+            )
         },
 
         tryGet<TValue>(resolutionToken: Token<TValue>): TValue | undefined {
-            return containerRuntime.tryGet(resolvePublicCapabilityToken(resolutionToken, access))
+            return containerRuntime.tryGet(
+                resolvePublicSingleCapabilityToken(resolutionToken, access, 'tryGet')
+            )
         },
 
         getAll<TValue>(resolutionToken: Token<TValue>): TValue[] {
-            return containerRuntime.getAll(resolvePublicCapabilityToken(resolutionToken, access))
+            return containerRuntime.getAll(
+                resolvePublicMultiCapabilityToken(resolutionToken, access)
+            )
         },
 
         createScope(options?: CreateScopeOptions): Scope {
@@ -2060,12 +2134,14 @@ function createComposedRuntime(
         withScope,
 
         getAsync<TValue>(resolutionToken: Token<TValue>): Promise<TValue> {
-            return containerRuntime.getAsync(resolvePublicCapabilityToken(resolutionToken, access))
+            return containerRuntime.getAsync(
+                resolvePublicSingleCapabilityToken(resolutionToken, access, 'getAsync')
+            )
         },
 
         tryGetAsync<TValue>(resolutionToken: Token<TValue>): Promise<TValue | undefined> {
             return containerRuntime.tryGetAsync(
-                resolvePublicCapabilityToken(resolutionToken, access)
+                resolvePublicSingleCapabilityToken(resolutionToken, access, 'tryGetAsync')
             )
         },
 
@@ -2084,19 +2160,25 @@ function createComposedRuntime(
 function createComposedScope(containerScope: Scope, access: CompositionAccessModel): Scope {
     const scope: Scope = {
         get<TValue>(resolutionToken: Token<TValue>): TValue {
-            return containerScope.get(resolvePublicCapabilityToken(resolutionToken, access))
+            return containerScope.get(
+                resolvePublicSingleCapabilityToken(resolutionToken, access, 'get')
+            )
         },
 
         tryGet<TValue>(resolutionToken: Token<TValue>): TValue | undefined {
-            return containerScope.tryGet(resolvePublicCapabilityToken(resolutionToken, access))
+            return containerScope.tryGet(
+                resolvePublicSingleCapabilityToken(resolutionToken, access, 'tryGet')
+            )
         },
 
         getAll<TValue>(resolutionToken: Token<TValue>): TValue[] {
-            return containerScope.getAll(resolvePublicCapabilityToken(resolutionToken, access))
+            return containerScope.getAll(resolvePublicMultiCapabilityToken(resolutionToken, access))
         },
 
         getAsync<TValue>(resolutionToken: Token<TValue>): Promise<TValue> {
-            return containerScope.getAsync(resolvePublicCapabilityToken(resolutionToken, access))
+            return containerScope.getAsync(
+                resolvePublicSingleCapabilityToken(resolutionToken, access, 'getAsync')
+            )
         },
 
         dispose(): Promise<void> {
@@ -2107,19 +2189,57 @@ function createComposedScope(containerScope: Scope, access: CompositionAccessMod
     return Object.freeze(scope)
 }
 
+function resolvePublicSingleCapabilityToken<TValue>(
+    resolutionToken: Token<TValue>,
+    access: CompositionAccessModel,
+    accessMethod: 'get' | 'tryGet' | 'getAsync' | 'tryGetAsync'
+): Token<TValue> {
+    const cardinality = getPublicCapabilityCardinality(resolutionToken, access)
+
+    if (cardinality === undefined) {
+        throw new PrivateProviderAccessError(resolutionToken.id, 'runtime', 'token-not-visible')
+    }
+
+    if (cardinality === 'single') {
+        return resolutionToken
+    }
+
+    throw new GetUsedForMultiTokenError(resolutionToken.id, accessMethod)
+}
+
+function resolvePublicMultiCapabilityToken<TValue>(
+    resolutionToken: Token<TValue>,
+    access: CompositionAccessModel
+): Token<TValue> {
+    const cardinality = getPublicCapabilityCardinality(resolutionToken, access)
+
+    if (cardinality === undefined) {
+        throw new PrivateProviderAccessError(resolutionToken.id, 'runtime', 'token-not-visible')
+    }
+
+    if (cardinality === 'multi') {
+        return resolutionToken
+    }
+
+    throw new GetAllUsedForSingleTokenError(resolutionToken.id)
+}
+
 function resolvePublicCapabilityToken<TValue>(
     resolutionToken: Token<TValue>,
     access: CompositionAccessModel
 ): Token<TValue> {
-    if (hasRegisteredCapability(access, resolutionToken.id)) {
+    if (getPublicCapabilityCardinality(resolutionToken, access) !== undefined) {
         return resolutionToken
     }
 
     throw new PrivateProviderAccessError(resolutionToken.id, 'runtime', 'token-not-visible')
 }
 
-function hasRegisteredCapability(access: CompositionAccessModel, tokenId: string): boolean {
-    return (access.registeredCapabilities.get(tokenId)?.length ?? 0) > 0
+function getPublicCapabilityCardinality(
+    resolutionToken: Token<unknown>,
+    access: CompositionAccessModel
+): ProviderRegistrationKind | undefined {
+    return access.registeredCapabilities.get(resolutionToken.id)?.[0]?.registrationKind
 }
 
 function assertScopeOptionsUsePublicCapabilities(

@@ -9,3 +9,6 @@ Backlog implementation task для composed runtime gating and public multi-capa
 - [Task](task.md)
   - Type: file
   - Purpose: Scope and acceptance для runtime `get()` / `getAll()` cardinality rules.
+- [Runs](runs/index.md)
+  - Type: folder
+  - Purpose: Execution artifacts for implementation runs.

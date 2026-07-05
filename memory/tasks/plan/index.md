@@ -238,6 +238,10 @@
 - [TASK-07.05-0077-stage-17-multi-capability-inspection-diagnostics](TASK-07.05-0077-stage-17-multi-capability-inspection-diagnostics/index.md)
   - Type: folder
   - Purpose: Backlog задача для multi-capability inspection and diagnostics.
+- [TASK-07.05-0089-stage-17-composer-add-multi-contributions](TASK-07.05-0089-stage-17-composer-add-multi-contributions/index.md)
+  - Type: folder
+  - Purpose: Backlog задача для explicit composition-root `composer.add()` multi
+    contributions.
 - [TASK-07.05-0078-stage-17-graph-aware-adapter-api](TASK-07.05-0078-stage-17-graph-aware-adapter-api/index.md)
   - Type: folder
   - Purpose: Backlog задача для graph-aware adapter object API.

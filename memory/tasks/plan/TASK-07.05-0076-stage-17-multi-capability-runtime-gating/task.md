@@ -1,11 +1,11 @@
 # TASK-07.05-0076: Multi-capability runtime gating
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-05
 Owner Role: Implementation Agent
-Current Run: n/a
+Current Run: RUN-001
 Current Research: n/a
 Current Fixation: n/a
 
@@ -53,13 +53,13 @@ the `SAGIFIRE_IOC_*` namespace remains stable.
 
 ## Acceptance Criteria
 
-- [ ] Public multi capability resolves through `runtime.getAll(token)`.
-- [ ] `runtime.get(token)` for multi capability fails with typed error.
-- [ ] `runtime.getAll(token)` for single capability fails with typed error.
-- [ ] Multi contribution order is deterministic and tested.
-- [ ] Optional missing multi dependency returns `[]` through valid access path.
-- [ ] Module-private multi providers are not exposed through composed runtime.
-- [ ] Existing single capability behavior remains backward compatible.
+- [x] Public multi capability resolves through `runtime.getAll(token)`.
+- [x] `runtime.get(token)` for multi capability fails with typed error.
+- [x] `runtime.getAll(token)` for single capability fails with typed error.
+- [x] Multi contribution order is deterministic and tested.
+- [x] Optional missing multi dependency returns `[]` through valid access path.
+- [x] Module-private multi providers are not exposed through composed runtime.
+- [x] Existing single capability behavior remains backward compatible.
 
 ## Dependencies
 
@@ -72,4 +72,4 @@ the `SAGIFIRE_IOC_*` namespace remains stable.
 
 ## Runs
 
-Run artifacts треба створити під час запуску задачі.
+- [RUN-001](runs/RUN-001/index.md)

@@ -62,6 +62,28 @@ memory/tasks/plan/TASK-07.05-0073-stage-17-0-0-2-implementation-planning/
 Остання завершена implementation task:
 
 ```text
+memory/tasks/plan/TASK-07.05-0076-stage-17-multi-capability-runtime-gating/
+```
+
+Статус задачі: `done` після human review approval від 2026-07-05.
+
+Результат RUN-001:
+
+- public multi capabilities резолвляться через `ComposedRuntime.getAll(token)`;
+- public single capabilities продовжують резолвитись через `ComposedRuntime.get(token)`;
+- `get()` / `tryGet()` / async single-value access для public multi token падає typed
+  `SAGIFIRE_IOC_GET_USED_FOR_MULTI_TOKEN`;
+- `getAll()` для public single token падає typed
+  `SAGIFIRE_IOC_GET_ALL_USED_FOR_SINGLE_TOKEN`;
+- optional missing multi dependency повертає `[]` через valid module provider context access;
+- module-private multi providers не експортуються через composed runtime;
+- `composer.add()` не вводився в цьому run.
+
+## Попередня implementation task
+
+Попередня implementation task зі статусом `done` після human review:
+
+```text
 memory/tasks/plan/TASK-07.05-0075-stage-17-multi-capability-validation/
 ```
 
@@ -77,46 +99,27 @@ memory/tasks/plan/TASK-07.05-0075-stage-17-multi-capability-validation/
   provider order;
 - runtime `get()` / `getAll()` gating не реалізовувався в цій task.
 
-## Попередня implementation task
-
-Попередня implementation task зі статусом `done` після human review:
-
-```text
-memory/tasks/plan/TASK-07.05-0074-stage-17-multi-capability-cardinality-model/
-```
-
-Статус задачі: `done` після human review approval від 2026-07-05.
-
-Результат RUN-001:
-
-- додано declaration-level `ModuleCardinality = 'single' | 'multi'`;
-- `provides` і `requires` підтримують optional `cardinality`;
-- normalization додає default `single`;
-- invalid cardinality дає typed `SAGIFIRE_IOC_INVALID_MODULE_DEFINITION`;
-- `requires.kind` лишився dependency kind: `external | shared`;
-- runtime gating, duplicate multi providers і `composer.add()` не реалізовувались у цій task.
-
 ## Поточні ризики
 
-- Composed runtime gating, graph-aware adapter source validation, adapter-aware cycles і
-  lifecycle child-scope-и лишаються ризиковими точками `0.0.2`.
+- Public inspection for multi-capability provider shape, graph-aware adapter source validation,
+  adapter-aware cycles і lifecycle child-scope-и лишаються ризиковими точками `0.0.2`.
 - `0.0.1` зафіксований у локальній пам'яті як stabilization handoff; фактичний npm publish
   не треба стверджувати без окремої перевірки.
 - Security process readiness не дорівнює наявності npm security contact; перед запитом
   sensitive vulnerability details потрібне зовнішнє підтвердження.
-- `composer.add()` для composition-root multi contributions ще має бути явно прийнятий або
-  відкладений під час runtime-gating task.
+- `composer.add()` для composition-root multi contributions заплановано окремою задачею
+  після inspection/provider identity model.
 - `MultiToken` / `ContributionToken` винесено в окрему ergonomics task після стабілізації
   core cardinality behavior.
 
 ## Наступні кроки
 
-1. Стартувати `TASK-07.05-0076-stage-17-multi-capability-runtime-gating`.
-2. Виконувати `0.0.2` phases послідовно: multi-capabilities, adapters, child scopes,
+1. Стартувати `TASK-07.05-0077-stage-17-multi-capability-inspection-diagnostics`.
+2. Після `TASK-07.05-0077` виконати
+   `TASK-07.05-0089-stage-17-composer-add-multi-contributions`.
+3. Виконувати `0.0.2` phases послідовно: multi-capabilities, adapters, child scopes,
    testing/ergonomics, docs/examples, full audit, stabilization handoff.
 
 ## Відкриті питання
 
 - Чи потрібен окремий release-status verification task перед роботою над `0.0.2`?
-- Чи приймається `composer.add()` як part of `0.0.2` composition-root multi contribution
-  support, чи відкладається?
