@@ -154,6 +154,26 @@ The callback receives:
 The route helper does not decide how to build a `Response`; it only owns runtime lookup,
 scope creation, callback execution and scope disposal.
 
+If a route needs a nested transaction, impersonation or preview overlay, create a core
+child scope inside the callback:
+
+```ts
+return withRouteScope(appRuntime, options, async ({ scope }) => {
+    return scope.withChildScope(
+        {
+            values: [[PREVIEW_MODE, true]]
+        },
+        (previewScope) => {
+            return previewScope.get(CONTACT_REQUESTS_PUBLIC_API).preview()
+        }
+    )
+})
+```
+
+The child scope inherits parent scope-local values, can override selected tokens and keeps
+its scoped provider cache separate from the parent. This is normal core scope behavior; the
+Next adapter does not add a hidden current scope.
+
 ## Server Action Scope
 
 `withServerActionScope(runtimeHelper, setup, callback)` returns an action function. Each

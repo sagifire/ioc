@@ -62,6 +62,32 @@ memory/tasks/plan/TASK-07.05-0073-stage-17-0-0-2-implementation-planning/
 Остання implementation task:
 
 ```text
+memory/tasks/plan/TASK-07.05-0086-stage-17-0-0-2-docs-examples/
+```
+
+Статус задачі: `done` після human review approval від 2026-07-05.
+
+Результат RUN-001:
+
+- README, package README, deep docs і examples актуалізовано під implemented `0.0.2`
+  public API;
+- composer/modules docs описують cardinality, optional/required multi semantics,
+  `composer.add()`, graph-aware adapters, adapter-source edges і runtime cardinality
+  gating;
+- container/Next docs описують child-scope overlays і separate scoped provider cache;
+- testing docs/package README перевірено на використання public helpers без private
+  internals;
+- `examples/module-composition` показує graph-aware auth adapter, multi contribution
+  catalog і optional empty multi dependency;
+- `examples/basic-node` показує child scope preview overlay;
+- focused examples checks і full quality gates пройшли;
+- human review approval отримано, задачу завершено.
+
+## Попередня implementation task
+
+Попередня implementation task:
+
+```text
 memory/tasks/plan/TASK-07.05-0085-stage-17-dsl-ergonomics-hardening/
 ```
 
@@ -184,13 +210,12 @@ memory/tasks/plan/TASK-07.05-0080-stage-17-adapter-cycle-diagnostics/
   мають явно не обіцяти compile-time rejection для `bind()` / `get()`.
 - DSL має два adapter helper paths: compatibility `adapt(token, factory)` без source-edge
   inference і graph-aware `adapter(target).from(source).using(factory)` з explicit source
-  edges; docs/examples task має пояснити migration path.
+  edges; full audit має перевірити, що docs/examples не змішують ці paths.
 
 ## Наступні кроки
 
-1. Стартувати `TASK-07.05-0086-stage-17-0-0-2-docs-examples`.
-2. Далі виконувати `0.0.2` phases послідовно: docs/examples, full audit,
-   stabilization handoff.
+1. Стартувати `TASK-07.05-0087-stage-17-0-0-2-full-audit`.
+2. Після full audit виконувати stabilization handoff через `TASK-07.05-0088`.
 
 ## Відкриті питання
 

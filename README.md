@@ -11,7 +11,7 @@ fixed at version `0.0.1` and `Apache-2.0`, with Changesets, CI, package dry-run 
 and a manual npm publish workflow. No npm package has been published from this repository
 yet.
 The package names and import paths below describe the implemented public API in this
-workspace.
+workspace, including post-`0.0.1` changes being prepared for `0.0.2` stabilization.
 
 ## Packages
 
@@ -124,15 +124,16 @@ const contactRequestsModule = defineModule({
 
 const composer = createComposer().use(authModule).use(contactRequestsModule)
 
-composer.bind(CONTACT_AUTH).toFactory(({ get }) => {
-    const auth = get(AUTH_API)
-
-    return {
-        currentUserId(): string {
-            return auth.requireUser()
+composer
+    .adapt(CONTACT_AUTH)
+    .from(AUTH_API)
+    .using((auth) => {
+        return {
+            currentUserId(): string {
+                return auth.requireUser()
+            }
         }
-    }
-})
+    })
 
 const report = composer.validate()
 
@@ -144,8 +145,16 @@ const app = await composer.compose()
 const contactRequests = app.get(CONTACT_API)
 ```
 
-The optional DSL (`module()`, `defineApp()`, `bind()` and `adapt()`) is a convenience layer
-over the same composer behavior. It does not create a global registry or hide graph edges.
+Multi capabilities are explicit too: declare `cardinality: 'multi'` in `provides` or
+`requires`, register providers with `add()` and resolve public multi capabilities with
+`getAll()`. The composed runtime rejects `get()` for multi capabilities and rejects
+`getAll()` for single capabilities.
+
+The optional DSL (`module()`, `defineApp()`, `bind()`, `add()`, `adapt()` and `adapter()`)
+is a convenience layer over the same composer behavior. Use
+`adapter(target).from(source).using(factory)` when adapter source edges should be visible
+in graph inspection; compatibility `adapt(token, factory)` remains a factory-binding
+helper and does not infer source edges.
 
 ## Testing
 
@@ -221,10 +230,10 @@ and external GitHub/npm settings.
 ## Examples
 
 - [Basic Node](examples/basic-node/README.md) - tokens, container providers,
-  multi-providers, scope-local values and runtime disposal.
+  multi-providers, scope-local values, child scope overlays and runtime disposal.
 - [Module composition](examples/module-composition/README.md) - modules, capabilities,
-  required ports, explicit binding adapters, validation, inspection and composed runtime
-  resolution.
+  required ports, graph-aware adapters, multi contribution catalogs, validation,
+  inspection and composed runtime resolution.
 - [Async DB resource](examples/async-db-resource/README.md) - lazy async database resource,
   retry after failed initialization, scoped unit-of-work and disposal.
 - [Testing overrides](examples/testing-overrides/README.md) - isolated test runtimes,

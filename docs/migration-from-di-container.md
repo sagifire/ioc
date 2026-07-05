@@ -26,7 +26,7 @@ concepts. It focuses on migration shape rather than package-by-package compariso
 | Managed async resource                     | `toAsyncResource()` with runtime or scope disposal               |
 | Child/request container                    | Scope with explicit scope-local values                           |
 | Module imports/exports                     | `defineModule()` with `requires` and `provides`                  |
-| Cross-module adapter                       | `composer.bind(requiredPort).toFactory(...)`                     |
+| Cross-module adapter                       | `composer.adapt(requiredPort).from(source).using(...)`           |
 | Bootstrap validation                       | `composer.validate()`, `formatDiagnostics()` and inspection      |
 | Test override                              | `@sagifire/ioc-testing` override before `freeze()` / `compose()` |
 | Web framework request boundary             | `@sagifire/ioc-next` route/action scope helpers                  |
@@ -152,7 +152,7 @@ interface StartupHook {
     run(): void
 }
 
-const STARTUP_HOOKS = app.token<StartupHook>('startup-hooks')
+const STARTUP_HOOKS = app.multiToken<StartupHook>('startup-hooks')
 
 container.add(STARTUP_HOOKS).toValue({
     run(): void {
@@ -273,15 +273,16 @@ const contactModule = defineModule({
 
 const composer = createComposer().use(authModule).use(contactModule)
 
-composer.bind(CONTACT_AUTH_READER).toFactory(({ get }) => {
-    const auth = get(AUTH_API)
-
-    return {
-        currentUserId(): string {
-            return auth.currentUserId()
+composer
+    .adapt(CONTACT_AUTH_READER)
+    .from(AUTH_API)
+    .using((auth) => {
+        return {
+            currentUserId(): string {
+                return auth.currentUserId()
+            }
         }
-    }
-})
+    })
 
 const report = composer.validate()
 
@@ -306,7 +307,7 @@ The important migration shift is ownership:
 
 Avoid migrating old module imports as direct access to another module's private services.
 If `contact` needs authentication data, it should own a `CONTACT_AUTH_READER` required port
-and the application should bind that port to an adapter over `AUTH_API`.
+and the application should adapt that port from `AUTH_API`.
 
 This keeps feature modules reusable because they do not know which concrete module will
 satisfy the port.
@@ -411,7 +412,8 @@ It does not scan routes, discover modules or expose hidden current-request acces
 5. Move async setup into `toAsyncFactory()` or `toAsyncResource()`.
 6. Group feature boundaries with `defineModule()`.
 7. Declare public APIs in `provides` and consumer-owned required ports in `requires`.
-8. Move cross-module adapters to `composer.bind()`.
+8. Move cross-module adapters to `composer.adapt().from().using()` when the source token is
+   explicit.
 9. Validate and inspect the graph before calling `compose()`.
 10. Replace test-time patching with `@sagifire/ioc-testing` overrides, fake modules or
     harnesses.

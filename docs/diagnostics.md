@@ -159,9 +159,21 @@ Representative composer diagnostics:
 
 - `SAGIFIRE_IOC_DUPLICATE_MODULE_ID`
 - `SAGIFIRE_IOC_DUPLICATE_MODULE_CAPABILITY`
+- `SAGIFIRE_IOC_DUPLICATE_SINGLE_CAPABILITY`
+- `SAGIFIRE_IOC_CAPABILITY_CARDINALITY_CONFLICT`
+- `SAGIFIRE_IOC_CAPABILITY_REGISTRATION_CARDINALITY_MISMATCH`
 - `SAGIFIRE_IOC_MISSING_REQUIRED_PORT`
+- `SAGIFIRE_IOC_REQUIRED_MULTI_CAPABILITY_MISSING`
+- `SAGIFIRE_IOC_REQUIRED_PORT_CARDINALITY_MISMATCH`
 - `SAGIFIRE_IOC_DUPLICATE_COMPOSER_BINDING`
 - `SAGIFIRE_IOC_INVALID_COMPOSER_BINDING`
+- `SAGIFIRE_IOC_INVALID_COMPOSER_MULTI_BINDING`
+- `SAGIFIRE_IOC_ADAPTER_SOURCE_MISSING`
+- `SAGIFIRE_IOC_ADAPTER_SOURCE_PRIVATE`
+- `SAGIFIRE_IOC_ADAPTER_SOURCE_CARDINALITY_MISMATCH`
+- `SAGIFIRE_IOC_ADAPTER_TARGET_INVALID`
+- `SAGIFIRE_IOC_GET_USED_FOR_MULTI_TOKEN`
+- `SAGIFIRE_IOC_GET_ALL_USED_FOR_SINGLE_TOKEN`
 - `SAGIFIRE_IOC_MODULE_CYCLE`
 - `SAGIFIRE_IOC_MISSING_MODULE_PROVIDER`
 - `SAGIFIRE_IOC_PRIVATE_PROVIDER_ACCESS`
@@ -181,8 +193,24 @@ Module cycle diagnostics include safe paths:
 }
 ```
 
-Cycle detection runs over capability dependency edges. Binding edges are composition
-adapters and do not create module-level cycles by themselves.
+Cycle detection runs over capability dependency edges and graph-aware adapter-source edges
+whose source provider is a single module public capability. Binding edges and
+composition-root adapter sources do not create module-level cycles by themselves.
+
+Cardinality diagnostics are explicit:
+
+- duplicate single capability declarations use
+  `SAGIFIRE_IOC_DUPLICATE_SINGLE_CAPABILITY`;
+- a token declared or registered as both single and multi uses
+  `SAGIFIRE_IOC_CAPABILITY_CARDINALITY_CONFLICT`;
+- `provides`/setup registration mismatch, such as multi capability registered through
+  `bind()`, uses `SAGIFIRE_IOC_CAPABILITY_REGISTRATION_CARDINALITY_MISMATCH`;
+- composed runtime misuse reports `SAGIFIRE_IOC_GET_USED_FOR_MULTI_TOKEN` or
+  `SAGIFIRE_IOC_GET_ALL_USED_FOR_SINGLE_TOKEN`.
+
+Adapter diagnostics are also static and side-effect free. `using()` factories are not run
+to validate sources; validation reads only declared target/source tokens and public graph
+metadata.
 
 ## Validation And Factory Execution
 
@@ -192,6 +220,8 @@ Composer diagnostics are based on explicit metadata:
 - declared required ports;
 - declared capabilities;
 - explicit composer bindings;
+- explicit composition-root multi contributions;
+- explicit adapter sources;
 - dependency edges derived from those declarations.
 
 `validate()`, `inspect()` and `getGraph()` do not execute user binding factories, module

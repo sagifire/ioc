@@ -603,11 +603,11 @@
   - Summary: Phase 5 DSL ergonomics after object API stabilization.
   - Current: RUN-001
 - [TASK-07.05-0086-stage-17-0-0-2-docs-examples](TASK-07.05-0086-stage-17-0-0-2-docs-examples/index.md)
-  - Status: backlog
+  - Status: done
   - Type: docs
   - Execution Mode: autonomous-implementation
   - Summary: Phase 6 penultimate docs and examples update for `0.0.2`.
-  - Current: n/a
+  - Current: RUN-001
 - [TASK-07.05-0087-stage-17-0-0-2-full-audit](TASK-07.05-0087-stage-17-0-0-2-full-audit/index.md)
   - Status: backlog
   - Type: research

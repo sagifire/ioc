@@ -2,10 +2,13 @@
 
 ## Призначення
 
-Backlog docs task для актуалізації документації й прикладів під `0.0.2` features.
+Docs task для актуалізації документації й прикладів під `0.0.2` features.
 
 ## Файли
 
 - [Task](task.md)
   - Type: file
   - Purpose: Scope and acceptance для penultimate docs/examples phase.
+- [Runs](runs/RUN-001/index.md)
+  - Type: folder
+  - Purpose: Execution artifacts для поточного autonomous implementation run.

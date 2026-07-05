@@ -10,14 +10,15 @@ React, Node-only APIs, decorators or `reflect-metadata`.
 This package is currently used from the workspace. The manifest is `0.0.1` and
 `Apache-2.0` with npm publish metadata, Changesets versioning, package dry-run validation
 and a manual npm publish workflow. It has not been published to npm from this repository
-yet.
+yet. This README describes the current workspace API, including post-`0.0.1` changes being
+prepared for `0.0.2` stabilization.
 
 ## Imports
 
 Root import:
 
 ```ts
-import { createComposer, createContainer, defineModule, token } from '@sagifire/ioc'
+import { createComposer, createContainer, defineModule, multiToken, token } from '@sagifire/ioc'
 ```
 
 Tree-shaking-friendly subpath exports:
@@ -32,22 +33,29 @@ Tree-shaking-friendly subpath exports:
 
 ## Public Surface
 
-- Tokens: `token()`, `namespace()` and `Token<TValue>`.
+- Tokens: `token()`, `multiToken()`, `contributionToken()`, `namespace()` and
+  `Token<TValue>`.
 - Container: `createContainer()`, `bind()`, `add()`, lifetimes, `freeze()`, `get()`,
   `tryGet()`, `getAll()`, `getAsync()`, `tryGetAsync()` and disposal.
 - Scopes: `createScope()`, `withScope()`, scope-local values, scope-local multi-values,
-  `scope.get()`, `scope.tryGet()`, `scope.getAll()`, `scope.getAsync()` and
+  child scopes, `scope.get()`, `scope.tryGet()`, `scope.getAll()`, `scope.getAsync()` and
   `scope.dispose()`.
 - Async resources: `toAsyncFactory()`, `toAsyncResource()`, explicit `getAsync()` access
   and runtime/scope disposal for initialized resources.
-- Composer/modules: `defineModule()`, `createComposer()`, `use()`, `bind()`, `validate()`,
-  `prepare()`, `compose()`, `inspect()`, `getGraph()` and composed runtime inspection.
+- Composer/modules: `defineModule()`, `createComposer()`, `use()`, `bind()`, `add()`,
+  `adapt().from().using()`, `validate()`, `prepare()`, `compose()`, `inspect()`,
+  `getGraph()` and composed runtime inspection.
 - Diagnostics: `SagifireIocError`, `DiagnosticReport`, `diagnosticFromError()` and
   `formatDiagnostics()`.
-- Optional DSL: `module()`, `defineApp()`, `bind()` declarations and `adapt()`.
+- Optional DSL: `module()`, `defineApp()`, `bind()`, `add()`, `adapt()` and
+  graph-aware `adapter()`.
 
 Async multi-provider contributions, `getAllAsync()` and framework adapters are not part of
 the current core API.
+
+`MultiToken<T>` and `ContributionToken<T>` are type-level helper markers over ordinary
+token identity. Runtime enforcement still comes from module/composer cardinality
+declarations and composed runtime `get()` / `getAll()` gating.
 
 ## Container Quickstart
 
@@ -120,15 +128,16 @@ Application composition wires modules and required-port adapters:
 ```ts
 const composer = createComposer().use(authModule).use(contactRequestsModule)
 
-composer.bind(CONTACT_AUTH_READER).toFactory(({ get }) => {
-    const auth = get(AUTH_API)
-
-    return {
-        currentUserId(): string {
-            return auth.requireUser()
+composer
+    .adapt(CONTACT_AUTH_READER)
+    .from(AUTH_API)
+    .using((auth) => {
+        return {
+            currentUserId(): string {
+                return auth.requireUser()
+            }
         }
-    }
-})
+    })
 
 const report = composer.validate()
 const runtime = await composer.compose()
@@ -163,6 +172,20 @@ const app = defineApp({
 DSL declarations convert to a fresh composer configuration. They do not add decorators,
 constructor metadata, filesystem discovery, global registries or hidden dependency
 inference.
+
+For graph-aware adapters in DSL, prefer:
+
+```ts
+import { adapter } from '@sagifire/ioc'
+
+adapter(CONTACT_AUTH_READER)
+    .from(AUTH_API)
+    .using((auth) => createAuthReader(auth))
+```
+
+The older `adapt(token, factory)` helper remains supported for compatibility as a
+factory-binding declaration with a resolver context. It does not infer adapter source
+edges.
 
 ## Package Boundaries
 

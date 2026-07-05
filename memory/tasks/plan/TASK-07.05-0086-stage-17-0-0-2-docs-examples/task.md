@@ -1,11 +1,11 @@
 # TASK-07.05-0086: `0.0.2` docs and examples
 
-Status: backlog
+Status: done
 Type: docs
 Execution Mode: autonomous-implementation
 Created: 2026-07-05
 Owner Role: Documentation Agent
-Current Run: n/a
+Current Run: RUN-001
 Current Research: n/a
 Current Fixation: n/a
 
@@ -44,13 +44,13 @@ Phase 6: Documentation and examples. Це передостання фаза.
 
 ## Acceptance Criteria
 
-- [ ] Docs describe only implemented public API.
-- [ ] Multi-capability examples cover providers, consumers and optional empty collection.
-- [ ] Adapter docs показують `using()` без resolver context.
-- [ ] Child scope docs explain separate scoped provider cache.
-- [ ] Testing docs use public helpers and avoid private internals.
-- [ ] Existing examples continue to pass.
-- [ ] New/updated docs preserve Ukrainian Project Memory and English package docs style as
+- [x] Docs describe only implemented public API.
+- [x] Multi-capability examples cover providers, consumers and optional empty collection.
+- [x] Adapter docs показують `using()` без resolver context.
+- [x] Child scope docs explain separate scoped provider cache.
+- [x] Testing docs use public helpers and avoid private internals.
+- [x] Existing examples continue to pass.
+- [x] New/updated docs preserve Ukrainian Project Memory and English package docs style as
       appropriate for repository docs.
 
 ## Dependencies
@@ -66,4 +66,4 @@ Phase 6: Documentation and examples. Це передостання фаза.
 
 ## Runs
 
-Run artifacts треба створити під час запуску задачі.
+- [RUN-001](runs/RUN-001/result.md)

@@ -33,6 +33,12 @@ Token IDs are the runtime identity. Two token objects with the same ID resolve t
 provider. Declare tokens at stable boundaries instead of creating them dynamically inside
 request handlers.
 
+For collection contracts, `multiToken<T>()`, `contributionToken<T>()` and their namespace
+variants are type-level naming helpers over the same token identity model. They do not add
+runtime cardinality metadata to token objects. Container registration still enforces
+single/multi behavior through `bind()` vs `add()`, and composed runtimes enforce
+cardinality from module/composer declarations.
+
 ## Single Providers With `bind()`
 
 `bind(token)` registers one provider for a token ID.
@@ -238,8 +244,34 @@ Lifecycle rules:
 - `withChildScope()` disposes the child scope after success and failure;
 - creating a child from a disposed parent fails with `ScopeDisposedError`.
 
-Child scope value inheritance and scoped-provider cache semantics are intentionally kept out
-of this reference until that behavior is implemented.
+Value and cache rules:
+
+- child scopes inherit parent scope-local single values;
+- child single values shadow inherited parent values for the same token ID;
+- child scope-local multi values append after runtime multi providers and inherited parent
+  multi values;
+- child local values cannot change an inherited token between single and multi kind;
+- child scopes have their own scoped provider cache and do not reuse the parent's scoped
+  provider instances by default.
+
+```ts
+const parent = runtime.createScope({
+    values: [[REQUEST_ID, 'request-1']],
+    multiValues: [[AUDIT_TAGS, 'http']]
+})
+
+const preview = parent.createChildScope({
+    values: [[REQUEST_ID, 'preview-1']],
+    multiValues: [[AUDIT_TAGS, 'preview']]
+})
+
+preview.get(REQUEST_ID) // "preview-1"
+parent.get(REQUEST_ID) // "request-1"
+preview.getAll(AUDIT_TAGS) // runtime tags, then "http", then "preview"
+```
+
+Use child scopes for transaction, impersonation or preview overlays where a nested
+operation needs a few token overrides but must not mutate the parent scope.
 
 ## Scope-Bound Factories
 

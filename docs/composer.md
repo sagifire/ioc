@@ -34,7 +34,9 @@ import { token } from '@sagifire/ioc/tokens'
 A composed application has three visible pieces:
 
 - Modules registered with `composer.use(moduleDefinition)`.
-- Required-port bindings registered with `composer.bind(token)`.
+- Required-port single bindings registered with `composer.bind(token)`.
+- Required-port adapter bindings registered with `composer.adapt(target).from(source)`.
+- Composition-root multi contributions registered with `composer.add(token)`.
 - Public capabilities declared by module `provides` metadata and registered during module
   setup.
 
@@ -106,15 +108,16 @@ const contactRequestsModule = defineModule({
 
 const composer = createComposer().use(authModule).use(contactRequestsModule)
 
-composer.bind(CONTACT_REQUESTS_AUTH_READER).toFactory(({ get }) => {
-    const auth = get(AUTH_PUBLIC_API)
-
-    return {
-        currentUserId(): string {
-            return auth.requireUser()
+composer
+    .adapt(CONTACT_REQUESTS_AUTH_READER)
+    .from(AUTH_PUBLIC_API)
+    .using((auth) => {
+        return {
+            currentUserId(): string {
+                return auth.requireUser()
+            }
         }
-    }
-})
+    })
 
 const report = composer.validate()
 
@@ -137,13 +140,17 @@ Composer operations are intentionally separated:
 
 1. `use(moduleDefinition)` records a module definition and returns the same composer.
 2. `bind(token)` records an application-level binding for a required port.
-3. `validate()` returns a `DiagnosticReport` for static graph problems.
-4. `getGraph()` returns safe graph metadata without validation wrapper fields.
-5. `inspect()` returns graph metadata plus the current validation report.
-6. `prepare()` validates the graph, runs module `setup()` functions, verifies declared
+3. `add(token)` records application-level multi contributions for a declared multi
+   capability.
+4. `adapt(target).from(source).using(factory)` records a graph-aware adapter binding for a
+   required port.
+5. `validate()` returns a `DiagnosticReport` for static graph problems.
+6. `getGraph()` returns safe graph metadata without validation wrapper fields.
+7. `inspect()` returns graph metadata plus the current validation report.
+8. `prepare()` validates the graph, runs module `setup()` functions, verifies declared
    capabilities were registered, freezes the internal container and returns a preparation
    summary.
-7. `compose()` performs the same preparation work and returns a capability-gated
+9. `compose()` performs the same preparation work and returns a capability-gated
    `ComposedRuntime`.
 
 `validate()`, `getGraph()` and `inspect()` do not execute user binding factories, module
@@ -169,11 +176,17 @@ if (!report.ok) {
 Representative composer diagnostics include:
 
 - duplicate module IDs;
-- duplicate statically declared provided capabilities;
+- duplicate statically declared single capabilities;
+- single/multi cardinality conflicts across declarations and registrations;
 - missing required ports;
+- required multi dependencies with no contributors;
+- required-port/provider cardinality mismatches;
+- declared capability registration mismatches, such as `provides` with
+  `cardinality: 'multi'` registered through `bind()`;
 - duplicate composer bindings for the same token;
 - bindings for tokens that no module declared as a required port;
-- module dependency cycles over capability dependency edges.
+- invalid adapter targets or sources;
+- module dependency cycles over capability and eligible adapter-source edges.
 
 `prepare()` and `compose()` call the same validation path. If the report is not ok, they
 throw `ComposerValidationError`, and the error exposes the failed `report`.
@@ -209,9 +222,95 @@ Bindings are for required ports. A binding is valid only when at least one regis
 module declares that token in `requires`. Binding a random token is reported as an invalid
 composer binding.
 
-A binding can adapt another module's public capability, but the adapter dependency is not
-inferred by executing the factory during validation. The graph records a static
-required-port-to-binding edge for the required token.
+A normal factory binding can adapt another module's public capability, but the adapter
+dependency is not inferred by executing the factory during validation. The graph records
+only a static required-port-to-binding edge for the required token.
+
+## Multi Contributions
+
+Module capabilities and required ports default to `cardinality: 'single'`. Use
+`cardinality: 'multi'` when a token represents a collection of contributors:
+
+```ts
+interface AdminItem {
+    readonly label: string
+}
+
+const ADMIN_ITEMS = token<AdminItem>('app.admin-items')
+
+const adminModule = defineModule({
+    id: 'admin',
+    provides: [
+        {
+            token: ADMIN_ITEMS,
+            kind: 'admin-contribution',
+            cardinality: 'multi'
+        }
+    ],
+    setup(context) {
+        context.add(ADMIN_ITEMS).toValue({
+            label: 'Settings'
+        })
+    }
+})
+
+composer.add(ADMIN_ITEMS).toValue({
+    label: 'Root shortcut'
+})
+```
+
+Rules:
+
+- declared multi capabilities must be registered with `add()`;
+- declared single capabilities must be registered with `bind()`;
+- required multi dependencies use `required: true` to require at least one contributor;
+- required multi dependencies with `required: false` may be absent, and valid provider
+  code that calls `getAll(token)` receives `[]`;
+- module contributions resolve first in effective module registration order, then
+  composition-root additions resolve after module contributions.
+
+## Graph-Aware Adapters
+
+Use `composer.adapt(target).from(source).using(factory)` when a required port is an adapter
+over an explicitly declared source token:
+
+```ts
+composer
+    .adapt(CONTACT_REQUESTS_AUTH_READER)
+    .from(AUTH_PUBLIC_API)
+    .using((auth) => {
+        return {
+            currentUserId(): string {
+                return auth.requireUser()
+            }
+        }
+    })
+```
+
+`using()` receives only the declared source value. It does not receive `{ get }`,
+`getAll()` or a generic resolver context. This keeps the graph explicit: validation and
+inspection can record both the required-port binding edge and the adapter-source edge
+without executing the adapter factory.
+
+Object sources are supported when an adapter needs more than one explicit source:
+
+```ts
+composer
+    .adapt(CONTACT_REQUESTS_AUTH_READER)
+    .from({
+        auth: AUTH_PUBLIC_API,
+        permissions: PERMISSIONS_PUBLIC_API
+    })
+    .using(({ auth, permissions }) => createAuthReader(auth, permissions))
+```
+
+The first adapter slice supports single source capabilities and explicit composition-root
+single sources. Multi source capabilities are rejected until a future design makes their
+shape explicit.
+
+Validation requires the adapter target to be a declared external required port. The source
+must be a public single capability or an explicit composition-root single binding. Module
+private providers are not valid adapter sources.
 
 ## Inspection
 
@@ -229,9 +328,11 @@ The graph contains:
 
 - `modules`: module IDs, optional versions, safe metadata summaries and token ID lists;
 - `requiredPorts`: required-port token IDs, owner module IDs, required flags, dependency
-  kinds and satisfaction status;
-- `capabilities`: exported capability token IDs, owner module IDs and capability kinds;
-- `bindings`: composition binding token IDs and provider summaries;
+  kinds, cardinality, provider count and satisfaction status;
+- `capabilities`: exported capability token IDs, owner module IDs, capability kinds,
+  cardinality and public provider summaries;
+- `bindings`: composition binding token IDs, provider summaries and adapter source
+  metadata for graph-aware adapters;
 - `edges`: dependency edges derived from explicit module declarations and bindings.
 
 `inspect()` includes the same graph data and adds `validation`. `RuntimeInspection` from
@@ -243,16 +344,19 @@ private token IDs for module providers or other runtime internals.
 
 ## Dependency Edges
 
-There are two edge kinds:
+There are three edge kinds:
 
 - `capability`: a consumer module required port is satisfied by another module's declared
   capability.
 - `binding`: a consumer module required port is satisfied by an explicit composer binding.
+- `adapter-source`: a graph-aware adapter binding explicitly reads a declared source token.
 
 If a required port is satisfied by a binding, the graph records a binding edge and does not
-also create a capability edge for that same required port. This matters for cycles:
-module-level cycle diagnostics are detected over capability edges only. Binding edges are
-application composition adapters and do not create module cycles by themselves.
+also create a capability edge for that same required port.
+
+Cycle diagnostics traverse capability edges and adapter-source edges whose source provider
+is a single module public capability. Binding edges and adapter-source edges backed by
+composition-root sources do not create module-to-module cycles by themselves.
 
 ## Composed Runtime
 
@@ -275,6 +379,8 @@ The runtime is immutable and capability-gated:
 - module-private providers are hidden;
 - required-port-only bindings are hidden unless a module also declared them as a provided
   capability;
+- `get()` / `tryGet()` / async single access fail for multi capabilities;
+- `getAll()` fails for single capabilities;
 - scopes and async access pass through the internal container while preserving the same
   public capability boundary.
 
@@ -283,7 +389,7 @@ The runtime is immutable and capability-gated:
 The DSL is a declaration convenience over the same composer behavior:
 
 ```ts
-import { adapt, defineApp, module } from '@sagifire/ioc/dsl'
+import { adapter, defineApp, module } from '@sagifire/ioc/dsl'
 
 const contactRequestsModule = module('contact-requests', {
     requires: [{ token: CONTACT_REQUESTS_AUTH_READER }],
@@ -304,15 +410,15 @@ const contactRequestsModule = module('contact-requests', {
 const app = defineApp({
     modules: [authModule, contactRequestsModule],
     bindings: [
-        adapt(CONTACT_REQUESTS_AUTH_READER, ({ get }) => {
-            const auth = get(AUTH_PUBLIC_API)
-
-            return {
-                currentUserId(): string {
-                    return auth.requireUser()
+        adapter(CONTACT_REQUESTS_AUTH_READER)
+            .from(AUTH_PUBLIC_API)
+            .using((auth) => {
+                return {
+                    currentUserId(): string {
+                        return auth.requireUser()
+                    }
                 }
-            }
-        })
+            })
     ]
 })
 
@@ -323,3 +429,7 @@ const runtime = await app.compose()
 `inspect()`, `getGraph()`, `prepare()` and `compose()` methods delegate to the existing
 composer model. The DSL does not add decorators, `reflect-metadata`, filesystem
 discovery, global registries or hidden dependency inference.
+
+The older DSL `adapt(token, factory)` helper remains supported as a compatibility
+factory-binding helper. Use `adapter(target).from(source).using(factory)` when the adapter
+source should be visible in graph inspection and adapter-aware cycle diagnostics.

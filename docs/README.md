@@ -42,10 +42,10 @@ Package README files and this map are the current entry points.
 ## Examples
 
 - [Basic Node](../examples/basic-node/README.md) - tokens, container providers,
-  multi-providers, scope-local values and runtime disposal.
+  multi-providers, scope-local values, child scope overlays and runtime disposal.
 - [Module composition](../examples/module-composition/README.md) - modules, capabilities,
-  required ports, explicit binding adapters, validation, inspection and composed runtime
-  resolution.
+  required ports, graph-aware adapters, multi contribution catalogs, validation,
+  inspection and composed runtime resolution.
 - [Async DB resource](../examples/async-db-resource/README.md) - lazy async database
   resource, retry after failed initialization, scoped unit-of-work and disposal.
 - [Testing overrides](../examples/testing-overrides/README.md) - isolated test runtimes,

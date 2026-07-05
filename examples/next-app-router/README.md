@@ -11,6 +11,8 @@ The example covers:
   request/action scope-local values;
 - `withRouteScope()` for one route invocation scope with automatic disposal;
 - `withServerActionScope()` for one server action invocation scope with automatic disposal;
+- core child scopes can still be created inside those callbacks for nested preview or
+  transaction overlays when needed;
 - route/action files that resolve `CONTACT_REQUESTS_PUBLIC_API` and delegate business
   behavior to the module public API.
 

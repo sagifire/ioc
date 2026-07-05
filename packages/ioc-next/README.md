@@ -10,7 +10,8 @@ or business logic inside framework handlers.
 The package is currently used from the workspace. The manifest is `0.0.1` and
 `Apache-2.0` with npm publish metadata, Changesets versioning, package dry-run validation
 and a manual npm publish workflow. It has not been published to npm from this repository
-yet.
+yet. This README describes the current workspace API, including core child-scope behavior
+being prepared for `0.0.2` stabilization.
 
 ## Imports
 
@@ -43,6 +44,10 @@ does not import Next.js or React types.
   invocation and disposes it on success or failure.
 - `withServerActionScope(runtimeHelper, setup, callback)` - returns an action function
   that creates one scope per invocation and disposes it on success or failure.
+
+Inside either callback, use the core scope APIs such as `scope.createChildScope()` or
+`scope.withChildScope()` for nested transaction, impersonation or preview overlays. The
+adapter package does not add a Next-specific child-scope API.
 
 ## Cached Runtime
 

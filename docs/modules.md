@@ -90,15 +90,35 @@ Fields:
 - `token`: typed token for the port value.
 - `required`: optional; defaults to `true`.
 - `kind`: optional; defaults to `external`. The current kinds are `external` and `shared`.
+- `cardinality`: optional; defaults to `single`. Use `multi` for required collections.
 - `description`: optional inspection text.
 
 Required ports are not public runtime capabilities. They are inputs owned by the consumer
 module. A required port can be satisfied by another module capability with the same token
-ID or by an explicit `composer.bind(portToken)` binding.
+ID, by an explicit `composer.bind(portToken)` binding or by a graph-aware
+`composer.adapt(portToken).from(sourceToken).using(factory)` adapter.
 
 Prefer consumer-owned ports when one module only needs a narrowed view of another module.
 For example, `contact-requests` can require `CONTACT_REQUESTS_AUTH_READER` instead of
 requiring the entire `AUTH_PUBLIC_API`.
+
+Multi required ports use the same `required` field with collection semantics:
+
+```ts
+requires: [
+    {
+        token: AUDIT_SINKS,
+        required: false,
+        cardinality: 'multi',
+        description: 'Optional audit sinks'
+    }
+]
+```
+
+`required: true` means at least one contributor must be available. `required: false`
+allows no contributors, and provider code that calls `getAll(AUDIT_SINKS)` receives `[]`.
+The `kind` field remains dependency kind (`external` or `shared`); it is not used for
+single/multi semantics.
 
 ## Capabilities
 
@@ -109,6 +129,7 @@ provides: [
     {
         token: CONTACT_REQUESTS_PUBLIC_API,
         kind: 'public-api',
+        cardinality: 'single',
         description: 'Contact requests public API'
     }
 ]
@@ -127,6 +148,24 @@ A declared capability is a contract. The module must register a provider for tha
 during setup, otherwise `prepare()` / `compose()` fail with a validation error. Declaring a
 capability without registering it is treated as a broken module, not as a missing
 dependency.
+
+Capabilities also default to `cardinality: 'single'`. Use `cardinality: 'multi'` for
+contributor catalogs:
+
+```ts
+provides: [
+    {
+        token: ADMIN_ITEMS,
+        kind: 'admin-contribution',
+        cardinality: 'multi'
+    }
+]
+```
+
+Single capabilities must be registered through `context.bind(token)`. Multi capabilities
+must be registered through `context.add(token)`. A token ID cannot be single in one
+declaration/registration and multi in another; validation reports the conflict instead of
+guessing intent.
 
 ## Setup Context
 
@@ -165,6 +204,20 @@ Module setup can register:
 
 The usual container lifetime and async initialization helpers apply to the returned
 bindings where the underlying provider kind supports them.
+
+For declared multi capabilities, register each contribution explicitly:
+
+```ts
+setup(context) {
+    context.add(ADMIN_ITEMS).toValue({
+        label: 'Contact requests'
+    })
+
+    context.add(ADMIN_ITEMS).toFactory(() => ({
+        label: 'Generated report'
+    }))
+}
+```
 
 ## Private Providers
 
@@ -208,23 +261,30 @@ Modules become useful when the application composes them:
 ```ts
 const composer = createComposer().use(authModule).use(contactRequestsModule)
 
-composer.bind(CONTACT_REQUESTS_AUTH_READER).toFactory(({ get }) => {
-    const auth = get(AUTH_PUBLIC_API)
-
-    return {
-        currentUserId(): string {
-            return auth.requireUser()
+composer
+    .adapt(CONTACT_REQUESTS_AUTH_READER)
+    .from(AUTH_PUBLIC_API)
+    .using((auth) => {
+        return {
+            currentUserId(): string {
+                return auth.requireUser()
+            }
         }
-    }
+    })
+
+composer.add(ADMIN_ITEMS).toValue({
+    label: 'Root shortcut'
 })
 
 const report = composer.validate()
 const runtime = await composer.compose()
 ```
 
-The binding adapts `AUTH_PUBLIC_API` to the consumer-owned
-`CONTACT_REQUESTS_AUTH_READER` port. The contact requests module depends on the narrowed
-port, not on auth module internals.
+The adapter adapts `AUTH_PUBLIC_API` to the consumer-owned
+`CONTACT_REQUESTS_AUTH_READER` port. The `using()` factory receives only the declared
+source value, not a resolver context, so the source edge stays visible in inspection.
+Composition-root `add()` contributions are appended after module contributions for the
+same declared multi capability.
 
 ## Graph Inspection
 
@@ -248,8 +308,10 @@ Required ports include `satisfiedBy`:
 - `missing`: required and unsatisfied.
 
 Dependency edges preserve this distinction. Capability edges connect module to module.
-Binding edges connect module to application-level binding. Binding edges are not treated as
-module cycles.
+Binding edges connect module to application-level binding. Adapter-source edges connect a
+graph-aware adapter binding to its explicit source token. Binding edges are not treated as
+module cycles; adapter-source edges participate in cycle diagnostics when the source is a
+single module public capability.
 
 Validation and inspection do not execute binding factories, module provider factories or
 async resources to infer hidden edges. If provider code has a runtime provider-level cycle,
@@ -276,13 +338,18 @@ const contactRequestsModule = module('contact-requests', {
 Application DSL also compiles to explicit composer usage:
 
 ```ts
-import { adapt, defineApp } from '@sagifire/ioc/dsl'
+import { add, adapter, defineApp } from '@sagifire/ioc/dsl'
 
 const app = defineApp({
     modules: [authModule, contactRequestsModule],
     bindings: [
-        adapt(CONTACT_REQUESTS_AUTH_READER, ({ get }) => {
-            return createAuthReader(get(AUTH_PUBLIC_API))
+        adapter(CONTACT_REQUESTS_AUTH_READER)
+            .from(AUTH_PUBLIC_API)
+            .using((auth) => {
+                return createAuthReader(auth)
+            }),
+        add(ADMIN_ITEMS).toValue({
+            label: 'Root shortcut'
         })
     ]
 })
@@ -291,3 +358,6 @@ const app = defineApp({
 The object API is not a legacy path. The DSL is optional and delegates to the same
 validation, inspection, preparation and composition behavior. It does not scan files,
 register modules globally, use decorators, require `reflect-metadata` or hide graph edges.
+The compatibility `adapt(token, factory)` DSL helper still exists for factory bindings
+that intentionally use the older resolver-context shape, but it does not infer adapter
+source edges.

@@ -132,7 +132,9 @@ await scope.dispose()
 Scope-local single values override runtime single providers for that scope. Scope-local
 multi values extend runtime multi-provider collections after runtime contributions.
 Scopes can also create explicit child scopes; parent scope disposal owns active children in
-reverse creation order, while child disposal does not dispose the parent.
+reverse creation order, while child disposal does not dispose the parent. Child scopes
+inherit parent values, can override selected tokens and keep a separate scoped provider
+cache.
 
 For details, see [Container](container.md) and [Async model](async-model.md).
 
@@ -158,32 +160,33 @@ The DSL is optional. It does not replace the object APIs and does not create a s
 model.
 
 ```ts
-import { adapt, createComposer, defineApp } from '@sagifire/ioc'
+import { adapter, createComposer, defineApp } from '@sagifire/ioc'
 
 const composer = createComposer().use(authModule).use(contactRequestsModule)
 
-composer.bind(CONTACT_REQUESTS_AUTH_READER).toFactory((context) => {
-    const auth = context.get(AUTH_PUBLIC_API)
-
-    return {
-        currentUserId() {
-            return auth.currentUserId()
+composer
+    .adapt(CONTACT_REQUESTS_AUTH_READER)
+    .from(AUTH_PUBLIC_API)
+    .using((auth) => {
+        return {
+            currentUserId() {
+                return auth.currentUserId()
+            }
         }
-    }
-})
+    })
 
 const app = defineApp({
     modules: [authModule, contactRequestsModule],
     bindings: [
-        adapt(CONTACT_REQUESTS_AUTH_READER, (context) => {
-            const auth = context.get(AUTH_PUBLIC_API)
-
-            return {
-                currentUserId() {
-                    return auth.currentUserId()
+        adapter(CONTACT_REQUESTS_AUTH_READER)
+            .from(AUTH_PUBLIC_API)
+            .using((auth) => {
+                return {
+                    currentUserId() {
+                        return auth.currentUserId()
+                    }
                 }
-            }
-        })
+            })
     ]
 })
 ```
@@ -191,6 +194,11 @@ const app = defineApp({
 Both paths stay explicit and inspectable. The DSL must not use decorators,
 `reflect-metadata`, constructor metadata, filesystem discovery, global registries or hidden
 dependency inference.
+
+The compatibility `adapt(token, factory)` DSL helper remains available for older
+factory-binding declarations, but it does not infer adapter source edges. Use
+`adapter(target).from(source).using(factory)` when source edges must be visible in graph
+inspection and cycle diagnostics.
 
 ## Diagnostics
 
