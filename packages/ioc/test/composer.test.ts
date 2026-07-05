@@ -1934,6 +1934,214 @@ describe('composer builder and static validation', () => {
         ])
     })
 
+    test('detects adapter-source module cycles without executing adapter factories', async () => {
+        let setupCalls = 0
+        let adapterCalls = 0
+        const contactRequestsModule = defineModule({
+            id: 'adapter-cycle-contact-requests',
+            requires: [
+                {
+                    token: AUTH_READER
+                }
+            ],
+            provides: [
+                {
+                    token: CONTACT_REQUESTS_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                setupCalls += 1
+                context.bind(CONTACT_REQUESTS_PUBLIC_API).toValue({
+                    submit(): string {
+                        return 'contact-request'
+                    }
+                })
+            }
+        })
+        const authModule = defineModule({
+            id: 'adapter-cycle-auth',
+            requires: [
+                {
+                    token: CONTACT_REQUESTS_PUBLIC_API
+                }
+            ],
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                setupCalls += 1
+                context.bind(AUTH_PUBLIC_API).toValue({
+                    requireUser(): string {
+                        return 'cycle-user'
+                    }
+                })
+            }
+        })
+        const composer = createComposer().use(contactRequestsModule).use(authModule)
+
+        composer
+            .adapt(AUTH_READER)
+            .from(AUTH_PUBLIC_API)
+            .using((auth) => {
+                adapterCalls += 1
+
+                return {
+                    currentUserId(): string {
+                        return auth.requireUser()
+                    }
+                }
+            })
+
+        const expectedReport = {
+            ok: false,
+            diagnostics: [
+                {
+                    code: 'SAGIFIRE_IOC_MODULE_CYCLE',
+                    severity: 'error',
+                    message:
+                        'Module dependency cycle detected: ' +
+                        'adapter-cycle-contact-requests -> adapter-cycle-auth -> ' +
+                        'adapter-cycle-contact-requests',
+                    details: {
+                        moduleIdPath: [
+                            'adapter-cycle-contact-requests',
+                            'adapter-cycle-auth',
+                            'adapter-cycle-contact-requests'
+                        ],
+                        tokenIdPath: [
+                            'composer.auth-public-api',
+                            'composer.contact-requests-public-api'
+                        ],
+                        edgeKinds: ['adapter-source', 'capability']
+                    }
+                }
+            ]
+        }
+
+        expect(composer.validate()).toEqual(expectedReport)
+        expect(composer.inspect().validation).toEqual(expectedReport)
+        await expect(composer.prepare()).rejects.toMatchObject({
+            code: 'SAGIFIRE_IOC_COMPOSER_VALIDATION_FAILED',
+            report: expectedReport
+        })
+        await expect(composer.compose()).rejects.toMatchObject({
+            code: 'SAGIFIRE_IOC_COMPOSER_VALIDATION_FAILED',
+            report: expectedReport
+        })
+        expect(adapterCalls).toBe(0)
+        expect(setupCalls).toBe(0)
+    })
+
+    test('does not treat composition-root adapter sources as module cycles', () => {
+        let adapterCalls = 0
+        const authModule = defineModule({
+            id: 'adapter-root-source-cycle-auth',
+            requires: [
+                {
+                    token: AUTH_READER
+                },
+                {
+                    token: PERMISSIONS_PUBLIC_API
+                }
+            ],
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(AUTH_PUBLIC_API).toValue({
+                    requireUser(): string {
+                        return 'root-source-user'
+                    }
+                })
+            }
+        })
+        const contactRequestsModule = defineModule({
+            id: 'adapter-root-source-cycle-contact-requests',
+            requires: [
+                {
+                    token: AUTH_PUBLIC_API
+                }
+            ],
+            setup(): void {}
+        })
+        const composer = createComposer().use(authModule).use(contactRequestsModule)
+
+        composer.bind(PERMISSIONS_PUBLIC_API).toValue({
+            canSubmit(): boolean {
+                return true
+            }
+        })
+        composer
+            .adapt(AUTH_READER)
+            .from(PERMISSIONS_PUBLIC_API)
+            .using((permissions) => {
+                adapterCalls += 1
+
+                return {
+                    currentUserId(): string {
+                        return permissions.canSubmit() ? 'allowed' : 'denied'
+                    }
+                }
+            })
+
+        expect(composer.validate()).toEqual({
+            ok: true,
+            diagnostics: []
+        })
+        expect(composer.getGraph().edges).toEqual([
+            {
+                edgeKind: 'binding',
+                consumerModuleId: 'adapter-root-source-cycle-auth',
+                requiredTokenId: 'composer.auth-reader',
+                dependencyKind: 'external',
+                bindingTokenId: 'composer.auth-reader',
+                bindingKind: 'adapter'
+            },
+            {
+                edgeKind: 'adapter-source',
+                consumerModuleId: 'adapter-root-source-cycle-auth',
+                requiredTokenId: 'composer.auth-reader',
+                dependencyKind: 'external',
+                adapterTargetTokenId: 'composer.auth-reader',
+                adapterSourceTokenId: 'composer.permissions-public-api',
+                adapterSourceKind: 'token',
+                sourceProvider: {
+                    source: 'composition-root',
+                    providerKind: 'binding',
+                    tokenId: 'composer.permissions-public-api',
+                    bindingKind: 'value',
+                    cardinality: 'single',
+                    registrationIndex: 0
+                }
+            },
+            {
+                edgeKind: 'binding',
+                consumerModuleId: 'adapter-root-source-cycle-auth',
+                requiredTokenId: 'composer.permissions-public-api',
+                dependencyKind: 'external',
+                bindingTokenId: 'composer.permissions-public-api',
+                bindingKind: 'value'
+            },
+            {
+                edgeKind: 'capability',
+                consumerModuleId: 'adapter-root-source-cycle-contact-requests',
+                requiredTokenId: 'composer.auth-public-api',
+                dependencyKind: 'external',
+                providerModuleId: 'adapter-root-source-cycle-auth',
+                capabilityTokenId: 'composer.auth-public-api',
+                capabilityKind: 'public-api'
+            }
+        ])
+        expect(adapterCalls).toBe(0)
+    })
+
     test('preserves composer binding token and factory context inference', () => {
         const composer = createComposer()
         const binding = composer.bind(AUTH_READER)

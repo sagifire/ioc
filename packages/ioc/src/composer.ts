@@ -1388,6 +1388,12 @@ interface ModuleCyclePath {
     readonly edgeKinds: readonly ModuleDependencyEdgeKind[]
 }
 
+type ModuleCycleTraversalEdge = CapabilityDependencyEdge | AdapterSourceModuleDependencyEdge
+
+type AdapterSourceModuleDependencyEdge = AdapterSourceDependencyEdge & {
+    readonly sourceProvider: ComposerAdapterSourceCapabilityProviderMetadata
+}
+
 interface ProviderRegistrationRecord {
     readonly providerKind: InspectionProviderKind
     registrationIndex: number | undefined
@@ -3841,10 +3847,10 @@ function detectModuleCycles(
     modules: readonly ModuleDefinition[],
     edges: readonly ModuleDependencyEdge[]
 ): readonly ModuleCyclePath[] {
-    const capabilityEdgesByConsumerModuleId = collectCapabilityEdgesByConsumerModuleId(edges)
+    const cycleEdgesByConsumerModuleId = collectCycleEdgesByConsumerModuleId(edges)
     const visitStateByModuleId = new Map<string, 'visiting' | 'visited'>()
     const moduleIdStack: string[] = []
-    const edgeStack: CapabilityDependencyEdge[] = []
+    const edgeStack: ModuleCycleTraversalEdge[] = []
     const cycles: ModuleCyclePath[] = []
 
     for (const moduleDefinition of modules) {
@@ -3854,7 +3860,7 @@ function detectModuleCycles(
 
         visitModuleForCycles(
             moduleDefinition.id,
-            capabilityEdgesByConsumerModuleId,
+            cycleEdgesByConsumerModuleId,
             visitStateByModuleId,
             moduleIdStack,
             edgeStack,
@@ -3867,17 +3873,18 @@ function detectModuleCycles(
 
 function visitModuleForCycles(
     moduleId: string,
-    capabilityEdgesByConsumerModuleId: ReadonlyMap<string, readonly CapabilityDependencyEdge[]>,
+    cycleEdgesByConsumerModuleId: ReadonlyMap<string, readonly ModuleCycleTraversalEdge[]>,
     visitStateByModuleId: Map<string, 'visiting' | 'visited'>,
     moduleIdStack: string[],
-    edgeStack: CapabilityDependencyEdge[],
+    edgeStack: ModuleCycleTraversalEdge[],
     cycles: ModuleCyclePath[]
 ): void {
     visitStateByModuleId.set(moduleId, 'visiting')
     moduleIdStack.push(moduleId)
 
-    for (const edge of capabilityEdgesByConsumerModuleId.get(moduleId) ?? []) {
-        const providerState = visitStateByModuleId.get(edge.providerModuleId)
+    for (const edge of cycleEdgesByConsumerModuleId.get(moduleId) ?? []) {
+        const providerModuleId = getCycleProviderModuleId(edge)
+        const providerState = visitStateByModuleId.get(providerModuleId)
 
         if (providerState === 'visiting') {
             cycles.push(createModuleCyclePath(edge, moduleIdStack, edgeStack))
@@ -3891,8 +3898,8 @@ function visitModuleForCycles(
 
         edgeStack.push(edge)
         visitModuleForCycles(
-            edge.providerModuleId,
-            capabilityEdgesByConsumerModuleId,
+            providerModuleId,
+            cycleEdgesByConsumerModuleId,
             visitStateByModuleId,
             moduleIdStack,
             edgeStack,
@@ -3906,19 +3913,19 @@ function visitModuleForCycles(
 }
 
 function createModuleCyclePath(
-    closingEdge: CapabilityDependencyEdge,
+    closingEdge: ModuleCycleTraversalEdge,
     moduleIdStack: readonly string[],
-    edgeStack: readonly CapabilityDependencyEdge[]
+    edgeStack: readonly ModuleCycleTraversalEdge[]
 ): ModuleCyclePath {
-    const startIndex = moduleIdStack.indexOf(closingEdge.providerModuleId)
+    const startIndex = moduleIdStack.indexOf(getCycleProviderModuleId(closingEdge))
     const cycleEdges = [...edgeStack.slice(startIndex), closingEdge]
     const moduleIdPath = Object.freeze([
         ...moduleIdStack.slice(startIndex),
-        closingEdge.providerModuleId
+        getCycleProviderModuleId(closingEdge)
     ])
     const tokenIdPath = Object.freeze(
         cycleEdges.map((edge) => {
-            return edge.requiredTokenId
+            return getCycleTokenId(edge)
         })
     )
     const edgeKinds = Object.freeze(
@@ -3934,26 +3941,68 @@ function createModuleCyclePath(
     })
 }
 
-function collectCapabilityEdgesByConsumerModuleId(
+function collectCycleEdgesByConsumerModuleId(
     edges: readonly ModuleDependencyEdge[]
-): ReadonlyMap<string, readonly CapabilityDependencyEdge[]> {
-    const edgesByModuleId = new Map<string, CapabilityDependencyEdge[]>()
+): ReadonlyMap<string, readonly ModuleCycleTraversalEdge[]> {
+    const edgesByModuleId = new Map<string, ModuleCycleTraversalEdge[]>()
 
     for (const edge of edges) {
-        if (edge.edgeKind !== 'capability') {
+        const cycleEdge = getCycleTraversalEdge(edge)
+
+        if (cycleEdge === undefined) {
             continue
         }
 
-        const moduleEdges = edgesByModuleId.get(edge.consumerModuleId)
+        const moduleEdges = edgesByModuleId.get(cycleEdge.consumerModuleId)
 
         if (moduleEdges === undefined) {
-            edgesByModuleId.set(edge.consumerModuleId, [edge])
+            edgesByModuleId.set(cycleEdge.consumerModuleId, [cycleEdge])
         } else {
-            moduleEdges.push(edge)
+            moduleEdges.push(cycleEdge)
         }
     }
 
     return edgesByModuleId
+}
+
+function getCycleTraversalEdge(edge: ModuleDependencyEdge): ModuleCycleTraversalEdge | undefined {
+    if (edge.edgeKind === 'capability') {
+        return edge
+    }
+
+    if (isAdapterSourceModuleDependencyEdge(edge)) {
+        return edge
+    }
+
+    return undefined
+}
+
+function isAdapterSourceModuleDependencyEdge(
+    edge: ModuleDependencyEdge
+): edge is AdapterSourceModuleDependencyEdge {
+    return (
+        edge.edgeKind === 'adapter-source' &&
+        edge.sourceProvider !== undefined &&
+        edge.sourceProvider.source === 'module' &&
+        edge.sourceProvider.providerKind === 'capability' &&
+        edge.sourceProvider.cardinality === 'single'
+    )
+}
+
+function getCycleProviderModuleId(edge: ModuleCycleTraversalEdge): string {
+    if (edge.edgeKind === 'capability') {
+        return edge.providerModuleId
+    }
+
+    return edge.sourceProvider.moduleId
+}
+
+function getCycleTokenId(edge: ModuleCycleTraversalEdge): string {
+    if (edge.edgeKind === 'capability') {
+        return edge.requiredTokenId
+    }
+
+    return edge.adapterSourceTokenId
 }
 
 function collectProvidedTokenIds(modules: readonly ModuleDefinition[]): ReadonlySet<string> {

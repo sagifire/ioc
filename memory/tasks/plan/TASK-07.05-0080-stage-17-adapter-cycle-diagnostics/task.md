@@ -1,11 +1,11 @@
 # TASK-07.05-0080: Adapter-aware cycle diagnostics
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-05
 Owner Role: Implementation Agent
-Current Run: n/a
+Current Run: RUN-001
 Current Research: n/a
 Current Fixation: n/a
 
@@ -46,12 +46,12 @@ Concrete choice must be justified in run result.
 
 ## Acceptance Criteria
 
-- [ ] Adapter-source edges participate in cycle detection.
-- [ ] Valid non-cyclic adapters continue to pass.
-- [ ] Cycle diagnostics include adapter edge kinds.
-- [ ] Diagnostics remain deterministic and readable.
-- [ ] No factory execution is used for cycle detection.
-- [ ] This task must be complete before `0.0.2` stabilization handoff.
+- [x] Adapter-source edges participate in cycle detection.
+- [x] Valid non-cyclic adapters continue to pass.
+- [x] Cycle diagnostics include adapter edge kinds.
+- [x] Diagnostics remain deterministic and readable.
+- [x] No factory execution is used for cycle detection.
+- [x] This task must be complete before `0.0.2` stabilization handoff.
 
 ## Dependencies
 
@@ -64,4 +64,4 @@ Concrete choice must be justified in run result.
 
 ## Runs
 
-Run artifacts треба створити під час запуску задачі.
+- [RUN-001](runs/RUN-001/index.md)

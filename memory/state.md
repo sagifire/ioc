@@ -62,6 +62,28 @@ memory/tasks/plan/TASK-07.05-0073-stage-17-0-0-2-implementation-planning/
 Остання implementation task:
 
 ```text
+memory/tasks/plan/TASK-07.05-0080-stage-17-adapter-cycle-diagnostics/
+```
+
+Статус задачі: `done` після human review approval від 2026-07-05.
+
+Результат RUN-001:
+
+- adapter-source edges беруть участь у module cycle detection, коли source provider є
+  single module public capability;
+- binding edges і composition-root adapter sources не створюють module-to-module cycle
+  traversal;
+- cycle diagnostics лишаються `SAGIFIRE_IOC_MODULE_CYCLE` з deterministic
+  `moduleIdPath`, `tokenIdPath` і `edgeKinds`, включно з `adapter-source`;
+- validation не виконує adapter factories або module setup для static cycle rejection;
+- повні quality gates пройшли.
+- human review approval отримано, задачу завершено.
+
+## Попередня implementation task
+
+Попередня implementation task:
+
+```text
 memory/tasks/plan/TASK-07.05-0079-stage-17-adapter-source-validation-inspection/
 ```
 
@@ -82,9 +104,9 @@ memory/tasks/plan/TASK-07.05-0079-stage-17-adapter-source-validation-inspection/
 - `@sagifire/ioc-testing` graph assertions підтримують `adapter-source` edge expectations;
 - повні quality gates пройшли.
 
-## Попередня implementation task
+## Передпопередня implementation task
 
-Попередня implementation task:
+Передпопередня implementation task зі статусом `done` після human review:
 
 ```text
 memory/tasks/plan/TASK-07.05-0078-stage-17-graph-aware-adapter-api/
@@ -103,33 +125,9 @@ memory/tasks/plan/TASK-07.05-0078-stage-17-graph-aware-adapter-api/
   backward compatible;
 - повні quality gates пройшли.
 
-## Передпопередня implementation task
-
-Передпопередня implementation task зі статусом `done` після human review:
-
-```text
-memory/tasks/plan/TASK-07.05-0089-stage-17-composer-add-multi-contributions/
-```
-
-Статус задачі: `done` після human review approval від 2026-07-05.
-
-Результат RUN-001:
-
-- `Composer.add(token)` додає explicit composition-root multi contributions для declared
-  public `multi` capabilities;
-- root contributions реєструються після module `setup()` contributions і резолвляться через
-  `runtime.getAll(token)` у deterministic order;
-- invalid root additions мають typed diagnostics
-  `SAGIFIRE_IOC_INVALID_COMPOSER_MULTI_BINDING` і
-  `SAGIFIRE_IOC_COMPOSER_BINDING_CARDINALITY_CONFLICT`;
-- public inspection показує `source: 'module' | 'composition-root'` для capability providers
-  і runtime provider registrations;
-- `runtime.get(token)` для public multi token лишається gated через
-  `SAGIFIRE_IOC_GET_USED_FOR_MULTI_TOKEN`.
-
 ## Поточні ризики
 
-- Adapter-aware cycles і lifecycle child-scope-и лишаються ризиковими точками `0.0.2`.
+- Lifecycle child-scope-и лишаються ризиковою точкою `0.0.2`.
 - `0.0.1` зафіксований у локальній пам'яті як stabilization handoff; фактичний npm publish
   не треба стверджувати без окремої перевірки.
 - Security process readiness не дорівнює наявності npm security contact; перед запитом
@@ -139,8 +137,8 @@ memory/tasks/plan/TASK-07.05-0089-stage-17-composer-add-multi-contributions/
 
 ## Наступні кроки
 
-1. Стартувати `TASK-07.05-0080-stage-17-adapter-cycle-diagnostics`.
-2. Виконувати `0.0.2` phases послідовно: adapters, child scopes, testing/ergonomics,
+1. Стартувати `TASK-07.05-0081-stage-17-child-scope-lifecycle-model`.
+2. Виконувати `0.0.2` phases послідовно: child scopes, testing/ergonomics,
    docs/examples, full audit, stabilization handoff.
 
 ## Відкриті питання

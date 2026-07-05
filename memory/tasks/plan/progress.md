@@ -566,11 +566,11 @@
   - Summary: Phase 3 adapter source validation and adapter-source graph visibility.
   - Current: RUN-001
 - [TASK-07.05-0080-stage-17-adapter-cycle-diagnostics](TASK-07.05-0080-stage-17-adapter-cycle-diagnostics/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Phase 3 adapter-aware cycle diagnostics before `0.0.2` handoff.
-  - Current: n/a
+  - Current: RUN-001
 - [TASK-07.05-0081-stage-17-child-scope-lifecycle-model](TASK-07.05-0081-stage-17-child-scope-lifecycle-model/index.md)
   - Status: backlog
   - Type: feature
