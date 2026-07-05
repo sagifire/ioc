@@ -529,11 +529,11 @@
   - Summary: Phase 1 cardinality model у `provides` і `requires`.
   - Current: RUN-001
 - [TASK-07.05-0075-stage-17-multi-capability-validation](TASK-07.05-0075-stage-17-multi-capability-validation/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Phase 1 validation для single/multi conflicts і registration mismatch.
-  - Current: n/a
+  - Current: RUN-001
 - [TASK-07.05-0076-stage-17-multi-capability-runtime-gating](TASK-07.05-0076-stage-17-multi-capability-runtime-gating/index.md)
   - Status: backlog
   - Type: feature

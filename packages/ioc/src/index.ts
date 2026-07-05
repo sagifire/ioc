@@ -27,15 +27,20 @@ export type {
     SagifireIocErrorOptions
 } from './diagnostics'
 export {
+    CapabilityCardinalityConflictError,
+    CapabilityRegistrationCardinalityMismatchError,
     ComposerValidationError,
     DuplicateComposerBindingError,
     DuplicateModuleIdError,
     DuplicateModuleCapabilityError,
     DuplicateModuleDependencyError,
+    DuplicateSingleCapabilityError,
     InvalidComposerBindingError,
     InvalidModuleDefinitionError,
     MissingModuleProviderError,
     MissingRequiredPortError,
+    RequiredMultiCapabilityMissingError,
+    RequiredPortCardinalityMismatchError,
     ModuleCycleError,
     PrivateProviderAccessError,
     createComposer,
@@ -51,8 +56,10 @@ export type {
     ComposerBindingKind,
     ComposerValidationErrorDetails,
     BindingDependencyEdge,
+    CapabilityCardinalityConflictErrorDetails,
     CapabilityMetadata,
     CapabilityDependencyEdge,
+    CapabilityRegistrationCardinalityMismatchErrorDetails,
     ComposerInspection,
     CompositionBindingMetadata,
     DuplicateComposerBindingErrorDetails,
@@ -90,7 +97,9 @@ export type {
     ProviderRegistrationSummary,
     PrivateProviderAccessErrorDetails,
     PrivateProviderAccessReason,
+    RequiredMultiCapabilityMissingErrorDetails,
     RequiredPortMetadata,
+    RequiredPortCardinalityMismatchErrorDetails,
     RequiredPortSatisfaction,
     RuntimeInspection
 } from './composer'

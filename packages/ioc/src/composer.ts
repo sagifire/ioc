@@ -289,6 +289,34 @@ export interface DuplicateModuleCapabilityErrorDetails extends DuplicateModuleTo
     readonly moduleIds?: readonly string[]
 }
 
+export interface CapabilityCardinalityConflictErrorDetails {
+    readonly tokenId: string
+    readonly singleSources: readonly string[]
+    readonly multiSources: readonly string[]
+}
+
+export interface RequiredMultiCapabilityMissingErrorDetails {
+    readonly moduleId: string
+    readonly tokenId: string
+    readonly dependencyKind: ModuleDependencyKind
+}
+
+export interface RequiredPortCardinalityMismatchErrorDetails {
+    readonly moduleId: string
+    readonly tokenId: string
+    readonly dependencyKind: ModuleDependencyKind
+    readonly requiredCardinality: ModuleCardinality
+    readonly providerCardinality: ModuleCardinality
+    readonly providerSource: 'binding' | 'capability'
+}
+
+export interface CapabilityRegistrationCardinalityMismatchErrorDetails {
+    readonly moduleId: string
+    readonly tokenId: string
+    readonly declaredCardinality: ModuleCardinality
+    readonly registrationKind: ProviderRegistrationKind
+}
+
 export interface DuplicateModuleIdErrorDetails {
     readonly moduleId: string
 }
@@ -424,6 +452,74 @@ export class DuplicateModuleCapabilityError extends SagifireIocError<DuplicateMo
     }
 }
 
+export class DuplicateSingleCapabilityError extends SagifireIocError<DuplicateModuleCapabilityErrorDetails> {
+    override readonly name = 'DuplicateSingleCapabilityError'
+    override readonly code = 'SAGIFIRE_IOC_DUPLICATE_SINGLE_CAPABILITY'
+    readonly moduleId: string
+    readonly moduleIds: readonly string[]
+    readonly tokenId: string
+
+    constructor(tokenId: string, moduleIds: readonly [string, string, ...string[]]) {
+        const frozenModuleIds = Object.freeze([...moduleIds])
+        const moduleId = moduleIds[0]
+
+        super({
+            code: 'SAGIFIRE_IOC_DUPLICATE_SINGLE_CAPABILITY',
+            message:
+                `Duplicate single capability "${tokenId}" in modules: ` +
+                frozenModuleIds.join(', '),
+            details: {
+                moduleId,
+                moduleIds: frozenModuleIds,
+                tokenId,
+                section: 'provides'
+            }
+        })
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.moduleId = moduleId
+        this.moduleIds = frozenModuleIds
+        this.tokenId = tokenId
+    }
+}
+
+export class CapabilityCardinalityConflictError extends SagifireIocError<CapabilityCardinalityConflictErrorDetails> {
+    override readonly name = 'CapabilityCardinalityConflictError'
+    override readonly code = 'SAGIFIRE_IOC_CAPABILITY_CARDINALITY_CONFLICT'
+    readonly tokenId: string
+    readonly singleSources: readonly string[]
+    readonly multiSources: readonly string[]
+
+    constructor(
+        tokenId: string,
+        singleSources: readonly [string, ...string[]],
+        multiSources: readonly [string, ...string[]]
+    ) {
+        const frozenSingleSources = Object.freeze([...singleSources])
+        const frozenMultiSources = Object.freeze([...multiSources])
+
+        super({
+            code: 'SAGIFIRE_IOC_CAPABILITY_CARDINALITY_CONFLICT',
+            message:
+                `Capability cardinality conflict for token "${tokenId}": ` +
+                `single sources: ${frozenSingleSources.join(', ')}; ` +
+                `multi sources: ${frozenMultiSources.join(', ')}`,
+            details: {
+                tokenId,
+                singleSources: frozenSingleSources,
+                multiSources: frozenMultiSources
+            }
+        })
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.tokenId = tokenId
+        this.singleSources = frozenSingleSources
+        this.multiSources = frozenMultiSources
+    }
+}
+
 export class DuplicateModuleIdError extends SagifireIocError<DuplicateModuleIdErrorDetails> {
     override readonly name = 'DuplicateModuleIdError'
     override readonly code = 'SAGIFIRE_IOC_DUPLICATE_MODULE_ID'
@@ -467,6 +563,79 @@ export class MissingRequiredPortError extends SagifireIocError<MissingRequiredPo
         this.moduleId = moduleId
         this.tokenId = tokenId
         this.dependencyKind = dependencyKind
+    }
+}
+
+export class RequiredMultiCapabilityMissingError extends SagifireIocError<RequiredMultiCapabilityMissingErrorDetails> {
+    override readonly name = 'RequiredMultiCapabilityMissingError'
+    override readonly code = 'SAGIFIRE_IOC_REQUIRED_MULTI_CAPABILITY_MISSING'
+    readonly moduleId: string
+    readonly tokenId: string
+    readonly dependencyKind: ModuleDependencyKind
+
+    constructor(moduleId: string, tokenId: string, dependencyKind: ModuleDependencyKind) {
+        super({
+            code: 'SAGIFIRE_IOC_REQUIRED_MULTI_CAPABILITY_MISSING',
+            message:
+                `Missing required multi capability "${tokenId}" for module "${moduleId}": ` +
+                'at least one contributor is required',
+            details: {
+                moduleId,
+                tokenId,
+                dependencyKind
+            }
+        })
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.moduleId = moduleId
+        this.tokenId = tokenId
+        this.dependencyKind = dependencyKind
+    }
+}
+
+export class RequiredPortCardinalityMismatchError extends SagifireIocError<RequiredPortCardinalityMismatchErrorDetails> {
+    override readonly name = 'RequiredPortCardinalityMismatchError'
+    override readonly code = 'SAGIFIRE_IOC_REQUIRED_PORT_CARDINALITY_MISMATCH'
+    readonly moduleId: string
+    readonly tokenId: string
+    readonly dependencyKind: ModuleDependencyKind
+    readonly requiredCardinality: ModuleCardinality
+    readonly providerCardinality: ModuleCardinality
+    readonly providerSource: 'binding' | 'capability'
+
+    constructor(
+        moduleId: string,
+        tokenId: string,
+        dependencyKind: ModuleDependencyKind,
+        requiredCardinality: ModuleCardinality,
+        providerCardinality: ModuleCardinality,
+        providerSource: 'binding' | 'capability'
+    ) {
+        super({
+            code: 'SAGIFIRE_IOC_REQUIRED_PORT_CARDINALITY_MISMATCH',
+            message:
+                `Required port "${tokenId}" for module "${moduleId}" expects ` +
+                `${requiredCardinality} cardinality but ${providerSource} provides ` +
+                `${providerCardinality} cardinality`,
+            details: {
+                moduleId,
+                tokenId,
+                dependencyKind,
+                requiredCardinality,
+                providerCardinality,
+                providerSource
+            }
+        })
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.moduleId = moduleId
+        this.tokenId = tokenId
+        this.dependencyKind = dependencyKind
+        this.requiredCardinality = requiredCardinality
+        this.providerCardinality = providerCardinality
+        this.providerSource = providerSource
     }
 }
 
@@ -580,6 +749,42 @@ export class ComposerValidationError extends SagifireIocError<ComposerValidation
     }
 }
 
+export class CapabilityRegistrationCardinalityMismatchError extends SagifireIocError<CapabilityRegistrationCardinalityMismatchErrorDetails> {
+    override readonly name = 'CapabilityRegistrationCardinalityMismatchError'
+    override readonly code = 'SAGIFIRE_IOC_CAPABILITY_REGISTRATION_CARDINALITY_MISMATCH'
+    readonly moduleId: string
+    readonly tokenId: string
+    readonly declaredCardinality: ModuleCardinality
+    readonly registrationKind: ProviderRegistrationKind
+
+    constructor(
+        moduleId: string,
+        tokenId: string,
+        declaredCardinality: ModuleCardinality,
+        registrationKind: ProviderRegistrationKind
+    ) {
+        super({
+            code: 'SAGIFIRE_IOC_CAPABILITY_REGISTRATION_CARDINALITY_MISMATCH',
+            message:
+                `Module "${moduleId}" declares capability "${tokenId}" as ` +
+                `${declaredCardinality} but registered it with ${registrationKind} provider API`,
+            details: {
+                moduleId,
+                tokenId,
+                declaredCardinality,
+                registrationKind
+            }
+        })
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.moduleId = moduleId
+        this.tokenId = tokenId
+        this.declaredCardinality = declaredCardinality
+        this.registrationKind = registrationKind
+    }
+}
+
 export class PrivateProviderAccessError extends SagifireIocError<PrivateProviderAccessErrorDetails> {
     override readonly name = 'PrivateProviderAccessError'
     override readonly code = 'SAGIFIRE_IOC_PRIVATE_PROVIDER_ACCESS'
@@ -689,6 +894,20 @@ interface CapabilityDependencyRecord {
     readonly moduleId: string
     readonly tokenId: string
     readonly kind: ModuleCapabilityKind
+    readonly cardinality: ModuleCardinality
+}
+
+interface CapabilityDeclarationRecord extends CapabilityDependencyRecord {
+    readonly source: string
+}
+
+interface RequiredPortDeclarationRecord {
+    readonly moduleId: string
+    readonly tokenId: string
+    readonly dependencyKind: ModuleDependencyKind
+    readonly required: boolean
+    readonly cardinality: ModuleCardinality
+    readonly source: string
 }
 
 interface ModuleCyclePath {
@@ -717,7 +936,7 @@ interface CompositionAccessModel {
     readonly requiredTokenIdsByModuleId: ReadonlyMap<string, ReadonlySet<string>>
     readonly providedTokenIdsByModuleId: ReadonlyMap<string, ReadonlySet<string>>
     readonly privateTokensByModuleId: Map<string, Map<string, Token<unknown>>>
-    readonly registeredCapabilities: Map<string, RegisteredCapabilityProvider>
+    readonly registeredCapabilities: Map<string, RegisteredCapabilityProvider[]>
 }
 
 interface LiveModuleSetupContext {
@@ -1049,7 +1268,7 @@ function createCompositionAccessModel(
         requiredTokenIdsByModuleId: collectRequiredTokenIdsByModuleId(modules),
         providedTokenIdsByModuleId: collectProvidedTokenIdsByModuleId(modules),
         privateTokensByModuleId: new Map<string, Map<string, Token<unknown>>>(),
-        registeredCapabilities: new Map<string, RegisteredCapabilityProvider>()
+        registeredCapabilities: new Map<string, RegisteredCapabilityProvider[]>()
     }
 }
 
@@ -1251,7 +1470,11 @@ function createProviderRegistrationSummaries(
 
     for (const moduleDefinition of modules) {
         for (const capability of moduleDefinition.provides) {
-            const registration = access.registeredCapabilities.get(capability.token.id)
+            const registration = findRegisteredCapability(
+                access,
+                moduleDefinition.id,
+                capability.token.id
+            )
 
             if (registration === undefined) {
                 continue
@@ -1888,11 +2111,15 @@ function resolvePublicCapabilityToken<TValue>(
     resolutionToken: Token<TValue>,
     access: CompositionAccessModel
 ): Token<TValue> {
-    if (access.registeredCapabilities.has(resolutionToken.id)) {
+    if (hasRegisteredCapability(access, resolutionToken.id)) {
         return resolutionToken
     }
 
     throw new PrivateProviderAccessError(resolutionToken.id, 'runtime', 'token-not-visible')
+}
+
+function hasRegisteredCapability(access: CompositionAccessModel, tokenId: string): boolean {
+    return (access.registeredCapabilities.get(tokenId)?.length ?? 0) > 0
 }
 
 function assertScopeOptionsUsePublicCapabilities(
@@ -1933,14 +2160,30 @@ function validateComposer(
     const diagnostics: Diagnostic[] = []
 
     appendDuplicateModuleIdDiagnostics(diagnostics, modules)
-    appendDuplicateCapabilityDiagnostics(diagnostics, modules)
+    appendCapabilityDeclarationDiagnostics(diagnostics, modules)
+    appendRequiredPortDeclarationConflictDiagnostics(diagnostics, modules)
 
     const providedTokenIds = collectProvidedTokenIds(modules)
     const bindingTokenIds = collectBindingTokenIds(bindings)
     const requiredPortTokenIds = collectRequiredPortTokenIds(modules)
+    const capabilitiesByTokenId = collectCapabilityDeclarationsByTokenId(modules)
+    const bindingsByTokenId = collectFirstBindingByTokenId(bindings)
 
     appendDuplicateBindingDiagnostics(diagnostics, bindings)
-    appendMissingRequiredPortDiagnostics(diagnostics, modules, providedTokenIds, bindingTokenIds)
+    appendRequiredPortCardinalityMismatchDiagnostics(
+        diagnostics,
+        modules,
+        capabilitiesByTokenId,
+        bindingsByTokenId
+    )
+    appendMissingRequiredPortDiagnostics(
+        diagnostics,
+        modules,
+        providedTokenIds,
+        bindingTokenIds,
+        capabilitiesByTokenId,
+        bindingsByTokenId
+    )
     appendInvalidBindingDiagnostics(diagnostics, bindings, requiredPortTokenIds)
     appendModuleCycleDiagnostics(diagnostics, modules, bindings)
 
@@ -1970,33 +2213,103 @@ function appendDuplicateModuleIdDiagnostics(
     }
 }
 
-function appendDuplicateCapabilityDiagnostics(
+function appendCapabilityDeclarationDiagnostics(
     diagnostics: Diagnostic[],
     modules: readonly ModuleDefinition[]
 ): void {
-    const moduleIdsByTokenId = new Map<string, string[]>()
+    const capabilitiesByTokenId = collectCapabilityDeclarationsByTokenId(modules)
 
-    for (const moduleDefinition of modules) {
-        for (const capability of moduleDefinition.provides) {
-            const moduleIds = moduleIdsByTokenId.get(capability.token.id)
+    for (const [tokenId, capabilities] of capabilitiesByTokenId) {
+        const singleCapabilities = capabilities.filter((capability) => {
+            return capability.cardinality === 'single'
+        })
+        const multiCapabilities = capabilities.filter((capability) => {
+            return capability.cardinality === 'multi'
+        })
 
-            if (moduleIds === undefined) {
-                moduleIdsByTokenId.set(capability.token.id, [moduleDefinition.id])
-            } else {
-                moduleIds.push(moduleDefinition.id)
+        if (singleCapabilities.length > 0 && multiCapabilities.length > 0) {
+            diagnostics.push(
+                diagnosticFromError(
+                    new CapabilityCardinalityConflictError(
+                        tokenId,
+                        createNonEmptySources(singleCapabilities),
+                        createNonEmptySources(multiCapabilities)
+                    )
+                )
+            )
+
+            continue
+        }
+
+        const [firstSingle, secondSingle, ...remainingSingles] = singleCapabilities
+
+        if (firstSingle !== undefined && secondSingle !== undefined) {
+            diagnostics.push(
+                diagnosticFromError(
+                    new DuplicateSingleCapabilityError(tokenId, [
+                        firstSingle.moduleId,
+                        secondSingle.moduleId,
+                        ...remainingSingles.map((capability) => {
+                            return capability.moduleId
+                        })
+                    ])
+                )
+            )
+
+            continue
+        }
+
+        if (multiCapabilities.length > 1) {
+            const [firstMulti, ...remainingMultis] = multiCapabilities
+            const incompatibleKind = remainingMultis.some((capability) => {
+                return capability.kind !== firstMulti?.kind
+            })
+
+            if (firstMulti !== undefined && incompatibleKind) {
+                const [secondMulti, ...restMultis] = remainingMultis
+
+                if (secondMulti !== undefined) {
+                    diagnostics.push(
+                        diagnosticFromError(
+                            new DuplicateModuleCapabilityError(
+                                [
+                                    firstMulti.moduleId,
+                                    secondMulti.moduleId,
+                                    ...restMultis.map((capability) => {
+                                        return capability.moduleId
+                                    })
+                                ],
+                                tokenId
+                            )
+                        )
+                    )
+                }
             }
         }
     }
+}
 
-    for (const [tokenId, moduleIds] of moduleIdsByTokenId) {
-        const [firstModuleId, secondModuleId, ...remainingModuleIds] = moduleIds
+function appendRequiredPortDeclarationConflictDiagnostics(
+    diagnostics: Diagnostic[],
+    modules: readonly ModuleDefinition[]
+): void {
+    const requiredPortsByTokenId = collectRequiredPortDeclarationsByTokenId(modules)
 
-        if (firstModuleId !== undefined && secondModuleId !== undefined) {
+    for (const [tokenId, dependencies] of requiredPortsByTokenId) {
+        const singleDependencies = dependencies.filter((dependency) => {
+            return dependency.cardinality === 'single'
+        })
+        const multiDependencies = dependencies.filter((dependency) => {
+            return dependency.cardinality === 'multi'
+        })
+
+        if (singleDependencies.length > 0 && multiDependencies.length > 0) {
             diagnostics.push(
                 diagnosticFromError(
-                    new DuplicateModuleCapabilityError(
-                        [firstModuleId, secondModuleId, ...remainingModuleIds],
-                        tokenId
+                    new CapabilityCardinalityConflictError(
+                        tokenId,
+                        createNonEmptyRequiredSources(singleDependencies),
+                        createNonEmptyRequiredSources(multiDependencies)
                     )
                 )
             )
@@ -2041,7 +2354,9 @@ function appendMissingRequiredPortDiagnostics(
     diagnostics: Diagnostic[],
     modules: readonly ModuleDefinition[],
     providedTokenIds: ReadonlySet<string>,
-    bindingTokenIds: ReadonlySet<string>
+    bindingTokenIds: ReadonlySet<string>,
+    capabilitiesByTokenId: ReadonlyMap<string, readonly CapabilityDeclarationRecord[]>,
+    bindingsByTokenId: ReadonlyMap<string, ComposerBindingRecord>
 ): void {
     for (const moduleDefinition of modules) {
         for (const dependency of moduleDefinition.requires) {
@@ -2051,7 +2366,25 @@ function appendMissingRequiredPortDiagnostics(
 
             const tokenId = dependency.token.id
 
+            if (hasRequiredPortProvider(dependency, capabilitiesByTokenId, bindingsByTokenId)) {
+                continue
+            }
+
             if (!providedTokenIds.has(tokenId) && !bindingTokenIds.has(tokenId)) {
+                if (dependency.cardinality === 'multi') {
+                    diagnostics.push(
+                        diagnosticFromError(
+                            new RequiredMultiCapabilityMissingError(
+                                moduleDefinition.id,
+                                tokenId,
+                                dependency.kind
+                            )
+                        )
+                    )
+
+                    continue
+                }
+
                 diagnostics.push(
                     diagnosticFromError(
                         new MissingRequiredPortError(moduleDefinition.id, tokenId, dependency.kind)
@@ -2060,6 +2393,135 @@ function appendMissingRequiredPortDiagnostics(
             }
         }
     }
+}
+
+function appendRequiredPortCardinalityMismatchDiagnostics(
+    diagnostics: Diagnostic[],
+    modules: readonly ModuleDefinition[],
+    capabilitiesByTokenId: ReadonlyMap<string, readonly CapabilityDeclarationRecord[]>,
+    bindingsByTokenId: ReadonlyMap<string, ComposerBindingRecord>
+): void {
+    for (const moduleDefinition of modules) {
+        for (const dependency of moduleDefinition.requires) {
+            const tokenId = dependency.token.id
+            const binding = bindingsByTokenId.get(tokenId)
+            const dependencyCardinality = dependency.cardinality ?? 'single'
+
+            if (binding !== undefined && dependencyCardinality !== 'single') {
+                diagnostics.push(
+                    diagnosticFromError(
+                        new RequiredPortCardinalityMismatchError(
+                            moduleDefinition.id,
+                            tokenId,
+                            dependency.kind,
+                            dependencyCardinality,
+                            'single',
+                            'binding'
+                        )
+                    )
+                )
+
+                continue
+            }
+
+            const providerCardinality = getCapabilityProviderCardinality(
+                tokenId,
+                capabilitiesByTokenId
+            )
+
+            if (
+                providerCardinality !== undefined &&
+                providerCardinality !== dependencyCardinality
+            ) {
+                diagnostics.push(
+                    diagnosticFromError(
+                        new RequiredPortCardinalityMismatchError(
+                            moduleDefinition.id,
+                            tokenId,
+                            dependency.kind,
+                            dependencyCardinality,
+                            providerCardinality,
+                            'capability'
+                        )
+                    )
+                )
+            }
+        }
+    }
+}
+
+function createNonEmptySources(
+    capabilities: readonly CapabilityDeclarationRecord[]
+): readonly [string, ...string[]] {
+    const sources = capabilities.map((capability) => {
+        return capability.source
+    })
+    const [firstSource, ...remainingSources] = sources
+
+    if (firstSource === undefined) {
+        throw new Error('Expected at least one capability cardinality source')
+    }
+
+    return [firstSource, ...remainingSources]
+}
+
+function createNonEmptyRequiredSources(
+    dependencies: readonly RequiredPortDeclarationRecord[]
+): readonly [string, ...string[]] {
+    const sources = dependencies.map((dependency) => {
+        return dependency.source
+    })
+    const [firstSource, ...remainingSources] = sources
+
+    if (firstSource === undefined) {
+        throw new Error('Expected at least one required port cardinality source')
+    }
+
+    return [firstSource, ...remainingSources]
+}
+
+function hasRequiredPortProvider(
+    dependency: ModuleDependencyDefinition,
+    capabilitiesByTokenId: ReadonlyMap<string, readonly CapabilityDeclarationRecord[]>,
+    bindingsByTokenId: ReadonlyMap<string, ComposerBindingRecord>
+): boolean {
+    const tokenId = dependency.token.id
+    const dependencyCardinality = dependency.cardinality ?? 'single'
+
+    if (bindingsByTokenId.has(tokenId)) {
+        return dependencyCardinality === 'single'
+    }
+
+    return (
+        getCapabilityProviderCardinality(tokenId, capabilitiesByTokenId) === dependencyCardinality
+    )
+}
+
+function getCapabilityProviderCardinality(
+    tokenId: string,
+    capabilitiesByTokenId: ReadonlyMap<string, readonly CapabilityDeclarationRecord[]>
+): ModuleCardinality | undefined {
+    const capabilities = capabilitiesByTokenId.get(tokenId)
+
+    if (capabilities === undefined) {
+        return undefined
+    }
+
+    let cardinality: ModuleCardinality | undefined
+
+    for (const capability of capabilities) {
+        if (cardinality === undefined) {
+            cardinality = capability.cardinality
+
+            continue
+        }
+
+        if (cardinality !== capability.cardinality) {
+            return undefined
+        }
+    }
+
+    return cardinality
 }
 
 function appendInvalidBindingDiagnostics(
@@ -2246,12 +2708,68 @@ function collectFirstCapabilityByTokenId(
             capabilitiesByTokenId.set(capability.token.id, {
                 moduleId: moduleDefinition.id,
                 tokenId: capability.token.id,
-                kind: capability.kind
+                kind: capability.kind,
+                cardinality: capability.cardinality ?? 'single'
             })
         }
     }
 
     return capabilitiesByTokenId
+}
+
+function collectCapabilityDeclarationsByTokenId(
+    modules: readonly ModuleDefinition[]
+): ReadonlyMap<string, readonly CapabilityDeclarationRecord[]> {
+    const capabilitiesByTokenId = new Map<string, CapabilityDeclarationRecord[]>()
+
+    for (const moduleDefinition of modules) {
+        for (const capability of moduleDefinition.provides) {
+            const declaration = {
+                moduleId: moduleDefinition.id,
+                tokenId: capability.token.id,
+                kind: capability.kind,
+                cardinality: capability.cardinality ?? 'single',
+                source: `provides:${moduleDefinition.id}`
+            }
+            const existingDeclarations = capabilitiesByTokenId.get(capability.token.id)
+
+            if (existingDeclarations === undefined) {
+                capabilitiesByTokenId.set(capability.token.id, [declaration])
+            } else {
+                existingDeclarations.push(declaration)
+            }
+        }
+    }
+
+    return capabilitiesByTokenId
+}
+
+function collectRequiredPortDeclarationsByTokenId(
+    modules: readonly ModuleDefinition[]
+): ReadonlyMap<string, readonly RequiredPortDeclarationRecord[]> {
+    const dependenciesByTokenId = new Map<string, RequiredPortDeclarationRecord[]>()
+
+    for (const moduleDefinition of modules) {
+        for (const dependency of moduleDefinition.requires) {
+            const declaration = {
+                moduleId: moduleDefinition.id,
+                tokenId: dependency.token.id,
+                dependencyKind: dependency.kind,
+                required: dependency.required,
+                cardinality: dependency.cardinality ?? 'single',
+                source: `requires:${moduleDefinition.id}`
+            }
+            const existingDeclarations = dependenciesByTokenId.get(dependency.token.id)
+
+            if (existingDeclarations === undefined) {
+                dependenciesByTokenId.set(dependency.token.id, [declaration])
+            } else {
+                existingDeclarations.push(declaration)
+            }
+        }
+    }
+
+    return dependenciesByTokenId
 }
 
 function collectFirstBindingByTokenId(
@@ -2429,7 +2947,11 @@ function recordModuleProvider(
         return
     }
 
-    const existingRegistration = access.registeredCapabilities.get(originalToken.id)
+    const existingRegistration = findRegisteredCapability(
+        access,
+        moduleDefinition.id,
+        originalToken.id
+    )
 
     if (existingRegistration !== undefined) {
         existingRegistration.providers.push(providerRegistration)
@@ -2437,13 +2959,22 @@ function recordModuleProvider(
         return
     }
 
-    access.registeredCapabilities.set(originalToken.id, {
+    const registration = {
         moduleId: moduleDefinition.id,
         tokenId: originalToken.id,
         kind: capability.kind,
         registrationKind,
         providers: [providerRegistration]
-    })
+    }
+    const existingRegistrations = access.registeredCapabilities.get(originalToken.id)
+
+    if (existingRegistrations === undefined) {
+        access.registeredCapabilities.set(originalToken.id, [registration])
+
+        return
+    }
+
+    existingRegistrations.push(registration)
 }
 
 function validateDeclaredProviderRegistrations(
@@ -2454,12 +2985,32 @@ function validateDeclaredProviderRegistrations(
 
     for (const moduleDefinition of modules) {
         for (const capability of moduleDefinition.provides) {
-            const registeredCapability = access.registeredCapabilities.get(capability.token.id)
+            const declaredCardinality = capability.cardinality ?? 'single'
+            const registeredCapability = findRegisteredCapability(
+                access,
+                moduleDefinition.id,
+                capability.token.id
+            )
 
-            if (registeredCapability?.moduleId !== moduleDefinition.id) {
+            if (registeredCapability === undefined) {
                 diagnostics.push(
                     diagnosticFromError(
                         new MissingModuleProviderError(moduleDefinition.id, capability.token.id)
+                    )
+                )
+
+                continue
+            }
+
+            if (registeredCapability.registrationKind !== declaredCardinality) {
+                diagnostics.push(
+                    diagnosticFromError(
+                        new CapabilityRegistrationCardinalityMismatchError(
+                            moduleDefinition.id,
+                            capability.token.id,
+                            declaredCardinality,
+                            registeredCapability.registrationKind
+                        )
                     )
                 )
             }
@@ -2467,6 +3018,16 @@ function validateDeclaredProviderRegistrations(
     }
 
     return createDiagnosticReport(diagnostics)
+}
+
+function findRegisteredCapability(
+    access: CompositionAccessModel,
+    moduleId: string,
+    tokenId: string
+): RegisteredCapabilityProvider | undefined {
+    return access.registeredCapabilities.get(tokenId)?.find((registration) => {
+        return registration.moduleId === moduleId
+    })
 }
 
 function createPreparedComposition(
@@ -2479,14 +3040,18 @@ function createPreparedComposition(
         })
     )
     const capabilities = Object.freeze(
-        [...access.registeredCapabilities.values()].map((capability) => {
-            return Object.freeze({
-                moduleId: capability.moduleId,
-                tokenId: capability.tokenId,
-                kind: capability.kind,
-                registrationKind: capability.registrationKind
+        [...access.registeredCapabilities.values()]
+            .flatMap((capabilitiesForToken) => {
+                return capabilitiesForToken
             })
-        })
+            .map((capability) => {
+                return Object.freeze({
+                    moduleId: capability.moduleId,
+                    tokenId: capability.tokenId,
+                    kind: capability.kind,
+                    registrationKind: capability.registrationKind
+                })
+            })
     )
 
     return Object.freeze({

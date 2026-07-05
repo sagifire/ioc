@@ -1,17 +1,22 @@
 import { describe, expect, expectTypeOf, test } from 'vitest'
 
 import {
+    CapabilityCardinalityConflictError,
+    CapabilityRegistrationCardinalityMismatchError,
     ComposerValidationError,
     DuplicateComposerBindingError,
     DuplicateModuleIdError,
     DuplicateModuleCapabilityError,
     DuplicateModuleDependencyError,
+    DuplicateSingleCapabilityError,
     InvalidComposerBindingError,
     InvalidModuleDefinitionError,
     MissingModuleProviderError,
     MissingRequiredPortError,
     ModuleCycleError,
     PrivateProviderAccessError,
+    RequiredMultiCapabilityMissingError,
+    RequiredPortCardinalityMismatchError,
     type ComposedRuntime,
     createComposer,
     defineModule,
@@ -839,7 +844,7 @@ describe('composer builder and static validation', () => {
         )
     })
 
-    test('reports duplicate declared capabilities across modules', () => {
+    test('reports duplicate declared single capabilities across modules', () => {
         const first = defineModule({
             id: 'first-capability-provider',
             provides: [
@@ -865,10 +870,10 @@ describe('composer builder and static validation', () => {
         expect(report.ok).toBe(false)
         expect(report.diagnostics).toEqual([
             {
-                code: 'SAGIFIRE_IOC_DUPLICATE_MODULE_CAPABILITY',
+                code: 'SAGIFIRE_IOC_DUPLICATE_SINGLE_CAPABILITY',
                 severity: 'error',
                 message:
-                    'Duplicate provided capability "composer.auth-public-api" in modules: ' +
+                    'Duplicate single capability "composer.auth-public-api" in modules: ' +
                     'first-capability-provider, second-capability-provider',
                 details: {
                     moduleId: 'first-capability-provider',
@@ -878,6 +883,264 @@ describe('composer builder and static validation', () => {
                 }
             }
         ])
+        expect(
+            new DuplicateSingleCapabilityError(AUTH_PUBLIC_API.id, [
+                'first-capability-provider',
+                'second-capability-provider'
+            ])
+        ).toBeInstanceOf(DuplicateSingleCapabilityError)
+    })
+
+    test('allows compatible multi capability declarations for the same token', () => {
+        const first = defineModule({
+            id: 'first-audit-contributor',
+            provides: [
+                {
+                    token: AUDIT_EVENTS,
+                    kind: 'event-subscriber',
+                    cardinality: 'multi'
+                }
+            ],
+            setup(): void {}
+        })
+        const second = defineModule({
+            id: 'second-audit-contributor',
+            provides: [
+                {
+                    token: AUDIT_EVENTS,
+                    kind: 'event-subscriber',
+                    cardinality: 'multi'
+                }
+            ],
+            setup(): void {}
+        })
+
+        expect(createComposer().use(first).use(second).validate()).toEqual({
+            ok: true,
+            diagnostics: []
+        })
+    })
+
+    test('reports single and multi capability declaration conflicts deterministically', () => {
+        const singleProvider = defineModule({
+            id: 'single-audit-provider',
+            provides: [
+                {
+                    token: AUDIT_EVENTS,
+                    kind: 'event-subscriber'
+                }
+            ],
+            setup(): void {}
+        })
+        const multiProvider = defineModule({
+            id: 'multi-audit-provider',
+            provides: [
+                {
+                    token: AUDIT_EVENTS,
+                    kind: 'event-subscriber',
+                    cardinality: 'multi'
+                }
+            ],
+            setup(): void {}
+        })
+        const report = createComposer().use(singleProvider).use(multiProvider).validate()
+
+        expect(report.diagnostics).toEqual([
+            {
+                code: 'SAGIFIRE_IOC_CAPABILITY_CARDINALITY_CONFLICT',
+                severity: 'error',
+                message:
+                    'Capability cardinality conflict for token "composer.audit-events": ' +
+                    'single sources: provides:single-audit-provider; ' +
+                    'multi sources: provides:multi-audit-provider',
+                details: {
+                    tokenId: 'composer.audit-events',
+                    singleSources: ['provides:single-audit-provider'],
+                    multiSources: ['provides:multi-audit-provider']
+                }
+            }
+        ])
+        expect(
+            new CapabilityCardinalityConflictError(
+                AUDIT_EVENTS.id,
+                ['provides:single-audit-provider'],
+                ['provides:multi-audit-provider']
+            )
+        ).toBeInstanceOf(CapabilityCardinalityConflictError)
+    })
+
+    test('reports required port cardinality mismatch against capabilities and bindings', () => {
+        const multiProvider = defineModule({
+            id: 'required-mismatch-multi-provider',
+            provides: [
+                {
+                    token: AUDIT_EVENTS,
+                    kind: 'event-subscriber',
+                    cardinality: 'multi'
+                }
+            ],
+            setup(): void {}
+        })
+        const singleConsumer = defineModule({
+            id: 'required-mismatch-single-consumer',
+            requires: [
+                {
+                    token: AUDIT_EVENTS
+                }
+            ],
+            setup(): void {}
+        })
+        const singleProvider = defineModule({
+            id: 'required-mismatch-single-provider',
+            provides: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    kind: 'public-api'
+                }
+            ],
+            setup(): void {}
+        })
+        const multiConsumer = defineModule({
+            id: 'required-mismatch-multi-consumer',
+            requires: [
+                {
+                    token: AUTH_PUBLIC_API,
+                    cardinality: 'multi'
+                },
+                {
+                    token: NOTIFICATION_PUBLIC_API,
+                    cardinality: 'multi'
+                }
+            ],
+            setup(): void {}
+        })
+        const composer = createComposer()
+            .use(multiProvider)
+            .use(singleConsumer)
+            .use(singleProvider)
+            .use(multiConsumer)
+
+        composer.bind(NOTIFICATION_PUBLIC_API).toValue({
+            notify(): string {
+                return 'binding-notification'
+            }
+        })
+
+        const report = composer.validate()
+
+        expect(report.diagnostics).toEqual([
+            {
+                code: 'SAGIFIRE_IOC_REQUIRED_PORT_CARDINALITY_MISMATCH',
+                severity: 'error',
+                message:
+                    'Required port "composer.audit-events" for module ' +
+                    '"required-mismatch-single-consumer" expects single cardinality but ' +
+                    'capability provides multi cardinality',
+                details: {
+                    moduleId: 'required-mismatch-single-consumer',
+                    tokenId: 'composer.audit-events',
+                    dependencyKind: 'external',
+                    requiredCardinality: 'single',
+                    providerCardinality: 'multi',
+                    providerSource: 'capability'
+                }
+            },
+            {
+                code: 'SAGIFIRE_IOC_REQUIRED_PORT_CARDINALITY_MISMATCH',
+                severity: 'error',
+                message:
+                    'Required port "composer.auth-public-api" for module ' +
+                    '"required-mismatch-multi-consumer" expects multi cardinality but ' +
+                    'capability provides single cardinality',
+                details: {
+                    moduleId: 'required-mismatch-multi-consumer',
+                    tokenId: 'composer.auth-public-api',
+                    dependencyKind: 'external',
+                    requiredCardinality: 'multi',
+                    providerCardinality: 'single',
+                    providerSource: 'capability'
+                }
+            },
+            {
+                code: 'SAGIFIRE_IOC_REQUIRED_PORT_CARDINALITY_MISMATCH',
+                severity: 'error',
+                message:
+                    'Required port "composer.notification-public-api" for module ' +
+                    '"required-mismatch-multi-consumer" expects multi cardinality but ' +
+                    'binding provides single cardinality',
+                details: {
+                    moduleId: 'required-mismatch-multi-consumer',
+                    tokenId: 'composer.notification-public-api',
+                    dependencyKind: 'external',
+                    requiredCardinality: 'multi',
+                    providerCardinality: 'single',
+                    providerSource: 'binding'
+                }
+            }
+        ])
+        expect(
+            new RequiredPortCardinalityMismatchError(
+                'required-mismatch-multi-consumer',
+                NOTIFICATION_PUBLIC_API.id,
+                'external',
+                'multi',
+                'single',
+                'binding'
+            )
+        ).toBeInstanceOf(RequiredPortCardinalityMismatchError)
+    })
+
+    test('validates required and optional multi dependency contributor availability', () => {
+        const requiredConsumer = defineModule({
+            id: 'required-multi-consumer',
+            requires: [
+                {
+                    token: AUDIT_EVENTS,
+                    cardinality: 'multi'
+                }
+            ],
+            setup(): void {}
+        })
+        const optionalConsumer = defineModule({
+            id: 'optional-multi-consumer',
+            requires: [
+                {
+                    token: AUDIT_EVENTS,
+                    required: false,
+                    cardinality: 'multi'
+                }
+            ],
+            setup(): void {}
+        })
+
+        expect(createComposer().use(optionalConsumer).validate()).toEqual({
+            ok: true,
+            diagnostics: []
+        })
+
+        const report = createComposer().use(requiredConsumer).validate()
+
+        expect(report.diagnostics).toEqual([
+            {
+                code: 'SAGIFIRE_IOC_REQUIRED_MULTI_CAPABILITY_MISSING',
+                severity: 'error',
+                message:
+                    'Missing required multi capability "composer.audit-events" for module ' +
+                    '"required-multi-consumer": at least one contributor is required',
+                details: {
+                    moduleId: 'required-multi-consumer',
+                    tokenId: 'composer.audit-events',
+                    dependencyKind: 'external'
+                }
+            }
+        ])
+        expect(
+            new RequiredMultiCapabilityMissingError(
+                'required-multi-consumer',
+                AUDIT_EVENTS.id,
+                'external'
+            )
+        ).toBeInstanceOf(RequiredMultiCapabilityMissingError)
     })
 
     test('detects simple module cycles with module and token paths', () => {
@@ -1384,6 +1647,160 @@ describe('module setup and private providers', () => {
         }
     })
 
+    test('rejects declared multi capabilities registered with bind after setup', async () => {
+        let factoryCalls = 0
+        const module = defineModule({
+            id: 'multi-registered-with-bind',
+            provides: [
+                {
+                    token: AUDIT_EVENTS,
+                    kind: 'event-subscriber',
+                    cardinality: 'multi'
+                }
+            ],
+            setup(context): void {
+                context.bind(AUDIT_EVENTS).toFactory(() => {
+                    factoryCalls += 1
+
+                    return 'wrong-registration'
+                })
+            }
+        })
+
+        await expect(createComposer().use(module).prepare()).rejects.toBeInstanceOf(
+            ComposerValidationError
+        )
+
+        try {
+            await createComposer().use(module).prepare()
+        } catch (error) {
+            expect(error).toBeInstanceOf(ComposerValidationError)
+
+            if (error instanceof ComposerValidationError) {
+                expect(error.report.diagnostics).toEqual([
+                    {
+                        code: 'SAGIFIRE_IOC_CAPABILITY_REGISTRATION_CARDINALITY_MISMATCH',
+                        severity: 'error',
+                        message:
+                            'Module "multi-registered-with-bind" declares capability ' +
+                            '"composer.audit-events" as multi but registered it with single ' +
+                            'provider API',
+                        details: {
+                            moduleId: 'multi-registered-with-bind',
+                            tokenId: 'composer.audit-events',
+                            declaredCardinality: 'multi',
+                            registrationKind: 'single'
+                        }
+                    }
+                ])
+            }
+        }
+
+        expect(factoryCalls).toBe(0)
+        expect(
+            new CapabilityRegistrationCardinalityMismatchError(
+                'multi-registered-with-bind',
+                AUDIT_EVENTS.id,
+                'multi',
+                'single'
+            )
+        ).toBeInstanceOf(CapabilityRegistrationCardinalityMismatchError)
+    })
+
+    test('rejects declared single capabilities registered with add after setup', async () => {
+        const module = defineModule({
+            id: 'single-registered-with-add',
+            provides: [
+                {
+                    token: AUDIT_EVENTS,
+                    kind: 'event-subscriber'
+                }
+            ],
+            setup(context): void {
+                context.add(AUDIT_EVENTS).toValue('wrong-registration')
+            }
+        })
+
+        await expect(createComposer().use(module).prepare()).rejects.toMatchObject({
+            code: 'SAGIFIRE_IOC_COMPOSER_VALIDATION_FAILED',
+            report: {
+                diagnostics: [
+                    {
+                        code: 'SAGIFIRE_IOC_CAPABILITY_REGISTRATION_CARDINALITY_MISMATCH',
+                        details: {
+                            moduleId: 'single-registered-with-add',
+                            tokenId: 'composer.audit-events',
+                            declaredCardinality: 'single',
+                            registrationKind: 'multi'
+                        }
+                    }
+                ]
+            }
+        })
+    })
+
+    test('prepares compatible multi capability contributors in module registration order', async () => {
+        const first = defineModule({
+            id: 'prepare-first-audit-contributor',
+            provides: [
+                {
+                    token: AUDIT_EVENTS,
+                    kind: 'event-subscriber',
+                    cardinality: 'multi'
+                }
+            ],
+            setup(context): void {
+                context.add(AUDIT_EVENTS).toValue('first')
+            }
+        })
+        const second = defineModule({
+            id: 'prepare-second-audit-contributor',
+            provides: [
+                {
+                    token: AUDIT_EVENTS,
+                    kind: 'event-subscriber',
+                    cardinality: 'multi'
+                }
+            ],
+            setup(context): void {
+                context.add(AUDIT_EVENTS).toValue('second')
+            }
+        })
+        const runtime = await createComposer().use(first).use(second).compose()
+
+        expect(runtime.getAll(AUDIT_EVENTS)).toEqual(['first', 'second'])
+        expect(runtime.inspect().providerRegistrations).toEqual([
+            {
+                moduleId: 'prepare-first-audit-contributor',
+                tokenId: 'composer.audit-events',
+                capabilityKind: 'event-subscriber',
+                visibility: 'exported',
+                registrationKind: 'multi',
+                providers: [
+                    {
+                        providerKind: 'value',
+                        lifetime: 'singleton'
+                    }
+                ]
+            },
+            {
+                moduleId: 'prepare-second-audit-contributor',
+                tokenId: 'composer.audit-events',
+                capabilityKind: 'event-subscriber',
+                visibility: 'exported',
+                registrationKind: 'multi',
+                providers: [
+                    {
+                        providerKind: 'value',
+                        lifetime: 'singleton'
+                    }
+                ]
+            }
+        ])
+
+        await runtime.dispose()
+    })
+
     test('rejects setup-time resolution before composition is prepared', async () => {
         const module = defineModule({
             id: 'early-resolution',
@@ -1830,7 +2247,8 @@ describe('inspection api', () => {
             provides: [
                 {
                     token: AUDIT_EVENTS,
-                    kind: 'event-subscriber'
+                    kind: 'event-subscriber',
+                    cardinality: 'multi'
                 }
             ],
             setup(context): void {
@@ -2368,7 +2786,8 @@ describe('composed runtime capabilities', () => {
             provides: [
                 {
                     token: AUDIT_EVENTS,
-                    kind: 'event-subscriber'
+                    kind: 'event-subscriber',
+                    cardinality: 'multi'
                 }
             ],
             setup(context): void {
@@ -2731,7 +3150,8 @@ describe('composed runtime capabilities', () => {
                 },
                 {
                     token: AUDIT_EVENTS,
-                    kind: 'event-subscriber'
+                    kind: 'event-subscriber',
+                    cardinality: 'multi'
                 }
             ],
             setup(context): void {

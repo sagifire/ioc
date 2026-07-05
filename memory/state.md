@@ -62,6 +62,26 @@ memory/tasks/plan/TASK-07.05-0073-stage-17-0-0-2-implementation-planning/
 Остання завершена implementation task:
 
 ```text
+memory/tasks/plan/TASK-07.05-0075-stage-17-multi-capability-validation/
+```
+
+Статус задачі: `done` після human review approval від 2026-07-05.
+
+Результат RUN-001:
+
+- додано static validation для duplicate single capability, compatible multi contributors,
+  single/multi declaration conflicts, required-port cardinality mismatch і missing required
+  multi contributors;
+- додано post-setup validation для declared `multi` + `bind()` і declared `single` + `add()`;
+- compatible multi contributors для одного token проходять compose і зберігають deterministic
+  provider order;
+- runtime `get()` / `getAll()` gating не реалізовувався в цій task.
+
+## Попередня implementation task
+
+Попередня implementation task зі статусом `done` після human review:
+
+```text
 memory/tasks/plan/TASK-07.05-0074-stage-17-multi-capability-cardinality-model/
 ```
 
@@ -78,9 +98,8 @@ memory/tasks/plan/TASK-07.05-0074-stage-17-multi-capability-cardinality-model/
 
 ## Поточні ризики
 
-- `TASK-07.05-0074` закрив declaration-level cardinality model, але validation
-  single/multi conflicts, composed runtime gating, graph-aware adapter source validation,
-  adapter-aware cycles і lifecycle child-scope-и лишаються ризиковими точками `0.0.2`.
+- Composed runtime gating, graph-aware adapter source validation, adapter-aware cycles і
+  lifecycle child-scope-и лишаються ризиковими точками `0.0.2`.
 - `0.0.1` зафіксований у локальній пам'яті як stabilization handoff; фактичний npm publish
   не треба стверджувати без окремої перевірки.
 - Security process readiness не дорівнює наявності npm security contact; перед запитом
@@ -92,7 +111,7 @@ memory/tasks/plan/TASK-07.05-0074-stage-17-multi-capability-cardinality-model/
 
 ## Наступні кроки
 
-1. Стартувати `TASK-07.05-0075-stage-17-multi-capability-validation`.
+1. Стартувати `TASK-07.05-0076-stage-17-multi-capability-runtime-gating`.
 2. Виконувати `0.0.2` phases послідовно: multi-capabilities, adapters, child scopes,
    testing/ergonomics, docs/examples, full audit, stabilization handoff.
 

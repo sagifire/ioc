@@ -1,11 +1,11 @@
 # TASK-07.05-0075: Multi-capability validation
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-05
 Owner Role: Implementation Agent
-Current Run: n/a
+Current Run: RUN-001
 Current Research: n/a
 Current Fixation: n/a
 
@@ -58,16 +58,16 @@ the `SAGIFIRE_IOC_*` namespace remains stable.
 
 ## Acceptance Criteria
 
-- [ ] Duplicate single capability across modules fails with deterministic diagnostic.
-- [ ] Multiple compatible multi providers for same token pass validation.
-- [ ] Single/multi conflict fails across provides/requires/bindings/registrations where
+- [x] Duplicate single capability across modules fails with deterministic diagnostic.
+- [x] Multiple compatible multi providers for same token pass validation.
+- [x] Single/multi conflict fails across provides/requires/bindings/registrations where
       applicable.
-- [ ] Required multi dependency with `required: true` fails when no contributor exists.
-- [ ] Optional multi dependency with zero contributors is valid.
-- [ ] Declared multi plus `bind()` fails after setup.
-- [ ] Declared single plus `add()` fails after setup.
-- [ ] Validation does not execute user factories for graph inference.
-- [ ] Tests cover static and post-setup phases.
+- [x] Required multi dependency with `required: true` fails when no contributor exists.
+- [x] Optional multi dependency with zero contributors is valid.
+- [x] Declared multi plus `bind()` fails after setup.
+- [x] Declared single plus `add()` fails after setup.
+- [x] Validation does not execute user factories for graph inference.
+- [x] Tests cover static and post-setup phases.
 
 ## Dependencies
 
@@ -80,4 +80,4 @@ the `SAGIFIRE_IOC_*` namespace remains stable.
 
 ## Runs
 
-Run artifacts треба створити під час запуску задачі.
+- [RUN-001](runs/RUN-001/index.md)
