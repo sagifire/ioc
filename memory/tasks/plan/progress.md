@@ -609,16 +609,16 @@
   - Summary: Phase 6 penultimate docs and examples update for `0.0.2`.
   - Current: RUN-001
 - [TASK-07.05-0087-stage-17-0-0-2-full-audit](TASK-07.05-0087-stage-17-0-0-2-full-audit/index.md)
-  - Status: backlog
+  - Status: done
   - Type: research
   - Execution Mode: autonomous-research
-  - Summary: Phase 7 full audit before `0.0.2` stabilization.
-  - Current: n/a
+  - Summary: Phase 7 full audit before `0.0.2` stabilization, approved after human review.
+  - Current: RSCH-001
 - [TASK-07.05-0088-stage-17-0-0-2-stabilization-handoff](TASK-07.05-0088-stage-17-0-0-2-stabilization-handoff/index.md)
   - Status: backlog
   - Type: chore
   - Execution Mode: autonomous-implementation
-  - Summary: Phase 7 stabilization handoff after full audit.
+  - Summary: Phase 7 stabilization handoff after full audit, including `H-001` and `L-001`.
   - Current: n/a
 
 ## Format

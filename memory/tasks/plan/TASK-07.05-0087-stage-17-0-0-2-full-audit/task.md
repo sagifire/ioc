@@ -1,12 +1,12 @@
 # TASK-07.05-0087: `0.0.2` full audit
 
-Status: backlog
+Status: done
 Type: research
 Execution Mode: autonomous-research
 Created: 2026-07-05
 Owner Role: Audit Agent
 Current Run: n/a
-Current Research: n/a
+Current Research: RSCH-001
 Current Fixation: n/a
 
 ## Мета
@@ -40,13 +40,13 @@ Phase 7: Full audit and stabilization. Це остання фаза.
 
 ## Acceptance Criteria
 
-- [ ] Audit report exists in `research/RSCH-001.md`.
-- [ ] Audit covers all `0.0.2` phases.
-- [ ] Audit verifies accepted decisions from `FIX-001`.
-- [ ] Audit classifies findings by severity.
-- [ ] Audit identifies release blockers.
-- [ ] Code/runtime/package changes are not performed during audit.
-- [ ] Follow-up stabilization scope is clear for `TASK-07.05-0088`.
+- [x] Audit report exists in `research/RSCH-001.md`.
+- [x] Audit covers all `0.0.2` phases.
+- [x] Audit verifies accepted decisions from `FIX-001`.
+- [x] Audit classifies findings by severity.
+- [x] Audit identifies release blockers.
+- [x] Code/runtime/package changes are not performed during audit.
+- [x] Follow-up stabilization scope is clear for `TASK-07.05-0088`.
 
 ## Dependencies
 

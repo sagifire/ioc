@@ -57,6 +57,28 @@ memory/tasks/plan/TASK-07.05-0073-stage-17-0-0-2-implementation-planning/
 - зробити full audit and stabilization останньою фазою;
 - не змінювати runtime/code/package behavior під час planning.
 
+## Остання research task
+
+Остання research task:
+
+```text
+memory/tasks/plan/TASK-07.05-0087-stage-17-0-0-2-full-audit/
+```
+
+Статус задачі: `done` після human review approval від 2026-07-05.
+
+Результат RSCH-001:
+
+- критичних знахідок немає;
+- знайдено `H-001`: `examples/next-app-router` компілюється, але direct Node run падає з
+  `SAGIFIRE_IOC_CAPABILITY_REGISTRATION_CARDINALITY_MISMATCH`, бо `REQUEST_TAGS`
+  лишився single declaration while example uses multi semantics;
+- знайдено `L-001`: packed/export smoke checks не покривають явно нові `0.0.2` helper
+  exports;
+- `pnpm release:validate` проходить;
+- stabilization handoff `TASK-07.05-0088` має закрити або reclassify `H-001` і закрити
+  або явно defer `L-001`.
+
 ## Остання implementation task
 
 Остання implementation task:
@@ -210,12 +232,16 @@ memory/tasks/plan/TASK-07.05-0080-stage-17-adapter-cycle-diagnostics/
   мають явно не обіцяти compile-time rejection для `bind()` / `get()`.
 - DSL має два adapter helper paths: compatibility `adapt(token, factory)` без source-edge
   inference і graph-aware `adapter(target).from(source).using(factory)` з explicit source
-  edges; full audit має перевірити, що docs/examples не змішують ці paths.
+  edges.
+- `examples/next-app-router` має release-blocking docs/example mismatch до закриття
+  `H-001` у stabilization handoff.
 
 ## Наступні кроки
 
-1. Стартувати `TASK-07.05-0087-stage-17-0-0-2-full-audit`.
-2. Після full audit виконувати stabilization handoff через `TASK-07.05-0088`.
+1. Стартувати `TASK-07.05-0088-stage-17-0-0-2-stabilization-handoff`.
+2. У `TASK-07.05-0088` закрити або явно reclassify `H-001` перед final `0.0.2`
+   stabilization handoff.
+3. У `TASK-07.05-0088` закрити або явно defer `L-001` як lightweight smoke hardening.
 
 ## Відкриті питання
 

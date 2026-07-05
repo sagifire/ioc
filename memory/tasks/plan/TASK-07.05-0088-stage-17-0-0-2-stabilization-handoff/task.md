@@ -21,6 +21,12 @@ Phase 7: Full audit and stabilization. Це остання фаза.
 ## Scope
 
 - Read `TASK-07.05-0087` audit report.
+- Close `H-001` from `RSCH-001`: fix `examples/next-app-router` stale single/multi
+  declaration for `REQUEST_TAGS`, keep semantics explicit in code/docs, and add or extend
+  automated example coverage so the documented direct run does not regress silently.
+- Close `L-001` from `RSCH-001` as non-blocking stabilization hardening: extend package
+  export or packed smoke coverage to import and minimally exercise new `0.0.2` public
+  helpers and diagnostics exports.
 - Close all `critical` findings and all `high` findings classified as release blockers.
 - If a finding is too broad for this task, create a dedicated follow-up task and record why
   release handoff is blocked or why finding is deferred.
@@ -44,6 +50,10 @@ Phase 7: Full audit and stabilization. Це остання фаза.
 
 ## Acceptance Criteria
 
+- [ ] `H-001` is closed, reclassified with rationale or split into an explicit blocking
+      follow-up task.
+- [ ] `L-001` is closed as stabilization smoke hardening or explicitly deferred with
+      rationale.
 - [ ] All release-blocking audit findings are closed, reclassified with rationale or split
       into explicit blocking follow-up tasks.
 - [ ] Full validation commands pass or blockers are documented.
