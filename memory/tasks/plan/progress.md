@@ -572,11 +572,11 @@
   - Summary: Phase 3 adapter-aware cycle diagnostics before `0.0.2` handoff.
   - Current: RUN-001
 - [TASK-07.05-0081-stage-17-child-scope-lifecycle-model](TASK-07.05-0081-stage-17-child-scope-lifecycle-model/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Phase 4 child scope lifecycle ownership model.
-  - Current: n/a
+  - Current: RUN-001
 - [TASK-07.05-0082-stage-17-child-scope-runtime-semantics](TASK-07.05-0082-stage-17-child-scope-runtime-semantics/index.md)
   - Status: backlog
   - Type: feature

@@ -3093,6 +3093,35 @@ function createComposedRuntime(
 }
 
 function createComposedScope(containerScope: Scope, access: CompositionAccessModel): Scope {
+    function withChildScope<TValue>(callback: ScopeCallback<TValue>): Promise<TValue>
+    function withChildScope<TValue>(
+        options: CreateScopeOptions,
+        callback: ScopeCallback<TValue>
+    ): Promise<TValue>
+    function withChildScope<TValue>(
+        optionsOrCallback: CreateScopeOptions | ScopeCallback<TValue>,
+        callback?: ScopeCallback<TValue>
+    ): Promise<TValue> {
+        if (typeof optionsOrCallback === 'function') {
+            return containerScope.withChildScope((childScope) => {
+                return optionsOrCallback(createComposedScope(childScope, access))
+            })
+        }
+
+        if (callback === undefined) {
+            return containerScope.withChildScope(
+                optionsOrCallback,
+                callback as unknown as ScopeCallback<TValue>
+            )
+        }
+
+        assertScopeOptionsUsePublicCapabilities(optionsOrCallback, access)
+
+        return containerScope.withChildScope(optionsOrCallback, (childScope) => {
+            return callback(createComposedScope(childScope, access))
+        })
+    }
+
     const scope: Scope = {
         get<TValue>(resolutionToken: Token<TValue>): TValue {
             return containerScope.get(
@@ -3115,6 +3144,14 @@ function createComposedScope(containerScope: Scope, access: CompositionAccessMod
                 resolvePublicSingleCapabilityToken(resolutionToken, access, 'getAsync')
             )
         },
+
+        createChildScope(options?: CreateScopeOptions): Scope {
+            assertScopeOptionsUsePublicCapabilities(options, access)
+
+            return createComposedScope(containerScope.createChildScope(options), access)
+        },
+
+        withChildScope,
 
         dispose(): Promise<void> {
             return containerScope.dispose()

@@ -4567,6 +4567,15 @@ describe('composed runtime capabilities', () => {
         expect(firstScope.get(SCOPED_COUNTER)).toBe(firstCounter)
         expect(firstCounter.read()).toBe(1)
         expect(secondScope.get(SCOPED_COUNTER).read()).toBe(2)
+        const childScope = firstScope.createChildScope()
+
+        expect(Object.isFrozen(childScope)).toBe(true)
+        expect(childScope.get(SCOPED_COUNTER).read()).toBe(3)
+        await expect(
+            firstScope.withChildScope((scope) => {
+                return scope.get(SCOPED_COUNTER).read()
+            })
+        ).resolves.toBe(4)
         expect(() =>
             runtime.createScope({
                 values: [
@@ -4581,7 +4590,22 @@ describe('composed runtime capabilities', () => {
                 ]
             })
         ).toThrow(PrivateProviderAccessError)
+        expect(() =>
+            firstScope.createChildScope({
+                values: [
+                    [
+                        AUTH_READER,
+                        {
+                            currentUserId(): string {
+                                return 'hidden'
+                            }
+                        }
+                    ]
+                ]
+            })
+        ).toThrow(PrivateProviderAccessError)
 
+        await childScope.dispose()
         await firstScope.dispose()
         await secondScope.dispose()
 
@@ -4589,7 +4613,7 @@ describe('composed runtime capabilities', () => {
             runtime.withScope((scope) => {
                 return scope.get(SCOPED_COUNTER).read()
             })
-        ).resolves.toBe(3)
+        ).resolves.toBe(5)
     })
 
     test('preserves async provider access and resource disposal', async () => {
@@ -4858,6 +4882,10 @@ describe('composed runtime capabilities', () => {
         })
         const runtime = await createComposer().use(module).compose()
         const scope = runtime.createScope()
+        const childScope = scope.createChildScope()
+        const inferredWithChildScope = scope.withChildScope((callbackScope) =>
+            callbackScope.get(AUTH_PUBLIC_API)
+        )
 
         expectTypeOf(runtime).toEqualTypeOf<ComposedRuntime>()
         expectTypeOf(runtime.get(AUTH_PUBLIC_API)).toEqualTypeOf<AuthPublicApi>()
@@ -4868,9 +4896,13 @@ describe('composed runtime capabilities', () => {
             Promise<AuthPublicApi | undefined>
         >()
         expectTypeOf(scope).toEqualTypeOf<Scope>()
+        expectTypeOf(childScope).toEqualTypeOf<Scope>()
         expectTypeOf(scope.get(AUTH_PUBLIC_API)).toEqualTypeOf<AuthPublicApi>()
+        expectTypeOf(inferredWithChildScope).toEqualTypeOf<Promise<AuthPublicApi>>()
         expect(runtime.get(AUTH_PUBLIC_API).requireUser()).toBe('typed-user')
 
+        await inferredWithChildScope
+        await childScope.dispose()
         await scope.dispose()
     })
 })

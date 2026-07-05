@@ -1,11 +1,11 @@
 # TASK-07.05-0081: Child scope lifecycle model
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-05
 Owner Role: Implementation Agent
-Current Run: n/a
+Current Run: RUN-001
 Current Research: n/a
 Current Fixation: n/a
 
@@ -43,13 +43,13 @@ Phase 4: Child / derived scopes.
 
 ## Acceptance Criteria
 
-- [ ] `createChildScope()` creates explicit child scope.
-- [ ] `withChildScope()` disposes child on success and failure.
-- [ ] Disposing child does not dispose parent.
-- [ ] Parent disposal handles active children according to documented policy.
-- [ ] Child creation from disposed parent fails with typed error.
-- [ ] Child resolution after disposal fails with typed error.
-- [ ] No global live scope registry is introduced.
+- [x] `createChildScope()` creates explicit child scope.
+- [x] `withChildScope()` disposes child on success and failure.
+- [x] Disposing child does not dispose parent.
+- [x] Parent disposal handles active children according to documented policy.
+- [x] Child creation from disposed parent fails with typed error.
+- [x] Child resolution after disposal fails with typed error.
+- [x] No global live scope registry is introduced.
 
 ## Dependencies
 

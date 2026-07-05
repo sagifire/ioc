@@ -314,13 +314,17 @@ Scope disposal rules:
 
 - disposal is idempotent;
 - initialized scoped resources are disposed in reverse initialization order where possible;
+- active child scopes are disposed before the parent's own scoped resources, in reverse
+  child creation order;
 - after disposal, `scope.get()`, `scope.tryGet()`, `scope.getAll()` and `scope.getAsync()`
   fail with `ScopeDisposedError`;
+- after disposal, `scope.createChildScope()` and `scope.withChildScope()` fail with
+  `ScopeDisposedError`;
 - a scope created before runtime disposal cannot resolve after runtime disposal, but
   `scope.dispose()` remains valid for cleanup of already initialized scoped resources.
 
 If a disposer fails, disposal rejects after best-effort cleanup of the remaining initialized
-resources. The error is not hidden.
+resources and child scopes. The error is not hidden.
 
 ## Factory Context
 

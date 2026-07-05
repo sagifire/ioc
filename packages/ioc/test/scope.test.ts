@@ -321,6 +321,189 @@ describe('container scopes', () => {
         expect(() => scope.getAll(PLUGINS)).toThrow(ScopeDisposedError)
     })
 
+    test('creates explicit child scopes and keeps parent alive after child disposal', async () => {
+        const container = createContainer()
+
+        container.bind(LOGGER).toValue(createLogger('runtime'))
+
+        const runtime = await container.freeze()
+        const parent = runtime.createScope({
+            values: [[REQUEST_ID, 'parent']]
+        })
+        const child = parent.createChildScope({
+            values: [[REQUEST_ID, 'child']]
+        })
+
+        expect(child.get(REQUEST_ID)).toBe('child')
+
+        await child.dispose()
+
+        expect(() => child.get(REQUEST_ID)).toThrow(ScopeDisposedError)
+        expect(parent.get(REQUEST_ID)).toBe('parent')
+        expect(parent.get(LOGGER)).toEqual(createLogger('runtime'))
+
+        const nextChild = parent.createChildScope({
+            values: [[REQUEST_ID, 'next-child']]
+        })
+
+        expect(nextChild.get(REQUEST_ID)).toBe('next-child')
+
+        await parent.dispose()
+
+        expectScopeDisposed(parent)
+        expectScopeDisposed(nextChild)
+        expect(() => parent.createChildScope()).toThrow(ScopeDisposedError)
+    })
+
+    test('disposes withChildScope children after success and failure', async () => {
+        const container = createContainer()
+
+        container.bind(LOGGER).toValue(createLogger('runtime'))
+
+        const runtime = await container.freeze()
+        const parent = runtime.createScope({
+            values: [[REQUEST_ID, 'parent']]
+        })
+        let successChild: Scope | undefined
+        let thrownChild: Scope | undefined
+        let rejectedChild: Scope | undefined
+
+        const result = await parent.withChildScope(
+            {
+                values: [[REQUEST_ID, 'success-child']]
+            },
+            (childScope) => {
+                successChild = childScope
+
+                return childScope.get(REQUEST_ID)
+            }
+        )
+
+        await expect(
+            parent.withChildScope(
+                {
+                    values: [[REQUEST_ID, 'thrown-child']]
+                },
+                (childScope) => {
+                    thrownChild = childScope
+
+                    throw new Error('child sync failure')
+                }
+            )
+        ).rejects.toThrow('child sync failure')
+        await expect(
+            parent.withChildScope(async (childScope) => {
+                rejectedChild = childScope
+
+                throw new Error('child async failure')
+            })
+        ).rejects.toThrow('child async failure')
+
+        expect(result).toBe('success-child')
+        expect(parent.get(REQUEST_ID)).toBe('parent')
+        expectScopeDisposed(successChild)
+        expectScopeDisposed(thrownChild)
+        expectScopeDisposed(rejectedChild)
+
+        await parent.dispose()
+    })
+
+    test('disposes active child scopes in reverse creation order before parent resources', async () => {
+        const container = createContainer()
+        const disposed: string[] = []
+
+        container
+            .bind(COUNTER)
+            .toAsyncResource(async ({ get }) => {
+                const requestId = get(REQUEST_ID)
+
+                return {
+                    value: {
+                        value: requestId.length
+                    },
+                    dispose(): void {
+                        disposed.push(requestId)
+                    }
+                }
+            })
+            .scoped()
+
+        const runtime = await container.freeze()
+        const parent = runtime.createScope({
+            values: [[REQUEST_ID, 'parent']]
+        })
+        const firstChild = parent.createChildScope({
+            values: [[REQUEST_ID, 'child-1']]
+        })
+        const secondChild = parent.createChildScope({
+            values: [[REQUEST_ID, 'child-2']]
+        })
+
+        await parent.getAsync(COUNTER)
+        await firstChild.getAsync(COUNTER)
+        await secondChild.getAsync(COUNTER)
+        await parent.dispose()
+        await parent.dispose()
+
+        expect(disposed).toEqual(['child-2', 'child-1', 'parent'])
+        expectScopeDisposed(parent)
+        expectScopeDisposed(firstChild)
+        expectScopeDisposed(secondChild)
+    })
+
+    test('continues parent disposal when a child disposer fails', async () => {
+        const container = createContainer()
+        const disposed: string[] = []
+
+        container
+            .bind(COUNTER)
+            .toAsyncResource(async ({ get }) => {
+                const requestId = get(REQUEST_ID)
+
+                return {
+                    value: {
+                        value: requestId.length
+                    },
+                    dispose(): void {
+                        disposed.push(requestId)
+
+                        if (requestId === 'child-2') {
+                            throw new Error('child-2 dispose failed')
+                        }
+                    }
+                }
+            })
+            .scoped()
+
+        const runtime = await container.freeze()
+        const parent = runtime.createScope({
+            values: [[REQUEST_ID, 'parent']]
+        })
+        const firstChild = parent.createChildScope({
+            values: [[REQUEST_ID, 'child-1']]
+        })
+        const secondChild = parent.createChildScope({
+            values: [[REQUEST_ID, 'child-2']]
+        })
+        const thirdChild = parent.createChildScope({
+            values: [[REQUEST_ID, 'child-3']]
+        })
+
+        await parent.getAsync(COUNTER)
+        await firstChild.getAsync(COUNTER)
+        await secondChild.getAsync(COUNTER)
+        await thirdChild.getAsync(COUNTER)
+
+        await expect(parent.dispose()).rejects.toThrow('child-2 dispose failed')
+        await parent.dispose()
+
+        expect(disposed).toEqual(['child-3', 'child-2', 'child-1', 'parent'])
+        expectScopeDisposed(parent)
+        expectScopeDisposed(firstChild)
+        expectScopeDisposed(secondChild)
+        expectScopeDisposed(thirdChild)
+    })
+
     test('disposes withScope scopes after sync, async and failing callbacks', async () => {
         const container = createContainer()
         const runtime = await container.freeze()
@@ -401,24 +584,43 @@ describe('container scopes', () => {
 
         const runtime = await container.freeze()
         const scope = runtime.createScope(options)
+        const childScope = scope.createChildScope(options)
         const inferredWithScope = runtime.withScope((callbackScope) => callbackScope.get(COUNTER))
         const inferredWithOptions = runtime.withScope(options, (callbackScope) =>
+            callbackScope.get(COUNTER)
+        )
+        const inferredWithChildScope = scope.withChildScope((callbackScope) =>
+            callbackScope.get(COUNTER)
+        )
+        const inferredWithChildOptions = scope.withChildScope(options, (callbackScope) =>
             callbackScope.get(COUNTER)
         )
 
         expectTypeOf(runtime).toEqualTypeOf<ContainerRuntime>()
         expectTypeOf(scope).toEqualTypeOf<Scope>()
+        expectTypeOf(childScope).toEqualTypeOf<Scope>()
         expectTypeOf(scope.get(COUNTER)).toEqualTypeOf<Counter>()
         expectTypeOf(scope.tryGet(COUNTER)).toEqualTypeOf<Counter | undefined>()
         expectTypeOf(scope.getAll(PLUGINS)).toEqualTypeOf<Plugin[]>()
         expectTypeOf(scope.getAsync(COUNTER)).toEqualTypeOf<Promise<Counter>>()
+        expectTypeOf(scope.createChildScope).toEqualTypeOf<
+            (options?: CreateScopeOptions) => Scope
+        >()
         expectTypeOf(inferredWithScope).toEqualTypeOf<Promise<Counter>>()
         expectTypeOf(inferredWithOptions).toEqualTypeOf<Promise<Counter>>()
+        expectTypeOf(inferredWithChildScope).toEqualTypeOf<Promise<Counter>>()
+        expectTypeOf(inferredWithChildOptions).toEqualTypeOf<Promise<Counter>>()
 
+        await childScope.dispose()
         await inferredWithScope
         await inferredWithOptions
+        await inferredWithChildScope
+        await inferredWithChildOptions
+        await scope.dispose()
 
         expect('getAsync' in scope).toBe(true)
+        expect('createChildScope' in scope).toBe(true)
+        expect('withChildScope' in scope).toBe(true)
         expect('getAsync' in runtime).toBe(true)
         expect('tryGetAsync' in runtime).toBe(true)
         expect('dispose' in runtime).toBe(true)

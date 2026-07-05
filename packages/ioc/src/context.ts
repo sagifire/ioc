@@ -6,6 +6,12 @@ export interface Scope {
     tryGet<TValue>(token: Token<TValue>): TValue | undefined
     getAll<TValue>(token: Token<TValue>): TValue[]
     getAsync<TValue>(token: Token<TValue>): Promise<TValue>
+    createChildScope(options?: CreateScopeOptions): Scope
+    withChildScope<TValue>(callback: ScopeCallback<TValue>): Promise<TValue>
+    withChildScope<TValue>(
+        options: CreateScopeOptions,
+        callback: ScopeCallback<TValue>
+    ): Promise<TValue>
     dispose(): Promise<void>
 }
 
@@ -64,10 +70,10 @@ export class ScopeDisposedError extends SagifireIocError<{
     override readonly name = 'ScopeDisposedError'
     override readonly code = 'SAGIFIRE_IOC_SCOPE_DISPOSED'
 
-    constructor() {
+    constructor(action = 'resolve providers') {
         super({
             code: 'SAGIFIRE_IOC_SCOPE_DISPOSED',
-            message: 'Scope has been disposed and cannot resolve providers',
+            message: `Scope has been disposed and cannot ${action}`,
             details: {
                 reason: 'scope-disposed'
             }

@@ -224,6 +224,23 @@ Scope-local rules:
 `scopeValue()` and `scopeMultiValue()` are typed helpers. Tuple entries such as
 `[REQUEST_ID, 'request-1']` are also supported.
 
+### Child Scopes
+
+Scopes can create explicit child scopes with `scope.createChildScope(options?)` or
+`scope.withChildScope(options?, callback)`.
+
+Lifecycle rules:
+
+- child scopes are explicit objects; there is no hidden current scope;
+- disposing a child scope does not dispose its parent;
+- disposing a parent scope disposes active child scopes in reverse creation order, then
+  disposes the parent's own scoped resources;
+- `withChildScope()` disposes the child scope after success and failure;
+- creating a child from a disposed parent fails with `ScopeDisposedError`.
+
+Child scope value inheritance and scoped-provider cache semantics are intentionally kept out
+of this reference until that behavior is implemented.
+
 ## Scope-Bound Factories
 
 When a provider is resolved through a scope, its factory context is also scope-bound.

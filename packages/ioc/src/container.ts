@@ -388,6 +388,8 @@ interface ScopeState {
     readonly localMultis: ReadonlyMap<string, readonly unknown[]>
     readonly scopedCache: Map<ProviderRecord<unknown>, ProviderCache<unknown>>
     readonly scopedResourceDisposers: ResourceDisposerRecord[]
+    readonly childScopes: ScopeState[]
+    readonly parent: ScopeState | undefined
     disposed: boolean
 }
 
@@ -911,6 +913,12 @@ async function createRuntime(
     const assertRuntimeIsActive = (action: string): void => {
         if (runtimeState.disposed) {
             throw new RuntimeDisposedError(action)
+        }
+    }
+
+    const assertScopeIsActive = (scopeState: ScopeState, action: string): void => {
+        if (scopeState.disposed) {
+            throw new ScopeDisposedError(action)
         }
     }
 
@@ -1492,10 +1500,155 @@ async function createRuntime(
         }
     }
 
-    const createScope = (options?: CreateScopeOptions): Scope => {
-        assertRuntimeIsActive('create scope')
+    const disposeChildScopes = async (scopeState: ScopeState): Promise<void> => {
+        const children = [...scopeState.childScopes].reverse()
 
-        const scopeState = createScopeState(options, registrations)
+        scopeState.childScopes.length = 0
+
+        let firstError: unknown
+
+        for (const childState of children) {
+            try {
+                await disposeScopeState(childState)
+            } catch (error) {
+                if (firstError === undefined) {
+                    firstError = error
+                }
+            }
+        }
+
+        if (firstError !== undefined) {
+            throw firstError
+        }
+    }
+
+    const removeChildScope = (scopeState: ScopeState): void => {
+        const parent = scopeState.parent
+
+        if (parent === undefined) {
+            return
+        }
+
+        const index = parent.childScopes.indexOf(scopeState)
+
+        if (index !== -1) {
+            parent.childScopes.splice(index, 1)
+        }
+    }
+
+    const disposeScopeState = async (scopeState: ScopeState): Promise<void> => {
+        if (scopeState.disposed) {
+            return
+        }
+
+        scopeState.disposed = true
+
+        let firstError: unknown
+
+        try {
+            await disposeChildScopes(scopeState)
+        } catch (error) {
+            firstError = error
+        }
+
+        try {
+            await disposeResourceRecords(scopeState.scopedResourceDisposers)
+        } catch (error) {
+            if (firstError === undefined) {
+                firstError = error
+            }
+        } finally {
+            scopeState.scopedCache.clear()
+            removeChildScope(scopeState)
+        }
+
+        if (firstError !== undefined) {
+            throw firstError
+        }
+    }
+
+    const createChildScopeForState = (
+        parentState: ScopeState,
+        options?: CreateScopeOptions
+    ): Scope => {
+        assertScopeIsActive(parentState, 'create child scope')
+        assertRuntimeIsActive('create child scope')
+
+        const childState = createScopeState(options, registrations, parentState)
+
+        parentState.childScopes.push(childState)
+
+        return createScopeObject(childState)
+    }
+
+    function withChildScopeForState<TValue>(
+        parentState: ScopeState,
+        callback: ScopeCallback<TValue>
+    ): Promise<TValue>
+    function withChildScopeForState<TValue>(
+        parentState: ScopeState,
+        options: CreateScopeOptions,
+        callback: ScopeCallback<TValue>
+    ): Promise<TValue>
+    async function withChildScopeForState<TValue>(
+        parentState: ScopeState,
+        optionsOrCallback: CreateScopeOptions | ScopeCallback<TValue>,
+        callback?: ScopeCallback<TValue>
+    ): Promise<TValue> {
+        let options: CreateScopeOptions | undefined
+        let scopeCallback: ScopeCallback<TValue>
+
+        if (typeof optionsOrCallback === 'function') {
+            scopeCallback = optionsOrCallback
+        } else {
+            options = optionsOrCallback
+
+            if (callback === undefined) {
+                throw new InvalidScopeError(
+                    'withChildScope(options, callback) requires a callback',
+                    {
+                        reason: 'invalid-with-scope-callback'
+                    }
+                )
+            }
+
+            scopeCallback = callback
+        }
+
+        const childScope = createChildScopeForState(parentState, options)
+
+        try {
+            return await scopeCallback(childScope)
+        } finally {
+            await childScope.dispose()
+        }
+    }
+
+    const createScopeObject = (scopeState: ScopeState): Scope => {
+        function withChildScope<TValue>(callback: ScopeCallback<TValue>): Promise<TValue>
+        function withChildScope<TValue>(
+            options: CreateScopeOptions,
+            callback: ScopeCallback<TValue>
+        ): Promise<TValue>
+        function withChildScope<TValue>(
+            optionsOrCallback: CreateScopeOptions | ScopeCallback<TValue>,
+            callback?: ScopeCallback<TValue>
+        ): Promise<TValue> {
+            if (typeof optionsOrCallback === 'function') {
+                return withChildScopeForState(scopeState, optionsOrCallback)
+            }
+
+            if (callback === undefined) {
+                return withChildScopeForState(
+                    scopeState,
+                    optionsOrCallback,
+                    callback as unknown as ScopeCallback<TValue>
+                )
+            }
+
+            return withChildScopeForState(scopeState, optionsOrCallback, callback)
+        }
+
         const scope: Scope = {
             get<TValue>(token: Token<TValue>): TValue {
                 return resolveRequired(token, [], scopeState)
@@ -1513,22 +1666,24 @@ async function createRuntime(
                 return resolveRequiredAsync(token, [], scopeState)
             },
 
-            async dispose(): Promise<void> {
-                if (scopeState.disposed) {
-                    return
-                }
+            createChildScope(options?: CreateScopeOptions): Scope {
+                return createChildScopeForState(scopeState, options)
+            },
 
-                scopeState.disposed = true
+            withChildScope,
 
-                try {
-                    await disposeResourceRecords(scopeState.scopedResourceDisposers)
-                } finally {
-                    scopeState.scopedCache.clear()
-                }
+            dispose(): Promise<void> {
+                return disposeScopeState(scopeState)
             }
         }
 
         return Object.freeze(scope)
+    }
+
+    const createScope = (options?: CreateScopeOptions): Scope => {
+        assertRuntimeIsActive('create scope')
+
+        return createScopeObject(createScopeState(options, registrations, undefined))
     }
 
     function withScope<TValue>(callback: ScopeCallback<TValue>): Promise<TValue>
@@ -1678,7 +1833,8 @@ async function initializeEagerSingletonProviders(
 
 function createScopeState(
     options: CreateScopeOptions | undefined,
-    registrations: ReadonlyMap<string, ProviderRegistration>
+    registrations: ReadonlyMap<string, ProviderRegistration>,
+    parent: ScopeState | undefined
 ): ScopeState {
     const localSingles = new Map<string, unknown>()
     const localMultis = new Map<string, unknown[]>()
@@ -1750,6 +1906,8 @@ function createScopeState(
         localMultis,
         scopedCache: new Map<ProviderRecord<unknown>, ProviderCache<unknown>>(),
         scopedResourceDisposers: [],
+        childScopes: [],
+        parent,
         disposed: false
     }
 }

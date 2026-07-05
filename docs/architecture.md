@@ -131,6 +131,8 @@ await scope.dispose()
 
 Scope-local single values override runtime single providers for that scope. Scope-local
 multi values extend runtime multi-provider collections after runtime contributions.
+Scopes can also create explicit child scopes; parent scope disposal owns active children in
+reverse creation order, while child disposal does not dispose the parent.
 
 For details, see [Container](container.md) and [Async model](async-model.md).
 

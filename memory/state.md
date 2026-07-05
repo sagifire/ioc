@@ -62,6 +62,31 @@ memory/tasks/plan/TASK-07.05-0073-stage-17-0-0-2-implementation-planning/
 Остання implementation task:
 
 ```text
+memory/tasks/plan/TASK-07.05-0081-stage-17-child-scope-lifecycle-model/
+```
+
+Статус задачі: `done` після human review approval від 2026-07-05.
+
+Результат RUN-001:
+
+- додано `scope.createChildScope(options?)` і `scope.withChildScope(...)` для explicit child
+  scopes;
+- parent scope локально tracks active children без global live scope registry;
+- child disposal не dispose-ить parent;
+- parent disposal dispose-ить active children in reverse creation order before own scoped
+  resources;
+- child creation from disposed parent and child resolution after disposal fail with typed
+  `ScopeDisposedError`;
+- composed scope wrapper зберігає public capability access checks для child scope options;
+- minimal API reference docs оновлено;
+- quality gates пройшли.
+- human review approval отримано, задачу завершено.
+
+## Попередня implementation task
+
+Попередня implementation task:
+
+```text
 memory/tasks/plan/TASK-07.05-0080-stage-17-adapter-cycle-diagnostics/
 ```
 
@@ -77,11 +102,10 @@ memory/tasks/plan/TASK-07.05-0080-stage-17-adapter-cycle-diagnostics/
   `moduleIdPath`, `tokenIdPath` і `edgeKinds`, включно з `adapter-source`;
 - validation не виконує adapter factories або module setup для static cycle rejection;
 - повні quality gates пройшли.
-- human review approval отримано, задачу завершено.
 
-## Попередня implementation task
+## Передпопередня implementation task
 
-Попередня implementation task:
+Передпопередня implementation task зі статусом `done` після human review:
 
 ```text
 memory/tasks/plan/TASK-07.05-0079-stage-17-adapter-source-validation-inspection/
@@ -104,30 +128,10 @@ memory/tasks/plan/TASK-07.05-0079-stage-17-adapter-source-validation-inspection/
 - `@sagifire/ioc-testing` graph assertions підтримують `adapter-source` edge expectations;
 - повні quality gates пройшли.
 
-## Передпопередня implementation task
-
-Передпопередня implementation task зі статусом `done` після human review:
-
-```text
-memory/tasks/plan/TASK-07.05-0078-stage-17-graph-aware-adapter-api/
-```
-
-Статус задачі: `done` після human review approval від 2026-07-05.
-
-Результат RUN-001:
-
-- `Composer.adapt(target).from(source).using(factory)` додано як additive graph-aware
-  adapter object API;
-- single token source and object source forms підтримані з TypeScript inference;
-- `using()` отримує тільки resolved source value/object, без resolver context;
-- adapter source metadata доступна через binding metadata без factory execution;
-- existing `composer.bind().toFactory()` and DSL `adapt(token, factory)` лишилися
-  backward compatible;
-- повні quality gates пройшли.
-
 ## Поточні ризики
 
-- Lifecycle child-scope-и лишаються ризиковою точкою `0.0.2`.
+- Child-scope lifecycle ownership завершено; child value inheritance, overrides and scoped
+  cache semantics лишаються ризиковою точкою наступної задачі.
 - `0.0.1` зафіксований у локальній пам'яті як stabilization handoff; фактичний npm publish
   не треба стверджувати без окремої перевірки.
 - Security process readiness не дорівнює наявності npm security contact; перед запитом
@@ -137,7 +141,7 @@ memory/tasks/plan/TASK-07.05-0078-stage-17-graph-aware-adapter-api/
 
 ## Наступні кроки
 
-1. Стартувати `TASK-07.05-0081-stage-17-child-scope-lifecycle-model`.
+1. Стартувати `TASK-07.05-0082-stage-17-child-scope-runtime-semantics`.
 2. Виконувати `0.0.2` phases послідовно: child scopes, testing/ergonomics,
    docs/examples, full audit, stabilization handoff.
 
