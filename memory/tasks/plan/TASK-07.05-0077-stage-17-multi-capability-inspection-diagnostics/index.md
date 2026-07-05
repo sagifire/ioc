@@ -2,10 +2,13 @@
 
 ## Призначення
 
-Backlog implementation task для inspection і diagnostics surface multi-capabilities.
+Implementation task для inspection і diagnostics surface multi-capabilities.
 
 ## Файли
 
 - [Task](task.md)
   - Type: file
   - Purpose: Scope and acceptance для multi-capability graph inspection.
+- [Runs](runs/index.md)
+  - Type: folder
+  - Purpose: Execution artifacts for implementation runs.

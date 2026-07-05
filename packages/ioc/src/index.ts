@@ -61,6 +61,8 @@ export type {
     CapabilityCardinalityConflictErrorDetails,
     CapabilityMetadata,
     CapabilityDependencyEdge,
+    CapabilityProviderMetadata,
+    CapabilityProviderRegistrationKind,
     CapabilityRegistrationCardinalityMismatchErrorDetails,
     ComposerInspection,
     CompositionBindingMetadata,

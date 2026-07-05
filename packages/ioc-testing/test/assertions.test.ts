@@ -306,7 +306,7 @@ describe('graph and diagnostic assertions', () => {
                 '   Details:',
                 '     moduleId: testing-assertions-contact-requests',
                 '     tokenId: testing.assertions.missing',
-                '     dependencyKind: "external"'
+                '     dependencyKind: external'
             ].join('\n')
         )
         expect(
@@ -326,7 +326,7 @@ describe('graph and diagnostic assertions', () => {
                 '   Details:',
                 '     moduleId: testing-assertions-contact-requests',
                 '     tokenId: testing.assertions.missing',
-                '     dependencyKind: "external"'
+                '     dependencyKind: external'
             ].join('\n')
         )
         expect(

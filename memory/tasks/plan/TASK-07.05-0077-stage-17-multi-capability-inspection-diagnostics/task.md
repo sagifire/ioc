@@ -1,11 +1,11 @@
 # TASK-07.05-0077: Multi-capability inspection and diagnostics
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-05
 Owner Role: Implementation Agent
-Current Run: n/a
+Current Run: RUN-001
 Current Research: n/a
 Current Fixation: n/a
 
@@ -60,12 +60,12 @@ preserve the same information.
 
 ## Acceptance Criteria
 
-- [ ] `composer.getGraph()` and `composer.inspect()` expose cardinality.
-- [ ] `runtime.inspect()` exposes provider/contributor metadata after composition.
-- [ ] Provider ordering in inspection matches resolution ordering.
-- [ ] Optional and required multi dependency satisfaction state is visible.
-- [ ] Public inspection exposes enough data for testing helpers.
-- [ ] No private provider details leak through inspection.
+- [x] `composer.getGraph()` and `composer.inspect()` expose cardinality.
+- [x] `runtime.inspect()` exposes provider/contributor metadata after composition.
+- [x] Provider ordering in inspection matches resolution ordering.
+- [x] Optional and required multi dependency satisfaction state is visible.
+- [x] Public inspection exposes enough data for testing helpers.
+- [x] No private provider details leak through inspection.
 
 ## Dependencies
 
@@ -78,4 +78,4 @@ preserve the same information.
 
 ## Runs
 
-Run artifacts треба створити під час запуску задачі.
+- [RUN-001](runs/RUN-001/index.md)

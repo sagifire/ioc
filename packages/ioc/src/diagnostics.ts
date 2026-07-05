@@ -222,9 +222,13 @@ function shouldRenderStringWithoutQuotes(key: string): boolean {
         key === 'reason' ||
         key === 'expectedKind' ||
         key === 'actualKind' ||
+        key === 'cardinality' ||
+        key === 'providerSource' ||
         key === 'action' ||
         key === 'accessMethod' ||
         key === 'valueType' ||
+        key.endsWith('Kind') ||
+        key.endsWith('Cardinality') ||
         key.endsWith('Id') ||
         key.endsWith('Ids')
     )

@@ -62,6 +62,29 @@ memory/tasks/plan/TASK-07.05-0073-stage-17-0-0-2-implementation-planning/
 Остання завершена implementation task:
 
 ```text
+memory/tasks/plan/TASK-07.05-0077-stage-17-multi-capability-inspection-diagnostics/
+```
+
+Статус задачі: `done` після human review approval від 2026-07-05.
+
+Результат RUN-001:
+
+- `composer.getGraph()` і `composer.inspect()` показують `cardinality` для capabilities і
+  required ports;
+- required port inspection показує `providerCount` і satisfaction state для optional/required
+  multi dependencies;
+- graph capability metadata показує declaration-level provider/contributor list із
+  `registrationKind: 'bind' | 'add'` і deterministic `registrationIndex`;
+- `runtime.inspect().providerRegistrations` показує exported provider cardinality і
+  per-provider `registrationIndex`, який відповідає `getAll()` resolution order;
+- `formatDiagnostics()` читабельно форматує cardinality/provider registration detail fields;
+- private provider tokens/values не експортуються через inspection.
+
+## Попередня implementation task
+
+Попередня implementation task зі статусом `done` після human review:
+
+```text
 memory/tasks/plan/TASK-07.05-0076-stage-17-multi-capability-runtime-gating/
 ```
 
@@ -79,30 +102,10 @@ memory/tasks/plan/TASK-07.05-0076-stage-17-multi-capability-runtime-gating/
 - module-private multi providers не експортуються через composed runtime;
 - `composer.add()` не вводився в цьому run.
 
-## Попередня implementation task
-
-Попередня implementation task зі статусом `done` після human review:
-
-```text
-memory/tasks/plan/TASK-07.05-0075-stage-17-multi-capability-validation/
-```
-
-Статус задачі: `done` після human review approval від 2026-07-05.
-
-Результат RUN-001:
-
-- додано static validation для duplicate single capability, compatible multi contributors,
-  single/multi declaration conflicts, required-port cardinality mismatch і missing required
-  multi contributors;
-- додано post-setup validation для declared `multi` + `bind()` і declared `single` + `add()`;
-- compatible multi contributors для одного token проходять compose і зберігають deterministic
-  provider order;
-- runtime `get()` / `getAll()` gating не реалізовувався в цій task.
-
 ## Поточні ризики
 
-- Public inspection for multi-capability provider shape, graph-aware adapter source validation,
-  adapter-aware cycles і lifecycle child-scope-и лишаються ризиковими точками `0.0.2`.
+- Graph-aware adapter source validation, adapter-aware cycles і lifecycle child-scope-и
+  лишаються ризиковими точками `0.0.2`.
 - `0.0.1` зафіксований у локальній пам'яті як stabilization handoff; фактичний npm publish
   не треба стверджувати без окремої перевірки.
 - Security process readiness не дорівнює наявності npm security contact; перед запитом
@@ -114,10 +117,8 @@ memory/tasks/plan/TASK-07.05-0075-stage-17-multi-capability-validation/
 
 ## Наступні кроки
 
-1. Стартувати `TASK-07.05-0077-stage-17-multi-capability-inspection-diagnostics`.
-2. Після `TASK-07.05-0077` виконати
-   `TASK-07.05-0089-stage-17-composer-add-multi-contributions`.
-3. Виконувати `0.0.2` phases послідовно: multi-capabilities, adapters, child scopes,
+1. Стартувати `TASK-07.05-0089-stage-17-composer-add-multi-contributions`.
+2. Виконувати `0.0.2` phases послідовно: multi-capabilities, adapters, child scopes,
    testing/ergonomics, docs/examples, full audit, stabilization handoff.
 
 ## Відкриті питання

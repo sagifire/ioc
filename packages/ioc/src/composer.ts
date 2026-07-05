@@ -118,6 +118,8 @@ export type RequiredPortSatisfaction = 'binding' | 'capability' | 'optional' | '
 
 export type ModuleDependencyEdgeKind = 'capability' | 'binding'
 
+export type CapabilityProviderRegistrationKind = 'bind' | 'add'
+
 export interface ComposerBindingContext {
     get<TValue>(token: Token<TValue>): TValue
     tryGet<TValue>(token: Token<TValue>): TValue | undefined
@@ -180,14 +182,24 @@ export interface RequiredPortMetadata {
     readonly tokenId: string
     readonly required: boolean
     readonly kind: ModuleDependencyKind
+    readonly cardinality: ModuleCardinality
+    readonly providerCount: number
     readonly description?: string
     readonly satisfiedBy: RequiredPortSatisfaction
+}
+
+export interface CapabilityProviderMetadata {
+    readonly moduleId: string
+    readonly registrationKind: CapabilityProviderRegistrationKind
+    readonly registrationIndex: number
 }
 
 export interface CapabilityMetadata {
     readonly moduleId: string
     readonly tokenId: string
     readonly kind: ModuleCapabilityKind
+    readonly cardinality: ModuleCardinality
+    readonly providers: readonly CapabilityProviderMetadata[]
     readonly description?: string
 }
 
@@ -223,6 +235,7 @@ export type ModuleDependencyEdge = CapabilityDependencyEdge | BindingDependencyE
 
 export interface ProviderRegistrationProviderSummary {
     readonly providerKind: InspectionProviderKind
+    readonly registrationIndex: number
     readonly lifetime?: ProviderLifetime
     readonly initialization?: AsyncProviderInitializationMode
 }
@@ -231,6 +244,7 @@ export interface ProviderRegistrationSummary {
     readonly moduleId: string
     readonly tokenId: string
     readonly capabilityKind: ModuleCapabilityKind
+    readonly cardinality: ModuleCardinality
     readonly visibility: 'exported'
     readonly registrationKind: ProviderRegistrationKind
     readonly providers: readonly ProviderRegistrationProviderSummary[]
@@ -986,6 +1000,7 @@ interface ModuleCyclePath {
 
 interface ProviderRegistrationRecord {
     readonly providerKind: InspectionProviderKind
+    registrationIndex: number | undefined
     lifetime: ProviderLifetime | undefined
     initialization: AsyncProviderInitializationMode | undefined
 }
@@ -1204,6 +1219,7 @@ function createModuleGraph(
     const providedTokenIds = collectProvidedTokenIds(moduleSnapshot)
     const bindingTokenIds = collectBindingTokenIds(bindingSnapshot)
     const capabilitiesByTokenId = collectFirstCapabilityByTokenId(moduleSnapshot)
+    const capabilityDeclarationsByTokenId = collectCapabilityDeclarationsByTokenId(moduleSnapshot)
     const bindingsByTokenId = collectFirstBindingByTokenId(bindingSnapshot)
     const moduleMetadata = Object.freeze(
         moduleSnapshot.map((moduleDefinition) => {
@@ -1217,7 +1233,8 @@ function createModuleGraph(
                     moduleDefinition,
                     dependency,
                     providedTokenIds,
-                    bindingTokenIds
+                    bindingTokenIds,
+                    capabilityDeclarationsByTokenId
                 )
             })
         })
@@ -1225,7 +1242,11 @@ function createModuleGraph(
     const capabilities = Object.freeze(
         moduleSnapshot.flatMap((moduleDefinition) => {
             return moduleDefinition.provides.map((capability) => {
-                return createCapabilityMetadata(moduleDefinition, capability)
+                return createCapabilityMetadata(
+                    moduleDefinition,
+                    capability,
+                    capabilityDeclarationsByTokenId
+                )
             })
         })
     )
@@ -1388,13 +1409,20 @@ function createRequiredPortMetadata(
     moduleDefinition: ModuleDefinition,
     dependency: ModuleDependencyDefinition,
     providedTokenIds: ReadonlySet<string>,
-    bindingTokenIds: ReadonlySet<string>
+    bindingTokenIds: ReadonlySet<string>,
+    capabilitiesByTokenId: ReadonlyMap<string, readonly CapabilityDeclarationRecord[]>
 ): RequiredPortMetadata {
     const base = {
         moduleId: moduleDefinition.id,
         tokenId: dependency.token.id,
         required: dependency.required,
         kind: dependency.kind,
+        cardinality: dependency.cardinality ?? 'single',
+        providerCount: getRequiredPortProviderCount(
+            dependency,
+            capabilitiesByTokenId,
+            bindingTokenIds
+        ),
         satisfiedBy: getRequiredPortSatisfaction(dependency, providedTokenIds, bindingTokenIds)
     }
 
@@ -1410,12 +1438,15 @@ function createRequiredPortMetadata(
 
 function createCapabilityMetadata(
     moduleDefinition: ModuleDefinition,
-    capability: ModuleCapabilityDefinition
+    capability: ModuleCapabilityDefinition,
+    capabilitiesByTokenId: ReadonlyMap<string, readonly CapabilityDeclarationRecord[]>
 ): CapabilityMetadata {
     const base = {
         moduleId: moduleDefinition.id,
         tokenId: capability.token.id,
-        kind: capability.kind
+        kind: capability.kind,
+        cardinality: capability.cardinality ?? 'single',
+        providers: createCapabilityProviderMetadata(capability.token.id, capabilitiesByTokenId)
     }
 
     if (capability.description === undefined) {
@@ -1426,6 +1457,23 @@ function createCapabilityMetadata(
         ...base,
         description: capability.description
     })
+}
+
+function createCapabilityProviderMetadata(
+    tokenId: string,
+    capabilitiesByTokenId: ReadonlyMap<string, readonly CapabilityDeclarationRecord[]>
+): readonly CapabilityProviderMetadata[] {
+    const capabilities = capabilitiesByTokenId.get(tokenId) ?? []
+
+    return Object.freeze(
+        capabilities.map((capability, index) => {
+            return Object.freeze({
+                moduleId: capability.moduleId,
+                registrationKind: capability.cardinality === 'multi' ? 'add' : 'bind',
+                registrationIndex: index
+            })
+        })
+    )
 }
 
 function createCompositionBindingMetadata(
@@ -1562,6 +1610,7 @@ function createProviderRegistrationSummary(
         moduleId: registration.moduleId,
         tokenId: registration.tokenId,
         capabilityKind: registration.kind,
+        cardinality: registration.registrationKind,
         visibility: 'exported',
         registrationKind: registration.registrationKind,
         providers: Object.freeze(
@@ -1578,7 +1627,8 @@ function createProviderRegistrationProviderSummary(
     const lifetime = provider.lifetime
     const initialization = provider.initialization
     const base = {
-        providerKind: provider.providerKind
+        providerKind: provider.providerKind,
+        registrationIndex: provider.registrationIndex ?? 0
     }
 
     if (lifetime === undefined) {
@@ -1611,10 +1661,6 @@ function getRequiredPortSatisfaction(
     providedTokenIds: ReadonlySet<string>,
     bindingTokenIds: ReadonlySet<string>
 ): RequiredPortSatisfaction {
-    if (!dependency.required) {
-        return 'optional'
-    }
-
     if (bindingTokenIds.has(dependency.token.id)) {
         return 'binding'
     }
@@ -1623,7 +1669,23 @@ function getRequiredPortSatisfaction(
         return 'capability'
     }
 
+    if (!dependency.required) {
+        return 'optional'
+    }
+
     return 'missing'
+}
+
+function getRequiredPortProviderCount(
+    dependency: ModuleDependencyDefinition,
+    capabilitiesByTokenId: ReadonlyMap<string, readonly CapabilityDeclarationRecord[]>,
+    bindingTokenIds: ReadonlySet<string>
+): number {
+    if (bindingTokenIds.has(dependency.token.id)) {
+        return 1
+    }
+
+    return capabilitiesByTokenId.get(dependency.token.id)?.length ?? 0
 }
 
 function createInspectionMetadata(value: unknown): InspectionMetadata | undefined {
@@ -1883,6 +1945,7 @@ function createProviderRegistrationRecord(
 ): ProviderRegistrationRecord {
     return {
         providerKind,
+        registrationIndex: undefined,
         lifetime,
         initialization
     }
@@ -3067,6 +3130,11 @@ function recordModuleProvider(
         return
     }
 
+    providerRegistration.registrationIndex = getNextProviderRegistrationIndex(
+        access,
+        originalToken.id
+    )
+
     const existingRegistration = findRegisteredCapability(
         access,
         moduleDefinition.id,
@@ -3095,6 +3163,18 @@ function recordModuleProvider(
     }
 
     existingRegistrations.push(registration)
+}
+
+function getNextProviderRegistrationIndex(access: CompositionAccessModel, tokenId: string): number {
+    const registrations = access.registeredCapabilities.get(tokenId)
+
+    if (registrations === undefined) {
+        return 0
+    }
+
+    return registrations.reduce((count, registration) => {
+        return count + registration.providers.length
+    }, 0)
 }
 
 function validateDeclaredProviderRegistrations(

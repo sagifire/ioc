@@ -25,6 +25,8 @@ import {
     type BindingDependencyEdge,
     type CapabilityMetadata,
     type CapabilityDependencyEdge,
+    type CapabilityProviderMetadata,
+    type CapabilityProviderRegistrationKind,
     type Composer,
     type ComposerBindingBuilder,
     type ComposerBindingContext,
@@ -1776,11 +1778,13 @@ describe('module setup and private providers', () => {
                 moduleId: 'prepare-first-audit-contributor',
                 tokenId: 'composer.audit-events',
                 capabilityKind: 'event-subscriber',
+                cardinality: 'multi',
                 visibility: 'exported',
                 registrationKind: 'multi',
                 providers: [
                     {
                         providerKind: 'value',
+                        registrationIndex: 0,
                         lifetime: 'singleton'
                     }
                 ]
@@ -1789,11 +1793,13 @@ describe('module setup and private providers', () => {
                 moduleId: 'prepare-second-audit-contributor',
                 tokenId: 'composer.audit-events',
                 capabilityKind: 'event-subscriber',
+                cardinality: 'multi',
                 visibility: 'exported',
                 registrationKind: 'multi',
                 providers: [
                     {
                         providerKind: 'value',
+                        registrationIndex: 1,
                         lifetime: 'singleton'
                     }
                 ]
@@ -1966,6 +1972,8 @@ describe('inspection api', () => {
                 tokenId: 'composer.auth-reader',
                 required: true,
                 kind: 'external',
+                cardinality: 'single',
+                providerCount: 1,
                 description: 'Consumer-owned auth reader',
                 satisfiedBy: 'binding'
             },
@@ -1974,6 +1982,8 @@ describe('inspection api', () => {
                 tokenId: 'composer.optional-auth-reader',
                 required: false,
                 kind: 'shared',
+                cardinality: 'single',
+                providerCount: 0,
                 satisfiedBy: 'optional'
             }
         ])
@@ -1982,12 +1992,28 @@ describe('inspection api', () => {
                 moduleId: 'inspect-auth',
                 tokenId: 'composer.auth-public-api',
                 kind: 'public-api',
+                cardinality: 'single',
+                providers: [
+                    {
+                        moduleId: 'inspect-auth',
+                        registrationKind: 'bind',
+                        registrationIndex: 0
+                    }
+                ],
                 description: 'Authentication public API'
             },
             {
                 moduleId: 'inspect-contact-requests',
                 tokenId: 'composer.contact-requests-public-api',
-                kind: 'public-api'
+                kind: 'public-api',
+                cardinality: 'single',
+                providers: [
+                    {
+                        moduleId: 'inspect-contact-requests',
+                        registrationKind: 'bind',
+                        registrationIndex: 0
+                    }
+                ]
             }
         ])
         expect(inspection.bindings).toEqual([
@@ -2042,6 +2068,111 @@ describe('inspection api', () => {
 
         expect(invalidInspection.validation.ok).toBe(false)
         expect(invalidInspection.requiredPorts[0]?.satisfiedBy).toBe('missing')
+    })
+
+    test('inspects multi-capability declaration providers and multi required ports', () => {
+        const optionalAuditEvents = token<string>('composer.optional-audit-events')
+        const firstAuditModule = defineModule({
+            id: 'inspect-multi-first-audit',
+            provides: [
+                {
+                    token: AUDIT_EVENTS,
+                    kind: 'event-subscriber',
+                    cardinality: 'multi'
+                }
+            ],
+            setup(): void {}
+        })
+        const secondAuditModule = defineModule({
+            id: 'inspect-multi-second-audit',
+            provides: [
+                {
+                    token: AUDIT_EVENTS,
+                    kind: 'event-subscriber',
+                    cardinality: 'multi'
+                }
+            ],
+            setup(): void {}
+        })
+        const requiredConsumerModule = defineModule({
+            id: 'inspect-multi-required-consumer',
+            requires: [
+                {
+                    token: AUDIT_EVENTS,
+                    cardinality: 'multi'
+                }
+            ],
+            setup(): void {}
+        })
+        const optionalConsumerModule = defineModule({
+            id: 'inspect-multi-optional-consumer',
+            requires: [
+                {
+                    token: optionalAuditEvents,
+                    required: false,
+                    cardinality: 'multi'
+                }
+            ],
+            setup(): void {}
+        })
+        const composer = createComposer()
+            .use(firstAuditModule)
+            .use(secondAuditModule)
+            .use(requiredConsumerModule)
+            .use(optionalConsumerModule)
+        const graph = composer.getGraph()
+        const inspection = composer.inspect()
+        const expectedProviders = [
+            {
+                moduleId: 'inspect-multi-first-audit',
+                registrationKind: 'add',
+                registrationIndex: 0
+            },
+            {
+                moduleId: 'inspect-multi-second-audit',
+                registrationKind: 'add',
+                registrationIndex: 1
+            }
+        ]
+
+        expect(inspection.graph).toEqual(graph)
+        expect(graph.capabilities).toEqual([
+            {
+                moduleId: 'inspect-multi-first-audit',
+                tokenId: 'composer.audit-events',
+                kind: 'event-subscriber',
+                cardinality: 'multi',
+                providers: expectedProviders
+            },
+            {
+                moduleId: 'inspect-multi-second-audit',
+                tokenId: 'composer.audit-events',
+                kind: 'event-subscriber',
+                cardinality: 'multi',
+                providers: expectedProviders
+            }
+        ])
+        expect(graph.requiredPorts).toEqual([
+            {
+                moduleId: 'inspect-multi-required-consumer',
+                tokenId: 'composer.audit-events',
+                required: true,
+                kind: 'external',
+                cardinality: 'multi',
+                providerCount: 2,
+                satisfiedBy: 'capability'
+            },
+            {
+                moduleId: 'inspect-multi-optional-consumer',
+                tokenId: 'composer.optional-audit-events',
+                required: false,
+                kind: 'external',
+                cardinality: 'multi',
+                providerCount: 0,
+                satisfiedBy: 'optional'
+            }
+        ])
+        expect(Object.isFrozen(graph.capabilities[0]?.providers)).toBe(true)
     })
 
     test('records deterministic capability and binding dependency edges without executing factories', () => {
@@ -2126,6 +2257,8 @@ describe('inspection api', () => {
                 tokenId: 'composer.auth-public-api',
                 required: true,
                 kind: 'external',
+                cardinality: 'single',
+                providerCount: 1,
                 satisfiedBy: 'capability'
             },
             {
@@ -2133,6 +2266,8 @@ describe('inspection api', () => {
                 tokenId: 'composer.optional-auth-reader',
                 required: false,
                 kind: 'external',
+                cardinality: 'single',
+                providerCount: 0,
                 satisfiedBy: 'optional'
             },
             {
@@ -2140,6 +2275,8 @@ describe('inspection api', () => {
                 tokenId: 'composer.auth-reader',
                 required: true,
                 kind: 'shared',
+                cardinality: 'single',
+                providerCount: 1,
                 satisfiedBy: 'binding'
             }
         ])
@@ -2328,6 +2465,8 @@ describe('inspection api', () => {
                 tokenId: 'composer.auth-reader',
                 required: true,
                 kind: 'external',
+                cardinality: 'single',
+                providerCount: 1,
                 satisfiedBy: 'binding'
             }
         ])
@@ -2346,11 +2485,13 @@ describe('inspection api', () => {
                 moduleId: 'inspect-runtime-auth',
                 tokenId: 'composer.auth-public-api',
                 capabilityKind: 'public-api',
+                cardinality: 'single',
                 visibility: 'exported',
                 registrationKind: 'single',
                 providers: [
                     {
                         providerKind: 'factory',
+                        registrationIndex: 0,
                         lifetime: 'singleton'
                     }
                 ]
@@ -2359,11 +2500,13 @@ describe('inspection api', () => {
                 moduleId: 'inspect-runtime-contact-requests',
                 tokenId: 'composer.contact-requests-public-api',
                 capabilityKind: 'public-api',
+                cardinality: 'single',
                 visibility: 'exported',
                 registrationKind: 'single',
                 providers: [
                     {
                         providerKind: 'factory',
+                        registrationIndex: 0,
                         lifetime: 'transient'
                     }
                 ]
@@ -2372,15 +2515,18 @@ describe('inspection api', () => {
                 moduleId: 'inspect-runtime-audit',
                 tokenId: 'composer.audit-events',
                 capabilityKind: 'event-subscriber',
+                cardinality: 'multi',
                 visibility: 'exported',
                 registrationKind: 'multi',
                 providers: [
                     {
                         providerKind: 'value',
+                        registrationIndex: 0,
                         lifetime: 'singleton'
                     },
                     {
                         providerKind: 'factory',
+                        registrationIndex: 1,
                         lifetime: 'singleton'
                     }
                 ]
@@ -2389,11 +2535,13 @@ describe('inspection api', () => {
                 moduleId: 'inspect-runtime-resource',
                 tokenId: 'composer.resource-public-api',
                 capabilityKind: 'shared-service',
+                cardinality: 'single',
                 visibility: 'exported',
                 registrationKind: 'single',
                 providers: [
                     {
                         providerKind: 'async-resource',
+                        registrationIndex: 0,
                         lifetime: 'singleton',
                         initialization: 'eager'
                     }
@@ -2411,6 +2559,66 @@ describe('inspection api', () => {
         expect(renderedInspection).not.toContain('sagifire/ioc/private')
         expect('edges' in inspection.graph).toBe(true)
         expect('cycles' in inspection.graph).toBe(false)
+
+        await runtime.dispose()
+    })
+
+    test('orders runtime multi provider inspection to match getAll resolution order', async () => {
+        const firstAuditModule = defineModule({
+            id: 'inspect-runtime-order-first-audit',
+            provides: [
+                {
+                    token: AUDIT_EVENTS,
+                    kind: 'event-subscriber',
+                    cardinality: 'multi'
+                }
+            ],
+            setup(context): void {
+                context.add(AUDIT_EVENTS).toValue('first-a')
+                context.add(AUDIT_EVENTS).toFactory(() => {
+                    return 'first-b'
+                })
+            }
+        })
+        const secondAuditModule = defineModule({
+            id: 'inspect-runtime-order-second-audit',
+            provides: [
+                {
+                    token: AUDIT_EVENTS,
+                    kind: 'event-subscriber',
+                    cardinality: 'multi'
+                }
+            ],
+            setup(context): void {
+                context.add(AUDIT_EVENTS).toValue('second-a')
+            }
+        })
+        const runtime = await createComposer()
+            .use(firstAuditModule)
+            .use(secondAuditModule)
+            .compose()
+        const inspection = runtime.inspect()
+
+        expect(runtime.getAll(AUDIT_EVENTS)).toEqual(['first-a', 'first-b', 'second-a'])
+        expect(
+            inspection.providerRegistrations.map((registration) => {
+                return {
+                    moduleId: registration.moduleId,
+                    registrationIndexes: registration.providers.map((provider) => {
+                        return provider.registrationIndex
+                    })
+                }
+            })
+        ).toEqual([
+            {
+                moduleId: 'inspect-runtime-order-first-audit',
+                registrationIndexes: [0, 1]
+            },
+            {
+                moduleId: 'inspect-runtime-order-second-audit',
+                registrationIndexes: [2]
+            }
+        ])
 
         await runtime.dispose()
     })
@@ -2620,11 +2828,13 @@ describe('inspection api', () => {
                 moduleId: 'inspect-runtime-lazy-contact-requests',
                 tokenId: 'composer.contact-requests-public-api',
                 capabilityKind: 'public-api',
+                cardinality: 'single',
                 visibility: 'exported',
                 registrationKind: 'single',
                 providers: [
                     {
                         providerKind: 'factory',
+                        registrationIndex: 0,
                         lifetime: 'transient'
                     }
                 ]
@@ -2633,11 +2843,13 @@ describe('inspection api', () => {
                 moduleId: 'inspect-runtime-lazy-resource',
                 tokenId: 'composer.resource-public-api',
                 capabilityKind: 'shared-service',
+                cardinality: 'single',
                 visibility: 'exported',
                 registrationKind: 'single',
                 providers: [
                     {
                         providerKind: 'async-resource',
+                        registrationIndex: 0,
                         lifetime: 'singleton',
                         initialization: 'lazy'
                     }
@@ -2678,6 +2890,12 @@ describe('inspection api', () => {
         expectTypeOf<InspectionProviderKind>().toEqualTypeOf<
             'value' | 'factory' | 'class' | 'async-factory' | 'async-resource'
         >()
+        expectTypeOf<CapabilityProviderRegistrationKind>().toEqualTypeOf<'bind' | 'add'>()
+        expectTypeOf<CapabilityProviderMetadata>().toEqualTypeOf<{
+            readonly moduleId: string
+            readonly registrationKind: CapabilityProviderRegistrationKind
+            readonly registrationIndex: number
+        }>()
         expectTypeOf<RequiredPortSatisfaction>().toEqualTypeOf<
             'binding' | 'capability' | 'optional' | 'missing'
         >()

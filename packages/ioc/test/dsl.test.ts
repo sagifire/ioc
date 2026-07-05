@@ -178,6 +178,8 @@ describe('module DSL foundation', () => {
                 tokenId: 'dsl.auth-public-api',
                 required: true,
                 kind: 'external',
+                cardinality: 'single',
+                providerCount: 1,
                 satisfiedBy: 'capability'
             }
         ])
@@ -185,12 +187,28 @@ describe('module DSL foundation', () => {
             {
                 moduleId: 'dsl-auth',
                 tokenId: 'dsl.auth-public-api',
-                kind: 'public-api'
+                kind: 'public-api',
+                cardinality: 'single',
+                providers: [
+                    {
+                        moduleId: 'dsl-auth',
+                        registrationKind: 'bind',
+                        registrationIndex: 0
+                    }
+                ]
             },
             {
                 moduleId: 'dsl-contact-requests-composer',
                 tokenId: 'dsl.contact-requests-public-api',
-                kind: 'public-api'
+                kind: 'public-api',
+                cardinality: 'single',
+                providers: [
+                    {
+                        moduleId: 'dsl-contact-requests-composer',
+                        registrationKind: 'bind',
+                        registrationIndex: 0
+                    }
+                ]
             }
         ])
         expect(runtime.get(CONTACT_REQUESTS_PUBLIC_API).submit()).toBe('user-1')

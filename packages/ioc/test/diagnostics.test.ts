@@ -372,6 +372,45 @@ describe('diagnostics error foundation', () => {
         )
     })
 
+    test('formats cardinality and provider registration details readably', () => {
+        expect(
+            formatDiagnostics({
+                ok: false,
+                diagnostics: [
+                    {
+                        code: 'SAGIFIRE_IOC_INSPECTION_TYPE_TEST',
+                        severity: 'error',
+                        message: 'Inspection metadata mismatch',
+                        details: {
+                            tokenId: 'diagnostics.audit-events',
+                            cardinality: 'multi',
+                            registrationKind: 'add',
+                            registrationIndex: 2,
+                            requiredCardinality: 'multi',
+                            providerCardinality: 'single',
+                            providerSource: 'capability'
+                        }
+                    }
+                ]
+            })
+        ).toBe(
+            [
+                'Diagnostic report: failed',
+                'Diagnostics: 1',
+                '1. [error] SAGIFIRE_IOC_INSPECTION_TYPE_TEST',
+                '   Message: Inspection metadata mismatch',
+                '   Details:',
+                '     tokenId: diagnostics.audit-events',
+                '     cardinality: multi',
+                '     registrationKind: add',
+                '     registrationIndex: 2',
+                '     requiredCardinality: multi',
+                '     providerCardinality: single',
+                '     providerSource: capability'
+            ].join('\n')
+        )
+    })
+
     test('formats module cycle diagnostic paths deterministically', () => {
         const diagnostic = diagnosticFromError(
             new ModuleCycleError({

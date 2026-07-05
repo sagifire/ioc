@@ -541,11 +541,11 @@
   - Summary: Phase 2 composed runtime `get()` / `getAll()` cardinality gating.
   - Current: RUN-001
 - [TASK-07.05-0077-stage-17-multi-capability-inspection-diagnostics](TASK-07.05-0077-stage-17-multi-capability-inspection-diagnostics/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Phase 2 public inspection and diagnostics for multi-capabilities.
-  - Current: n/a
+  - Current: RUN-001
 - [TASK-07.05-0089-stage-17-composer-add-multi-contributions](TASK-07.05-0089-stage-17-composer-add-multi-contributions/index.md)
   - Status: backlog
   - Type: feature
