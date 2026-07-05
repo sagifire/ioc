@@ -1,6 +1,6 @@
 {
     "name": "@sagifire/ioc",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "TypeScript-native IoC container, module composer, diagnostics and optional DSL.",
     "type": "module",
     "sideEffects": false,

@@ -1,5 +1,16 @@
 # @sagifire/ioc-testing
 
+## 0.0.2
+
+### Patch Changes
+
+- Add Stage 17 testing helpers for multi-capability and provider assertions,
+  adapter-source graph assertions, `multiOverride()`, fake-module multi contributions and
+  child-scope assertions.
+
+- Updated dependencies
+    - @sagifire/ioc@0.0.2
+
 ## 0.0.1
 
 ### Patch Changes

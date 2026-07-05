@@ -6,11 +6,11 @@ npm/GitHub environment supports it.
 
 ## Current Package Status
 
-The publishable package manifests are fixed at `0.0.1`, and the package changelogs include
-`0.0.1` entries. Release automation is present, but repository files and version fixation
+The publishable package manifests are fixed at `0.0.2`, and the package changelogs include
+`0.0.2` entries. Release automation is present, but repository files and version fixation
 alone do not mean the packages have been published to npm.
 
-The first real npm publish requires reviewed version/changelog state on `master`, explicit
+Any real npm publish requires reviewed version/changelog state on `master`, explicit
 manual workflow dispatch with `publish_to_npm` set to `publish`, and the external settings
 listed below.
 

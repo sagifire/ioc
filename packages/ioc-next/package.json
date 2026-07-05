@@ -1,6 +1,6 @@
 {
     "name": "@sagifire/ioc-next",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "Next.js App Router boundary helpers for explicit @sagifire/ioc scopes.",
     "type": "module",
     "sideEffects": false,

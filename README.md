@@ -6,12 +6,12 @@ request/operation scopes, module composition, diagnostics, testing helpers and t
 Next.js App Router boundary helpers without decorators, `reflect-metadata` or filesystem
 discovery.
 
-This repository is currently a stabilization workspace. Publishable package manifests are
-fixed at version `0.0.1` and `Apache-2.0`, with Changesets, CI, package dry-run validation
-and a manual npm publish workflow. No npm package has been published from this repository
-yet.
-The package names and import paths below describe the implemented public API in this
-workspace, including post-`0.0.1` changes being prepared for `0.0.2` stabilization.
+This repository is currently a release-prepared workspace. Publishable package manifests
+are fixed at version `0.0.2` and `Apache-2.0`, with Changesets, CI, package dry-run
+validation and a manual npm publish workflow. Actual npm publishing remains gated by
+explicit human approval and external GitHub/npm settings.
+The package names and import paths below describe the implemented `0.0.2` public API in
+this workspace.
 
 ## Packages
 
@@ -24,7 +24,7 @@ workspace, including post-`0.0.1` changes being prepared for `0.0.2` stabilizati
 
 ## Install Shape
 
-The current package changelogs include `0.0.1` entries. After the first human-approved npm
+The current package changelogs include `0.0.2` entries. After the human-approved npm
 publish, the intended install shape is:
 
 ```sh

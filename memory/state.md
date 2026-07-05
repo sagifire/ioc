@@ -37,8 +37,9 @@ memory/sources/sagifire_ioc_0_0_2_feature_request_uk.md
 ```
 
 Результат Stage 17 audit: пропозиції не прийняті суцільно. Після human decision створено
-phased implementation planning task для `0.0.2`; implementation backlog і stabilization
-handoff завершені після людського рев'ю.
+phased implementation planning task для `0.0.2`; implementation backlog, docs/examples,
+full audit, stabilization handoff, follow-up `composer.add()` task і release/version
+handoff task для `0.0.2` завершені після людського рев'ю.
 
 ## Остання planning task
 
@@ -80,28 +81,48 @@ memory/tasks/plan/TASK-07.05-0087-stage-17-0-0-2-full-audit/
 - stabilization handoff `TASK-07.05-0088` закрив `H-001` і `L-001` після human review
   approval.
 
-## Остання implementation task
+## Остання release task
 
-Остання implementation task:
+Остання release task:
 
 ```text
-memory/tasks/plan/TASK-07.05-0088-stage-17-0-0-2-stabilization-handoff/
+memory/tasks/plan/TASK-07.05-0090-stage-17-version-0-0-2-release-handoff/
 ```
 
 Статус задачі: `done` після human review approval від 2026-07-05.
 
 Результат RUN-001:
 
-- `H-001` з full audit закрито: `examples/next-app-router` тепер явно declares
-  `REQUEST_TAGS` як multi capability у token/provides/requires, README синхронізовано, а
-  direct-run harness перевіряє cardinality через graph inspection;
-- `L-001` закрито як smoke hardening: package export tests і packed tarball smoke явно
-  імпортують і мінімально виконують Stage 17 helper/error exports;
-- додано `scripts/validate-examples.mjs` і `pnpm test:examples`; `pnpm test` тепер включає
-  documented direct runs для всіх examples, включно з `examples/next-app-router`;
-- `pnpm release:validate` проходить;
-- actual npm publish, version bump і changelog/versioning changes не виконувалися;
-- human review approval отримано, задачу завершено.
+- publishable package manifests для `@sagifire/ioc`, `@sagifire/ioc-next` і
+  `@sagifire/ioc-testing` зафіксовано at `0.0.2`;
+- package changelogs, root changelog, README/package README і `docs/release.md`
+  синхронізовано з release-prepared state;
+- Project Memory синхронізовано з `0.0.2` release handoff;
+- `pnpm release:validate` проходить після approved network access для dependency restore і
+  повторно без escalation після memory sync;
+- actual npm publish не виконувався.
+
+## Остання implementation task
+
+Остання implementation task:
+
+```text
+memory/tasks/plan/TASK-07.05-0089-stage-17-composer-add-multi-contributions/
+```
+
+Статус задачі: `done` після human review approval від 2026-07-05.
+
+Результат RUN-001:
+
+- додано explicit composition-root `composer.add(token)` API для public multi
+  contributions;
+- root contributions реєструються після module `setup()` contributions і резолвляться
+  через `runtime.getAll(token)` у deterministic order;
+- validation додає typed diagnostics `SAGIFIRE_IOC_INVALID_COMPOSER_MULTI_BINDING` і
+  `SAGIFIRE_IOC_COMPOSER_BINDING_CARDINALITY_CONFLICT`;
+- public inspection має source-aware provider identity для module і composition-root
+  providers;
+- full quality gates пройшли, human review approval отримано.
 
 ## Попередня implementation task
 
@@ -248,8 +269,8 @@ memory/tasks/plan/TASK-07.05-0080-stage-17-adapter-cycle-diagnostics/
 
 ## Поточні ризики
 
-- `0.0.1` зафіксований у локальній пам'яті як stabilization handoff; фактичний npm publish
-  не треба стверджувати без окремої перевірки.
+- `0.0.2` зафіксований у repository files як release-prepared state; фактичний npm publish
+  не треба стверджувати без окремої зовнішньої перевірки.
 - Security process readiness не дорівнює наявності npm security contact; перед запитом
   sensitive vulnerability details потрібне зовнішнє підтвердження.
 - `MultiToken` / `ContributionToken` прийнято як type-level helper only; docs/examples
@@ -257,14 +278,15 @@ memory/tasks/plan/TASK-07.05-0080-stage-17-adapter-cycle-diagnostics/
 - DSL має два adapter helper paths: compatibility `adapt(token, factory)` без source-edge
   inference і graph-aware `adapter(target).from(source).using(factory)` з explicit source
   edges.
-- Actual npm publish для `0.0.2` не виконано й не дозволено цією задачею.
+- Actual npm publish для `0.0.2` не виконувався під час release handoff task; publish
+  лишається human-controlled workflow action.
 
 ## Наступні кроки
 
-1. Окремо ухвалити release/version/publish дії для фактичного `0.0.2` publish, якщо вони
-   потрібні.
+1. Людина може push-нути commit і виконати release/publish workflow відповідно до
+   `docs/release.md`.
 
 ## Відкриті питання
 
-- Чи потрібен окремий release-status verification / publish-planning task перед фактичним
-  `0.0.2` publish?
+- Чи виконано фактичний npm publish для `0.0.2`, треба підтверджувати зовнішньо після
+  human-controlled release workflow.

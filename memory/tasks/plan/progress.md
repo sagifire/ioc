@@ -520,7 +520,7 @@
   - Summary: Stage 17 audit of attached `@sagifire/ioc 0.0.2` feature request.
   - Current: RSCH-001
 
-## Stage 17 `0.0.2` Implementation Backlog
+## Stage 17 `0.0.2` Implementation And Release Handoff
 
 - [TASK-07.05-0074-stage-17-multi-capability-cardinality-model](TASK-07.05-0074-stage-17-multi-capability-cardinality-model/index.md)
   - Status: done
@@ -619,6 +619,13 @@
   - Type: chore
   - Execution Mode: autonomous-implementation
   - Summary: Phase 7 stabilization handoff after full audit, including `H-001` and `L-001`.
+  - Current: RUN-001
+- [TASK-07.05-0090-stage-17-version-0-0-2-release-handoff](TASK-07.05-0090-stage-17-version-0-0-2-release-handoff/index.md)
+  - Status: done
+  - Type: chore
+  - Execution Mode: autonomous-implementation
+  - Summary: Stage 17 version `0.0.2` fixation and release handoff before human push and
+    publish workflow.
   - Current: RUN-001
 
 ## Format

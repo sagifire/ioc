@@ -275,6 +275,10 @@
 - [TASK-07.05-0088-stage-17-0-0-2-stabilization-handoff](TASK-07.05-0088-stage-17-0-0-2-stabilization-handoff/index.md)
   - Type: folder
   - Purpose: Backlog задача для `0.0.2` stabilization handoff.
+- [TASK-07.05-0090-stage-17-version-0-0-2-release-handoff](TASK-07.05-0090-stage-17-version-0-0-2-release-handoff/index.md)
+  - Type: folder
+  - Purpose: Задача фіксації version `0.0.2` and release handoff перед human push/publish
+    workflow.
 
 ## Files
 
