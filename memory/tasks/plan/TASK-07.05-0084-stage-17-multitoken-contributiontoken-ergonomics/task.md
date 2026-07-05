@@ -1,11 +1,11 @@
 # TASK-07.05-0084: MultiToken / ContributionToken ergonomics
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-05
 Owner Role: Implementation Agent
-Current Run: n/a
+Current Run: RUN-001
 Current Research: n/a
 Current Fixation: n/a
 
@@ -41,12 +41,12 @@ Phase 5: Testing and API ergonomics.
 
 ## Acceptance Criteria
 
-- [ ] Run result records explicit accept/defer/reject decision for helper API.
-- [ ] If implemented, helper is additive and backward compatible.
-- [ ] Ordinary `token()` still works for multi capabilities.
-- [ ] Type tests demonstrate intended compile-time signal.
-- [ ] Runtime identity remains token ID based and JavaScript-friendly.
-- [ ] API does not require decorators or metadata reflection.
+- [x] Run result records explicit accept/defer/reject decision for helper API.
+- [x] If implemented, helper is additive and backward compatible.
+- [x] Ordinary `token()` still works for multi capabilities.
+- [x] Type tests demonstrate intended compile-time signal.
+- [x] Runtime identity remains token ID based and JavaScript-friendly.
+- [x] API does not require decorators or metadata reflection.
 
 ## Dependencies
 
@@ -59,4 +59,4 @@ Phase 5: Testing and API ergonomics.
 
 ## Runs
 
-Run artifacts треба створити під час запуску задачі.
+- [RUN-001](runs/RUN-001/result.md)

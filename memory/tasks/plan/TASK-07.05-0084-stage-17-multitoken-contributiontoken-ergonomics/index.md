@@ -9,3 +9,6 @@ Backlog implementation task для optional multi/contribution token ergonomics.
 - [Task](task.md)
   - Type: file
   - Purpose: Scope and acceptance для additive token ergonomics.
+- [Runs](runs/RUN-001/index.md)
+  - Type: folder
+  - Purpose: Execution artifacts для autonomous implementation run.

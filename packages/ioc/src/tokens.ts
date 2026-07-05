@@ -6,6 +6,14 @@ export interface Token<TValue> {
     readonly __type?: TValue
 }
 
+declare const multiTokenBrand: unique symbol
+
+export interface MultiToken<TValue> extends Token<TValue> {
+    readonly [multiTokenBrand]: 'multi'
+}
+
+export type ContributionToken<TValue> = MultiToken<TValue>
+
 export interface TokenOptions {
     readonly description?: string
 }
@@ -13,6 +21,8 @@ export interface TokenOptions {
 export interface TokenNamespace {
     readonly id: string
     token<TValue>(id: string, options?: TokenOptions): Token<TValue>
+    multiToken<TValue>(id: string, options?: TokenOptions): MultiToken<TValue>
+    contributionToken<TValue>(id: string, options?: TokenOptions): ContributionToken<TValue>
 }
 
 export class InvalidTokenIdError extends SagifireIocError<{
@@ -53,6 +63,19 @@ export function token<TValue>(id: string, options?: TokenOptions): Token<TValue>
     return createToken(tokenId, options)
 }
 
+export function multiToken<TValue>(id: string, options?: TokenOptions): MultiToken<TValue> {
+    const tokenId = validateTokenId(id, 'token')
+
+    return createMultiToken(tokenId, options)
+}
+
+export function contributionToken<TValue>(
+    id: string,
+    options?: TokenOptions
+): ContributionToken<TValue> {
+    return multiToken<TValue>(id, options)
+}
+
 export function namespace(id: string): TokenNamespace {
     const namespaceId = validateTokenId(id, 'namespace')
 
@@ -62,6 +85,19 @@ export function namespace(id: string): TokenNamespace {
             const tokenId = validateTokenId(localId, 'token')
 
             return createToken(`${namespaceId}.${tokenId}`, options)
+        },
+        multiToken<TValue>(localId: string, options?: TokenOptions): MultiToken<TValue> {
+            const tokenId = validateTokenId(localId, 'token')
+
+            return createMultiToken(`${namespaceId}.${tokenId}`, options)
+        },
+        contributionToken<TValue>(
+            localId: string,
+            options?: TokenOptions
+        ): ContributionToken<TValue> {
+            const tokenId = validateTokenId(localId, 'token')
+
+            return createMultiToken<TValue>(`${namespaceId}.${tokenId}`, options)
         }
     })
 }
@@ -79,6 +115,10 @@ function createToken<TValue>(id: string, options?: TokenOptions): Token<TValue> 
               }
 
     return Object.freeze(createdToken)
+}
+
+function createMultiToken<TValue>(id: string, options?: TokenOptions): MultiToken<TValue> {
+    return createToken(id, options) as unknown as MultiToken<TValue>
 }
 
 function validateTokenId(id: unknown, kind: 'token' | 'namespace'): string {

@@ -62,6 +62,31 @@ memory/tasks/plan/TASK-07.05-0073-stage-17-0-0-2-implementation-planning/
 Остання implementation task:
 
 ```text
+memory/tasks/plan/TASK-07.05-0084-stage-17-multitoken-contributiontoken-ergonomics/
+```
+
+Статус задачі: `done` після human review approval від 2026-07-05.
+
+Результат RUN-001:
+
+- прийнято additive `MultiToken` / `ContributionToken` helper API як type-level marker
+  поверх existing token identity;
+- додано `multiToken<T>()`, `contributionToken<T>()`, `MultiToken<T>` і
+  `ContributionToken<T>`;
+- додано namespaced variants `namespace(id).multiToken<T>()` і
+  `namespace(id).contributionToken<T>()`;
+- runtime token shape лишається `id` + optional `description`, без runtime cardinality
+  metadata;
+- ordinary `token()` лишається fully usable для multi capabilities;
+- overload-based TypeScript rejection для `bind(multiToken)` / `get(multiToken)` не додано;
+- full quality gates пройшли.
+- human review approval отримано, задачу завершено.
+
+## Попередня implementation task
+
+Попередня implementation task:
+
+```text
 memory/tasks/plan/TASK-07.05-0083-stage-17-testing-helpers-new-primitives/
 ```
 
@@ -80,9 +105,9 @@ memory/tasks/plan/TASK-07.05-0083-stage-17-testing-helpers-new-primitives/
 - full quality gates пройшли.
 - human review approval отримано, задачу завершено.
 
-## Попередня implementation task
+## Передпопередня implementation task
 
-Попередня implementation task:
+Передпопередня implementation task:
 
 ```text
 memory/tasks/plan/TASK-07.05-0082-stage-17-child-scope-runtime-semantics/
@@ -102,31 +127,6 @@ memory/tasks/plan/TASK-07.05-0082-stage-17-child-scope-runtime-semantics/
 - parent scoped provider instances are not reused by child by default;
 - factories resolved through child scope see child values and overrides;
 - full quality gates пройшли;
-- human review approval отримано, задачу завершено.
-
-## Передпопередня implementation task
-
-Передпопередня implementation task:
-
-```text
-memory/tasks/plan/TASK-07.05-0081-stage-17-child-scope-lifecycle-model/
-```
-
-Статус задачі: `done` після human review approval від 2026-07-05.
-
-Результат RUN-001:
-
-- додано `scope.createChildScope(options?)` і `scope.withChildScope(...)` для explicit child
-  scopes;
-- parent scope локально tracks active children без global live scope registry;
-- child disposal не dispose-ить parent;
-- parent disposal dispose-ить active children in reverse creation order before own scoped
-  resources;
-- child creation from disposed parent and child resolution after disposal fail with typed
-  `ScopeDisposedError`;
-- composed scope wrapper зберігає public capability access checks для child scope options;
-- minimal API reference docs оновлено;
-- quality gates пройшли;
 - human review approval отримано, задачу завершено.
 
 ## Попередня adapter implementation task
@@ -156,12 +156,12 @@ memory/tasks/plan/TASK-07.05-0080-stage-17-adapter-cycle-diagnostics/
   не треба стверджувати без окремої перевірки.
 - Security process readiness не дорівнює наявності npm security contact; перед запитом
   sensitive vulnerability details потрібне зовнішнє підтвердження.
-- `MultiToken` / `ContributionToken` винесено в окрему ergonomics task після стабілізації
-  core cardinality behavior.
+- `MultiToken` / `ContributionToken` прийнято як type-level helper only; docs/examples
+  мають явно не обіцяти compile-time rejection для `bind()` / `get()`.
 
 ## Наступні кроки
 
-1. Стартувати `TASK-07.05-0084-stage-17-multitoken-contributiontoken-ergonomics`.
+1. Стартувати `TASK-07.05-0085-stage-17-dsl-ergonomics-hardening`.
 2. Виконувати `0.0.2` phases послідовно: testing/ergonomics,
    docs/examples, full audit, stabilization handoff.
 

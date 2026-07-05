@@ -460,7 +460,7 @@ Stage 17 audit identified possible `0.0.2` extensions:
 - adapter source graph edges;
 - adapter-aware cycle diagnostics;
 - child/derived scopes;
-- optional `MultiToken` / `ContributionToken` ergonomics;
+- additive `MultiToken` / `ContributionToken` type-level ergonomics;
 - testing helpers for new graph concepts;
 - docs/examples hardening.
 
@@ -473,4 +473,6 @@ Guardrails:
 - decide parent/child scope disposal policy before implementation;
 - do not implement site-engine business APIs in core;
 - do not add hidden current scope or AsyncLocalStorage service locator;
+- keep multi/contribution token helpers as token-ID-based ergonomic markers, not a second
+  runtime cardinality model;
 - preserve `get()` as synchronous.

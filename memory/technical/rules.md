@@ -411,6 +411,18 @@ Stage 17 почався як audit/decision gate для `0.0.2` feature request 
 - Parent/child disposal ownership must be explicit and tested, including async failure
   paths.
 
+### `0.0.2` token ergonomics rules
+
+- `multiToken<T>()` and `contributionToken<T>()` are additive helpers over existing token
+  identity.
+- `MultiToken<T>` and `ContributionToken<T>` are type-level markers, not runtime
+  cardinality metadata.
+- Runtime identity remains token ID based.
+- Ordinary `token()` remains fully usable for multi capabilities.
+- This slice does not add overload-based TypeScript rejection for `bind()` / `get()` usage
+  with branded multi tokens; declaration validation and runtime cardinality gating remain
+  the enforcement layer.
+
 ### `0.0.2` general guardrails
 
 - diagnostic codes лишаються у namespace `SAGIFIRE_IOC_*`;

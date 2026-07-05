@@ -590,12 +590,12 @@
   - Summary: Phase 5 testing helpers for multi-capabilities, adapters and child scopes.
   - Current: RUN-001
 - [TASK-07.05-0084-stage-17-multitoken-contributiontoken-ergonomics](TASK-07.05-0084-stage-17-multitoken-contributiontoken-ergonomics/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Phase 5 optional `MultiToken` / `ContributionToken` ergonomics decision and
     implementation.
-  - Current: n/a
+  - Current: RUN-001
 - [TASK-07.05-0085-stage-17-dsl-ergonomics-hardening](TASK-07.05-0085-stage-17-dsl-ergonomics-hardening/index.md)
   - Status: backlog
   - Type: feature

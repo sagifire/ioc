@@ -226,6 +226,9 @@ Stage 17 працює з feature request для `0.0.2`, але audit не пр�
 - Adapter-aware cycle detection must be implemented before `0.0.2` release handoff.
 - Child scope inherits parent values, can override them and has its own scoped provider
   cache.
+- `multiToken()` / `contributionToken()` helper API is additive type-level ergonomics only:
+  runtime identity remains token ID based and ordinary `token()` remains valid for multi
+  capabilities.
 
 ### `0.0.2` implementation phases
 

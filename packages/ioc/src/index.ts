@@ -1,5 +1,5 @@
-export { InvalidTokenIdError, namespace, token } from './tokens'
-export type { Token, TokenNamespace, TokenOptions } from './tokens'
+export { InvalidTokenIdError, contributionToken, multiToken, namespace, token } from './tokens'
+export type { ContributionToken, MultiToken, Token, TokenNamespace, TokenOptions } from './tokens'
 export { adapt, bind, defineApp, module } from './dsl'
 export type {
     AppDslAsyncFactoryBindingDefinition,

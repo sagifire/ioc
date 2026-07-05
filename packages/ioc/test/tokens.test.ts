@@ -1,6 +1,15 @@
 import { describe, expect, expectTypeOf, test } from 'vitest'
 
-import { InvalidTokenIdError, namespace, token, type Token } from '../src/tokens.js'
+import {
+    InvalidTokenIdError,
+    contributionToken,
+    multiToken,
+    namespace,
+    token,
+    type ContributionToken,
+    type MultiToken,
+    type Token
+} from '../src/tokens.js'
 
 interface Logger {
     log(message: string): void
@@ -8,6 +17,10 @@ interface Logger {
 
 interface PublicApi {
     handle(): string
+}
+
+interface AdminContribution {
+    mount(): string
 }
 
 type TokenValue<TToken> = TToken extends Token<infer TValue> ? TValue : never
@@ -86,5 +99,50 @@ describe('tokens', () => {
         expectTypeOf(logger).toEqualTypeOf<Token<Logger>>()
         expectTypeOf<TokenValue<typeof logger>>().toEqualTypeOf<Logger>()
         expectTypeOf<TokenValue<typeof publicApi>>().toEqualTypeOf<PublicApi>()
+    })
+
+    test('creates multi and contribution tokens as additive typed token helpers', () => {
+        const multi = multiToken<AdminContribution>('admin.contributions', {
+            description: 'Admin contributions'
+        })
+        const contribution = contributionToken<AdminContribution>('admin.nav')
+        const regular = token<AdminContribution>('admin.regular')
+
+        expect(multi).toEqual({
+            id: 'admin.contributions',
+            description: 'Admin contributions'
+        })
+        expect(contribution).toEqual({
+            id: 'admin.nav'
+        })
+        expect(Object.hasOwn(multi, '__cardinality')).toBe(false)
+
+        expectTypeOf(multi).toEqualTypeOf<MultiToken<AdminContribution>>()
+        expectTypeOf(contribution).toEqualTypeOf<ContributionToken<AdminContribution>>()
+        expectTypeOf(contribution).toEqualTypeOf<MultiToken<AdminContribution>>()
+        expectTypeOf(multi).toMatchTypeOf<Token<AdminContribution>>()
+        expectTypeOf<TokenValue<typeof multi>>().toEqualTypeOf<AdminContribution>()
+        expectTypeOf<TokenValue<typeof contribution>>().toEqualTypeOf<AdminContribution>()
+
+        // @ts-expect-error ordinary tokens do not carry the multi-token compile-time marker
+        const rejectedMulti: MultiToken<AdminContribution> = regular
+
+        expect(rejectedMulti).toBe(regular)
+    })
+
+    test('creates namespaced multi and contribution tokens with stable prefixed ids', () => {
+        const admin = namespace('admin')
+        const multi = admin.multiToken<AdminContribution>('contributions')
+        const contribution = admin.contributionToken<AdminContribution>('nav')
+
+        expect(multi).toEqual({
+            id: 'admin.contributions'
+        })
+        expect(contribution).toEqual({
+            id: 'admin.nav'
+        })
+        expectTypeOf(multi).toEqualTypeOf<MultiToken<AdminContribution>>()
+        expectTypeOf(contribution).toEqualTypeOf<ContributionToken<AdminContribution>>()
+        expectTypeOf(contribution).toMatchTypeOf<Token<AdminContribution>>()
     })
 })
