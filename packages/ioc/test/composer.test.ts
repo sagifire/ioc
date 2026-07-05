@@ -25,12 +25,17 @@ import {
     type CompositionBindingMetadata,
     type DuplicateComposerBindingErrorDetails,
     type InspectionProviderKind,
+    type ModuleCardinality,
+    type ModuleCapabilityDefinition,
+    type ModuleCapabilityDefinitionInput,
     type ModuleDefinition,
     type ModuleDefinitionInput,
     type ModuleDependencyDefinition,
+    type ModuleDependencyDefinitionInput,
     type ModuleDependencyEdge,
     type ModuleDependencyEdgeBase,
     type ModuleDependencyEdgeKind,
+    type ModuleDependencyKind,
     type ModuleCycleErrorDetails,
     type ModuleGraph,
     type ModuleNodeMetadata,
@@ -138,22 +143,63 @@ describe('module definition foundation', () => {
                 token: AUTH_READER,
                 required: true,
                 kind: 'external',
+                cardinality: 'single',
                 description: 'Authentication reader'
             },
             {
                 token: OPTIONAL_AUTH_READER,
                 required: false,
-                kind: 'shared'
+                kind: 'shared',
+                cardinality: 'single'
             }
         ])
         expect(module.provides).toEqual([
             {
                 token: CONTACT_REQUESTS_PUBLIC_API,
                 kind: 'public-api',
+                cardinality: 'single',
                 description: 'Contact requests public API'
             }
         ])
         expect(module.setup).toBe(setup)
+    })
+
+    test('normalizes explicit multi cardinality for required ports and capabilities', () => {
+        const module = defineModule({
+            id: 'multi-cardinality',
+            requires: [
+                {
+                    token: NOTIFICATION_PUBLIC_API,
+                    required: false,
+                    kind: 'shared',
+                    cardinality: 'multi'
+                }
+            ],
+            provides: [
+                {
+                    token: AUDIT_EVENTS,
+                    kind: 'event-subscriber',
+                    cardinality: 'multi'
+                }
+            ],
+            setup(): void {}
+        })
+
+        expect(module.requires).toEqual([
+            {
+                token: NOTIFICATION_PUBLIC_API,
+                required: false,
+                kind: 'shared',
+                cardinality: 'multi'
+            }
+        ])
+        expect(module.provides).toEqual([
+            {
+                token: AUDIT_EVENTS,
+                kind: 'event-subscriber',
+                cardinality: 'multi'
+            }
+        ])
     })
 
     test('normalizes missing requires and provides to empty immutable arrays', () => {
@@ -225,6 +271,66 @@ describe('module definition foundation', () => {
                 setup(): void {}
             } as unknown as ModuleDefinitionInput)
         ).toThrow(InvalidModuleDefinitionError)
+    })
+
+    test('throws typed diagnostics for invalid cardinality declarations', () => {
+        const invalidRequiredPort = () => {
+            return defineModule({
+                id: 'invalid-required-cardinality',
+                requires: [
+                    {
+                        token: AUTH_READER,
+                        cardinality: 'many'
+                    }
+                ],
+                setup(): void {}
+            } as unknown as ModuleDefinitionInput)
+        }
+        const invalidCapability = () => {
+            return defineModule({
+                id: 'invalid-capability-cardinality',
+                provides: [
+                    {
+                        token: AUTH_PUBLIC_API,
+                        kind: 'public-api',
+                        cardinality: 2
+                    }
+                ],
+                setup(): void {}
+            } as unknown as ModuleDefinitionInput)
+        }
+
+        expect(invalidRequiredPort).toThrow(InvalidModuleDefinitionError)
+        expect(invalidCapability).toThrow(InvalidModuleDefinitionError)
+
+        try {
+            invalidRequiredPort()
+        } catch (error) {
+            expect(error).toBeInstanceOf(InvalidModuleDefinitionError)
+
+            if (error instanceof InvalidModuleDefinitionError) {
+                expect(error.code).toBe('SAGIFIRE_IOC_INVALID_MODULE_DEFINITION')
+                expect(error.details).toEqual({
+                    moduleId: 'invalid-required-cardinality',
+                    reason: 'requires[0].cardinality must be "single" or "multi" when provided',
+                    value: 'many'
+                })
+            }
+        }
+
+        try {
+            invalidCapability()
+        } catch (error) {
+            expect(error).toBeInstanceOf(InvalidModuleDefinitionError)
+
+            if (error instanceof InvalidModuleDefinitionError) {
+                expect(error.details).toEqual({
+                    moduleId: 'invalid-capability-cardinality',
+                    reason: 'provides[0].cardinality must be "single" or "multi" when provided',
+                    value: 2
+                })
+            }
+        }
     })
 
     test('rejects duplicate required ports by token id', () => {
@@ -413,7 +519,18 @@ describe('module definition foundation', () => {
               }
             | undefined
         >()
-        expectTypeOf(module.requires[0]).toEqualTypeOf<ModuleDependencyDefinition<AuthReader>>()
+        expectTypeOf(module.requires[0]).toMatchTypeOf<ModuleDependencyDefinition<AuthReader>>()
+        expectTypeOf(module.provides[0]).toMatchTypeOf<ModuleCapabilityDefinition<AuthPublicApi>>()
+        expectTypeOf(module.requires[0].cardinality).toEqualTypeOf<ModuleCardinality>()
+        expectTypeOf(module.provides[0].cardinality).toEqualTypeOf<ModuleCardinality>()
+        expectTypeOf<ModuleCardinality>().toEqualTypeOf<'single' | 'multi'>()
+        expectTypeOf<ModuleDependencyKind>().toEqualTypeOf<'external' | 'shared'>()
+        expectTypeOf<ModuleDependencyDefinitionInput<AuthReader>>().toMatchTypeOf<{
+            readonly cardinality?: ModuleCardinality
+        }>()
+        expectTypeOf<ModuleCapabilityDefinitionInput<AuthPublicApi>>().toMatchTypeOf<{
+            readonly cardinality?: ModuleCardinality
+        }>()
         expectTypeOf<TokenValue<(typeof module.requires)[0]['token']>>().toEqualTypeOf<AuthReader>()
         expectTypeOf<TokenValue<(typeof module.requires)[1]['token']>>().toEqualTypeOf<AuthReader>()
         expectTypeOf<

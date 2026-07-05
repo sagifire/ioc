@@ -57,11 +57,30 @@ memory/tasks/plan/TASK-07.05-0073-stage-17-0-0-2-implementation-planning/
 - зробити full audit and stabilization останньою фазою;
 - не змінювати runtime/code/package behavior під час planning.
 
+## Остання implementation task
+
+Остання завершена implementation task:
+
+```text
+memory/tasks/plan/TASK-07.05-0074-stage-17-multi-capability-cardinality-model/
+```
+
+Статус задачі: `done` після human review approval від 2026-07-05.
+
+Результат RUN-001:
+
+- додано declaration-level `ModuleCardinality = 'single' | 'multi'`;
+- `provides` і `requires` підтримують optional `cardinality`;
+- normalization додає default `single`;
+- invalid cardinality дає typed `SAGIFIRE_IOC_INVALID_MODULE_DEFINITION`;
+- `requires.kind` лишився dependency kind: `external | shared`;
+- runtime gating, duplicate multi providers і `composer.add()` не реалізовувались у цій task.
+
 ## Поточні ризики
 
-- `0.0.2` має ризикові точки API design: cardinality model для provides/requires,
-  composed runtime gating, graph-aware adapter source validation, adapter-aware cycles і
-  lifecycle child-scope-ів.
+- `TASK-07.05-0074` закрив declaration-level cardinality model, але validation
+  single/multi conflicts, composed runtime gating, graph-aware adapter source validation,
+  adapter-aware cycles і lifecycle child-scope-и лишаються ризиковими точками `0.0.2`.
 - `0.0.1` зафіксований у локальній пам'яті як stabilization handoff; фактичний npm publish
   не треба стверджувати без окремої перевірки.
 - Security process readiness не дорівнює наявності npm security contact; перед запитом
@@ -73,7 +92,7 @@ memory/tasks/plan/TASK-07.05-0073-stage-17-0-0-2-implementation-planning/
 
 ## Наступні кроки
 
-1. Стартувати `TASK-07.05-0074-stage-17-multi-capability-cardinality-model`.
+1. Стартувати `TASK-07.05-0075-stage-17-multi-capability-validation`.
 2. Виконувати `0.0.2` phases послідовно: multi-capabilities, adapters, child scopes,
    testing/ergonomics, docs/examples, full audit, stabilization handoff.
 

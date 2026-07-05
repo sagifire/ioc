@@ -2,7 +2,7 @@
 
 ## Призначення
 
-Backlog implementation task для declaration-level cardinality model у `provides` і
+Completed implementation task для declaration-level cardinality model у `provides` і
 `requires`.
 
 ## Файли
@@ -10,3 +10,9 @@ Backlog implementation task для declaration-level cardinality model у `provi
 - [Task](task.md)
   - Type: file
   - Purpose: Scope and acceptance для cardinality declaration foundation.
+
+## Папки
+
+- [Runs](runs/index.md)
+  - Type: folder
+  - Purpose: Autonomous implementation run artifacts.

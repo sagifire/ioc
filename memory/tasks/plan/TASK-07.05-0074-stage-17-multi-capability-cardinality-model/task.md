@@ -1,11 +1,11 @@
 # TASK-07.05-0074: Multi-capability cardinality model
 
-Status: backlog
+Status: done
 Type: feature
 Execution Mode: autonomous-implementation
 Created: 2026-07-05
 Owner Role: Implementation Agent
-Current Run: n/a
+Current Run: RUN-001
 Current Research: n/a
 Current Fixation: n/a
 
@@ -42,14 +42,14 @@ Phase 1: Multi-capability declaration foundation.
 
 ## Acceptance Criteria
 
-- [ ] Existing module declarations without `cardinality` still compile and normalize as
+- [x] Existing module declarations without `cardinality` still compile and normalize as
       `single`.
-- [ ] `provides` can declare `cardinality: 'multi'`.
-- [ ] `requires` can declare `cardinality: 'multi'`.
-- [ ] Invalid cardinality produces typed diagnostic-friendly module definition error.
-- [ ] `requires.kind` remains dependency kind and is not used for cardinality.
-- [ ] Public exports remain tree-shaking friendly.
-- [ ] Relevant tests and type tests pass.
+- [x] `provides` can declare `cardinality: 'multi'`.
+- [x] `requires` can declare `cardinality: 'multi'`.
+- [x] Invalid cardinality produces typed diagnostic-friendly module definition error.
+- [x] `requires.kind` remains dependency kind and is not used for cardinality.
+- [x] Public exports remain tree-shaking friendly.
+- [x] Relevant tests and type tests pass.
 
 ## Dependencies
 
@@ -63,4 +63,7 @@ Phase 1: Multi-capability declaration foundation.
 
 ## Runs
 
-Run artifacts треба створити під час запуску задачі.
+- [RUN-001](runs/RUN-001/index.md)
+  - Status: completed
+  - Purpose: Autonomous implementation run for cardinality declaration foundation.
+  - Result: approved

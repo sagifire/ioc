@@ -223,15 +223,18 @@ describe('fake modules and module harnesses', () => {
             {
                 token: AUTH_READER,
                 kind: 'public-api',
+                cardinality: 'single',
                 description: 'Fake auth reader'
             },
             {
                 token: FACTORY_AUTH_READER,
-                kind: 'shared-service'
+                kind: 'shared-service',
+                cardinality: 'single'
             },
             {
                 token: ASYNC_AUTH_READER,
-                kind: 'shared-service'
+                kind: 'shared-service',
+                cardinality: 'single'
             }
         ])
 

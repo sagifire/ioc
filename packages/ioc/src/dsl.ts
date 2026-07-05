@@ -6,7 +6,9 @@ import {
     type ComposerAsyncBindingFactory,
     type ComposerBindingFactory,
     type ComposerInspection,
+    type ModuleCardinality,
     type ModuleCapabilityDefinition,
+    type ModuleCapabilityDefinitionInput,
     type ModuleDefinition,
     type ModuleDefinitionInput,
     type ModuleDependencyDefinition,
@@ -22,14 +24,16 @@ export type ModuleDslDefinitionInput<
     TMetadata = unknown,
     TRequires extends readonly ModuleDependencyDefinitionInput[] =
         readonly ModuleDependencyDefinitionInput[],
-    TProvides extends readonly ModuleCapabilityDefinition[] = readonly ModuleCapabilityDefinition[]
+    TProvides extends readonly ModuleCapabilityDefinitionInput[] =
+        readonly ModuleCapabilityDefinitionInput[]
 > = ModuleDefinitionInput<TMetadata, TRequires, TProvides>
 
 export type ModuleDslDefinitionOptions<
     TMetadata = unknown,
     TRequires extends readonly ModuleDependencyDefinitionInput[] =
         readonly ModuleDependencyDefinitionInput[],
-    TProvides extends readonly ModuleCapabilityDefinition[] = readonly ModuleCapabilityDefinition[]
+    TProvides extends readonly ModuleCapabilityDefinitionInput[] =
+        readonly ModuleCapabilityDefinitionInput[]
 > = Omit<ModuleDslDefinitionInput<TMetadata, TRequires, TProvides>, 'id'>
 
 type NormalizedModuleDslDependencies<TRequires extends readonly ModuleDependencyDefinitionInput[]> =
@@ -37,23 +41,29 @@ type NormalizedModuleDslDependencies<TRequires extends readonly ModuleDependency
         readonly [
             TIndex in keyof TRequires
         ]: TRequires[TIndex] extends ModuleDependencyDefinitionInput<infer TValue>
-            ? ModuleDependencyDefinition<TValue>
+            ? ModuleDependencyDefinition<TValue> & {
+                  readonly cardinality: ModuleCardinality
+              }
             : never
     }
 
-type NormalizedModuleDslCapabilities<TProvides extends readonly ModuleCapabilityDefinition[]> = {
-    readonly [TIndex in keyof TProvides]: TProvides[TIndex] extends ModuleCapabilityDefinition<
-        infer TValue
-    >
-        ? ModuleCapabilityDefinition<TValue>
-        : never
-}
+type NormalizedModuleDslCapabilities<TProvides extends readonly ModuleCapabilityDefinitionInput[]> =
+    {
+        readonly [
+            TIndex in keyof TProvides
+        ]: TProvides[TIndex] extends ModuleCapabilityDefinitionInput<infer TValue>
+            ? ModuleCapabilityDefinition<TValue> & {
+                  readonly cardinality: ModuleCardinality
+              }
+            : never
+    }
 
 export type ModuleDslDefinition<
     TMetadata = unknown,
     TRequires extends readonly ModuleDependencyDefinitionInput[] =
         readonly ModuleDependencyDefinitionInput[],
-    TProvides extends readonly ModuleCapabilityDefinition[] = readonly ModuleCapabilityDefinition[]
+    TProvides extends readonly ModuleCapabilityDefinitionInput[] =
+        readonly ModuleCapabilityDefinitionInput[]
 > = ModuleDefinition<
     TMetadata,
     NormalizedModuleDslDependencies<TRequires>,
@@ -121,8 +131,8 @@ function createModuleDsl<
     TMetadata = unknown,
     const TRequires extends readonly ModuleDependencyDefinitionInput[] =
         readonly ModuleDependencyDefinitionInput[],
-    const TProvides extends readonly ModuleCapabilityDefinition[] =
-        readonly ModuleCapabilityDefinition[]
+    const TProvides extends readonly ModuleCapabilityDefinitionInput[] =
+        readonly ModuleCapabilityDefinitionInput[]
 >(
     definition: ModuleDslDefinitionInput<TMetadata, TRequires, TProvides>
 ): ModuleDslDefinition<TMetadata, TRequires, TProvides>
@@ -130,8 +140,8 @@ function createModuleDsl<
     TMetadata = unknown,
     const TRequires extends readonly ModuleDependencyDefinitionInput[] =
         readonly ModuleDependencyDefinitionInput[],
-    const TProvides extends readonly ModuleCapabilityDefinition[] =
-        readonly ModuleCapabilityDefinition[]
+    const TProvides extends readonly ModuleCapabilityDefinitionInput[] =
+        readonly ModuleCapabilityDefinitionInput[]
 >(
     id: string,
     definition: ModuleDslDefinitionOptions<TMetadata, TRequires, TProvides>
@@ -140,8 +150,8 @@ function createModuleDsl<
     TMetadata = unknown,
     const TRequires extends readonly ModuleDependencyDefinitionInput[] =
         readonly ModuleDependencyDefinitionInput[],
-    const TProvides extends readonly ModuleCapabilityDefinition[] =
-        readonly ModuleCapabilityDefinition[]
+    const TProvides extends readonly ModuleCapabilityDefinitionInput[] =
+        readonly ModuleCapabilityDefinitionInput[]
 >(
     idOrDefinition: string | ModuleDslDefinitionInput<TMetadata, TRequires, TProvides>,
     definition?: ModuleDslDefinitionOptions<TMetadata, TRequires, TProvides>

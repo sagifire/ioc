@@ -23,6 +23,8 @@ import type { Token } from './tokens'
 
 export type ModuleDependencyKind = 'external' | 'shared'
 
+export type ModuleCardinality = 'single' | 'multi'
+
 export type ModuleCapabilityKind =
     | 'public-api'
     | 'admin-contribution'
@@ -35,6 +37,7 @@ export interface ModuleDependencyDefinition<TValue = unknown> {
     readonly token: Token<TValue>
     readonly required: boolean
     readonly kind: ModuleDependencyKind
+    readonly cardinality?: ModuleCardinality
     readonly description?: string
 }
 
@@ -42,12 +45,21 @@ export interface ModuleDependencyDefinitionInput<TValue = unknown> {
     readonly token: Token<TValue>
     readonly required?: boolean
     readonly kind?: ModuleDependencyKind
+    readonly cardinality?: ModuleCardinality
+    readonly description?: string
+}
+
+export interface ModuleCapabilityDefinitionInput<TValue = unknown> {
+    readonly token: Token<TValue>
+    readonly kind: ModuleCapabilityKind
+    readonly cardinality?: ModuleCardinality
     readonly description?: string
 }
 
 export interface ModuleCapabilityDefinition<TValue = unknown> {
     readonly token: Token<TValue>
     readonly kind: ModuleCapabilityKind
+    readonly cardinality?: ModuleCardinality
     readonly description?: string
 }
 
@@ -84,7 +96,8 @@ export interface ModuleDefinitionInput<
     TMetadata = unknown,
     TRequires extends readonly ModuleDependencyDefinitionInput[] =
         readonly ModuleDependencyDefinitionInput[],
-    TProvides extends readonly ModuleCapabilityDefinition[] = readonly ModuleCapabilityDefinition[]
+    TProvides extends readonly ModuleCapabilityDefinitionInput[] =
+        readonly ModuleCapabilityDefinitionInput[]
 > {
     readonly id: string
     readonly version?: string
@@ -630,16 +643,24 @@ type NormalizedModuleDependencies<TRequires extends readonly ModuleDependencyDef
     readonly [TIndex in keyof TRequires]: TRequires[TIndex] extends ModuleDependencyDefinitionInput<
         infer TValue
     >
-        ? ModuleDependencyDefinition<TValue>
+        ? NormalizedModuleDependencyDefinition<TValue>
         : never
 }
 
-type NormalizedModuleCapabilities<TProvides extends readonly ModuleCapabilityDefinition[]> = {
-    readonly [TIndex in keyof TProvides]: TProvides[TIndex] extends ModuleCapabilityDefinition<
+type NormalizedModuleDependencyDefinition<TValue = unknown> = ModuleDependencyDefinition<TValue> & {
+    readonly cardinality: ModuleCardinality
+}
+
+type NormalizedModuleCapabilities<TProvides extends readonly ModuleCapabilityDefinitionInput[]> = {
+    readonly [TIndex in keyof TProvides]: TProvides[TIndex] extends ModuleCapabilityDefinitionInput<
         infer TValue
     >
-        ? ModuleCapabilityDefinition<TValue>
+        ? NormalizedModuleCapabilityDefinition<TValue>
         : never
+}
+
+type NormalizedModuleCapabilityDefinition<TValue = unknown> = ModuleCapabilityDefinition<TValue> & {
+    readonly cardinality: ModuleCardinality
 }
 
 type ComposerBindingRecord =
@@ -718,6 +739,7 @@ interface InvalidModuleDefinitionErrorOptions {
 
 const moduleIdPattern = /^[A-Za-z0-9._:/-]+$/
 const moduleDependencyKinds: readonly ModuleDependencyKind[] = ['external', 'shared']
+const moduleCardinalities: readonly ModuleCardinality[] = ['single', 'multi']
 const moduleCapabilityKinds: readonly ModuleCapabilityKind[] = [
     'public-api',
     'admin-contribution',
@@ -731,8 +753,8 @@ export function defineModule<
     TMetadata = unknown,
     const TRequires extends readonly ModuleDependencyDefinitionInput[] =
         readonly ModuleDependencyDefinitionInput[],
-    const TProvides extends readonly ModuleCapabilityDefinition[] =
-        readonly ModuleCapabilityDefinition[]
+    const TProvides extends readonly ModuleCapabilityDefinitionInput[] =
+        readonly ModuleCapabilityDefinitionInput[]
 >(
     definition: ModuleDefinitionInput<TMetadata, TRequires, TProvides>
 ): ModuleDefinition<
@@ -2516,7 +2538,7 @@ function createDiagnosticReport(diagnostics: readonly Diagnostic[]): DiagnosticR
 function createModuleDefinition<
     TMetadata,
     TRequires extends readonly ModuleDependencyDefinitionInput[],
-    TProvides extends readonly ModuleCapabilityDefinition[]
+    TProvides extends readonly ModuleCapabilityDefinitionInput[]
 >(
     definition: ModuleDefinitionInput<TMetadata, TRequires, TProvides>,
     moduleId: string,
@@ -2565,7 +2587,7 @@ function normalizeDependency(
     moduleId: string,
     dependency: unknown,
     index: number
-): ModuleDependencyDefinition {
+): NormalizedModuleDependencyDefinition {
     if (!isRecord(dependency)) {
         throw new InvalidModuleDefinitionError(`requires[${index}] must be an object`, {
             moduleId,
@@ -2580,22 +2602,27 @@ function normalizeDependency(
         `requires[${index}].required`
     )
     const kind = validateDependencyKind(dependency.kind, moduleId, `requires[${index}].kind`)
+    const cardinality = validateCardinality(
+        dependency.cardinality,
+        moduleId,
+        `requires[${index}].cardinality`
+    )
     const description = validateOptionalString(
         dependency.description,
         moduleId,
         `requires[${index}].description`
     )
+    const base = {
+        token: dependencyToken,
+        required: required ?? true,
+        kind: kind ?? 'external',
+        cardinality: cardinality ?? 'single'
+    }
     const normalized =
         description === undefined
-            ? {
-                  token: dependencyToken,
-                  required: required ?? true,
-                  kind: kind ?? 'external'
-              }
+            ? base
             : {
-                  token: dependencyToken,
-                  required: required ?? true,
-                  kind: kind ?? 'external',
+                  ...base,
                   description
               }
 
@@ -2606,7 +2633,7 @@ function normalizeCapability(
     moduleId: string,
     capability: unknown,
     index: number
-): ModuleCapabilityDefinition {
+): NormalizedModuleCapabilityDefinition {
     if (!isRecord(capability)) {
         throw new InvalidModuleDefinitionError(`provides[${index}] must be an object`, {
             moduleId,
@@ -2616,20 +2643,26 @@ function normalizeCapability(
 
     const capabilityToken = validateToken(capability.token, moduleId, `provides[${index}].token`)
     const kind = validateCapabilityKind(capability.kind, moduleId, `provides[${index}].kind`)
+    const cardinality = validateCardinality(
+        capability.cardinality,
+        moduleId,
+        `provides[${index}].cardinality`
+    )
     const description = validateOptionalString(
         capability.description,
         moduleId,
         `provides[${index}].description`
     )
+    const base = {
+        token: capabilityToken,
+        kind,
+        cardinality: cardinality ?? 'single'
+    }
     const normalized =
         description === undefined
-            ? {
-                  token: capabilityToken,
-                  kind
-              }
+            ? base
             : {
-                  token: capabilityToken,
-                  kind,
+                  ...base,
                   description
               }
 
@@ -2774,6 +2807,28 @@ function validateDependencyKind(
     return value
 }
 
+function validateCardinality(
+    value: unknown,
+    moduleId: string,
+    field: string
+): ModuleCardinality | undefined {
+    if (value === undefined) {
+        return undefined
+    }
+
+    if (!isModuleCardinality(value)) {
+        throw new InvalidModuleDefinitionError(
+            `${field} must be "single" or "multi" when provided`,
+            {
+                moduleId,
+                value
+            }
+        )
+    }
+
+    return value
+}
+
 function validateCapabilityKind(
     value: unknown,
     moduleId: string,
@@ -2903,6 +2958,10 @@ function formatPrivateProviderAccessMessage(
 
 function isModuleDependencyKind(value: unknown): value is ModuleDependencyKind {
     return moduleDependencyKinds.includes(value as ModuleDependencyKind)
+}
+
+function isModuleCardinality(value: unknown): value is ModuleCardinality {
+    return moduleCardinalities.includes(value as ModuleCardinality)
 }
 
 function isModuleCapabilityKind(value: unknown): value is ModuleCapabilityKind {

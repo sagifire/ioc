@@ -9,6 +9,7 @@ import {
     type ComposerBindingContext,
     type ComposerBindingFactory,
     type ComposerInspection,
+    type ModuleCardinality,
     type ModuleGraph,
     type ModuleDefinition,
     type ModuleDependencyDefinition,
@@ -101,18 +102,21 @@ describe('module DSL foundation', () => {
                 token: AUTH_READER,
                 required: true,
                 kind: 'external',
+                cardinality: 'single',
                 description: 'Authentication reader'
             },
             {
                 token: OPTIONAL_AUTH_READER,
                 required: false,
-                kind: 'shared'
+                kind: 'shared',
+                cardinality: 'single'
             }
         ])
         expect(moduleDefinition.provides).toEqual([
             {
                 token: CONTACT_REQUESTS_PUBLIC_API,
                 kind: 'public-api',
+                cardinality: 'single',
                 description: 'Contact requests public API'
             }
         ])
@@ -274,9 +278,11 @@ describe('module DSL foundation', () => {
         expect(shorthandModule.id).toBe('dsl-typed-shorthand')
         expectTypeOf(objectFormModule).toMatchTypeOf<ModuleDefinition>()
         expectTypeOf(objectFormModule).toMatchTypeOf<ModuleDslDefinition>()
-        expectTypeOf(objectFormModule.requires[0]).toEqualTypeOf<
+        expectTypeOf(objectFormModule.requires[0]).toMatchTypeOf<
             ModuleDependencyDefinition<AuthReader>
         >()
+        expectTypeOf(objectFormModule.requires[0].cardinality).toEqualTypeOf<ModuleCardinality>()
+        expectTypeOf(objectFormModule.provides[0].cardinality).toEqualTypeOf<ModuleCardinality>()
         expectTypeOf<
             TokenValue<(typeof objectFormModule.requires)[0]['token']>
         >().toEqualTypeOf<AuthReader>()

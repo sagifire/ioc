@@ -523,11 +523,11 @@
 ## Stage 17 `0.0.2` Implementation Backlog
 
 - [TASK-07.05-0074-stage-17-multi-capability-cardinality-model](TASK-07.05-0074-stage-17-multi-capability-cardinality-model/index.md)
-  - Status: backlog
+  - Status: done
   - Type: feature
   - Execution Mode: autonomous-implementation
   - Summary: Phase 1 cardinality model у `provides` і `requires`.
-  - Current: n/a
+  - Current: RUN-001
 - [TASK-07.05-0075-stage-17-multi-capability-validation](TASK-07.05-0075-stage-17-multi-capability-validation/index.md)
   - Status: backlog
   - Type: feature
