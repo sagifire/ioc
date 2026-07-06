@@ -96,18 +96,12 @@ Canonical project context:
 
 ## Historical Source References
 
-Root `SPEC.md` є історичним source reference. Його snapshot у Project Memory:
-
-```text
-memory/sources/SPEC.md
-```
-
 `memory/sources/SPEC.md` є historical immutable source snapshot. Його не можна редагувати
 під час реалізаційних або memory-update задач. Якщо специфікація уточнюється, треба
 оновлювати canonical Project Memory files або створювати новий source snapshot через окрему
 human-reviewed задачу.
 
-`SPEC.md` і `memory/sources/SPEC.md` не є operational source of truth після
+`memory/sources/SPEC.md` не є operational source of truth після
 `TASK-06.26-0002`. Для реалізації використовувати `memory/product/roadmap.md` і canonical
 technical/product/domain memory.
 
