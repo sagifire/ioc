@@ -13,6 +13,8 @@ Agent Role: Agent Executor
 
 Ця інструкція описує, як агент має мігрувати вже розгорнуту Project Memory з PDADM MVP 0.2 на PDADM MVP 0.3 без втрати накопичених даних проекту.
 
+У Starter Kit 4.0 цей guide не є фінальним migration target. Після нього обов'язково застосувати `from-0.3-to-0.4.md`.
+
 Міграція не є розпаковкою нового Starter Kit поверх існуючої `memory/`.
 
 Starter Kit 3.0 є еталоном структури, правил і шаблонів. Existing Project Memory є джерелом проектних даних, які треба зберегти.
@@ -42,7 +44,7 @@ Starter Kit 3.0 є еталоном структури, правил і шабл
 - current run `context.md`;
 - `memory/knowledge/package-index.md`;
 - `memory/knowledge/packages/pdadm-mvp-reglament/package.md`;
-- `memory/knowledge/packages/pdadm-mvp-reglament/mvp_one_to_one_0.3.md`;
+- `memory/knowledge/packages/pdadm-mvp-reglament/historical/mvp_one_to_one_0.3.md` як історична копія регламенту MVP 0.3 у package 4.0;
 - цей migration guide.
 
 Після цього агент читає тільки ті project-specific файли, які потрібні для міграції конкретної Project Memory.
@@ -201,7 +203,7 @@ Starter Kit 3.0 є еталоном структури, правил і шабл
 
 1. встановити `Version: 3.0`;
 2. встановити `PDADM MVP Version: 0.3`;
-3. додати або оновити `mvp_one_to_one_0.3.md`;
+3. додати або оновити `mvp_one_to_one_0.3.md` для package 3.0 або використовувати `historical/mvp_one_to_one_0.3.md` як історичну копію в package 4.0;
 4. додати `migrations/from-0.2-to-0.3.md`;
 5. оновити `index.md` і `migrations/index.md` на link-based списки;
 6. оновити `knowledge/package-index.md`.

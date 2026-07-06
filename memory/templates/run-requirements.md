@@ -1,37 +1,37 @@
-# Run Requirements: RUN-001
+# Вимоги прогону: RUN-001
 
 Status: active
 Agent Role: Agent Executor
 Execution Mode: autonomous-implementation
 Created: YYYY-MM-DD
 
-## Goal for This Run
+## Мета цього run
 
 Що саме має зробити цей прогон.
 
-## Clarified Requirements
+## Уточнені вимоги
 
 - ...
 
-## Scope for This Run
+## Обсяг
 
 - ...
 
-## Out of Scope for This Run
+## Поза обсягом
 
 - ...
 
-## Acceptance Criteria for This Run
+## Критерії приймання
 
 - [ ] Критерій 1
 - [ ] Критерій 2
 
-## Changes from Previous Run
+## Зміни від попереднього run
 
 Для RUN-002 і далі:
 
-- Previous run:
-- Problem:
-- Updated requirement:
-- Updated context:
-- Expected correction:
+- Попередній прогон:
+- Проблема:
+- Оновлена вимога:
+- Оновлений контекст:
+- Очікуване виправлення:

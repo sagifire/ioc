@@ -3,11 +3,11 @@
 Status: accepted
 Date: YYYY-MM-DD
 
-## Context
+## Контекст
 
-Проекту потрібна стартова файлова Project Memory на основі PDADM MVP 0.3 / Starter Kit 3.0.
+Проекту потрібна стартова файлова Project Memory на основі PDADM MVP 0.4 / Starter Kit 4.0.
 
-## Decision
+## Рішення
 
 Використовувати `memory/` як кореневу папку Project Memory.
 
@@ -21,15 +21,17 @@ Date: YYYY-MM-DD
 - knowledge memory;
 - agent rules/workflows/prompts;
 - templates;
-- reports.
+- reports з підпапками `periodic/`, `research/` і `audits/`.
 
-## Consequences
+## Наслідки
 
 - Усі подальші зміни пам'яті мають підтримувати актуальні `index.md`.
 - Канонічна мова пам'яті - українська.
-- Регламент PDADM MVP 0.3 зберігається як knowledge package.
+- Регламент PDADM MVP 0.4 зберігається як knowledge package.
 - Повний регламент є reference layer, а не startup layer.
+- Якщо користувач не знає наступний крок, агент працює як `Methodology Navigator`.
+- Для autonomous research, planning і design потрібні task-local `RSCH-*` і detailed report у `reports/research/**`.
 
-## Alternatives
+## Альтернативи
 
 - Використати назву `project-memory/`. Можливо, але цей Starter Kit очікує кореневу папку `memory/`.

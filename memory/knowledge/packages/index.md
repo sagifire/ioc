@@ -1,15 +1,13 @@
-# Index: Knowledge Packages
+# Індекс: knowledge packages
 
-## Purpose
+## Призначення
 
 Папка для reusable knowledge packages.
 
-## Folders
+## Папки
 
-- [PDADM MVP Reglament](pdadm-mvp-reglament/index.md)
-  - Type: folder
-  - Purpose: Операційний регламент PDADM MVP 0.3 і інструкції міграції Project Memory.
+- [PDADM MVP Reglament](pdadm-mvp-reglament/index.md) - Операційний регламент PDADM MVP 0.4 і інструкції міграції Project Memory.
 
-## Files
+## Файли
 
 Немає прямих файлів.

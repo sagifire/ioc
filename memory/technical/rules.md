@@ -1,6 +1,6 @@
 # Технічні правила
 
-Оновлено: 2026-07-05
+Оновлено: 2026-07-06
 
 ## Джерела правил
 
@@ -101,6 +101,31 @@ source snapshots не редагуються під час implementation або
 - Кожна behavior-changing implementation task має мати tests.
 - Memory changes мають синхронізувати state, progress, relevant indexes і task artifacts.
 - Interactive memory update лишається в `review`, доки human review не дозволить `done`.
+
+## Architecture health guidance
+
+Під час implementation, research, planning і design задач агент має перевіряти
+architecture pressure: чи поточна архітектура підтримує задачу без workaround, дублювання,
+крихких tests або неприродно широких змін.
+
+Сигнали architecture pressure:
+
+- нова фіча потребує обхідних шляхів або дублювання;
+- зміна регулярно зачіпає надто багато модулів;
+- поточні abstractions не відповідають доменній моделі;
+- tests стають крихкими через архітектурну зв'язаність;
+- ADR, architecture notes або technical rules не відповідають фактичному коду;
+- користувач уникає refactor через страх щось зламати.
+
+Якщо pressure істотний, агент не повинен приховувати його локальною правкою. Безпечний
+шлях:
+
+1. architecture audit у `memory/reports/audits/YYYY-MM-DD-architecture-health.md`;
+2. `design` або `research` task для варіантів перебудови;
+3. ADR або architecture proposal;
+4. refactor task з малим scope;
+5. incremental implementation;
+6. self-review, independent audit і human review.
 
 ## Stage 2 rules
 

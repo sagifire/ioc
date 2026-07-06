@@ -1,287 +1,103 @@
-# Index: tasks/plan
+# Індекс: tasks/plan
 
-## Purpose
+## Призначення
 
 Операційна зона для всіх неархівних задач.
 
-## Folders
+## Папки
 
-- [TASK-06.26-0001-initial-implementation-planning](TASK-06.26-0001-initial-implementation-planning/index.md)
-  - Type: folder
-  - Purpose: Початкове планування етапів реалізації проекту.
-- [TASK-06.26-0002-project-memory-bootstrap](TASK-06.26-0002-project-memory-bootstrap/index.md)
-  - Type: folder
-  - Purpose: Stage 1 перенесення `AGENTS.md` і `SPEC.md` у Project Memory.
-- [TASK-06.26-0003-stage-2-implementation-planning](TASK-06.26-0003-stage-2-implementation-planning/index.md)
-  - Type: folder
-  - Purpose: Планування реалізації Stage 2 repository/build foundation.
-- [TASK-06.26-0004-stage-2-repository-build-foundation](TASK-06.26-0004-stage-2-repository-build-foundation/index.md)
-  - Type: folder
-  - Purpose: Завершена задача реалізації Stage 2 repository/build foundation.
-- [TASK-06.26-0005-stage-3-implementation-planning](TASK-06.26-0005-stage-3-implementation-planning/index.md)
-  - Type: folder
-  - Purpose: Планування реалізації Stage 3 tokens.
-- [TASK-06.26-0006-stage-3-tokens](TASK-06.26-0006-stage-3-tokens/index.md)
-  - Type: folder
-  - Purpose: Завершена задача реалізації Stage 3 tokens.
-- [TASK-06.29-0007-stage-4-implementation-planning](TASK-06.29-0007-stage-4-implementation-planning/index.md)
-  - Type: folder
-  - Purpose: Планування реалізації Stage 4 container sync providers.
-- [TASK-06.29-0008-stage-4-container-sync-providers](TASK-06.29-0008-stage-4-container-sync-providers/index.md)
-  - Type: folder
-  - Purpose: Завершена задача реалізації Stage 4 container sync providers.
-- [TASK-06.29-0009-stage-5-implementation-planning](TASK-06.29-0009-stage-5-implementation-planning/index.md)
-  - Type: folder
-  - Purpose: Планування реалізації Stage 5 multi-provider.
-- [TASK-06.29-0010-stage-5-multi-provider](TASK-06.29-0010-stage-5-multi-provider/index.md)
-  - Type: folder
-  - Purpose: Завершена задача реалізації Stage 5 multi-provider.
-- [TASK-06.29-0011-stage-6-implementation-planning](TASK-06.29-0011-stage-6-implementation-planning/index.md)
-  - Type: folder
-  - Purpose: Планування реалізації Stage 6 scopes.
-- [TASK-06.29-0012-stage-6-scopes](TASK-06.29-0012-stage-6-scopes/index.md)
-  - Type: folder
-  - Purpose: Завершена задача реалізації Stage 6 scopes.
-- [TASK-06.29-0013-stage-7-implementation-planning](TASK-06.29-0013-stage-7-implementation-planning/index.md)
-  - Type: folder
-  - Purpose: Планування реалізації Stage 7 async providers/resources.
-- [TASK-06.29-0014-stage-7-async-providers-resources](TASK-06.29-0014-stage-7-async-providers-resources/index.md)
-  - Type: folder
-  - Purpose: Завершена задача реалізації Stage 7 async providers/resources.
-- [TASK-06.29-0015-stage-8-implementation-planning](TASK-06.29-0015-stage-8-implementation-planning/index.md)
-  - Type: folder
-  - Purpose: Планування реалізації Stage 8 diagnostics.
-- [TASK-06.29-0016-stage-8-diagnostics-error-foundation](TASK-06.29-0016-stage-8-diagnostics-error-foundation/index.md)
-  - Type: folder
-  - Purpose: Завершена задача реалізації Stage 8 diagnostics error foundation.
-- [TASK-06.29-0017-stage-8-diagnostic-reports-formatting](TASK-06.29-0017-stage-8-diagnostic-reports-formatting/index.md)
-  - Type: folder
-  - Purpose: Завершена задача реалізації Stage 8 diagnostic reports and formatting.
-- [TASK-06.30-0018-stage-9-implementation-planning](TASK-06.30-0018-stage-9-implementation-planning/index.md)
-  - Type: folder
-  - Purpose: Планування реалізації Stage 9 composer/modules.
-- [TASK-06.30-0019-stage-9-module-definition-foundation](TASK-06.30-0019-stage-9-module-definition-foundation/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 9 module definition foundation.
-- [TASK-06.30-0020-stage-9-composer-builder-bindings-validation](TASK-06.30-0020-stage-9-composer-builder-bindings-validation/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 9 composer builder, bindings and validation.
-- [TASK-06.30-0021-stage-9-module-setup-private-providers](TASK-06.30-0021-stage-9-module-setup-private-providers/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 9 module setup and private providers.
-- [TASK-06.30-0022-stage-9-composed-runtime-capabilities](TASK-06.30-0022-stage-9-composed-runtime-capabilities/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 9 composed runtime and capabilities.
-- [TASK-06.30-0023-stage-9-inspection-api](TASK-06.30-0023-stage-9-inspection-api/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 9 inspection API.
-- [TASK-06.30-0024-stage-10-implementation-planning](TASK-06.30-0024-stage-10-implementation-planning/index.md)
-  - Type: folder
-  - Purpose: Планування реалізації Stage 10 module graph cycle detection.
-- [TASK-06.30-0025-stage-10-dependency-edge-model](TASK-06.30-0025-stage-10-dependency-edge-model/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 10 dependency edge model.
-- [TASK-06.30-0026-stage-10-module-cycle-diagnostics](TASK-06.30-0026-stage-10-module-cycle-diagnostics/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 10 module cycle diagnostics.
-- [TASK-06.30-0027-stage-10-runtime-inspection-hardening](TASK-06.30-0027-stage-10-runtime-inspection-hardening/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 10 runtime inspection hardening.
-- [TASK-07.01-0028-stage-11-implementation-planning](TASK-07.01-0028-stage-11-implementation-planning/index.md)
-  - Type: folder
-  - Purpose: Планування реалізації Stage 11 DSL.
-- [TASK-07.01-0029-stage-11-module-dsl-foundation](TASK-07.01-0029-stage-11-module-dsl-foundation/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 11 module DSL foundation.
-- [TASK-07.01-0030-stage-11-define-app-dsl](TASK-07.01-0030-stage-11-define-app-dsl/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 11 `defineApp()` DSL.
-- [TASK-07.01-0031-stage-11-bind-adapt-dsl](TASK-07.01-0031-stage-11-bind-adapt-dsl/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 11 bind helper DSL and `adapt()`.
-- [TASK-07.01-0032-stage-11-dsl-hardening-docs](TASK-07.01-0032-stage-11-dsl-hardening-docs/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 11 DSL hardening, exports and docs.
-- [TASK-07.01-0033-stage-12-implementation-planning](TASK-07.01-0033-stage-12-implementation-planning/index.md)
-  - Type: folder
-  - Purpose: Планування реалізації Stage 12 `@sagifire/ioc-testing`.
-- [TASK-07.01-0034-stage-12-testing-package-foundation](TASK-07.01-0034-stage-12-testing-package-foundation/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 12 testing package foundation.
-- [TASK-07.01-0035-stage-12-overrides-test-composer](TASK-07.01-0035-stage-12-overrides-test-composer/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 12 overrides and test composer.
-- [TASK-07.01-0036-stage-12-module-harness-fake-modules](TASK-07.01-0036-stage-12-module-harness-fake-modules/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 12 module harness and fake modules.
-- [TASK-07.01-0037-stage-12-graph-diagnostic-assertions](TASK-07.01-0037-stage-12-graph-diagnostic-assertions/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 12 graph and diagnostic assertions.
-- [TASK-07.01-0038-stage-12-testing-hardening-docs](TASK-07.01-0038-stage-12-testing-hardening-docs/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 12 testing hardening, exports and docs.
-- [TASK-07.01-0039-stage-13-implementation-planning](TASK-07.01-0039-stage-13-implementation-planning/index.md)
-  - Type: folder
-  - Purpose: Планування реалізації Stage 13 `@sagifire/ioc-next`.
-- [TASK-07.01-0040-stage-13-next-runtime-foundation](TASK-07.01-0040-stage-13-next-runtime-foundation/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 13 Next package foundation and cached runtime helper.
-- [TASK-07.01-0041-stage-13-next-request-context](TASK-07.01-0041-stage-13-next-request-context/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 13 request context helper and scoped values.
-- [TASK-07.01-0042-stage-13-route-handler-scope](TASK-07.01-0042-stage-13-route-handler-scope/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 13 route handler scope helper.
-- [TASK-07.01-0043-stage-13-server-action-scope](TASK-07.01-0043-stage-13-server-action-scope/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 13 server action scope helper.
-- [TASK-07.01-0044-stage-13-next-examples-hardening-docs](TASK-07.01-0044-stage-13-next-examples-hardening-docs/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 13 Next adapter hardening, exports and docs.
-- [TASK-07.02-0045-stage-14-implementation-planning](TASK-07.02-0045-stage-14-implementation-planning/index.md)
-  - Type: folder
-  - Purpose: Планування реалізації Stage 14 documentation and examples.
-- [TASK-07.02-0046-stage-14-readme-package-docs](TASK-07.02-0046-stage-14-readme-package-docs/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 14 README and package documentation.
-- [TASK-07.02-0047-stage-14-core-container-async-docs](TASK-07.02-0047-stage-14-core-container-async-docs/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 14 architecture, container and async documentation.
-- [TASK-07.02-0048-stage-14-composer-modules-diagnostics-docs](TASK-07.02-0048-stage-14-composer-modules-diagnostics-docs/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 14 composer, modules and diagnostics documentation.
-- [TASK-07.02-0049-stage-14-testing-next-docs](TASK-07.02-0049-stage-14-testing-next-docs/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 14 testing and Next integration documentation.
-- [TASK-07.02-0050-stage-14-basic-node-module-examples](TASK-07.02-0050-stage-14-basic-node-module-examples/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 14 basic Node and module-composition examples.
-- [TASK-07.02-0051-stage-14-async-db-testing-examples](TASK-07.02-0051-stage-14-async-db-testing-examples/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 14 async resource and testing override examples.
-- [TASK-07.02-0052-stage-14-next-app-router-example-hardening](TASK-07.02-0052-stage-14-next-app-router-example-hardening/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 14 Next App Router example hardening.
-- [TASK-07.02-0053-stage-14-migration-final-docs-hardening](TASK-07.02-0053-stage-14-migration-final-docs-hardening/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 14 migration guide and final docs/examples hardening.
-- [TASK-07.02-0054-stage-15-implementation-planning](TASK-07.02-0054-stage-15-implementation-planning/index.md)
-  - Type: folder
-  - Purpose: Планування реалізації Stage 15 release automation and repository governance.
-- [TASK-07.02-0055-stage-15-repository-governance-artifacts](TASK-07.02-0055-stage-15-repository-governance-artifacts/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 15 repository governance artifacts.
-- [TASK-07.02-0056-stage-15-package-publish-metadata](TASK-07.02-0056-stage-15-package-publish-metadata/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 15 package publish metadata.
-- [TASK-07.02-0057-stage-15-changesets-versioning-changelog](TASK-07.02-0057-stage-15-changesets-versioning-changelog/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 15 Changesets versioning and changelog setup.
-- [TASK-07.02-0058-stage-15-ci-quality-gates](TASK-07.02-0058-stage-15-ci-quality-gates/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 15 CI quality gates.
-- [TASK-07.02-0059-stage-15-pack-dry-run-validation](TASK-07.02-0059-stage-15-pack-dry-run-validation/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 15 package dry-run validation.
-- [TASK-07.02-0060-stage-15-npm-publish-workflow-provenance](TASK-07.02-0060-stage-15-npm-publish-workflow-provenance/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 15 npm publish workflow and provenance.
-- [TASK-07.02-0061-stage-15-release-docs-final-hardening](TASK-07.02-0061-stage-15-release-docs-final-hardening/index.md)
-  - Type: folder
-  - Purpose: Задача реалізації Stage 15 release docs and final hardening.
-- [TASK-07.02-0062-stage-16-implementation-planning](TASK-07.02-0062-stage-16-implementation-planning/index.md)
-  - Type: folder
-  - Purpose: Планування Stage 16 `0.0.1` stabilization audit and critical fixes.
-- [TASK-07.02-0063-stage-16-codebase-audit-report](TASK-07.02-0063-stage-16-codebase-audit-report/index.md)
-  - Type: folder
-  - Purpose: Задача аудиту Stage 16 перед фіксацією `0.0.1`.
-- [TASK-07.02-0064-stage-16-critical-fixes-from-audit](TASK-07.02-0064-stage-16-critical-fixes-from-audit/index.md)
-  - Type: folder
-  - Purpose: Задача закриття `C-001` critical finding із Stage 16 audit report.
-- [TASK-07.02-0066-stage-16-sync-factory-promise-guard](TASK-07.02-0066-stage-16-sync-factory-promise-guard/index.md)
-  - Type: folder
-  - Purpose: Задача закриття `H-001` sync factory Promise behavior до `0.0.1`.
-- [TASK-07.02-0067-stage-16-composer-duplicate-binding-validation](TASK-07.02-0067-stage-16-composer-duplicate-binding-validation/index.md)
-  - Type: folder
-  - Purpose: Задача закриття `H-002` composer duplicate binding validation до `0.0.1`.
-- [TASK-07.02-0068-stage-16-freeze-failure-retry-policy](TASK-07.02-0068-stage-16-freeze-failure-retry-policy/index.md)
-  - Type: folder
-  - Purpose: Задача закриття `M-001` failed `freeze()` policy до `0.0.1`.
-- [TASK-07.02-0069-stage-16-changeset-status-docs](TASK-07.02-0069-stage-16-changeset-status-docs/index.md)
-  - Type: folder
-  - Purpose: Задача закриття `L-001` Changesets status docs до `0.0.1`.
-- [TASK-07.02-0065-stage-16-version-0-0-1-stabilization-handoff](TASK-07.02-0065-stage-16-version-0-0-1-stabilization-handoff/index.md)
-  - Type: folder
-  - Purpose: Задача фіксації version `0.0.1` and stabilization handoff після всіх audit
-    blockers.
-- [TASK-07.04-0070-stage-17-implementation-planning](TASK-07.04-0070-stage-17-implementation-planning/index.md)
-  - Type: folder
-  - Purpose: Планування Stage 17 `0.0.2` feature-request audit and decision gate.
-- [TASK-07.04-0071-stage-17-feature-request-audit](TASK-07.04-0071-stage-17-feature-request-audit/index.md)
-  - Type: folder
-  - Purpose: Задача аудиту attached `@sagifire/ioc 0.0.2` feature request.
-- [TASK-07.05-0072-memory-language-source-path-normalization](TASK-07.05-0072-memory-language-source-path-normalization/index.md)
-  - Type: folder
-  - Purpose: Нормалізація мови Project Memory і source path для Stage 17 feature request.
-- [TASK-07.05-0073-stage-17-0-0-2-implementation-planning](TASK-07.05-0073-stage-17-0-0-2-implementation-planning/index.md)
-  - Type: folder
-  - Purpose: Планування phased implementation backlog для `0.0.2`.
-- [TASK-07.05-0074-stage-17-multi-capability-cardinality-model](TASK-07.05-0074-stage-17-multi-capability-cardinality-model/index.md)
-  - Type: folder
-  - Purpose: Backlog задача для cardinality model у `provides` і `requires`.
-- [TASK-07.05-0075-stage-17-multi-capability-validation](TASK-07.05-0075-stage-17-multi-capability-validation/index.md)
-  - Type: folder
-  - Purpose: Backlog задача для single/multi validation і registration mismatch.
-- [TASK-07.05-0076-stage-17-multi-capability-runtime-gating](TASK-07.05-0076-stage-17-multi-capability-runtime-gating/index.md)
-  - Type: folder
-  - Purpose: Backlog задача для composed runtime `get()` / `getAll()` cardinality gating.
-- [TASK-07.05-0077-stage-17-multi-capability-inspection-diagnostics](TASK-07.05-0077-stage-17-multi-capability-inspection-diagnostics/index.md)
-  - Type: folder
-  - Purpose: Backlog задача для multi-capability inspection and diagnostics.
-- [TASK-07.05-0089-stage-17-composer-add-multi-contributions](TASK-07.05-0089-stage-17-composer-add-multi-contributions/index.md)
-  - Type: folder
-  - Purpose: Backlog задача для explicit composition-root `composer.add()` multi
-    contributions.
-- [TASK-07.05-0078-stage-17-graph-aware-adapter-api](TASK-07.05-0078-stage-17-graph-aware-adapter-api/index.md)
-  - Type: folder
-  - Purpose: Backlog задача для graph-aware adapter object API.
-- [TASK-07.05-0079-stage-17-adapter-source-validation-inspection](TASK-07.05-0079-stage-17-adapter-source-validation-inspection/index.md)
-  - Type: folder
-  - Purpose: Backlog задача для adapter source validation and graph inspection.
-- [TASK-07.05-0080-stage-17-adapter-cycle-diagnostics](TASK-07.05-0080-stage-17-adapter-cycle-diagnostics/index.md)
-  - Type: folder
-  - Purpose: Backlog задача для adapter-aware cycle diagnostics.
-- [TASK-07.05-0081-stage-17-child-scope-lifecycle-model](TASK-07.05-0081-stage-17-child-scope-lifecycle-model/index.md)
-  - Type: folder
-  - Purpose: Backlog задача для child scope lifecycle ownership model.
-- [TASK-07.05-0082-stage-17-child-scope-runtime-semantics](TASK-07.05-0082-stage-17-child-scope-runtime-semantics/index.md)
-  - Type: folder
-  - Purpose: Backlog задача для child scope inheritance, overrides and cache semantics.
-- [TASK-07.05-0083-stage-17-testing-helpers-new-primitives](TASK-07.05-0083-stage-17-testing-helpers-new-primitives/index.md)
-  - Type: folder
-  - Purpose: Backlog задача для testing helpers around new primitives.
-- [TASK-07.05-0084-stage-17-multitoken-contributiontoken-ergonomics](TASK-07.05-0084-stage-17-multitoken-contributiontoken-ergonomics/index.md)
-  - Type: folder
-  - Purpose: Backlog задача для optional `MultiToken` / `ContributionToken` ergonomics.
-- [TASK-07.05-0085-stage-17-dsl-ergonomics-hardening](TASK-07.05-0085-stage-17-dsl-ergonomics-hardening/index.md)
-  - Type: folder
-  - Purpose: Backlog задача для DSL ergonomics after object API stabilization.
-- [TASK-07.05-0086-stage-17-0-0-2-docs-examples](TASK-07.05-0086-stage-17-0-0-2-docs-examples/index.md)
-  - Type: folder
-  - Purpose: Backlog docs задача для `0.0.2` documentation and examples.
-- [TASK-07.05-0087-stage-17-0-0-2-full-audit](TASK-07.05-0087-stage-17-0-0-2-full-audit/index.md)
-  - Type: folder
-  - Purpose: Backlog research задача для full `0.0.2` audit.
-- [TASK-07.05-0088-stage-17-0-0-2-stabilization-handoff](TASK-07.05-0088-stage-17-0-0-2-stabilization-handoff/index.md)
-  - Type: folder
-  - Purpose: Backlog задача для `0.0.2` stabilization handoff.
-- [TASK-07.05-0090-stage-17-version-0-0-2-release-handoff](TASK-07.05-0090-stage-17-version-0-0-2-release-handoff/index.md)
-  - Type: folder
-  - Purpose: Задача фіксації version `0.0.2` and release handoff перед human push/publish
-    workflow.
+- [TASK-06.26-0001-initial-implementation-planning](TASK-06.26-0001-initial-implementation-planning/index.md) - Початкове планування етапів реалізації проекту.
+- [TASK-06.26-0002-project-memory-bootstrap](TASK-06.26-0002-project-memory-bootstrap/index.md) - Stage 1 перенесення архітектурних правил з `AGENTS.md` і повного `SPEC.md` у Project Memory.
+- [TASK-06.26-0003-stage-2-implementation-planning](TASK-06.26-0003-stage-2-implementation-planning/index.md) - Планування реалізації Stage 2 repository/build foundation і підготовка implementation task.
+- [TASK-06.26-0005-stage-3-implementation-planning](TASK-06.26-0005-stage-3-implementation-planning/index.md) - Планування реалізації Stage 3 tokens і підготовка implementation task.
+- [TASK-06.29-0007-stage-4-implementation-planning](TASK-06.29-0007-stage-4-implementation-planning/index.md) - Планування реалізації Stage 4 container sync providers і підготовка implementation task.
+- [TASK-06.29-0009-stage-5-implementation-planning](TASK-06.29-0009-stage-5-implementation-planning/index.md) - Планування реалізації Stage 5 multi-provider і підготовка implementation task.
+- [TASK-06.29-0011-stage-6-implementation-planning](TASK-06.29-0011-stage-6-implementation-planning/index.md) - Планування реалізації Stage 6 scopes і підготовка implementation task.
+- [TASK-06.29-0013-stage-7-implementation-planning](TASK-06.29-0013-stage-7-implementation-planning/index.md) - Планування реалізації Stage 7 async providers/resources і підготовка implementation task.
+- [TASK-06.29-0015-stage-8-implementation-planning](TASK-06.29-0015-stage-8-implementation-planning/index.md) - Планування реалізації Stage 8 diagnostics і підготовка декількох implementation tasks.
+- [TASK-06.30-0018-stage-9-implementation-planning](TASK-06.30-0018-stage-9-implementation-planning/index.md) - Планування реалізації Stage 9 composer/modules і підготовка декількох implementation tasks.
+- [TASK-06.30-0024-stage-10-implementation-planning](TASK-06.30-0024-stage-10-implementation-planning/index.md) - Планування реалізації Stage 10 module graph cycle detection і підготовка декількох implementation tasks.
+- [TASK-07.01-0028-stage-11-implementation-planning](TASK-07.01-0028-stage-11-implementation-planning/index.md) - Планування реалізації Stage 11 DSL і підготовка декількох implementation tasks.
+- [TASK-07.01-0033-stage-12-implementation-planning](TASK-07.01-0033-stage-12-implementation-planning/index.md) - Планування реалізації Stage 12 `@sagifire/ioc-testing` і підготовка декількох implementation tasks.
+- [TASK-07.01-0039-stage-13-implementation-planning](TASK-07.01-0039-stage-13-implementation-planning/index.md) - Планування реалізації Stage 13 `@sagifire/ioc-next` і підготовка декількох implementation tasks.
+- [TASK-07.02-0045-stage-14-implementation-planning](TASK-07.02-0045-stage-14-implementation-planning/index.md) - Планування реалізації Stage 14 documentation/examples і підготовка декількох implementation tasks.
+- [TASK-07.02-0054-stage-15-implementation-planning](TASK-07.02-0054-stage-15-implementation-planning/index.md) - Планування реалізації Stage 15 release automation and repository governance readiness і підготовка декількох implementation tasks.
+- [TASK-07.02-0062-stage-16-implementation-planning](TASK-07.02-0062-stage-16-implementation-planning/index.md) - Планування Stage 16 `0.0.1` stabilization audit, critical fixes and version handoff.
+- [TASK-07.04-0070-stage-17-implementation-planning](TASK-07.04-0070-stage-17-implementation-planning/index.md) - Запуск Stage 17 як `0.0.2` feature-request audit and decision gate.
+- [TASK-07.05-0072-memory-language-source-path-normalization](TASK-07.05-0072-memory-language-source-path-normalization/index.md) - Нормалізація мови загальних Project Memory docs і source path для Stage 17 feature request.
+- [TASK-07.05-0073-stage-17-0-0-2-implementation-planning](TASK-07.05-0073-stage-17-0-0-2-implementation-planning/index.md) - Фіксація accepted decisions і phased implementation backlog для `0.0.2`.
+- [TASK-06.26-0004-stage-2-repository-build-foundation](TASK-06.26-0004-stage-2-repository-build-foundation/index.md) - Stage 2 monorepo/package/build foundation без runtime/container logic.
+- [TASK-06.26-0006-stage-3-tokens](TASK-06.26-0006-stage-3-tokens/index.md) - Stage 3 typed tokens, namespace helper, token ID validation and tests.
+- [TASK-06.29-0008-stage-4-container-sync-providers](TASK-06.29-0008-stage-4-container-sync-providers/index.md) - Stage 4 mutable container builder, sync single-provider bindings, singleton/transient lifetimes, immutable runtime, duplicate detection and provider cycle detection.
+- [TASK-06.29-0010-stage-5-multi-provider](TASK-06.29-0010-stage-5-multi-provider/index.md) - Stage 5 multi-provider `add()`, sync value/factory contributions, `getAll()` and strict single vs multi-provider validation.
+- [TASK-06.29-0012-stage-6-scopes](TASK-06.29-0012-stage-6-scopes/index.md) - Stage 6 scopes, scoped lifetime, scope-local values, scope disposal and `withScope()`.
+- [TASK-06.29-0014-stage-7-async-providers-resources](TASK-06.29-0014-stage-7-async-providers-resources/index.md) - Stage 7 async single-provider bindings, eager/lazy async resolution, runtime/scoped resources and disposal.
+- [TASK-06.29-0016-stage-8-diagnostics-error-foundation](TASK-06.29-0016-stage-8-diagnostics-error-foundation/index.md) - Stage 8 `SagifireIocError`, stable code contract and migration of existing Stage 3-7 typed errors.
+- [TASK-06.29-0017-stage-8-diagnostic-reports-formatting](TASK-06.29-0017-stage-8-diagnostic-reports-formatting/index.md) - Stage 8 `Diagnostic`, `DiagnosticReport`, `formatDiagnostics()` and readable report formatting.
+- [TASK-06.30-0019-stage-9-module-definition-foundation](TASK-06.30-0019-stage-9-module-definition-foundation/index.md) - Stage 9 module definition object API foundation and `defineModule()`.
+- [TASK-06.30-0020-stage-9-composer-builder-bindings-validation](TASK-06.30-0020-stage-9-composer-builder-bindings-validation/index.md) - Stage 9 `createComposer()`, `use()`, `bind()` and static validation.
+- [TASK-06.30-0021-stage-9-module-setup-private-providers](TASK-06.30-0021-stage-9-module-setup-private-providers/index.md) - Stage 9 module setup context and private provider isolation.
+- [TASK-06.30-0022-stage-9-composed-runtime-capabilities](TASK-06.30-0022-stage-9-composed-runtime-capabilities/index.md) - Stage 9 `composer.compose()` and composed runtime exported capabilities.
+- [TASK-06.30-0023-stage-9-inspection-api](TASK-06.30-0023-stage-9-inspection-api/index.md) - Stage 9 `composer.inspect()`, `composer.getGraph()` and `runtime.inspect()`.
+- [TASK-06.30-0025-stage-10-dependency-edge-model](TASK-06.30-0025-stage-10-dependency-edge-model/index.md) - Stage 10 module graph dependency edge metadata for capability and binding edges.
+- [TASK-06.30-0026-stage-10-module-cycle-diagnostics](TASK-06.30-0026-stage-10-module-cycle-diagnostics/index.md) - Stage 10 module-level cycle detection and typed diagnostics.
+- [TASK-06.30-0027-stage-10-runtime-inspection-hardening](TASK-06.30-0027-stage-10-runtime-inspection-hardening/index.md) - Stage 10 composed runtime inspection, binding-edge semantics and final regression hardening.
+- [TASK-07.01-0029-stage-11-module-dsl-foundation](TASK-07.01-0029-stage-11-module-dsl-foundation/index.md) - Stage 11 `module()` DSL foundation over existing `defineModule()` object API.
+- [TASK-07.01-0030-stage-11-define-app-dsl](TASK-07.01-0030-stage-11-define-app-dsl/index.md) - Stage 11 `defineApp()` DSL and deterministic conversion to composer config.
+- [TASK-07.01-0031-stage-11-bind-adapt-dsl](TASK-07.01-0031-stage-11-bind-adapt-dsl/index.md) - Stage 11 bind helper DSL and `adapt()` for explicit composition adapters.
+- [TASK-07.01-0032-stage-11-dsl-hardening-docs](TASK-07.01-0032-stage-11-dsl-hardening-docs/index.md) - Stage 11 DSL hardening, exports, inspection parity and minimal docs sync.
+- [TASK-07.01-0034-stage-12-testing-package-foundation](TASK-07.01-0034-stage-12-testing-package-foundation/index.md) - Stage 12 `@sagifire/ioc-testing` package foundation and isolated test runtime helper.
+- [TASK-07.01-0035-stage-12-overrides-test-composer](TASK-07.01-0035-stage-12-overrides-test-composer/index.md) - Stage 12 override declarations and test composer helper.
+- [TASK-07.01-0036-stage-12-module-harness-fake-modules](TASK-07.01-0036-stage-12-module-harness-fake-modules/index.md) - Stage 12 module harness and fake module helpers.
+- [TASK-07.01-0037-stage-12-graph-diagnostic-assertions](TASK-07.01-0037-stage-12-graph-diagnostic-assertions/index.md) - Stage 12 graph and diagnostic assertion helpers.
+- [TASK-07.01-0038-stage-12-testing-hardening-docs](TASK-07.01-0038-stage-12-testing-hardening-docs/index.md) - Stage 12 testing package hardening, exports and docs sync.
+- [TASK-07.01-0040-stage-13-next-runtime-foundation](TASK-07.01-0040-stage-13-next-runtime-foundation/index.md) - Stage 13 Next package foundation and cached runtime helper.
+- [TASK-07.01-0041-stage-13-next-request-context](TASK-07.01-0041-stage-13-next-request-context/index.md) - Stage 13 request context helper and request-scoped values.
+- [TASK-07.01-0042-stage-13-route-handler-scope](TASK-07.01-0042-stage-13-route-handler-scope/index.md) - Stage 13 route handler scope helper.
+- [TASK-07.01-0043-stage-13-server-action-scope](TASK-07.01-0043-stage-13-server-action-scope/index.md) - Stage 13 server action scope helper.
+- [TASK-07.01-0044-stage-13-next-examples-hardening-docs](TASK-07.01-0044-stage-13-next-examples-hardening-docs/index.md) - Stage 13 Next adapter hardening, exports and minimal docs/examples.
+- [TASK-07.02-0046-stage-14-readme-package-docs](TASK-07.02-0046-stage-14-readme-package-docs/index.md) - Stage 14 root README, package READMEs and docs navigation.
+- [TASK-07.02-0047-stage-14-core-container-async-docs](TASK-07.02-0047-stage-14-core-container-async-docs/index.md) - Stage 14 architecture, container and async model documentation.
+- [TASK-07.02-0048-stage-14-composer-modules-diagnostics-docs](TASK-07.02-0048-stage-14-composer-modules-diagnostics-docs/index.md) - Stage 14 composer, modules and diagnostics documentation.
+- [TASK-07.02-0049-stage-14-testing-next-docs](TASK-07.02-0049-stage-14-testing-next-docs/index.md) - Stage 14 testing and Next integration documentation.
+- [TASK-07.02-0050-stage-14-basic-node-module-examples](TASK-07.02-0050-stage-14-basic-node-module-examples/index.md) - Stage 14 `basic-node` and `module-composition` examples.
+- [TASK-07.02-0051-stage-14-async-db-testing-examples](TASK-07.02-0051-stage-14-async-db-testing-examples/index.md) - Stage 14 `async-db-resource` and `testing-overrides` examples.
+- [TASK-07.02-0052-stage-14-next-app-router-example-hardening](TASK-07.02-0052-stage-14-next-app-router-example-hardening/index.md) - Stage 14 hardening for `examples/next-app-router`.
+- [TASK-07.02-0053-stage-14-migration-final-docs-hardening](TASK-07.02-0053-stage-14-migration-final-docs-hardening/index.md) - Stage 14 migration guide and final docs/examples hardening.
+- [TASK-07.02-0055-stage-15-repository-governance-artifacts](TASK-07.02-0055-stage-15-repository-governance-artifacts/index.md) - Stage 15 repository governance artifacts: `LICENSE`, `NOTICE`, `CONTRIBUTING.md`, `SECURITY.md`, `TRADEMARKS.md` and Apache 2.0 package license metadata.
+- [TASK-07.02-0056-stage-15-package-publish-metadata](TASK-07.02-0056-stage-15-package-publish-metadata/index.md) - Stage 15 package publish metadata for publishable package manifests and npm package contents.
+- [TASK-07.02-0057-stage-15-changesets-versioning-changelog](TASK-07.02-0057-stage-15-changesets-versioning-changelog/index.md) - Stage 15 Changesets/versioning/changelog setup.
+- [TASK-07.02-0058-stage-15-ci-quality-gates](TASK-07.02-0058-stage-15-ci-quality-gates/index.md) - Stage 15 GitHub Actions CI quality gates for build/test/typecheck/format/lint.
+- [TASK-07.02-0059-stage-15-pack-dry-run-validation](TASK-07.02-0059-stage-15-pack-dry-run-validation/index.md) - Stage 15 npm package dry-run validation, package contents and export smoke checks.
+- [TASK-07.02-0060-stage-15-npm-publish-workflow-provenance](TASK-07.02-0060-stage-15-npm-publish-workflow-provenance/index.md) - Stage 15 npm publish workflow with provenance support and no unapproved actual publish.
+- [TASK-07.02-0061-stage-15-release-docs-final-hardening](TASK-07.02-0061-stage-15-release-docs-final-hardening/index.md) - Stage 15 release docs, final consistency checks and Project Memory sync.
+- [TASK-07.02-0063-stage-16-codebase-audit-report](TASK-07.02-0063-stage-16-codebase-audit-report/index.md) - Stage 16 pre-`0.0.1` codebase audit report повністю українською мовою.
+- [TASK-07.02-0064-stage-16-critical-fixes-from-audit](TASK-07.02-0064-stage-16-critical-fixes-from-audit/index.md) - Stage 16 closure of `C-001` critical finding from the codebase audit.
+- [TASK-07.02-0066-stage-16-sync-factory-promise-guard](TASK-07.02-0066-stage-16-sync-factory-promise-guard/index.md) - Stage 16 pre-`0.0.1` closure of `H-001` sync factory Promise behavior.
+- [TASK-07.02-0067-stage-16-composer-duplicate-binding-validation](TASK-07.02-0067-stage-16-composer-duplicate-binding-validation/index.md) - Stage 16 pre-`0.0.1` closure of `H-002` composer duplicate binding validation.
+- [TASK-07.02-0068-stage-16-freeze-failure-retry-policy](TASK-07.02-0068-stage-16-freeze-failure-retry-policy/index.md) - Stage 16 pre-`0.0.1` closure of `M-001` failed `freeze()` policy.
+- [TASK-07.02-0069-stage-16-changeset-status-docs](TASK-07.02-0069-stage-16-changeset-status-docs/index.md) - Stage 16 pre-`0.0.1` closure of `L-001` Changesets status docs.
+- [TASK-07.02-0065-stage-16-version-0-0-1-stabilization-handoff](TASK-07.02-0065-stage-16-version-0-0-1-stabilization-handoff/index.md) - Stage 16 version `0.0.1` fixation and stabilization handoff after all audit blockers are closed.
+- [TASK-07.04-0071-stage-17-feature-request-audit](TASK-07.04-0071-stage-17-feature-request-audit/index.md) - Stage 17 audit of attached `@sagifire/ioc 0.0.2` feature request.
+- [TASK-07.05-0074-stage-17-multi-capability-cardinality-model](TASK-07.05-0074-stage-17-multi-capability-cardinality-model/index.md) - Phase 1 cardinality model у `provides` і `requires`.
+- [TASK-07.05-0075-stage-17-multi-capability-validation](TASK-07.05-0075-stage-17-multi-capability-validation/index.md) - Phase 1 validation для single/multi conflicts і registration mismatch.
+- [TASK-07.05-0076-stage-17-multi-capability-runtime-gating](TASK-07.05-0076-stage-17-multi-capability-runtime-gating/index.md) - Phase 2 composed runtime `get()` / `getAll()` cardinality gating.
+- [TASK-07.05-0077-stage-17-multi-capability-inspection-diagnostics](TASK-07.05-0077-stage-17-multi-capability-inspection-diagnostics/index.md) - Phase 2 public inspection and diagnostics for multi-capabilities.
+- [TASK-07.05-0089-stage-17-composer-add-multi-contributions](TASK-07.05-0089-stage-17-composer-add-multi-contributions/index.md) - Phase 2 explicit composition-root `composer.add()` multi contributions after inspection/provider identity model.
+- [TASK-07.05-0078-stage-17-graph-aware-adapter-api](TASK-07.05-0078-stage-17-graph-aware-adapter-api/index.md) - Phase 3 graph-aware adapter object API без resolver context у `using()`.
+- [TASK-07.05-0079-stage-17-adapter-source-validation-inspection](TASK-07.05-0079-stage-17-adapter-source-validation-inspection/index.md) - Phase 3 adapter source validation and adapter-source graph visibility.
+- [TASK-07.05-0080-stage-17-adapter-cycle-diagnostics](TASK-07.05-0080-stage-17-adapter-cycle-diagnostics/index.md) - Phase 3 adapter-aware cycle diagnostics before `0.0.2` handoff.
+- [TASK-07.05-0081-stage-17-child-scope-lifecycle-model](TASK-07.05-0081-stage-17-child-scope-lifecycle-model/index.md) - Phase 4 child scope lifecycle ownership model.
+- [TASK-07.05-0082-stage-17-child-scope-runtime-semantics](TASK-07.05-0082-stage-17-child-scope-runtime-semantics/index.md) - Phase 4 child scope value inheritance, overrides and separate scoped cache.
+- [TASK-07.05-0083-stage-17-testing-helpers-new-primitives](TASK-07.05-0083-stage-17-testing-helpers-new-primitives/index.md) - Phase 5 testing helpers for multi-capabilities, adapters and child scopes.
+- [TASK-07.05-0084-stage-17-multitoken-contributiontoken-ergonomics](TASK-07.05-0084-stage-17-multitoken-contributiontoken-ergonomics/index.md) - Phase 5 optional `MultiToken` / `ContributionToken` ergonomics decision and implementation.
+- [TASK-07.05-0085-stage-17-dsl-ergonomics-hardening](TASK-07.05-0085-stage-17-dsl-ergonomics-hardening/index.md) - Phase 5 DSL ergonomics after object API stabilization.
+- [TASK-07.05-0086-stage-17-0-0-2-docs-examples](TASK-07.05-0086-stage-17-0-0-2-docs-examples/index.md) - Phase 6 penultimate docs and examples update for `0.0.2`.
+- [TASK-07.05-0087-stage-17-0-0-2-full-audit](TASK-07.05-0087-stage-17-0-0-2-full-audit/index.md) - Phase 7 full audit before `0.0.2` stabilization, approved after human review.
+- [TASK-07.05-0088-stage-17-0-0-2-stabilization-handoff](TASK-07.05-0088-stage-17-0-0-2-stabilization-handoff/index.md) - Phase 7 stabilization handoff after full audit, including `H-001` and `L-001`.
+- [TASK-07.05-0090-stage-17-version-0-0-2-release-handoff](TASK-07.05-0090-stage-17-version-0-0-2-release-handoff/index.md) - Stage 17 version `0.0.2` fixation and release handoff before human push and publish workflow.
+- [TASK-07.06-0091-memory-mvp-0-4-migration](TASK-07.06-0091-memory-mvp-0-4-migration/index.md) - Міграція Project Memory з PDADM MVP 0.3 / Starter Kit 3.0 на PDADM MVP 0.4 / Starter Kit 4.0.
 
-## Files
+## Файли
 
-- [Task Progress](progress.md)
-  - Type: file
-  - Purpose: Єдиний операційний індекс неархівних задач, їх груп і статусів.
+- [Task Progress](progress.md) - Єдиний операційний індекс неархівних задач, їх груп і статусів.

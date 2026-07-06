@@ -5,54 +5,108 @@ Created: YYYY-MM-DD
 Agent Role: Agent Assistant
 Task Status After Fixation: active | review
 Related Research: `research/RSCH-001.md` або n/a
+Review Method: independent-subagent | same-agent
+Auditor: agent id / role / n/a
+Review Limitation: none | subagent-unavailable | інше
 
-## Purpose
+## Призначення
 
 Що саме фіксується.
 
-## Source Summary
+## Підсумок джерела
 
 Стислий підсумок обговорення або вхідного матеріалу.
 
-## Target Memory Files
+## Цільові файли пам'яті
 
 - `product/...`
 - `domain/...`
 - `technical/...`
 - `knowledge/...`
 
-## Proposed Changes
+## Запропоновані зміни
 
 Структурований опис змін, які агент планує внести.
 
-## Rationale
+## Обгрунтування
 
 Чому ці зміни потрібні.
 
-## General-Level Memory Impact
+## Вплив на документи загального рівня
 
-- `state.md`: updated / not needed / proposed / blocked - reason
-- Product overview docs: updated / not needed / proposed / blocked - reason
-- Domain overview docs: updated / not needed / proposed / blocked - reason
-- Technical overview docs: updated / not needed / proposed / blocked - reason
-- Knowledge indexes/packages: updated / not needed / proposed / blocked - reason
-- Relevant `index.md`: updated / not needed / proposed / blocked - reason
+- `state.md`: updated / not needed / proposed / blocked - причина
+- Продуктові оглядові документи: updated / not needed / proposed / blocked - причина
+- Доменні оглядові документи: updated / not needed / proposed / blocked - причина
+- Технічні оглядові документи: updated / not needed / proposed / blocked - причина
+- Індекси й пакети знань: updated / not needed / proposed / blocked - причина
+- Релевантні `index.md`: updated / not needed / proposed / blocked - причина
 
-## Self-Review
+## Підсумок self-review
+
+Короткий висновок агента або незалежного субагента-аудитора.
+
+## Якість виконання
+
+- Наскільки якісно фіксація відповідає підсумку джерела й обсягу задачі:
+- Що виконано повністю:
+- Що виконано частково:
+- Що не виконано:
+
+## Обсяг, зрізання кутів і компроміси
+
+- Чи були зміни поза обсягом:
+- Чи були зрізання кутів або незаплановані спрощення:
+- Чи були компроміси:
+- Чи погоджені або винесені ці компроміси:
+
+## Ризики
+
+- Реальні ризики, які виникли:
+- Потенційні ризики:
+- Закриті ризики:
+- Відкриті ризики:
+- Прийняті ризики:
+
+## Незапланована робота
+
+- Яка незапланована робота виникла:
+- Що закрито в межах задачі:
+- Що залишилось не закрито:
+- Чому це не закрито:
+
+## Подальші задачі
+
+- Потрібні додаткові задачі:
+- Задачі, яких немає в поточному плані:
+- Не потрібні, причина:
+
+## Додаткові нотатки для перевірки людиною
+
+- На що людині або агенту-аудитору треба звернути увагу:
+
+## Контрольний список self-review
 
 - [ ] Нема очевидних протиріч з існуючою Project Memory
 - [ ] Нема втрати важливого контексту
-- [ ] Scope змін відповідає задачі
+- [ ] Обсяг змін відповідає задачі
 - [ ] Цільові файли визначені коректно
 - [ ] Вплив на документи загального рівня перевірений
 - [ ] Потрібні оновлення документів загального рівня включені в proposal або явно винесені у follow-up/blocker
 - [ ] Потрібні `index.md` визначені
+- [ ] Language gate пройдено: авторський текст Project Memory українською або має дозволений виняток
+- [ ] Зрізання кутів і компроміси відсутні або явно зафіксовані
+- [ ] Незакрита незапланована робота винесена у подальші задачі або blocker
+- [ ] Архітектурний тиск (`architecture pressure`) перевірено або не застосовується
+- [ ] Якщо доступні субагенти, review виконано незалежним субагентом-аудитором
 
-## Review Findings
+## Зауваження аудиту
+
+Status: none | closed | accepted-risk | follow-up-created | blocker
+Source: independent-subagent | same-agent | human | n/a
 
 - ...
 
-## Human Review
+## Перевірка людиною
 
 Status: pending | approved | changes-requested | rejected
 Reviewer Role: Product Lead Hat / Knowledge Engineer Hat / інша відповідальна роль
@@ -62,25 +116,25 @@ Approval Source: явне повідомлення користувача / pend
 
 Погодження конкретної фіксації саме по собі не є approval закриття задачі.
 
-## Applied Changes
+## Застосовані зміни
 
 - `file.md` - що змінено.
 
-## Memory Sync
+## Синхронізація пам'яті
 
-- Product memory: updated / not needed
-- Domain memory: updated / not needed
-- Technical memory: updated / not needed
-- Knowledge memory: updated / not needed
-- Task memory: updated / not needed
-- Wiki indexes: updated / not needed
-- State file: updated / not needed
-- General-level memory documents: updated / not needed / proposed / blocked
+- Продуктова пам'ять: updated / not needed
+- Доменна пам'ять: updated / not needed
+- Технічна пам'ять: updated / not needed
+- Пам'ять знань: updated / not needed
+- Пам'ять задач: updated / not needed
+- Wiki-індекси: updated / not needed
+- Файл стану: updated / not needed
+- Документи загального рівня: updated / not needed / proposed / blocked
 
-## Memory Sync Notes
+## Нотатки memory sync
 
 Коротке пояснення.
 
-## Follow-up
+## Подальші дії
 
 - ...

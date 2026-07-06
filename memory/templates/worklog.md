@@ -3,18 +3,18 @@
 Status: active
 Execution Mode: interactive-memory-update
 
-## Intent
+## Намір
 
 Що користувач хоче зафіксувати або оновити в Project Memory.
 
-## Discussion Notes
+## Нотатки обговорення
 
 - YYYY-MM-DD: короткий структурований підсумок обговорення.
 
-## Open Questions
+## Відкриті питання
 
 - ...
 
-## Fixations
+## Фіксації
 
 - `fixations/FIX-001.md` - draft / applied / rejected

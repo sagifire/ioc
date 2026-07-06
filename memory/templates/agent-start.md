@@ -1,24 +1,48 @@
 # Agent Start
 
-Starter Kit Version: 3.0
-PDADM MVP Version: 0.3
+Starter Kit Version: 4.0
+PDADM MVP Version: 0.4
 
-## Purpose
+## Призначення
 
 Коротко: як агент має входити в Project Memory.
 
 Усі шляхи в цьому файлі вказані від кореня проекту.
 
-## Default Boot Packet
+## Default boot packet
 
 - `memory/README.md`
 - `memory/state.md`
 - `memory/memory-rules.md`
 - `memory/agents/rules.md`
 
-## Startup Profiles
+## Default role fallback
+
+```text
+Agent Role: Agent Assistant
+Working Mode: Methodology Navigator
+Task / Topic: clarification
+```
+
+## Startup profiles
 
 Startup profile є операційною підказкою для читання контексту. Якщо задача вказана, `Execution Mode` береться з `task.md`.
+
+### methodology-navigator
+
+- default boot packet
+- `memory/human-start.md`, якщо користувач просить пояснити регламент
+- `memory/tasks/plan/progress.md`, якщо треба пояснити стан задач
+
+### project-bootstrap
+
+- default boot packet
+- `memory/product/vision.md`
+- `memory/product/requirements.md`
+- `memory/product/roadmap.md`
+- `memory/domain/index.md`
+- `memory/technical/index.md`
+- `memory/tasks/plan/progress.md`
 
 ### discussion / task-preparation
 
@@ -38,7 +62,8 @@ Startup profile є операційною підказкою для читанн
 - `memory/tasks/plan/progress.md`
 - task `task.md`
 - current `research/RSCH-*.md`, якщо існує
-- `memory/knowledge/package-index.md`, якщо research може потребувати reusable knowledge
+- related detailed report у `memory/reports/research/`, якщо існує
+- `memory/knowledge/package-index.md`, якщо research, planning або design може потребувати reusable knowledge
 - relevant knowledge packages
 
 ### interactive-memory-update
@@ -47,6 +72,7 @@ Startup profile є операційною підказкою для читанн
 - `memory/tasks/plan/progress.md`
 - task `task.md`
 - `worklog.md`
+- current `fixations/FIX-*.md`, якщо існує
 - relevant target memory files
 
 ### memory-migration
@@ -57,13 +83,22 @@ Startup profile є операційною підказкою для читанн
 - `memory/knowledge/packages/pdadm-mvp-reglament/package.md`
 - relevant migration guide
 
-## Stop Rule
+### architecture-audit
+
+- default boot packet
+- task `task.md`, якщо audit оформлений як задача
+- `memory/technical/architecture.md`
+- `memory/technical/rules.md`
+- relevant ADR у `memory/technical/decisions/`
+- related report у `memory/reports/audits/`, якщо існує
+
+## Stop rule
 
 Після boot packet або startup profile агент переходить до задачі.
 
 Додаткові документи читати тільки за явною потребою.
 
-## When To Read Full Reglament
+## Коли читати повний регламент
 
 - `memory-migration`
 - зміна регламенту, workflow або шаблонів

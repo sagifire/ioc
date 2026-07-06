@@ -1,20 +1,14 @@
-# Index: tasks
+# Індекс: tasks
 
-## Purpose
+## Призначення
 
 Пам'ять задач, прогонів, інтерактивних фіксацій і завершених робіт.
 
-## Folders
+## Папки
 
-- [Plan](plan/index.md)
-  - Type: folder
-  - Purpose: Усі неархівні задачі та операційний індекс `progress.md`.
-- [Archive](archive/index.md)
-  - Type: folder
-  - Purpose: Архів задач, які більше не потрібні в активній навігації.
+- [Plan](plan/index.md) - Усі неархівні задачі та операційний індекс `progress.md`.
+- [Archive](archive/index.md) - Архів задач, які більше не потрібні в активній навігації.
 
-## Files
+## Файли
 
-- [Task Memory README](README.md)
-  - Type: file
-  - Purpose: Правила роботи із задачами.
+- [Task Memory README](README.md) - Правила роботи із задачами.

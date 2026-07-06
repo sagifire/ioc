@@ -8,11 +8,11 @@ Agent Role: Agent Executor
 Task Type: memory-migration
 Execution Mode: autonomous-implementation
 
-Historical Status: chain-only reference for package 3.0
+Historical Status: chain-only reference for package 4.0
 
-У Starter Kit 3.0 цей guide не є фінальним migration target. Якщо проект треба мігрувати з MVP 0.1 до актуальної версії, використовувати `from-0.1-to-0.3.md`.
+У Starter Kit 4.0 цей guide не є фінальним migration target. Якщо проект треба мігрувати з MVP 0.1 до актуальної версії, використовувати `from-0.1-to-0.3.md`, а потім `from-0.3-to-0.4.md`.
 
-Якщо цей guide використовується як проміжний reference, після нього обов'язково застосувати `from-0.2-to-0.3.md` і не залишати `knowledge/packages/pdadm-mvp-reglament/` у стані `Version: 2.0`.
+Якщо цей guide використовується як проміжний reference, після нього обов'язково застосувати `from-0.2-to-0.3.md` і `from-0.3-to-0.4.md`; не залишати `knowledge/packages/pdadm-mvp-reglament/` у стані `Version: 2.0` або `Version: 3.0`.
 
 ## Purpose
 

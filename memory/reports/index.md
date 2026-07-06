@@ -1,17 +1,17 @@
-# Index: Reports
+# Індекс: reports
 
-## Purpose
+## Призначення
 
-Папка для періодичних оглядів стану Project Memory і звітів підтримки пам'яті.
+Папка для періодичних оглядів, деталізованих дослідницьких звітів і аудиторських звітів.
 
-Звіти не замінюють task artifacts. Для `autonomous-implementation` результат фіксується в `result.md`, для `autonomous-research` - у `research/RSCH-*.md`, для `interactive-memory-update` - у `fixations/FIX-*.md`.
+Reports не замінюють task artifacts. Для `autonomous-implementation` результат фіксується в `result.md`, для `autonomous-research` - у `research/RSCH-*.md` і `reports/research/**`, для `interactive-memory-update` - у `fixations/FIX-*.md`.
 
-## Folders
+## Папки
 
-- [Periodic Reports](periodic/index.md)
-  - Type: folder
-  - Purpose: Weekly або інші періодичні огляди.
+- [Періодичні звіти](periodic/index.md) - Weekly або інші періодичні огляди.
+- [Дослідницькі звіти](research/index.md) - Деталізовані звіти для autonomous research, planning і design задач.
+- [Аудиторські звіти](audits/index.md) - Звіти аудитів, включно з architecture health audits і незалежними review-аудитами.
 
-## Files
+## Файли
 
 Немає прямих файлів.

@@ -3,18 +3,18 @@
 Status: proposed | accepted | superseded | rejected
 Date: YYYY-MM-DD
 
-## Context
+## Контекст
 
 Чому виникло рішення.
 
-## Decision
+## Рішення
 
 Що вирішено.
 
-## Consequences
+## Наслідки
 
 Що це означає.
 
-## Alternatives
+## Альтернативи
 
 Що розглядалося, якщо важливо.

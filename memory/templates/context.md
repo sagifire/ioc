@@ -1,6 +1,6 @@
-# Context Package: RUN-001
+# Пакет контексту: RUN-001
 
-## Required Reading
+## Обов'язкове читання
 
 - `memory/agent-start.md`
 - `memory/state.md`
@@ -8,30 +8,30 @@
 - `memory/agents/rules.md`
 - `memory/knowledge/package-index.md` якщо задача потребує reusable knowledge
 
-## Relevant Product Context
+## Релевантний продуктовий контекст
 
 Коротко.
 
-## Relevant Domain Context
+## Релевантний доменний контекст
 
 Коротко.
 
-## Relevant Technical Context
+## Релевантний технічний контекст
 
 Коротко.
 
-## Relevant Knowledge Packages
+## Релевантні пакети знань
 
 - `memory/knowledge/packages/...`
 
-## Files / Modules to Inspect
+## Файли або модулі для перевірки
 
 - `...`
 
-## Known Risks
+## Відомі ризики
 
 - ...
 
-## Assumptions
+## Припущення
 
 - ...

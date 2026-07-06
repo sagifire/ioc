@@ -1,21 +1,15 @@
-# Index: Agents
+# Індекс: agents
 
-## Purpose
+## Призначення
 
 Пам'ять правил, workflows і prompts для агентської роботи.
 
-## Folders
+## Папки
 
 Немає дочірніх папок.
 
-## Files
+## Файли
 
-- [Rules](rules.md)
-  - Type: file
-  - Purpose: Обов'язкові правила агентів.
-- [Workflows](workflows.md)
-  - Type: file
-  - Purpose: Типові робочі стани агентів.
-- [Prompts](prompts.md)
-  - Type: file
-  - Purpose: Шаблони запуску агентських сесій.
+- [Rules](rules.md) - Обов'язкові правила агентів.
+- [Workflows](workflows.md) - Типові робочі стани агентів.
+- [Prompts](prompts.md) - Шаблони запуску агентських сесій.

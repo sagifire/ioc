@@ -1,43 +1,43 @@
-# Knowledge Package: Назва
+# Пакет знань: Назва
 
 Status: draft
 Version: X.Y
 Scope: architecture | frontend | backend | agents | domain | process | other
 Reusable: true
 
-## Purpose
+## Призначення
 
 Для чого цей пакет.
 
-## When to Use
+## Коли використовувати
 
 Коли агент або людина повинні його застосовувати.
 
-## When Not to Use
+## Коли не використовувати
 
 Коли цей пакет не доречний.
 
-## Core Ideas
+## Ключові ідеї
 
 - ...
 
-## Core Rules
+## Ключові правила
 
 - ...
 
-## Recommended Reading
+## Рекомендоване читання
 
 - `principles.md`
 - `examples.md`
 - `anti-examples.md`
 
-## Related Task Types
+## Пов'язані типи задач
 
 - feature
 - refactor
 - knowledge
 - memory-update
 
-## Related Packages
+## Пов'язані пакети
 
 - ...

@@ -1,15 +1,15 @@
-# Index: Periodic Reports
+# Індекс: periodic reports
 
-## Purpose
+## Призначення
 
 Періодичні огляди стану Project Memory.
 
-Огляд має перевіряти актуальність `state.md`, `tasks/plan/progress.md`, ключових product/domain/technical документів і релевантних knowledge packages.
+Огляд має перевіряти актуальність `state.md`, `tasks/plan/progress.md`, ключових product/domain/technical документів, `reports/research/`, `reports/audits/` і релевантних knowledge packages.
 
-## Folders
+## Папки
 
 Немає дочірніх папок.
 
-## Files
+## Файли
 
 Немає прямих файлів.

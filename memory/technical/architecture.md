@@ -1,6 +1,6 @@
 # Архітектура
 
-Оновлено: 2026-07-05
+Оновлено: 2026-07-06
 
 ## Джерела
 
@@ -453,6 +453,20 @@ Examples responsibilities:
 
 Docs мають описувати тільки implemented public API. Якщо docs потребують future ideas, їх
 треба clearly mark as future work або винести в Project Memory tasks.
+
+## Architecture health
+
+Architecture health є процесною перевіркою для future implementation, research, planning і
+design tasks. Вона не додає runtime API до `@sagifire/ioc`; її задача - виявляти, коли
+поточні boundaries або abstractions починають заважати безпечному розвитку бібліотеки.
+
+Агент має піднімати architecture pressure, якщо нова робота потребує workaround, дублювання,
+надто широких змін, крихких tests або суперечить цій архітектурній пам'яті, ADR чи
+technical rules.
+
+Якщо pressure істотний, рекомендований шлях: audit report у `memory/reports/audits/`,
+окрема `design` або `research` task, ADR/proposal, малий refactor task і тільки потім
+incremental implementation.
 
 ## Stage 17 extension points
 

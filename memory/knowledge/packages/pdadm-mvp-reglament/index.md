@@ -1,23 +1,18 @@
-# Index: PDADM MVP Reglament
+# Індекс: PDADM MVP Reglament
 
-Version: 3.0
-PDADM MVP Version: 0.3
+Version: 4.0
+PDADM MVP Version: 0.4
 
-## Purpose
+## Призначення
 
-Knowledge package з операційним регламентом PDADM MVP 0.3, правилами застосування методології агентами та інструкціями міграції Project Memory між підтримуваними версіями.
+Knowledge package з операційним регламентом PDADM MVP 0.4, правилами застосування методології агентами та інструкціями міграції Project Memory між підтримуваними версіями.
 
-## Folders
+## Папки
 
-- [Migrations](migrations/index.md)
-  - Type: folder
-  - Purpose: Інструкції міграції Project Memory між версіями PDADM MVP.
+- [Migrations](migrations/index.md) - Інструкції міграції Project Memory між версіями PDADM MVP.
+- [Історичні референси](historical/index.md) - Історичні копії регламентів для ланцюгової міграції й порівняння версій.
 
-## Files
+## Файли
 
-- [Package entrypoint](package.md)
-  - Type: file
-  - Purpose: Вхідна точка пакета знань та інструкція використання.
-- [PDADM MVP 0.3 Reglament](mvp_one_to_one_0.3.md)
-  - Type: file
-  - Purpose: Копія робочого регламенту PDADM MVP 0.3.
+- [Package entrypoint](package.md) - Вхідна точка пакета знань та інструкція використання.
+- [PDADM MVP 0.4 Reglament](mvp_one_to_one_0.4.md) - Копія робочого регламенту PDADM MVP 0.4.

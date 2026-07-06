@@ -1,7 +1,7 @@
 # TASK-MM.YY-NNNN: Назва задачі
 
 Status: backlog | active | review | blocked | canceled | done
-Type: feature | bugfix | refactor | research | docs | knowledge | memory-update | memory-migration | chore
+Type: feature | bugfix | refactor | research | planning | design | docs | knowledge | memory-update | memory-migration | chore
 Execution Mode: autonomous-implementation | autonomous-research | interactive-memory-update
 Created: YYYY-MM-DD
 Owner Role: Product Lead Hat
@@ -9,55 +9,46 @@ Current Run: RUN-001 / n/a
 Current Research: RSCH-001 / n/a
 Current Fixation: FIX-001 / n/a
 
-## Goal
+## Мета
 
 Що треба зробити.
 
-## Product Context
+## Продуктовий контекст
 
 Навіщо це потрібно продукту.
 
-## Scope
+## Обсяг
 
 - ...
 
-## Out of Scope
+## Поза обсягом
 
 - ...
 
-## Acceptance Criteria
+## Критерії приймання
 
 - [ ] Критерій 1
 - [ ] Критерій 2
 
-## Linked Memory
+## Пов'язана пам'ять
 
 - `product/...`
 - `domain/...`
 - `technical/...`
 - `knowledge/...`
 
-## Runs
+## Прогони
 
-- [RUN-001](runs/RUN-001/index.md)
-  - Status: planned
-  - Purpose: Початковий autonomous implementation run
-  - Result: pending
+- [RUN-001](runs/RUN-001/index.md) - planned - Початковий autonomous implementation run; result pending.
 
-## Research
+## Дослідження
 
-- [RSCH-001](research/RSCH-001.md)
-  - Status: planned
-  - Purpose: Початкове autonomous research
-  - Result: pending
+- [RSCH-001](research/RSCH-001.md) - planned - Початкове autonomous research; detailed report `reports/research/YYYY-MM-DD-short-name.md`; result pending.
 
-## Fixations
+## Фіксації
 
-- [FIX-001](fixations/FIX-001.md)
-  - Status: draft
-  - Purpose: Зафіксувати узгоджений зміст у пам'яті
-  - Result: pending
+- [FIX-001](fixations/FIX-001.md) - draft - Зафіксувати узгоджений зміст у пам'яті; result pending.
 
-## Additional Context
+## Додатковий контекст
 
 Додатковий контекст, який не є правилом для агентів або людей.

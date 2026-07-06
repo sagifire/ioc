@@ -13,6 +13,8 @@ Agent Role: Agent Executor
 
 Ця інструкція описує, як агент має мігрувати вже розгорнуту Project Memory з PDADM MVP 0.1 одразу до PDADM MVP 0.3 без фіксації проміжного стану Starter Kit 2.0 як чинного.
 
+У Starter Kit 4.0 цей guide не є фінальним migration target. Після нього обов'язково застосувати `from-0.3-to-0.4.md`.
+
 Не розпаковувати Starter Kit 3.0 поверх існуючої `memory/`. Треба перенести структуру, правила й шаблони без втрати project-specific content.
 
 # 2. Strategy
@@ -21,7 +23,8 @@ Agent Role: Agent Executor
 
 1. застосувати структурні ідеї міграції 0.1 -> 0.2;
 2. одразу застосувати правила й шаблони 0.2 -> 0.3;
-3. фінальний стан має бути тільки Starter Kit 3.0 / PDADM MVP 0.3.
+3. проміжний стан має бути Starter Kit 3.0 / PDADM MVP 0.3;
+4. фінальний стан для актуального package має бути Starter Kit 4.0 / PDADM MVP 0.4 після застосування `from-0.3-to-0.4.md`.
 
 Guide `from-0.1-to-0.2.md` можна читати як історичний reference для розуміння змін структури, але не можна завершувати міграцію станом `Version: 2.0` або активним `mvp_one_to_one_0.2.md`.
 
@@ -37,7 +40,7 @@ Guide `from-0.1-to-0.2.md` можна читати як історичний ref
 - current run `context.md`;
 - `memory/knowledge/package-index.md`;
 - `memory/knowledge/packages/pdadm-mvp-reglament/package.md`;
-- `memory/knowledge/packages/pdadm-mvp-reglament/mvp_one_to_one_0.3.md`;
+- `memory/knowledge/packages/pdadm-mvp-reglament/historical/mvp_one_to_one_0.3.md` як історична копія регламенту MVP 0.3 у package 4.0;
 - `memory/knowledge/packages/pdadm-mvp-reglament/migrations/from-0.1-to-0.2.md` як historical reference;
 - `memory/knowledge/packages/pdadm-mvp-reglament/migrations/from-0.2-to-0.3.md`;
 - цей migration guide.
@@ -49,7 +52,7 @@ Guide `from-0.1-to-0.2.md` можна читати як історичний ref
 - `Starter Kit Version: 3.0`;
 - `PDADM MVP Version: 0.3`;
 - `knowledge/packages/pdadm-mvp-reglament/package.md` має `Version: 3.0`;
-- активний full reglament у package: `mvp_one_to_one_0.3.md`;
+- активний full reglament у package 3.0: `mvp_one_to_one_0.3.md`; у package 4.0 історична копія лежить у `historical/mvp_one_to_one_0.3.md`;
 - `mvp_one_to_one_0.2.md` не використовується як чинний reference layer;
 - `Execution Mode` є task-level полем у `task.md`;
 - `autonomous-research` підтриманий у rules, startup profiles і templates;
@@ -104,7 +107,7 @@ Guide `from-0.1-to-0.2.md` можна читати як історичний ref
 
 - `package.md` з `Version: 3.0`;
 - `index.md` з `PDADM MVP Version: 0.3`;
-- `mvp_one_to_one_0.3.md`;
+- `mvp_one_to_one_0.3.md` для package 3.0 або `historical/mvp_one_to_one_0.3.md` як історична копія в package 4.0;
 - `migrations/from-0.1-to-0.3.md`;
 - `migrations/from-0.2-to-0.3.md`;
 - `migrations/from-0.1-to-0.2.md` тільки як historical/chain reference.

@@ -1,14 +1,23 @@
 # Стан проекту
 
-Оновлено: 2026-07-05
-Starter Kit Version: 3.0
-PDADM MVP Version: 0.3
+Оновлено: 2026-07-06
+Starter Kit Version: 4.0
+PDADM MVP Version: 0.4
 
 ## Поточний фокус
 
 Project Memory є операційним джерелом істини для `@sagifire/ioc`. Кореневий `SPEC.md` і
 `memory/sources/SPEC.md` лишаються історичними джерелами, але реалізаційні рішення треба
 брати з canonical product/domain/technical memory.
+
+Project Memory мігрована на PDADM MVP 0.4 / Starter Kit 4.0 через окрему migration task:
+
+```text
+memory/tasks/plan/TASK-07.06-0091-memory-mvp-0-4-migration/
+```
+
+Статус задачі: `done` після human review approval від 2026-07-06. Первинне review
+повернуло міграцію на доопрацювання, знахідки аудиту закриті в RUN-001 remediation.
 
 Stage 1-16 завершені після людського рев'ю на рівні задачі:
 

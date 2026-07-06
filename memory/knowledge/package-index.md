@@ -2,11 +2,7 @@
 
 ## Packages
 
-- [PDADM MVP Reglament](packages/pdadm-mvp-reglament/index.md)
-  - Status: draft
-  - Version: 3.0
-  - Scope: process
-  - When to Use: Коли потрібно уточнити PDADM MVP 0.3, виконати memory migration або змінити workflow, шаблони чи правила пам'яті.
+- [PDADM MVP Reglament](packages/pdadm-mvp-reglament/index.md) - draft / version 4.0 / process - Коли потрібно уточнити PDADM MVP 0.4, виконати memory migration або змінити workflow, шаблони чи правила пам'яті.
 
 ## Правило читання
 

@@ -1,41 +1,103 @@
-# Result: RUN-001
+# Результат: RUN-001
 
 Status: review-ready | failed | blocked
 Prepared For Review: YYYY-MM-DD
 Agent Role: Agent Executor
 Execution Mode: autonomous-implementation
 Task Status After Run: review | active | blocked
+Review Method: independent-subagent | same-agent
+Auditor: agent id / role / n/a
+Review Limitation: none | subagent-unavailable | інше
 
-## Summary
+## Підсумок
 
 Що зроблено.
 
-## Changed Files
+## Змінені файли
 
 - `...`
 
-## Verification
+## Перевірка
 
 - [ ] Тести запущені
-- [ ] Manual check виконано
-- [ ] Acceptance criteria перевірені
+- [ ] Ручна перевірка виконана
+- [ ] Критерії приймання перевірені
 
-## Acceptance Criteria Check
+## Перевірка критеріїв приймання
 
 - [ ] Критерій 1
 - [ ] Критерій 2
 
-## Agent Self-Review
+## Підсумок self-review
 
-- [ ] Scope виконано
-- [ ] Out-of-scope зміни відсутні або явно пояснені
-- [ ] Acceptance criteria перевірені
+Короткий висновок агента або незалежного субагента-аудитора.
+
+## Якість виконання
+
+- Наскільки якісно виконані критерії приймання:
+- Що виконано повністю:
+- Що виконано частково:
+- Що не виконано:
+
+## Обсяг, зрізання кутів і компроміси
+
+- Чи були зміни поза обсягом:
+- Чи були зрізання кутів або незаплановані спрощення:
+- Чи були компроміси:
+- Чи погоджені або винесені ці компроміси:
+
+## Ризики
+
+- Реальні ризики, які виникли:
+- Потенційні ризики:
+- Закриті ризики:
+- Відкриті ризики:
+- Прийняті ризики:
+
+## Незапланована робота
+
+- Яка незапланована робота виникла:
+- Що закрито в межах задачі:
+- Що залишилось не закрито:
+- Чому це не закрито:
+
+## Подальші задачі
+
+- Потрібні додаткові задачі:
+- Задачі, яких немає в поточному плані:
+- Не потрібні, причина:
+
+## Додаткові нотатки для перевірки людиною
+
+- На що людині або агенту-аудитору треба звернути увагу:
+
+## Контрольний список self-review
+
+- [ ] Обсяг виконано
+- [ ] Зміни поза обсягом відсутні або явно пояснені
+- [ ] Критерії приймання перевірені
 - [ ] Ризики й обмеження зафіксовані
+- [ ] Зрізання кутів і компроміси відсутні або явно зафіксовані
+- [ ] Незакрита незапланована робота винесена у подальші задачі або blocker
 - [ ] Потреба в memory sync перевірена
 - [ ] Вплив на документи загального рівня перевірений
-- [ ] Рекомендації для human review сформульовані
+- [ ] Мовний шлюз (`language gate`) для змін Project Memory пройдено або не застосовується
+- [ ] Архітектурний тиск (`architecture pressure`) перевірено
+- [ ] Якщо доступні субагенти, review виконано незалежним субагентом-аудитором
+- [ ] Аудиторські зауваження закриті, прийняті як ризик, винесені у подальшу задачу або позначені як blocker
+- [ ] Рекомендації для перевірки людиною сформульовані
 
-## Human Review
+## Зауваження аудиту
+
+Status: none | closed | accepted-risk | follow-up-created | blocker
+Source: independent-subagent | same-agent | human | n/a
+
+- Відкриті зауваження:
+- Закриті зауваження:
+- Прийняті ризики:
+- Створені або потрібні подальші задачі:
+
+## Перевірка людиною
 
 Status: pending | approved | changes-requested | rejected
 Reviewer Role: Product Lead Hat / Agent Operator Hat / інша відповідальна роль
@@ -45,27 +107,27 @@ Approval Source: явне повідомлення користувача / pend
 
 Ця секція не заповнюється агентом як approval. `Status: approved` дозволений тільки для task-level human review approval.
 
-## Memory Sync
+## Синхронізація пам'яті
 
-- Product memory: updated / not needed
-- Domain memory: updated / not needed
-- Technical memory: updated / not needed
-- Knowledge memory: updated / not needed
-- Task memory: updated / not needed
-- Wiki indexes: updated / not needed
-- State file: updated / not needed
-- General-level memory documents: updated / not needed / proposed / blocked
+- Продуктова пам'ять: updated / not needed
+- Доменна пам'ять: updated / not needed
+- Технічна пам'ять: updated / not needed
+- Пам'ять знань: updated / not needed
+- Пам'ять задач: updated / not needed
+- Wiki-індекси: updated / not needed
+- Файл стану: updated / not needed
+- Документи загального рівня: updated / not needed / proposed / blocked
 
-## Memory Sync Notes
+## Нотатки memory sync
 
 Коротке пояснення.
 
-## Knowledge Updates
+## Оновлення знань
 
-- Updated: ...
-- Proposed: ...
-- Not needed: reason
+- Оновлено: ...
+- Запропоновано: ...
+- Не потрібно: причина
 
-## Follow-up Tasks
+## Подальші дії
 
 - ...

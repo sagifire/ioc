@@ -1,7 +1,7 @@
 # Agent Start
 
-Starter Kit Version: 3.0
-PDADM MVP Version: 0.3
+Starter Kit Version: 4.0
+PDADM MVP Version: 0.4
 
 ## Призначення
 
@@ -11,7 +11,7 @@ PDADM MVP Version: 0.3
 
 Усі шляхи в цьому файлі вказані від кореня проекту.
 
-## Стандартний boot packet
+## Default boot packet
 
 За замовчуванням агент читає:
 
@@ -20,7 +20,19 @@ PDADM MVP Version: 0.3
 - `memory/memory-rules.md`
 - `memory/agents/rules.md`
 
-Після цього агент зупиняє стартове читання й переходить до задачі.
+Після цього агент зупиняє startup reading і переходить до задачі або пояснення наступних регламентних кроків.
+
+## Default role fallback
+
+Якщо користувач не задав роль, задачу або workflow:
+
+```text
+Agent Role: Agent Assistant
+Working Mode: Methodology Navigator
+Task / Topic: clarification
+```
+
+У цьому режимі агент пояснює стан роботи, пропонує можливі наступні кроки й не змінює код або Project Memory без task boundary.
 
 ## Startup profiles
 
@@ -28,14 +40,32 @@ Startup profile є операційною підказкою для читанн
 
 Якщо задача вказана, агент бере `Execution Mode` з `task.md`.
 
+### methodology-navigator
+
+Читати:
+
+- default boot packet;
+- `memory/human-start.md`, якщо користувач просить пояснити регламент або наступні кроки;
+- `memory/tasks/plan/progress.md`, якщо треба пояснити стан задач.
+
+### project-bootstrap
+
+Читати:
+
+- default boot packet;
+- `memory/product/vision.md`;
+- `memory/product/requirements.md`;
+- `memory/product/roadmap.md`;
+- `memory/domain/index.md`;
+- `memory/technical/index.md`;
+- `memory/tasks/plan/progress.md`.
+
 ### discussion / task-preparation
 
 Читати:
 
-- `memory/README.md`
-- `memory/state.md`
-- `memory/memory-rules.md`
-- `memory/agents/rules.md`
+- default boot packet;
+- `memory/tasks/plan/progress.md`, якщо обговорення може перейти в задачу.
 
 ### autonomous-implementation
 
@@ -44,8 +74,8 @@ Startup profile є операційною підказкою для читанн
 - default boot packet;
 - `memory/tasks/plan/progress.md`;
 - task `task.md`;
-- поточний run `requirements.md`;
-- поточний run `context.md`.
+- current run `requirements.md`;
+- current run `context.md`.
 
 ### autonomous-research
 
@@ -54,8 +84,9 @@ Startup profile є операційною підказкою для читанн
 - default boot packet;
 - `memory/tasks/plan/progress.md`;
 - task `task.md`;
-- поточний `research/RSCH-*.md`, якщо існує;
-- `memory/knowledge/package-index.md`, якщо research може потребувати reusable knowledge;
+- current `research/RSCH-*.md`, якщо існує;
+- related detailed report у `memory/reports/research/`, якщо існує;
+- `memory/knowledge/package-index.md`, якщо research, planning або design може потребувати reusable knowledge;
 - релевантні knowledge packages.
 
 ### interactive-memory-update
@@ -66,6 +97,7 @@ Startup profile є операційною підказкою для читанн
 - `memory/tasks/plan/progress.md`;
 - task `task.md`;
 - `worklog.md`, якщо існує;
+- current `fixations/FIX-*.md`, якщо існує;
 - цільові memory files, які явно потрібні для фіксації.
 
 ### memory-migration
@@ -75,13 +107,24 @@ Startup profile є операційною підказкою для читанн
 - default boot packet;
 - `memory/tasks/plan/progress.md`;
 - task `task.md`;
-- поточний run `requirements.md`;
-- поточний run `context.md`;
+- current run `requirements.md`;
+- current run `context.md`;
 - `memory/knowledge/package-index.md`;
 - `memory/knowledge/packages/pdadm-mvp-reglament/package.md`;
 - відповідний migration guide.
 
-## Правило зупинки
+### architecture-audit
+
+Читати:
+
+- default boot packet;
+- task `task.md`, якщо audit оформлений як задача;
+- `memory/technical/architecture.md`;
+- `memory/technical/rules.md`;
+- релевантні ADR у `memory/technical/decisions/`;
+- related report у `memory/reports/audits/`, якщо існує.
+
+## Stop rule
 
 Агент повинен зупинити стартове дослідження після boot packet або startup profile.
 
@@ -94,7 +137,7 @@ Startup profile є операційною підказкою для читанн
 - без додаткового читання є ризик пошкодити Project Memory;
 - користувач прямо просить дослідити глибше.
 
-## Повний регламент є reference layer
+## Full reglament as reference layer
 
 Повний регламент `memory/knowledge/packages/pdadm-mvp-reglament/` не читається на старті звичайної сесії.
 

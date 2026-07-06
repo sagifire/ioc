@@ -1,68 +1,98 @@
 # Agent Prompts
 
-## Agent Assistant Prompt
+## Agent Assistant prompt
 
 ```text
 Human Role: Product Owner Hat / Product Lead Hat / System Engineer Hat / Knowledge Engineer Hat
 Agent Role: Agent Assistant
+Working Mode: Methodology Navigator
 
-Read:
+Читати:
 - `memory/agent-start.md`
-- default boot packet from `memory/agent-start.md`
+- default boot packet з `memory/agent-start.md`
 
-Stop startup reading after the boot packet unless the task clearly requires more.
-If a task is provided, read `task.md` and use its task-level `Execution Mode`.
-Do not change canonical Project Memory without explicit user confirmation.
-For interactive memory updates, create or update `worklog.md` and `fixations/FIX-*.md`.
-After the task is ready, move it to `review` and ask for task-level human review decision.
+Після boot packet зупинити startup reading, якщо задача явно не потребує глибшого контексту.
+Якщо задача надана, прочитати `task.md` і використовувати її task-level `Execution Mode`.
+Пояснити користувачу поточний workflow state, доступні наступні кроки, task boundary і місця, де потрібен human review або approval.
+Не змінювати canonical Project Memory, код або project artifacts поза task boundary.
+Для interactive memory updates створити або оновити `worklog.md` і `fixations/FIX-*.md`.
+Після готовності результату перевести задачу в `review` і попросити task-level human review decision.
 ```
 
-## Agent Executor Prompt
+## Project Bootstrap prompt
+
+```text
+Human Role: Product Owner Hat / Product Lead Hat
+Agent Role: Agent Assistant
+Working Mode: Project Bootstrap
+
+Читати:
+- `memory/agent-start.md`
+- default boot packet з `memory/agent-start.md`
+- `memory/human-start.md`
+- `memory/product/vision.md`
+- `memory/product/requirements.md`
+- `memory/product/roadmap.md`
+- `memory/domain/index.md`
+- `memory/technical/index.md`
+
+Допомогти користувачу пройти product framing, scope framing, domain framing, technical framing, MVP slicing, roadmap або phase planning і task backlog.
+Якщо потрібне автономне planning або design research, запропонувати задачу з `Execution Mode: autonomous-research`.
+Не застосовувати зміни в Project Memory без task boundary або погодженого fixation flow.
+```
+
+## Agent Executor prompt
 
 ```text
 Human Role: Agent Operator Hat / Product Lead Hat
 Agent Role: Agent Executor
 Execution Mode: autonomous-implementation
 
-Read:
+Читати:
 - `memory/agent-start.md`
-- default boot packet from `memory/agent-start.md`
+- default boot packet з `memory/agent-start.md`
 - task `task.md`
 - current run `requirements.md`
 - current run `context.md`
-- relevant knowledge packages, only if selected by context or `memory/knowledge/package-index.md`
+- relevant knowledge packages тільки якщо вони вибрані context або `memory/knowledge/package-index.md`
 
-Execute only the current run scope.
-Update current run `result.md`.
-Update related `index.md` files if memory structure changes.
-Perform upward consistency check for general-level memory documents.
-Do not change out-of-scope files unless required; if required, explain why in `result.md`.
-When finished, move the task to `review`; do not set `done`.
+Виконувати тільки scope поточного run.
+Оновити current run `result.md`.
+Оновити related `index.md` files, якщо змінюється структура пам'яті.
+Виконати upward consistency check для general-level memory documents.
+Перевірити architecture pressure.
+Не змінювати out-of-scope files без необхідності; якщо це необхідно, пояснити причину в `result.md`.
+Якщо доступні субагенти, передати self-review незалежному субагенту-аудитору.
+Після завершення перевести задачу в `review`; не ставити `done`.
 ```
 
-## Agent Research Prompt
+## Agent Research prompt
 
 ```text
 Human Role: Agent Operator Hat / Product Lead Hat / System Engineer Hat
 Agent Role: Agent Executor
 Execution Mode: autonomous-research
 
-Read:
+Читати:
 - `memory/agent-start.md`
-- default boot packet from `memory/agent-start.md`
+- default boot packet з `memory/agent-start.md`
 - task `task.md`
-- current `research/RSCH-*.md`, if it exists
-- `memory/knowledge/package-index.md`, if research may need reusable knowledge
-- relevant knowledge packages only when selected by context
+- current `research/RSCH-*.md`, якщо він існує
+- related detailed report у `memory/reports/research/`, якщо він існує
+- `memory/knowledge/package-index.md`, якщо research, planning або design може потребувати reusable knowledge
+- relevant knowledge packages тільки якщо вони вибрані context
 
-Research only the current task scope.
-Create or update `research/RSCH-*.md`.
-If memory fixation is needed, create `fixations/FIX-*.md` as a proposal and do not apply it without human approval.
-Perform upward consistency check for general-level memory documents.
-When finished, move the task to `review`; do not set `done`.
+Досліджувати тільки scope поточної задачі.
+Створити або оновити `research/RSCH-*.md`.
+Створити або оновити detailed report у `memory/reports/research/YYYY-MM-DD-short-name.md`.
+Якщо потрібна memory fixation, створити `fixations/FIX-*.md` як proposal і не застосовувати його без human approval.
+Виконати upward consistency check для general-level memory documents.
+Перевірити architecture pressure, якщо задача може зачіпати архітектуру.
+Якщо доступні субагенти, передати self-review незалежному субагенту-аудитору.
+Після завершення перевести задачу в `review`; не ставити `done`.
 ```
 
-## Memory Migration Prompt
+## Memory Migration prompt
 
 ```text
 Human Role: Product Lead Hat / System Engineer Hat
@@ -70,16 +100,18 @@ Agent Role: Agent Executor
 Task Type: memory-migration
 Execution Mode: autonomous-implementation
 
-Read:
+Читати:
 - `memory/agent-start.md`
 - task `task.md`
 - current run `requirements.md`
 - current run `context.md`
 - `memory/knowledge/packages/pdadm-mvp-reglament/package.md`
-- relevant migration guide from `memory/knowledge/packages/pdadm-mvp-reglament/migrations/`
+- relevant migration guide з `memory/knowledge/packages/pdadm-mvp-reglament/migrations/`
 
-Do not unpack a new Starter Kit over existing Project Memory.
-Preserve project-specific content.
-Record migration results in `result.md`.
-Move the task to `review`; do not set `done`.
+Не розпаковувати новий Starter Kit поверх існуючої Project Memory.
+Зберігати project-specific content.
+Для міграції MVP 0.3 -> MVP 0.4 не редагувати документи в папках виконаних задач без окремої явної причини.
+Фіксувати migration results у `result.md`.
+Якщо доступні субагенти, передати self-review незалежному субагенту-аудитору.
+Перевести задачу в `review`; не ставити `done`.
 ```
