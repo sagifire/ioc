@@ -1,6 +1,6 @@
 # TASK-07.12-0095: Stage 18 graph export DOT and Mermaid renderers
 
-Task Status: backlog
+Task Status: done
 Type: implementation
 Created: 2026-07-12
 Owner Role: Implementation Agent
@@ -8,13 +8,13 @@ Current Run: RUN-001
 
 ## Поточний стан
 
-Run Status: prepared
-Progress: Task package prepared; очікує завершення TASK-07.12-0094.
-Acceptance: 0/10
-Blockers: TASK-07.12-0094 not done
-Blocked Phase: sequencing
+Run Status: completed
+Progress: DOT/Mermaid renderers схвалені й TASK-0095 завершена.
+Acceptance: 10/10
+Blockers: none
+Blocked Phase: n/a
 Pending Decisions: none
-Next Action: Активувати після human-approved completion TASK-07.12-0094.
+Next Action: Перейти до TASK-07.12-0096 за окремою командою.
 
 ## Мета
 
@@ -61,14 +61,15 @@ Next Action: Активувати після human-approved completion TASK-07.1
 
 ## Human Review
 
-Status: not-requested
-Requested: n/a
-Reviewed: n/a
-Approval Source: n/a
+Status: requested
+Requested: 2026-07-12
+Reviewed: 2026-07-12
+Approval Source: User task-level `approve` у поточній сесії.
 
 ## Фінальний результат
 
-Completed: pending
-Final Run: pending
-Summary: pending
-Residual Risks: pending
+Completed: 2026-07-12
+Final Run: RUN-001
+Summary: Pure deterministic DOT/Mermaid renderers, exports, tests і docs схвалені.
+Residual Risks: External renderer versions можуть мати presentation-specific differences;
+core їх не виконує й canonical JSON лишається machine-readable source.

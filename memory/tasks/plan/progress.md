@@ -156,7 +156,7 @@
 ## Stage 18 `0.0.3` Graph Export
 
 - [x] **[Done]** [TASK-07.12-0094-stage-18-graph-export-v1-schema-projection](TASK-07.12-0094-stage-18-graph-export-v1-schema-projection/index.md) - Versioned safe graph projection і canonical JSON foundation.
-- [ ] **[Backlog]** [TASK-07.12-0095-stage-18-graph-export-dot-mermaid-renderers](TASK-07.12-0095-stage-18-graph-export-dot-mermaid-renderers/index.md) - Pure DOT/Mermaid renderers після завершення v1 foundation.
+- [x] **[Done]** [TASK-07.12-0095-stage-18-graph-export-dot-mermaid-renderers](TASK-07.12-0095-stage-18-graph-export-dot-mermaid-renderers/index.md) - Pure DOT/Mermaid renderers після завершення v1 foundation.
 - [ ] **[Backlog]** [TASK-07.12-0096-stage-18-graph-export-docs-workflow-testing](TASK-07.12-0096-stage-18-graph-export-docs-workflow-testing/index.md) - Docs, Project Memory snapshot/diff workflow і testing hardening.
 
 ## Stage 18 Design Gates

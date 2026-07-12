@@ -48,8 +48,9 @@ Tree-shaking-friendly subpath exports:
   `getGraph()` and composed runtime inspection.
 - Diagnostics: `SagifireIocError`, `DiagnosticReport`, `diagnosticFromError()` and
   `formatDiagnostics()`.
-- Graph export: versioned `createGraphExportDocument()` safe projection and deterministic
-  `serializeGraphExport()` JSON.
+- Graph export: versioned `createGraphExportDocument()` safe projection, deterministic
+  `serializeGraphExport()` JSON and pure `renderGraphExportDot()` /
+  `renderGraphExportMermaid()` text views.
 - Optional DSL: `module()`, `defineApp()`, `bind()`, `add()`, `adapt()` and
   graph-aware `adapter()`.
 

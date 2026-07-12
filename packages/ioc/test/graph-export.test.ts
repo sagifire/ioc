@@ -4,6 +4,8 @@ import {
     createComposer,
     createGraphExportDocument,
     defineModule,
+    renderGraphExportDot,
+    renderGraphExportMermaid,
     serializeGraphExport,
     token,
     type GraphExportDocument,
@@ -189,6 +191,193 @@ describe('graph export v1', () => {
     })
 })
 
+describe('graph export text renderers', () => {
+    test('renders stable DOT and Mermaid golden output from the same v1 document', () => {
+        const document = createGraphExportDocument(createRendererGraph())
+
+        expect(renderGraphExportDot(document)).toBe(`digraph "SagifireIocGraph" {
+    rankdir=TB;
+    module_0 [label="module: consumer", shape=box];
+    module_1 [label="module: provider\\nversion: 1.0.0", shape=box];
+    required_port_0 [label="required port: consumer / catalog.items\\nexternal, single", shape=ellipse];
+    capability_0 [label="capability: provider / catalog.items\\npublic-api, single", shape=hexagon];
+    binding_0 [label="binding: clock\\nvalue, value", shape=diamond];
+    capability_0 -> required_port_0 [label="capability: external"];
+}
+`)
+        expect(renderGraphExportMermaid(document)).toBe(`flowchart TB
+    module_0["module: consumer"]
+    module_1["module: provider<br/>version: 1.0.0"]
+    required_port_0["required port: consumer / catalog.items<br/>external, single"]
+    capability_0["capability: provider / catalog.items<br/>public-api, single"]
+    binding_0["binding: clock<br/>value, value"]
+    capability_0 -->|"capability: external"| required_port_0
+`)
+    })
+
+    test('uses collision-safe positional IDs while safely escaping Unicode and punctuation', () => {
+        const document = createGraphExportDocument({
+            modules: [
+                {
+                    id: 'same " id ] --> danger & <script> Україна',
+                    requiredPortIds: [],
+                    capabilityIds: []
+                },
+                {
+                    id: 'same " id ] --> danger & <script> Україна',
+                    requiredPortIds: [],
+                    capabilityIds: []
+                }
+            ],
+            requiredPorts: [],
+            capabilities: [],
+            bindings: [],
+            edges: []
+        })
+
+        const dot = renderGraphExportDot(document, {
+            graphName: 'graph " name\\path',
+            direction: 'LR'
+        })
+        const mermaid = renderGraphExportMermaid(document, { direction: 'RL' })
+
+        expect(dot).toContain('digraph "graph \\" name\\\\path"')
+        expect(dot).toContain(
+            'module_0 [label="module: same \\" id ] --> danger & <script> Україна"'
+        )
+        expect(dot).toContain(
+            'module_1 [label="module: same \\" id ] --> danger & <script> Україна"'
+        )
+        expect(mermaid).toContain('flowchart RL')
+        expect(mermaid).toContain(
+            'module_0["module: same &quot; id ] --&gt; danger &amp; &lt;script&gt; Україна"]'
+        )
+        expect(mermaid).toContain(
+            'module_1["module: same &quot; id ] --&gt; danger &amp; &lt;script&gt; Україна"]'
+        )
+    })
+
+    test('preserves semantic order and inherits the v1 privacy boundary', () => {
+        const secret = 'SENTINEL-private-provider-secret'
+        const document = createGraphExportDocument(createGraph(secret, 'C:\\private\\secret'))
+        const dot = renderGraphExportDot(document)
+        const mermaid = renderGraphExportMermaid(document)
+
+        expect(dot.indexOf('required_port_0')).toBeLessThan(dot.indexOf('capability_0'))
+        expect(mermaid.indexOf('required_port_0')).toBeLessThan(mermaid.indexOf('capability_0'))
+        expect(dot).not.toContain(secret)
+        expect(mermaid).not.toContain(secret)
+        expect(dot).not.toContain('C:\\private\\secret')
+        expect(mermaid).not.toContain('C:\\private\\secret')
+    })
+
+    test('preserves binding and adapter-source provenance across both renderers', () => {
+        const document = createGraphExportDocument(createAllEdgeKindsGraph())
+        const dot = renderGraphExportDot(document)
+        const mermaid = renderGraphExportMermaid(document)
+
+        expect(dot).toContain('binding_0 -> required_port_0 [label="binding: external"];')
+        expect(dot).toContain(
+            'capability_0 -> binding_0 [label="adapter-source: source.capability"];'
+        )
+        expect(dot).toContain('binding_1 -> binding_0 [label="adapter-source: source.binding"];')
+        expect(dot).toContain(
+            'adapter_source_3 -> binding_0 [label="adapter-source: source.multi / plugins"];'
+        )
+        expect(dot).toContain(
+            'adapter_source_3 [label="adapter source: source.multi / plugins\\nmulti-binding, registration 2"'
+        )
+
+        expect(mermaid).toContain('binding_0 -->|"binding: external"| required_port_0')
+        expect(mermaid).toContain('capability_0 -->|"adapter-source: source.capability"| binding_0')
+        expect(mermaid).toContain('binding_1 -->|"adapter-source: source.binding"| binding_0')
+        expect(mermaid).toContain(
+            'adapter_source_3 -->|"adapter-source: source.multi / plugins"| binding_0'
+        )
+        expect(mermaid).toContain(
+            'adapter_source_3["adapter source: source.multi / plugins<br/>multi-binding, registration 2"]'
+        )
+    })
+
+    test('rejects edges that cannot be traced to document-owned nodes', () => {
+        const document = createGraphExportDocument({
+            modules: [],
+            requiredPorts: [],
+            capabilities: [],
+            bindings: [],
+            edges: [
+                {
+                    edgeKind: 'binding',
+                    consumerModuleId: 'missing',
+                    requiredTokenId: 'missing.port',
+                    dependencyKind: 'external',
+                    bindingTokenId: 'missing.binding',
+                    bindingKind: 'value'
+                }
+            ]
+        })
+
+        expect(() => renderGraphExportDot(document)).toThrow(
+            'Graph export edge at index 0 references a missing node'
+        )
+        expect(() => renderGraphExportMermaid(document)).toThrow(
+            'Graph export edge at index 0 references a missing node'
+        )
+    })
+
+    test('rejects inconsistent adapter-source provider provenance', () => {
+        const graph = createAllEdgeKindsGraph()
+        const bindingEdge = graph.edges[0]
+        const adapterEdge = graph.edges[1]
+        if (
+            bindingEdge === undefined ||
+            adapterEdge?.edgeKind !== 'adapter-source' ||
+            adapterEdge.sourceProvider === undefined
+        ) {
+            throw new Error('Expected adapter-source fixture edge')
+        }
+        const mismatchedDocument = createGraphExportDocument({
+            ...graph,
+            edges: [
+                bindingEdge,
+                {
+                    ...adapterEdge,
+                    sourceProvider: {
+                        ...adapterEdge.sourceProvider,
+                        tokenId: 'different.token'
+                    }
+                }
+            ]
+        })
+        const missingProviderDocument = createGraphExportDocument({
+            ...graph,
+            capabilities: [],
+            edges: [bindingEdge, adapterEdge]
+        })
+
+        expect(() => renderGraphExportDot(mismatchedDocument)).toThrow(
+            'Graph export edge at index 1 references a missing node'
+        )
+        expect(() => renderGraphExportMermaid(missingProviderDocument)).toThrow(
+            'Graph export edge at index 1 references a missing node'
+        )
+    })
+
+    test('rejects unsupported schemas consistently and returns text only', () => {
+        const document = createGraphExportDocument(createRendererGraph())
+        const unknown = { ...document, schemaVersion: '2' } as unknown as GraphExportDocument
+
+        expect(() => renderGraphExportDot(unknown)).toThrow(
+            'Unsupported graph export schema: sagifire.ioc.graph@2'
+        )
+        expect(() => renderGraphExportMermaid(unknown)).toThrow(
+            'Unsupported graph export schema: sagifire.ioc.graph@2'
+        )
+        expectTypeOf(renderGraphExportDot(document)).toEqualTypeOf<string>()
+        expectTypeOf(renderGraphExportMermaid(document)).toEqualTypeOf<string>()
+    })
+})
+
 function createGraph(secret = 'SENTINEL-metadata', absolutePath = '/private/secret'): ModuleGraph {
     return {
         modules: [
@@ -240,5 +429,163 @@ function createGraph(secret = 'SENTINEL-metadata', absolutePath = '/private/secr
         ],
         bindings: [],
         edges: []
+    }
+}
+
+function createRendererGraph(): ModuleGraph {
+    return {
+        modules: [
+            {
+                id: 'consumer',
+                requiredPortIds: ['catalog.items'],
+                capabilityIds: []
+            },
+            {
+                id: 'provider',
+                version: '1.0.0',
+                requiredPortIds: [],
+                capabilityIds: ['catalog.items']
+            }
+        ],
+        requiredPorts: [
+            {
+                moduleId: 'consumer',
+                tokenId: 'catalog.items',
+                required: true,
+                kind: 'external',
+                cardinality: 'single',
+                providerCount: 1,
+                satisfiedBy: 'capability'
+            }
+        ],
+        capabilities: [
+            {
+                moduleId: 'provider',
+                tokenId: 'catalog.items',
+                kind: 'public-api',
+                cardinality: 'single',
+                providers: []
+            }
+        ],
+        bindings: [
+            {
+                tokenId: 'clock',
+                kind: 'value',
+                providerKind: 'value'
+            }
+        ],
+        edges: [
+            {
+                edgeKind: 'capability',
+                consumerModuleId: 'consumer',
+                requiredTokenId: 'catalog.items',
+                dependencyKind: 'external',
+                providerModuleId: 'provider',
+                capabilityTokenId: 'catalog.items',
+                capabilityKind: 'public-api'
+            }
+        ]
+    }
+}
+
+function createAllEdgeKindsGraph(): ModuleGraph {
+    return {
+        modules: [],
+        requiredPorts: [
+            {
+                moduleId: 'consumer',
+                tokenId: 'target.adapter',
+                required: true,
+                kind: 'external',
+                cardinality: 'single',
+                providerCount: 1,
+                satisfiedBy: 'binding'
+            }
+        ],
+        capabilities: [
+            {
+                moduleId: 'source-module',
+                tokenId: 'source.capability',
+                kind: 'public-api',
+                cardinality: 'single',
+                providers: []
+            }
+        ],
+        bindings: [
+            {
+                tokenId: 'target.adapter',
+                kind: 'adapter',
+                providerKind: 'factory'
+            },
+            {
+                tokenId: 'source.binding',
+                kind: 'value',
+                providerKind: 'value'
+            }
+        ],
+        edges: [
+            {
+                edgeKind: 'binding',
+                consumerModuleId: 'consumer',
+                requiredTokenId: 'target.adapter',
+                dependencyKind: 'external',
+                bindingTokenId: 'target.adapter',
+                bindingKind: 'adapter'
+            },
+            {
+                edgeKind: 'adapter-source',
+                consumerModuleId: 'consumer',
+                requiredTokenId: 'target.adapter',
+                dependencyKind: 'external',
+                adapterTargetTokenId: 'target.adapter',
+                adapterSourceTokenId: 'source.capability',
+                adapterSourceKind: 'token',
+                sourceProvider: {
+                    source: 'module',
+                    providerKind: 'capability',
+                    moduleId: 'source-module',
+                    tokenId: 'source.capability',
+                    capabilityKind: 'public-api',
+                    cardinality: 'single',
+                    registrationKind: 'bind',
+                    registrationIndex: 0
+                }
+            },
+            {
+                edgeKind: 'adapter-source',
+                consumerModuleId: 'consumer',
+                requiredTokenId: 'target.adapter',
+                dependencyKind: 'external',
+                adapterTargetTokenId: 'target.adapter',
+                adapterSourceTokenId: 'source.binding',
+                adapterSourceKind: 'token',
+                sourceProvider: {
+                    source: 'composition-root',
+                    providerKind: 'binding',
+                    tokenId: 'source.binding',
+                    bindingKind: 'value',
+                    cardinality: 'single',
+                    registrationIndex: 1
+                }
+            },
+            {
+                edgeKind: 'adapter-source',
+                consumerModuleId: 'consumer',
+                requiredTokenId: 'target.adapter',
+                dependencyKind: 'external',
+                adapterTargetTokenId: 'target.adapter',
+                adapterSourceTokenId: 'source.multi',
+                adapterSourceKind: 'object',
+                adapterSourceProperty: 'plugins',
+                sourceProvider: {
+                    source: 'composition-root',
+                    providerKind: 'multi-binding',
+                    tokenId: 'source.multi',
+                    bindingKind: 'factory',
+                    cardinality: 'multi',
+                    registrationIndex: 2
+                }
+            }
+        ]
     }
 }

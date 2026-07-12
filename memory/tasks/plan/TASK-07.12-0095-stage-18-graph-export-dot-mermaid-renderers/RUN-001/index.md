@@ -10,4 +10,5 @@ Prepared implementation run для DOT/Mermaid pure text renderers.
 
 ## Файли
 
-- [Context](context.md) - Заморожуваний після активації implementation contract.
+- [Context](context.md) - Заморожений implementation contract.
+- [Result](result.md) - Active execution, verification, self-review та audit report.

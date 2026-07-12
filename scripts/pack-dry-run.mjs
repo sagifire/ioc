@@ -365,6 +365,7 @@ function createRuntimeSmokeSource() {
     formatDiagnostics,
     multiToken,
     module as defineModuleDsl,
+    renderGraphExportDot,
     token
 } from '@sagifire/ioc'
 import { contributionToken as contributionTokenFromSubpath, multiToken as multiTokenFromSubpath, token as tokenFromSubpath } from '@sagifire/ioc/tokens'
@@ -372,7 +373,7 @@ import { createContainer as createContainerFromSubpath, scopeValue } from '@sagi
 import { AdapterSourceMissingError as AdapterSourceMissingErrorFromSubpath, defineModule as defineModuleFromSubpath } from '@sagifire/ioc/composer'
 import { add as addFromDslSubpath, adapter as adapterFromDslSubpath, bind, module as moduleFromDslSubpath } from '@sagifire/ioc/dsl'
 import { diagnosticFromError as diagnosticFromSubpath } from '@sagifire/ioc/diagnostics'
-import { serializeGraphExport } from '@sagifire/ioc/graph-export'
+import { renderGraphExportMermaid, serializeGraphExport } from '@sagifire/ioc/graph-export'
 import { createNextRequestContext, createNextRuntime, nextRequestValue, withRouteScope, withServerActionScope } from '@sagifire/ioc-next'
 import { assertDiagnosticReportOk, assertGraphHasCapability, assertGraphHasModule, createModuleHarness, createTestRuntime, fakeModule, override } from '@sagifire/ioc-testing'
 
@@ -414,6 +415,16 @@ const moduleDefinition = defineModule({
 const composedRuntime = await createComposer().use(moduleDefinition).compose()
 const graphJson = serializeGraphExport(createGraphExportDocument(composedRuntime.inspect()))
 assertIncludes(graphJson, '"schemaVersion": "1"', 'graph export root and subpath exports')
+assertIncludes(
+    renderGraphExportDot(createGraphExportDocument(composedRuntime.inspect())),
+    'digraph "SagifireIocGraph"',
+    'DOT renderer root export'
+)
+assertIncludes(
+    renderGraphExportMermaid(createGraphExportDocument(composedRuntime.inspect())),
+    'flowchart TB',
+    'Mermaid renderer subpath export'
+)
 
 assertEqual(composedRuntime.get(valueToken), 'module', 'composer root export')
 

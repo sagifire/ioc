@@ -342,7 +342,7 @@ were actually registered during setup.
 Inspection data does not expose provider values, resource instances, scope-local values,
 private token IDs for module providers or other runtime internals.
 
-## Graph Export JSON v1
+## Graph Export v1
 
 `createGraphExportDocument()` creates a detached, immutable v1 projection from a public
 `ModuleGraph`. A `ComposerInspection` or `RuntimeInspection` is also accepted because both
@@ -350,10 +350,17 @@ include the same public graph fields. Validation diagnostics and runtime provide
 are intentionally outside the graph document.
 
 ```ts
-import { createGraphExportDocument, serializeGraphExport } from '@sagifire/ioc/graph-export'
+import {
+    createGraphExportDocument,
+    renderGraphExportDot,
+    renderGraphExportMermaid,
+    serializeGraphExport
+} from '@sagifire/ioc/graph-export'
 
 const document = createGraphExportDocument(composer.getGraph())
 const json = serializeGraphExport(document)
+const dot = renderGraphExportDot(document, { direction: 'LR' })
+const mermaid = renderGraphExportMermaid(document)
 ```
 
 The envelope uses `schema: 'sagifire.ioc.graph'` and `schemaVersion: '1'`. Schema versions
@@ -372,6 +379,18 @@ not place secrets or environment-specific absolute paths in them.
 `serializeGraphExport()` emits deterministic JSON with four-space indentation, LF line
 endings and exactly one final newline. It performs no filesystem access, executes no
 factories or resources and invokes no external renderer.
+
+`renderGraphExportDot()` and `renderGraphExportMermaid()` are deterministic presentation
+projections of that same v1 document. They render module, required-port, capability and
+binding nodes plus only document-owned dependency edges. Collision-safe positional node IDs
+do not reuse raw module or token IDs; raw IDs appear only in escaped labels. Both renderers
+preserve v1 semantic array order and return text with LF endings and one final newline.
+
+DOT options configure `graphName` and `direction`; Mermaid options configure `direction`.
+Directions are `TB`, `LR`, `BT` or `RL`. Options are presentation-only and never enter or
+change the canonical schema. The renderers do not write files, invoke Graphviz/Mermaid or
+validate syntax with an external runtime. JSON remains the lossless machine-readable source;
+DOT and Mermaid are review/documentation views and should not be parsed as graph semantics.
 
 ## Dependency Edges
 

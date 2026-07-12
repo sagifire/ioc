@@ -189,9 +189,14 @@ export type { Resource, ResourceDisposer } from './lifecycle'
 export {
     GRAPH_EXPORT_SCHEMA_VERSION,
     createGraphExportDocument,
+    renderGraphExportDot,
+    renderGraphExportMermaid,
     serializeGraphExport
 } from './graph-export'
 export type {
+    GraphExportDirection,
+    GraphExportDotOptions,
+    GraphExportMermaidOptions,
     GraphExportAdapterBindingProviderV1,
     GraphExportAdapterCapabilityProviderV1,
     GraphExportAdapterMultiBindingProviderV1,

@@ -24,6 +24,17 @@ export interface GraphExportDocumentV1 {
 
 export type GraphExportDocument = GraphExportDocumentV1
 
+export type GraphExportDirection = 'TB' | 'LR' | 'BT' | 'RL'
+
+export interface GraphExportDotOptions {
+    readonly graphName?: string
+    readonly direction?: GraphExportDirection
+}
+
+export interface GraphExportMermaidOptions {
+    readonly direction?: GraphExportDirection
+}
+
 export interface GraphExportGraphV1 {
     readonly modules: readonly GraphExportModuleV1[]
     readonly requiredPorts: readonly GraphExportRequiredPortV1[]
@@ -219,6 +230,250 @@ export function createGraphExportDocument(graph: ModuleGraph): GraphExportDocume
 }
 
 export function serializeGraphExport(document: GraphExportDocument): string {
+    assertGraphExportDocument(document)
+
+    const canonicalDocument = createGraphExportDocument(document.graph)
+
+    return `${JSON.stringify(canonicalDocument, undefined, 4)}\n`
+}
+
+export function renderGraphExportDot(
+    document: GraphExportDocument,
+    options: GraphExportDotOptions = {}
+): string {
+    assertGraphExportDocument(document)
+    const direction = options.direction ?? 'TB'
+    const graphName = options.graphName ?? 'SagifireIocGraph'
+    const lines = [`digraph "${escapeDot(graphName)}" {`, `    rankdir=${direction};`]
+
+    forEachRenderNode(document, (id, label, kind) => {
+        lines.push(`    ${id} [label="${escapeDot(label)}", shape=${dotShape(kind)}];`)
+    })
+    forEachRenderEdge(document, (sourceId, targetId, label) => {
+        lines.push(`    ${sourceId} -> ${targetId} [label="${escapeDot(label)}"];`)
+    })
+
+    lines.push('}')
+    return `${lines.join('\n')}\n`
+}
+
+export function renderGraphExportMermaid(
+    document: GraphExportDocument,
+    options: GraphExportMermaidOptions = {}
+): string {
+    assertGraphExportDocument(document)
+    const lines = [`flowchart ${options.direction ?? 'TB'}`]
+
+    forEachRenderNode(document, (id, label) => {
+        lines.push(`    ${id}["${escapeMermaid(label)}"]`)
+    })
+    forEachRenderEdge(document, (sourceId, targetId, label) => {
+        lines.push(`    ${sourceId} -->|"${escapeMermaid(label)}"| ${targetId}`)
+    })
+
+    return `${lines.join('\n')}\n`
+}
+
+type RenderNodeKind = 'module' | 'required-port' | 'capability' | 'binding' | 'adapter-source'
+
+function forEachRenderNode(
+    document: GraphExportDocument,
+    visit: (id: string, label: string, kind: RenderNodeKind) => void
+): void {
+    document.graph.modules.forEach((moduleNode, index) => {
+        const version = moduleNode.version === undefined ? '' : `\nversion: ${moduleNode.version}`
+        visit(`module_${index}`, `module: ${moduleNode.id}${version}`, 'module')
+    })
+    document.graph.requiredPorts.forEach((port, index) => {
+        visit(
+            `required_port_${index}`,
+            `required port: ${port.moduleId} / ${port.tokenId}\n${port.kind}, ${port.cardinality}`,
+            'required-port'
+        )
+    })
+    document.graph.capabilities.forEach((capability, index) => {
+        visit(
+            `capability_${index}`,
+            `capability: ${capability.moduleId} / ${capability.tokenId}\n${capability.kind}, ${capability.cardinality}`,
+            'capability'
+        )
+    })
+    document.graph.bindings.forEach((binding, index) => {
+        const lifetime = binding.lifetime === undefined ? '' : `, ${binding.lifetime}`
+        visit(
+            `binding_${index}`,
+            `binding: ${binding.tokenId}\n${binding.kind}, ${binding.providerKind}${lifetime}`,
+            'binding'
+        )
+    })
+    document.graph.edges.forEach((edge, index) => {
+        if (
+            edge.edgeKind !== 'adapter-source' ||
+            resolveAdapterSourceId(document, edge, index) !== `adapter_source_${index}`
+        ) {
+            return
+        }
+        const property =
+            edge.adapterSourceProperty === undefined ? '' : ` / ${edge.adapterSourceProperty}`
+        const provider =
+            edge.sourceProvider === undefined
+                ? 'unresolved provider'
+                : `${edge.sourceProvider.providerKind}, registration ${edge.sourceProvider.registrationIndex}`
+        visit(
+            `adapter_source_${index}`,
+            `adapter source: ${edge.adapterSourceTokenId}${property}\n${provider}`,
+            'adapter-source'
+        )
+    })
+}
+
+function forEachRenderEdge(
+    document: GraphExportDocument,
+    visit: (sourceId: string, targetId: string, label: string) => void
+): void {
+    document.graph.edges.forEach((edge, index) => {
+        const targetId = findRequiredPortId(document, edge.consumerModuleId, edge.requiredTokenId)
+        if (targetId === undefined) {
+            throwUnrenderableEdge(index)
+        }
+
+        if (edge.edgeKind === 'capability') {
+            const sourceId = findCapabilityId(
+                document,
+                edge.providerModuleId,
+                edge.capabilityTokenId
+            )
+            if (sourceId === undefined) {
+                throwUnrenderableEdge(index)
+            }
+            visit(sourceId, targetId, `${edge.edgeKind}: ${edge.dependencyKind}`)
+            return
+        }
+
+        const adapterTargetId = findBindingId(
+            document,
+            edge.edgeKind === 'binding' ? edge.bindingTokenId : edge.adapterTargetTokenId
+        )
+        if (adapterTargetId === undefined) {
+            throwUnrenderableEdge(index)
+        }
+
+        if (edge.edgeKind === 'binding') {
+            visit(adapterTargetId, targetId, `${edge.edgeKind}: ${edge.dependencyKind}`)
+            return
+        }
+
+        const sourceId = resolveAdapterSourceId(document, edge, index)
+        const property =
+            edge.adapterSourceProperty === undefined ? '' : ` / ${edge.adapterSourceProperty}`
+        visit(sourceId, adapterTargetId, `adapter-source: ${edge.adapterSourceTokenId}${property}`)
+    })
+}
+
+function throwUnrenderableEdge(index: number): never {
+    throw new TypeError(`Graph export edge at index ${index} references a missing node`)
+}
+
+function findRequiredPortId(
+    document: GraphExportDocument,
+    moduleId: string,
+    tokenId: string
+): string | undefined {
+    const index = document.graph.requiredPorts.findIndex((port) => {
+        return port.moduleId === moduleId && port.tokenId === tokenId
+    })
+    return index < 0 ? undefined : `required_port_${index}`
+}
+
+function findCapabilityId(
+    document: GraphExportDocument,
+    moduleId: string,
+    tokenId: string
+): string | undefined {
+    const index = document.graph.capabilities.findIndex((capability) => {
+        return capability.moduleId === moduleId && capability.tokenId === tokenId
+    })
+    return index < 0 ? undefined : `capability_${index}`
+}
+
+function findBindingId(document: GraphExportDocument, tokenId: string): string | undefined {
+    const index = document.graph.bindings.findIndex((binding) => binding.tokenId === tokenId)
+    return index < 0 ? undefined : `binding_${index}`
+}
+
+function resolveAdapterSourceId(
+    document: GraphExportDocument,
+    edge: GraphExportAdapterSourceEdgeV1,
+    edgeIndex: number
+): string {
+    const provider = edge.sourceProvider
+    if (provider !== undefined && provider.tokenId !== edge.adapterSourceTokenId) {
+        throwUnrenderableEdge(edgeIndex)
+    }
+    if (provider?.source === 'module' && provider.providerKind === 'capability') {
+        const id = findCapabilityId(document, provider.moduleId, provider.tokenId)
+        if (id === undefined) {
+            throwUnrenderableEdge(edgeIndex)
+        }
+        return id
+    }
+    if (provider?.source === 'composition-root' && provider.providerKind === 'binding') {
+        const id = findBindingId(document, provider.tokenId)
+        if (id === undefined) {
+            throwUnrenderableEdge(edgeIndex)
+        }
+        return id
+    }
+    return `adapter_source_${edgeIndex}`
+}
+
+function dotShape(kind: RenderNodeKind): 'box' | 'ellipse' | 'hexagon' | 'diamond' {
+    if (kind === 'module') {
+        return 'box'
+    }
+    if (kind === 'required-port') {
+        return 'ellipse'
+    }
+    if (kind === 'capability') {
+        return 'hexagon'
+    }
+    if (kind === 'adapter-source') {
+        return 'ellipse'
+    }
+    return 'diamond'
+}
+
+function escapeDot(value: string): string {
+    return stripControlCharacters(value)
+        .replace(/\\/gu, '\\\\')
+        .replace(/"/gu, '\\"')
+        .replace(/\r\n|\r|\n/gu, '\\n')
+}
+
+function escapeMermaid(value: string): string {
+    return stripControlCharacters(value)
+        .replace(/&/gu, '&amp;')
+        .replace(/"/gu, '&quot;')
+        .replace(/</gu, '&lt;')
+        .replace(/>/gu, '&gt;')
+        .replace(/\r\n|\r|\n/gu, '<br/>')
+}
+
+function stripControlCharacters(value: string): string {
+    return [...value]
+        .filter((character) => {
+            const codePoint = character.codePointAt(0)
+            return (
+                codePoint === undefined ||
+                codePoint === 10 ||
+                codePoint === 13 ||
+                (codePoint >= 32 && codePoint !== 127)
+            )
+        })
+        .join('')
+}
+
+function assertGraphExportDocument(document: GraphExportDocument): void {
     if (
         document.schema !== 'sagifire.ioc.graph' ||
         document.schemaVersion !== GRAPH_EXPORT_SCHEMA_VERSION
@@ -227,10 +482,6 @@ export function serializeGraphExport(document: GraphExportDocument): string {
             `Unsupported graph export schema: ${String(document.schema)}@${String(document.schemaVersion)}`
         )
     }
-
-    const canonicalDocument = createGraphExportDocument(document.graph)
-
-    return `${JSON.stringify(canonicalDocument, undefined, 4)}\n`
 }
 
 function projectBinding(binding: ModuleGraph['bindings'][number]): GraphExportBindingV1 {
