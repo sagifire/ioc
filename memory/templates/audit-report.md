@@ -1,55 +1,46 @@
 # Звіт аудиту: Назва
 
-Related Task: `tasks/plan/TASK-MM.YY-NNNN-short-name/task.md` або n/a
+Status: draft | completed | superseded
 Audit Type: architecture-health | independent-review | memory-quality | other
+Related Task: `memory/tasks/plan/TASK-MM.YY-NNNN-short-name/task.md` | n/a
+Related Run: `memory/tasks/plan/TASK-MM.YY-NNNN-short-name/RUN-001/index.md` | n/a
 Created: YYYY-MM-DD
 Auditor: agent id / role / human role
-Status: draft | review-ready | accepted | superseded
 
-## Мета аудиту
+## Мета
 
-Що перевіряється і навіщо.
+...
 
 ## Обсяг
-
-- ...
-
-## Поза обсягом
 
 - ...
 
 ## Вхідні матеріали
 
 - `memory/...`
-- шляхи коду або зовнішні документи, якщо вони дозволені контекстом задачі
+- project files або дозволені зовнішні джерела.
 
-## Знахідки
+## Findings
 
-- Зауваження 1:
-- Зауваження 2:
+- [closed | accepted-risk | follow-up-proposed | blocker] ...
 
 ## Ризики
 
-- Закриті ризики:
-- Відкриті ризики:
-- Прийняті ризики:
+- Відкриті:
+- Закриті:
+- Прийняті:
 
-## Архітектурний тиск
+## Architecture pressure
 
-- Сигнали архітектурного тиску:
+- Сигнали:
 - Зачеплені ділянки:
-- Кандидати на рефакторинг:
-- Застарілі ADR або архітектурні нотатки:
+- Refactor candidates:
+- Застарілі ADR або architecture notes:
 
 ## Рекомендація
 
-Що робити далі.
+...
 
-## Синхронізація індексу звітів
+## Follow-up proposals
 
-- [ ] `reports/audits/index.md` оновлений або зміна не потребує нового запису
-
-## Подальші задачі
-
-- Потрібні задачі:
-- Не потрібні, причина:
+- Немає | ...

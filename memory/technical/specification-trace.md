@@ -14,7 +14,8 @@ implementation або звичайних memory-update задач.
 ## Source documents
 
 - `AGENTS.md`
-  - Canonical targets: `memory/memory-rules.md`, `memory/agents/rules.md`,
+  - Canonical targets: `memory/reglament/memory-rules.md`, `memory/reglament/agents.md`,
+    `memory/project/memory-rules.md`, `memory/project/agents.md`,
     `memory/technical/rules.md`, `memory/technical/architecture.md`.
 - `SPEC.md`
   - Historical memory snapshot: `memory/sources/SPEC.md`.

@@ -1,33 +1,21 @@
 # Knowledge Memory
 
-Knowledge Memory призначена для накопичення й перевикористання знань між задачами, сесіями та проектами.
+Knowledge Memory накопичує reusable знання між задачами, сесіями або проектами.
 
-Це reference layer. Він не читається повністю на старті звичайної агентської сесії.
+Це reference layer, який не читається повністю під час startup.
 
 ## Головне правило
 
-Кожен knowledge package повинен мати `package.md`.
+Кожен knowledge package має `index.md` і `package.md`. Внутрішня структура пакета описується в його index.
 
-Package може мати власну внутрішню структуру, якщо вона описана в його `index.md` або `package.md`.
+## Generic package
 
-`knowledge/packages/pdadm-mvp-reglament/` є спеціальним operational package для PDADM MVP регламенту, правил застосування методології та migration guides.
+Package може містити principles, examples, anti-examples, patterns, prompts, checklists або інші потрібні artifacts. Не створювати файли без реальної retrieval value.
 
-## Рекомендовані файли package
+## Package регламенту
 
-- `package.md`
-- `index.md`
-- `principles.md`
-- `examples.md`
-- `anti-examples.md`
-- `workflows.md`
-- `prompts.md`
-- `checklists.md`
-- `patterns.md`
-- `changelog.md`
-- `migrations/...`
+`knowledge/packages/pdadm-mvp-reglament/` є current-version reference і migration package. Він не є operational startup layer; для звичайної роботи використовуються `memory/reglament/` і `memory/project/`.
 
-## Правило для агента
+## Правило читання
 
-Перед задачами, де можуть знадобитися спеціальні знання, агент перевіряє `memory/knowledge/package-index.md` і читає тільки релевантні пакети.
-
-Повний `memory/knowledge/packages/pdadm-mvp-reglament/` не читається на старті звичайної сесії без явної потреби. Для старту використовується `memory/agent-start.md`.
+Перед задачами, де можуть знадобитися спеціальні знання, перевірити `memory/knowledge/package-index.md` і читати тільки релевантні packages.

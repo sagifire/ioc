@@ -1,57 +1,49 @@
 # Project Memory
 
-Starter Kit Version: 4.0
-PDADM MVP Version: 0.4
+Starter Kit Version: 5.0
+PDADM MVP Version: 0.5
 
-Це Project Memory для `@sagifire/ioc`.
-
-Project Memory є operational source of truth для продуктового контексту, доменної моделі,
-технічних рішень, задач, reusable knowledge packages і правил роботи агентів.
+Це Project Memory для `@sagifire/ioc` і operational source of truth його продуктового, доменного, технічного та task context.
 
 ## Призначення
 
-Project Memory є центральним джерелом істини для:
+Project Memory зберігає:
 
-- продуктового контексту;
-- доменної моделі;
-- технічних рішень;
-- задач і execution artifacts;
-- research reports, audit reports і periodic reports;
-- reusable knowledge packages;
-- правил роботи людини й агентів.
+- продуктовий контекст;
+- доменну модель;
+- технічні рішення;
+- задачі й task run artifacts;
+- reusable knowledge;
+- detailed research, audit і periodic reports;
+- operational і project-specific правила.
 
 ## Як почати людині
 
-1. Прочитати `memory/human-start.md`, якщо регламент ще не знайомий.
-2. Подивитися `memory/state.md`, щоб зрозуміти поточний фокус проекту.
-3. Якщо треба змінити код, пам'ять або документи проекту, спочатку створити або уточнити
-   задачу в `memory/tasks/plan/`.
-4. Після роботи агента переглянути self-review, risks, follow-up tasks і явно прийняти,
-   відхилити або повернути результат на доопрацювання.
+1. Прочитати `memory/human-start.md`.
+2. Подивитися `memory/state.md`.
+3. Для нового проекту попросити агента допомогти з Project Bootstrap.
+4. Для зміни project artifacts або canonical Project Memory створити чи виконати задачу в `memory/tasks/plan/`.
+5. Після Review Request перевірити результат, ризики, `RSCH-*`, `FIX-*` і follow-up proposals та дати явне task-level рішення.
 
 ## Як почати агенту
 
-1. Агент починає з `memory/agent-start.md`.
-2. Якщо роль або задача не задані, агент працює як `Agent Assistant` у режимі
-   `Methodology Navigator`.
-3. Перед змінами пам'яті читати `memory/memory-rules.md`.
-4. Для задач використовувати `memory/tasks/plan/` і `memory/tasks/plan/progress.md`.
-5. Для reusable знань перевіряти `memory/knowledge/package-index.md`, якщо задача цього
-   потребує.
-6. Для `autonomous-research` створювати task-local `research/RSCH-*.md` і деталізований
-   звіт у `memory/reports/research/`.
-7. При зміні структури пам'яті оновлювати відповідні `index.md`.
-8. Перед завершенням роботи агента виконувати self-review і передавати задачу в `review`,
-   а не в `done`.
-9. Перед фіксацією змін у пам'ять перевіряти вплив на документи загального рівня.
+1. Почати з `memory/agent-start.md`.
+2. Прочитати основні правила в `memory/reglament/`.
+3. Прочитати project-specific правила за маршрутами `agent-start.md`.
+4. Якщо виконується задача, прочитати `task.md` і current `RUN-*/context.md`.
+5. Під час активації run створити `result.md`.
+6. Для формального research/planning/design створити task-local `RSCH-*` і detailed report у `memory/reports/research/`.
+7. Для змістових змін canonical Project Memory підготувати `FIX-*` і застосувати його тільки після human approval.
+8. При зміні структури оновити всі пов'язані `index.md`.
+9. Перед human review виконати self-review або independent subagent review.
 
 ## Головні точки входу
 
-- `memory/human-start.md` - короткий старт для людини, яка ще не знає регламент.
-- `memory/agent-start.md` - startup protocol для агентів.
-- `memory/memory-rules.md` - правила роботи з пам'яттю.
-- `memory/state.md` - короткий актуальний стан проекту.
-- `memory/tasks/plan/progress.md` - операційний індекс задач.
-- `memory/reports/` - periodic reports, research reports і audit reports.
-- `memory/knowledge/` - reusable knowledge packages.
-- `memory/agents/` - правила, workflows і prompts для агентів.
+- `memory/agent-start.md` - startup і reading routes.
+- `memory/reglament/agents.md` - operational agent rules.
+- `memory/reglament/memory-rules.md` - правила пам'яті, task/run invariants і glossary.
+- `memory/project/agents.md` - project-specific agent adaptations.
+- `memory/project/memory-rules.md` - project-specific memory adaptations.
+- `memory/tasks/plan/progress.md` - карта неархівних задач.
+- `memory/knowledge/package-index.md` - індекс reusable knowledge.
+- `memory/sources/index.md` - історичні immutable source references проекту.

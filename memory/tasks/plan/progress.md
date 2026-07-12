@@ -147,6 +147,7 @@
 ## Memory Migration
 
 - [x] **[Done]** [TASK-07.06-0091-memory-mvp-0-4-migration](TASK-07.06-0091-memory-mvp-0-4-migration/index.md) - Міграція Project Memory з PDADM MVP 0.3 / Starter Kit 3.0 на PDADM MVP 0.4 / Starter Kit 4.0.
+- [x] **[Done]** [TASK-07.12-0092-memory-mvp-0-5-migration](TASK-07.12-0092-memory-mvp-0-5-migration/index.md) - Project Memory мігрована на PDADM MVP 0.5 / Starter Kit 5.0; FIX-001 applied, verification passed.
 
 ## Формат
 
@@ -156,4 +157,4 @@
 
 Усі неархівні задачі мають бути відображені в цьому файлі. `done` ставиться тільки після task-level human review approval.
 
-`Type`, `Execution Mode` і current artifact фіксуються в `task.md`, а не дублюються в `progress.md`.
+`Type`, current run і current artifact фіксуються в `task.md`, а не дублюються в `progress.md`.

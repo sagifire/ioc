@@ -5,8 +5,10 @@
 ## Джерела правил
 
 - `AGENTS.md`.
-- `memory/memory-rules.md`.
-- `memory/agents/rules.md`.
+- `memory/reglament/memory-rules.md`.
+- `memory/reglament/agents.md`.
+- `memory/project/memory-rules.md`.
+- `memory/project/agents.md`.
 - `memory/sources/SPEC.md` як historical source snapshot.
 - Canonical product/domain/technical memory.
 - Approved task fixations.

@@ -97,6 +97,7 @@
 - [TASK-07.05-0088-stage-17-0-0-2-stabilization-handoff](TASK-07.05-0088-stage-17-0-0-2-stabilization-handoff/index.md) - Phase 7 stabilization handoff after full audit, including `H-001` and `L-001`.
 - [TASK-07.05-0090-stage-17-version-0-0-2-release-handoff](TASK-07.05-0090-stage-17-version-0-0-2-release-handoff/index.md) - Stage 17 version `0.0.2` fixation and release handoff before human push and publish workflow.
 - [TASK-07.06-0091-memory-mvp-0-4-migration](TASK-07.06-0091-memory-mvp-0-4-migration/index.md) - Міграція Project Memory з PDADM MVP 0.3 / Starter Kit 3.0 на PDADM MVP 0.4 / Starter Kit 4.0.
+- [TASK-07.12-0092-memory-mvp-0-5-migration](TASK-07.12-0092-memory-mvp-0-5-migration/index.md) - Міграція Project Memory з PDADM MVP 0.4 / Starter Kit 4.0 на PDADM MVP 0.5 / Starter Kit 5.0.
 
 ## Файли
 

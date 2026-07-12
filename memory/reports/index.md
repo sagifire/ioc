@@ -2,16 +2,16 @@
 
 ## Призначення
 
-Папка для періодичних оглядів, деталізованих дослідницьких звітів і аудиторських звітів.
+Detailed research, audit і periodic reports із довгоживучою цінністю.
 
-Reports не замінюють task artifacts. Для `autonomous-implementation` результат фіксується в `result.md`, для `autonomous-research` - у `research/RSCH-*.md` і `reports/research/**`, для `interactive-memory-update` - у `fixations/FIX-*.md`.
+Reports не замінюють task-local artifacts: кожен active run має `result.md`, formal research має task-local `RSCH-*`, а canonical memory proposal - `FIX-*`.
 
 ## Папки
 
-- [Періодичні звіти](periodic/index.md) - Weekly або інші періодичні огляди.
-- [Дослідницькі звіти](research/index.md) - Деталізовані звіти для autonomous research, planning і design задач.
-- [Аудиторські звіти](audits/index.md) - Звіти аудитів, включно з architecture health audits і незалежними review-аудитами.
+- [Періодичні звіти](periodic/index.md) - Огляди стану Project Memory.
+- [Дослідницькі звіти](research/index.md) - Detailed formal research/planning/design reports.
+- [Аудиторські звіти](audits/index.md) - Architecture health, independent review і memory quality audits.
 
 ## Файли
 
-Немає прямих файлів.
+Немає.

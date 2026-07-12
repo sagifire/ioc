@@ -1,55 +1,45 @@
 # Human Start
 
-Starter Kit Version: 4.0
-PDADM MVP Version: 0.4
+Starter Kit Version: 5.0
+PDADM MVP Version: 0.5
 
 ## Для чого цей файл
 
-Це короткий вхід у Project Memory для людини, яка ще не знайома з PDADM MVP.
+Короткий вхід у Project Memory для людини, яка ще не знайома з PDADM MVP.
 
-Якщо ви не знаєте, що робити далі, попросіть агента працювати так:
-
-```text
-Agent Role: Agent Assistant
-Working Mode: Methodology Navigator
-```
-
-Агент має пояснити поточний стан, доступні наступні кроки, які дії потребують задачі, і де потрібен human review.
+Якщо незрозуміло, що робити далі, попросіть агента допомогти як `Agent Assistant` і пояснити доступні наступні дії.
 
 ## З чого почати
 
-1. Подивіться `memory/state.md`.
-2. Якщо проект новий, попросіть агента провести Project Bootstrap.
-3. Якщо проект уже має задачі, відкрийте `memory/tasks/plan/progress.md`.
-4. Якщо треба змінити пам'ять або код, створіть або уточніть задачу.
-5. Якщо агент завершив роботу, перевірте self-review, risks і follow-up tasks перед approval.
+1. Подивитися `memory/state.md`.
+2. Для нового проекту пройти Project Bootstrap.
+3. Для наявних задач відкрити `memory/tasks/plan/progress.md`.
+4. Щоб змінити код, документацію або Project Memory, створити або виконати задачу.
+5. Щоб запустити backlog-задачу, прямо наказати виконати її, однозначно вказавши task ID або назву.
+6. Після Review Request перевірити результат і дати одне з рішень: approve, request changes або cancel.
 
-## Project Bootstrap
+## Як створюється задача
 
-Для нового проекту агент має допомогти пройти такі кроки:
-
-1. Product framing: цінність, користувачі, проблема, межі продукту.
-2. Scope framing: що входить і не входить у перший MVP.
-3. Domain framing: ключові поняття, поточний і цільовий доменний стан.
-4. Technical framing: початкові обмеження, стек, архітектурні припущення.
-5. MVP slicing: перші фази роботи.
-6. Roadmap або phase planning.
-7. Task backlog у `memory/tasks/plan/`.
-
-Для planning або design agent може запропонувати задачу з `Execution Mode: autonomous-research` і деталізованим звітом у `memory/reports/research/`.
+Нова задача одразу створюється повністю підготовленою зі статусом `backlog` і `RUN-001/context.md`. Окремо просити агента «підготувати» вже створену задачу не потрібно.
 
 ## Що означає review
 
-Агент не закриває задачу як `done` самостійно.
+У статусі `review` агент уже виконав run і self-review. Людина перевіряє:
 
-Після роботи агент переводить задачу в `review`, заповнює self-review і просить людину явно прийняти, відхилити або повернути результат на доопрацювання.
+- результат і acceptance criteria;
+- перевірки та ризики;
+- research artifacts;
+- memory fixations;
+- follow-up proposals.
 
-## Коли просити architecture review
+Approval може одночасно дозволити застосувати точні `FIX-*` і закрити задачу після успішної фіналізації без відхилень.
 
-Попросіть агента перевірити architecture health, якщо:
+`request changes` означає продовжити роботу в новому run. `cancel` припиняє задачу без прийняття результату.
 
-- нові фічі стають помітно важчими;
-- агент часто пропонує workaround;
-- зміни зачіпають надто багато місць;
-- користувач або команда уникає refactor через страх щось зламати;
-- фактична архітектура вже не схожа на `memory/technical/architecture.md` або ADR.
+## Project Bootstrap
+
+Для нового проекту агент допомагає пройти product framing, scope, domain, technical framing, MVP slicing, roadmap і task backlog. Planning та design можуть бути формальною діяльністю звичайного task run і створювати `RSCH-*` та detailed report.
+
+## Architecture health
+
+Попросіть architecture review, якщо нові фічі потребують workaround, зачіпають надто багато місць, тести стають крихкими або фактична архітектура розійшлася з `memory/technical/architecture.md` чи ADR.

@@ -1,8 +1,18 @@
 # Стан проекту
 
-Оновлено: 2026-07-06
-Starter Kit Version: 4.0
-PDADM MVP Version: 0.4
+Оновлено: 2026-07-12
+Starter Kit Version: 5.0
+PDADM MVP Version: 0.5
+
+## Міграція пам'яті
+
+Поточна migration task:
+
+`memory/tasks/plan/TASK-07.12-0092-memory-mvp-0-5-migration/`
+
+Current Run: `RUN-002`
+Fixation: applied `FIX-001`
+Phase: completed
 
 ## Поточний фокус
 

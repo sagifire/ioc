@@ -1,140 +1,80 @@
 # Fixation: FIX-001
 
-Status: draft | review-failed | applied | rejected
+Status: draft | proposed | approved | applied | rejected | blocked | superseded
+Requirement: required | optional
+Related Task: [TASK-MM.YY-NNNN](task.md)
+Related Run: [RUN-001](RUN-001/index.md)
+Related Research: none | [RSCH-001](RSCH-001.md)
 Created: YYYY-MM-DD
-Agent Role: Agent Assistant
-Task Status After Fixation: active | review
-Related Research: `research/RSCH-001.md` або n/a
-Review Method: independent-subagent | same-agent
-Auditor: agent id / role / n/a
-Review Limitation: none | subagent-unavailable | інше
+Review Status: pending | passed | findings-resolved
+Review Record: [RUN-001 result](RUN-001/result.md)
 
 ## Призначення
 
-Що саме фіксується.
+Що саме треба зафіксувати в canonical Project Memory.
 
-## Підсумок джерела
+## Джерело рішення
 
-Стислий підсумок обговорення або вхідного матеріалу.
+- Task requirement, user instruction, research finding або інше джерело.
 
-## Цільові файли пам'яті
+## Цільові файли
 
-- `product/...`
-- `domain/...`
-- `technical/...`
-- `knowledge/...`
+- `memory/product/...`
+- `memory/domain/...`
+- `memory/technical/...`
+- `memory/knowledge/...`
+- `memory/project/...`
 
 ## Запропоновані зміни
 
-Структурований опис змін, які агент планує внести.
+### `memory/path/file.md`
+
+- Додати:
+- Змінити:
+- Видалити:
+- Очікуваний результат:
 
 ## Обгрунтування
 
-Чому ці зміни потрібні.
+...
 
-## Вплив на документи загального рівня
+## Вплив і узгодженість
 
-- `state.md`: updated / not needed / proposed / blocked - причина
-- Продуктові оглядові документи: updated / not needed / proposed / blocked - причина
-- Доменні оглядові документи: updated / not needed / proposed / blocked - причина
-- Технічні оглядові документи: updated / not needed / proposed / blocked - причина
-- Індекси й пакети знань: updated / not needed / proposed / blocked - причина
-- Релевантні `index.md`: updated / not needed / proposed / blocked - причина
-
-## Підсумок self-review
-
-Короткий висновок агента або незалежного субагента-аудитора.
-
-## Якість виконання
-
-- Наскільки якісно фіксація відповідає підсумку джерела й обсягу задачі:
-- Що виконано повністю:
-- Що виконано частково:
-- Що не виконано:
-
-## Обсяг, зрізання кутів і компроміси
-
-- Чи були зміни поза обсягом:
-- Чи були зрізання кутів або незаплановані спрощення:
-- Чи були компроміси:
-- Чи погоджені або винесені ці компроміси:
+- `state.md`: included | not-needed | blocked - причина.
+- Product overview: included | not-needed | blocked - причина.
+- Domain current/target/rules: included | not-needed | blocked - причина.
+- Technical architecture/rules/ADR: included | not-needed | blocked - причина.
+- Knowledge packages: included | not-needed | blocked - причина.
+- Project-specific rules: included | not-needed | blocked - причина.
+- Wiki indexes: included | not-needed | blocked - причина.
+- Language gate: passed | blocked.
+- Architecture pressure: checked | not-applicable | blocked.
 
 ## Ризики
 
-- Реальні ризики, які виникли:
-- Потенційні ризики:
-- Закриті ризики:
-- Відкриті ризики:
-- Прийняті ризики:
+- ...
 
-## Незапланована робота
+---
 
-- Яка незапланована робота виникла:
-- Що закрито в межах задачі:
-- Що залишилось не закрито:
-- Чому це не закрито:
+## Approval
 
-## Подальші задачі
+Status: pending | approved | rejected
+Reviewed: pending | YYYY-MM-DD
+Approval Source: pending | повідомлення користувача
+Approval Notes: ...
 
-- Потрібні додаткові задачі:
-- Задачі, яких немає в поточному плані:
-- Не потрібні, причина:
+## Застосування
 
-## Додаткові нотатки для перевірки людиною
+Applied: pending | YYYY-MM-DD
+Applied Files:
 
-- На що людині або агенту-аудитору треба звернути увагу:
+- `memory/...` - що змінено.
 
-## Контрольний список self-review
-
-- [ ] Нема очевидних протиріч з існуючою Project Memory
-- [ ] Нема втрати важливого контексту
-- [ ] Обсяг змін відповідає задачі
-- [ ] Цільові файли визначені коректно
-- [ ] Вплив на документи загального рівня перевірений
-- [ ] Потрібні оновлення документів загального рівня включені в proposal або явно винесені у follow-up/blocker
-- [ ] Потрібні `index.md` визначені
-- [ ] Language gate пройдено: авторський текст Project Memory українською або має дозволений виняток
-- [ ] Зрізання кутів і компроміси відсутні або явно зафіксовані
-- [ ] Незакрита незапланована робота винесена у подальші задачі або blocker
-- [ ] Архітектурний тиск (`architecture pressure`) перевірено або не застосовується
-- [ ] Якщо доступні субагенти, review виконано незалежним субагентом-аудитором
-
-## Зауваження аудиту
-
-Status: none | closed | accepted-risk | follow-up-created | blocker
-Source: independent-subagent | same-agent | human | n/a
+Verification:
 
 - ...
 
-## Перевірка людиною
+Deviations From Approved Proposal: none | ...
+Result: pending | applied | blocked
 
-Status: pending | approved | changes-requested | rejected
-Reviewer Role: Product Lead Hat / Knowledge Engineer Hat / інша відповідальна роль
-Reviewed: YYYY-MM-DD або pending
-Approval Scope: whole-task-review | fixation-only | changes-requested | rejected | n/a
-Approval Source: явне повідомлення користувача / pending
-
-Погодження конкретної фіксації саме по собі не є approval закриття задачі.
-
-## Застосовані зміни
-
-- `file.md` - що змінено.
-
-## Синхронізація пам'яті
-
-- Продуктова пам'ять: updated / not needed
-- Доменна пам'ять: updated / not needed
-- Технічна пам'ять: updated / not needed
-- Пам'ять знань: updated / not needed
-- Пам'ять задач: updated / not needed
-- Wiki-індекси: updated / not needed
-- Файл стану: updated / not needed
-- Документи загального рівня: updated / not needed / proposed / blocked
-
-## Нотатки memory sync
-
-Коротке пояснення.
-
-## Подальші дії
-
-- ...
+Proposal body вище розділювача можна виправляти під час self-review/subagent review, але після передачі в human review він заморожується. Lifecycle metadata, Approval і Застосування оновлюються append-only.

@@ -1,133 +1,122 @@
-# Результат: RUN-001
+# Результат виконання: RUN-001
 
-Status: review-ready | failed | blocked
-Prepared For Review: YYYY-MM-DD
+Status: active | review-ready | finalizing | completed | changes-requested | failed | blocked | canceled
+Related Task: [TASK-MM.YY-NNNN](../task.md)
+Started: YYYY-MM-DD
+Prepared For Review: pending | YYYY-MM-DD
+Completed: pending | YYYY-MM-DD
 Agent Role: Agent Executor
-Execution Mode: autonomous-implementation
-Task Status After Run: review | active | blocked
-Review Method: independent-subagent | same-agent
-Auditor: agent id / role / n/a
-Review Limitation: none | subagent-unavailable | інше
+Review Method: pending | independent-subagent | same-agent
+Auditor: pending | agent id / role
+Review Limitation: pending | none | subagent-unavailable | ...
 
-## Підсумок
+## Основні показники
 
-Що зроблено.
+Outcome: pending | success | partial | failed | blocked
+Summary: ...
+Acceptance: 0/N
+Verification: pending | passed | partial | failed
+Memory Fixation: pending | not-needed | proposed | finalizing | applied | blocked
+Open Risks: none | ...
+Next Action: ...
+
+## Виконана робота
+
+- ...
 
 ## Змінені файли
 
-- `...`
+- `...` - що змінено.
 
-## Перевірка
+## Створені артефакти
 
-- [ ] Тести запущені
-- [ ] Ручна перевірка виконана
-- [ ] Критерії приймання перевірені
+### Дослідження
 
-## Перевірка критеріїв приймання
+- Немає | [RSCH-001](../RSCH-001.md) - ...
 
-- [ ] Критерій 1
-- [ ] Критерій 2
+### Фіксації
 
-## Підсумок self-review
+- Немає | [FIX-001](../FIX-001.md) - required | optional - ...
 
-Короткий висновок агента або незалежного субагента-аудитора.
+## Перевірки
 
-## Якість виконання
+- Метод або команда:
+  - Результат:
+  - Обмеження:
 
-- Наскільки якісно виконані критерії приймання:
-- Що виконано повністю:
-- Що виконано частково:
-- Що не виконано:
+## Критерії приймання
 
-## Обсяг, зрізання кутів і компроміси
+- [ ] Критерій 1 - evidence.
+- [ ] Критерій 2 - evidence.
 
-- Чи були зміни поза обсягом:
-- Чи були зрізання кутів або незаплановані спрощення:
-- Чи були компроміси:
-- Чи погоджені або винесені ці компроміси:
+## Відхилення від контракту
+
+- Зміни поза scope: none | ...
+- Невиконані вимоги: none | ...
+- Зрізання кутів: none | ...
+- Компроміси: none | ...
 
 ## Ризики
 
-- Реальні ризики, які виникли:
-- Потенційні ризики:
-- Закриті ризики:
-- Відкриті ризики:
-- Прийняті ризики:
+- Закриті: none | ...
+- Відкриті: none | ...
+- Прийняті: none | ...
 
-## Незапланована робота
+## Вплив на Project Memory
 
-- Яка незапланована робота виникла:
-- Що закрито в межах задачі:
-- Що залишилось не закрито:
-- Чому це не закрито:
+Status: pending | not-needed | proposed
+Fixations: none | FIX-...
+General-Level Impact: pending | checked | blocked
+Notes: ...
 
-## Подальші задачі
+## Self-review та audit
 
-- Потрібні додаткові задачі:
-- Задачі, яких немає в поточному плані:
-- Не потрібні, причина:
+Review Status: pending | passed | findings-resolved | blocker
 
-## Додаткові нотатки для перевірки людиною
+### Висновок
 
-- На що людині або агенту-аудитору треба звернути увагу:
+...
 
-## Контрольний список self-review
+### Findings
 
-- [ ] Обсяг виконано
-- [ ] Зміни поза обсягом відсутні або явно пояснені
-- [ ] Критерії приймання перевірені
-- [ ] Ризики й обмеження зафіксовані
-- [ ] Зрізання кутів і компроміси відсутні або явно зафіксовані
-- [ ] Незакрита незапланована робота винесена у подальші задачі або blocker
-- [ ] Потреба в memory sync перевірена
-- [ ] Вплив на документи загального рівня перевірений
-- [ ] Мовний шлюз (`language gate`) для змін Project Memory пройдено або не застосовується
-- [ ] Архітектурний тиск (`architecture pressure`) перевірено
-- [ ] Якщо доступні субагенти, review виконано незалежним субагентом-аудитором
-- [ ] Аудиторські зауваження закриті, прийняті як ризик, винесені у подальшу задачу або позначені як blocker
-- [ ] Рекомендації для перевірки людиною сформульовані
+- [closed | accepted-risk | follow-up-proposed | blocker] ...
 
-## Зауваження аудиту
+### Контрольний список
 
-Status: none | closed | accepted-risk | follow-up-created | blocker
-Source: independent-subagent | same-agent | human | n/a
+- [ ] Scope дотримано.
+- [ ] Критерії перевірено.
+- [ ] Зміни поза scope відсутні або пояснені.
+- [ ] Ризики й компроміси зафіксовані.
+- [ ] Research artifacts перевірені.
+- [ ] Memory impact і `FIX-*` перевірені.
+- [ ] Language gate пройдено або не застосовується.
+- [ ] Architecture pressure перевірено або не застосовується.
+- [ ] Follow-up proposals сформовані.
+- [ ] Findings закриті або мають явний статус.
 
-- Відкриті зауваження:
-- Закриті зауваження:
-- Прийняті ризики:
-- Створені або потрібні подальші задачі:
+## Запропоновані follow-up задачі
 
-## Перевірка людиною
+- Немає.
 
-Status: pending | approved | changes-requested | rejected
-Reviewer Role: Product Lead Hat / Agent Operator Hat / інша відповідальна роль
-Reviewed: YYYY-MM-DD або pending
-Approval Scope: whole-task-review | run-only | changes-requested | rejected | n/a
-Approval Source: явне повідомлення користувача / pending
+Формат proposal:
 
-Ця секція не заповнюється агентом як approval. `Status: approved` дозволений тільки для task-level human review approval.
+- Назва:
+  - Причина:
+  - Scope:
+  - Рекомендація: create | do not create
+  - Status: proposed
 
-## Синхронізація пам'яті
+## Фокус human review
 
-- Продуктова пам'ять: updated / not needed
-- Доменна пам'ять: updated / not needed
-- Технічна пам'ять: updated / not needed
-- Пам'ять знань: updated / not needed
-- Пам'ять задач: updated / not needed
-- Wiki-індекси: updated / not needed
-- Файл стану: updated / not needed
-- Документи загального рівня: updated / not needed / proposed / blocked
+- Що перевірити:
+- Які ризики оцінити:
+- Які `FIX-*` погодити:
+- Які follow-up proposals підтвердити:
 
-## Нотатки memory sync
+## Фіналізація
 
-Коротке пояснення.
-
-## Оновлення знань
-
-- Оновлено: ...
-- Запропоновано: ...
-- Не потрібно: причина
-
-## Подальші дії
-
-- ...
+Approval Reference: pending
+Applied Fixations: pending | none | FIX-...
+Final Verification: pending
+Deviations During Finalization: none | ...
+Finalization Result: pending | completed | blocked

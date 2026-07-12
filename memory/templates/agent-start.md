@@ -1,106 +1,79 @@
 # Agent Start
 
-Starter Kit Version: 4.0
-PDADM MVP Version: 0.4
+Starter Kit Version: 5.0
+PDADM MVP Version: 0.5
 
 ## Призначення
 
-Коротко: як агент має входити в Project Memory.
-
-Усі шляхи в цьому файлі вказані від кореня проекту.
+Перша точка входу агента й маршрутизатор task-specific та project-specific читання.
 
 ## Default boot packet
 
-- `memory/README.md`
-- `memory/state.md`
-- `memory/memory-rules.md`
-- `memory/agents/rules.md`
+- `memory/agent-start.md`
+- `memory/reglament/agents.md`
+- `memory/reglament/memory-rules.md`
 
-## Default role fallback
+## Project-specific routes
+
+- `memory/project/agents.md` - перед active run і subagent delegation.
+- `memory/project/memory-rules.md` - перед canonical memory changes і `FIX-*`.
+
+## Якщо задача не вказана
 
 ```text
 Agent Role: Agent Assistant
-Working Mode: Methodology Navigator
 Task / Topic: clarification
 ```
 
-## Startup profiles
+## Якщо задача вказана
 
-Startup profile є операційною підказкою для читання контексту. Якщо задача вказана, `Execution Mode` береться з `task.md`.
+- `memory/tasks/plan/progress.md`
+- task `task.md`
+- current `RUN-*/context.md`
+- current `RUN-*/result.md`, якщо run active
+- пов'язані `RSCH-*` і `FIX-*`
+- task-specific memory links
 
-### methodology-navigator
+`Type` є описовим. `Execution Mode` не використовується.
 
-- default boot packet
-- `memory/human-start.md`, якщо користувач просить пояснити регламент
-- `memory/tasks/plan/progress.md`, якщо треба пояснити стан задач
+## Додаткові маршрути
 
-### project-bootstrap
+### Project Bootstrap
 
-- default boot packet
-- `memory/product/vision.md`
-- `memory/product/requirements.md`
-- `memory/product/roadmap.md`
+- `memory/product/`
 - `memory/domain/index.md`
 - `memory/technical/index.md`
+- `memory/state.md`
 - `memory/tasks/plan/progress.md`
 
-### discussion / task-preparation
+### Formal research
 
-- default boot packet
-
-### autonomous-implementation
-
-- default boot packet
-- `memory/tasks/plan/progress.md`
-- task `task.md`
-- current run `requirements.md`
-- current run `context.md`
-
-### autonomous-research
-
-- default boot packet
-- `memory/tasks/plan/progress.md`
-- task `task.md`
-- current `research/RSCH-*.md`, якщо існує
-- related detailed report у `memory/reports/research/`, якщо існує
-- `memory/knowledge/package-index.md`, якщо research, planning або design може потребувати reusable knowledge
-- relevant knowledge packages
-
-### interactive-memory-update
-
-- default boot packet
-- `memory/tasks/plan/progress.md`
-- task `task.md`
-- `worklog.md`
-- current `fixations/FIX-*.md`, якщо існує
-- relevant target memory files
-
-### memory-migration
-
-- default boot packet
 - task/run context
-- `memory/knowledge/package-index.md`
+- `memory/knowledge/package-index.md`, якщо потрібні reusable knowledge
+- релевантні джерела
+- `memory/reports/research/`
+
+### Memory migration
+
+- task/run context
 - `memory/knowledge/packages/pdadm-mvp-reglament/package.md`
-- relevant migration guide
+- `memory/knowledge/packages/pdadm-mvp-reglament/migration-from-0.4-to-0.5.md`
 
-### architecture-audit
+### Architecture audit
 
-- default boot packet
-- task `task.md`, якщо audit оформлений як задача
+- task/run context
 - `memory/technical/architecture.md`
 - `memory/technical/rules.md`
-- relevant ADR у `memory/technical/decisions/`
-- related report у `memory/reports/audits/`, якщо існує
+- релевантні ADR
+- `memory/reports/audits/`
 
 ## Stop rule
 
-Після boot packet або startup profile агент переходить до задачі.
-
-Додаткові документи читати тільки за явною потребою.
+Після boot packet читати тільки task-specific документи, потрібні для безпечної роботи.
 
 ## Коли читати повний регламент
 
-- `memory-migration`
-- зміна регламенту, workflow або шаблонів
-- конфлікт правил
-- пряма вказівка користувача
+- methodology audit;
+- повне пояснення правила;
+- зміна регламенту;
+- memory migration.

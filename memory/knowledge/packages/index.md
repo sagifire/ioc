@@ -2,12 +2,12 @@
 
 ## Призначення
 
-Папка для reusable knowledge packages.
+Reusable knowledge packages.
 
 ## Папки
 
-- [PDADM MVP Reglament](pdadm-mvp-reglament/index.md) - Операційний регламент PDADM MVP 0.4 і інструкції міграції Project Memory.
+- [PDADM MVP Reglament](pdadm-mvp-reglament/index.md) - Current-version reference регламенту 0.5 і direct migration guide.
 
 ## Файли
 
-Немає прямих файлів.
+Немає.

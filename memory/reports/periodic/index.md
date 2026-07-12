@@ -4,7 +4,7 @@
 
 Періодичні огляди стану Project Memory.
 
-Огляд має перевіряти актуальність `state.md`, `tasks/plan/progress.md`, ключових product/domain/technical документів, `reports/research/`, `reports/audits/` і релевантних knowledge packages.
+Огляд має перевіряти актуальність `state.md`, `tasks/plan/progress.md`, ключових Product/Domain/Technical документів, approved але не applied `FIX-*`, `reports/research/`, `reports/audits/` і релевантних knowledge packages.
 
 ## Папки
 

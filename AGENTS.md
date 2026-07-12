@@ -19,8 +19,8 @@ memory/
 Фактична версія пам'яті:
 
 ```text
-Starter Kit Version: 4.0
-PDADM MVP Version: 0.4
+Starter Kit Version: 5.0
+PDADM MVP Version: 0.5
 ```
 
 Project Memory є operational source of truth для продуктового контексту, вимог, задач,
@@ -39,8 +39,10 @@ memory/agent-start.md
 Після startup boot packet агент працює за:
 
 ```text
-memory/memory-rules.md
-memory/agents/rules.md
+memory/reglament/agents.md
+memory/reglament/memory-rules.md
+memory/project/agents.md
+memory/project/memory-rules.md
 ```
 
 Агент не читає всю `memory/`, повний `pdadm-mvp-reglament` або історичні source snapshots
@@ -55,24 +57,13 @@ memory/agents/rules.md
 - уточнює намір користувача;
 - допомагає підготувати або знайти задачу;
 - не змінює canonical Project Memory або код без достатнього контексту й підтвердженого
-  режиму роботи.
+  task boundary.
 
 ## Independent Self-Review And Subagents
 
-Для задач, де регламент вимагає self-review або independent audit, агент не має мовчки
-підміняти незалежний review same-agent review.
+Для задач, де регламент вимагає self-review або independent audit, агент використовує доступного незалежного субагента-аудитора в окремій сесії.
 
-Перед тим як зафіксувати `subagent-unavailable`, агент повинен перевірити доступність
-subagent / multi-agent capability через tool discovery, якщо `tool_search` доступний у
-поточній сесії.
-
-Якщо subagent capability знайдена, але політика інструмента вимагає explicit delegation
-request або human confirmation, агент повинен прямо попросити підтвердження на запуск
-незалежного субагента-аудитора. Якщо підтвердження не отримано, це фіксується як
-`delegation-not-confirmed`, а не як `subagent-unavailable`.
-
-`subagent-unavailable` можна фіксувати тільки коли discovery виконано і capability справді
-недоступна, або коли `tool_search` недоступний і це явно записано в `Review Limitation`.
+Якщо subagent capability справді недоступна, агент виконує same-agent review і явно фіксує `Review Limitation: subagent-unavailable`. Не можна підміняти доступний independent audit same-agent review або вимагати додаткового підтвердження delegation, коли користувач уже дозволив її в task scope.
 
 ## Project Context
 

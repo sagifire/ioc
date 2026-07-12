@@ -2,14 +2,14 @@
 
 ## Призначення
 
-Деталізовані звіти для autonomous research, planning і design задач.
+Detailed reports для formal research, planning і design усередині task runs.
 
-Кожна задача з `Execution Mode: autonomous-research` має task-local `research/RSCH-*.md` і довгоживучий detailed report у цій папці.
+Кожен report посилається на task-local `RSCH-*`, task і related run. Невеликі допоміжні перевірки лишаються в `result.md` і не створюють зайвого report.
 
 ## Папки
 
-Немає дочірніх папок.
+Немає.
 
 ## Файли
 
-Немає прямих файлів.
+Немає.

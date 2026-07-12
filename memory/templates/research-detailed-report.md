@@ -1,28 +1,28 @@
-# Деталізований звіт дослідження / планування / проектування: Назва
+# Деталізований звіт: Назва
 
-Related Task: `tasks/plan/TASK-MM.YY-NNNN-short-name/task.md`
-Related Research Artifact: `tasks/plan/TASK-MM.YY-NNNN-short-name/research/RSCH-001.md`
-Report Type: research | planning | design
+Status: draft | completed | superseded
+Type: research | planning | design
+Related Task: `memory/tasks/plan/TASK-MM.YY-NNNN-short-name/task.md`
+Related Run: `memory/tasks/plan/TASK-MM.YY-NNNN-short-name/RUN-001/index.md`
+Related Research: `memory/tasks/plan/TASK-MM.YY-NNNN-short-name/RSCH-001.md`
 Created: YYYY-MM-DD
-Status: draft | review-ready | accepted | superseded
 
 ## Питання або мета
 
-Що саме досліджується, планується або проектується.
+...
 
 ## Контекст
 
-Короткий опис продуктового, доменного, технічного або процесного контексту.
+...
 
 ## Джерела й припущення
 
 - `memory/...`
-- шляхи коду або зовнішні документи, якщо вони дозволені контекстом задачі
-- контекст від користувача
+- project files або дозволені зовнішні джерела.
 
 ## Знахідки
 
-Ключові факти, спостереження й обмеження.
+- ...
 
 ## Варіанти
 
@@ -42,21 +42,14 @@ Status: draft | review-ready | accepted | superseded
 
 ## Рекомендація
 
-Рекомендований варіант або висновок.
+...
 
 ## Обгрунтування
 
-Чому саме така рекомендація.
+...
 
-## Синхронізація індексу звітів
+## Ризики й обмеження
 
-- [ ] `reports/research/index.md` оновлений або зміна не потребує нового запису
+- ...
 
-## Подальші задачі
-
-- Потрібні задачі:
-- Не потрібні, причина:
-
-## Нотатки memory fixation
-
-Що варто зафіксувати в Project Memory через `fixations/FIX-*.md`, якщо це потрібно.
+Операційний disposition, memory impact і follow-up proposals фіксуються в task-local `RSCH-*`, `FIX-*`, `result.md` і `task.md`, а не дублюються тут.
