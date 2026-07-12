@@ -31,6 +31,7 @@ import {
     assertGraphHasMultiCapability,
     assertGraphHasMultiCapabilityProvider,
     assertGraphHasRequiredPort,
+    assertGraphExportSnapshot,
     assertChildScopeHasValue,
     assertChildScopeHasValues,
     createModuleHarness,
@@ -302,6 +303,22 @@ assertGraphHasAdapterSourceEdge(harness.getGraph(), {
 Failed graph assertions throw `GraphAssertionError` with deterministic plain-text messages
 that include the available modules, capabilities, required ports, bindings or dependency
 edges.
+
+## Canonical Graph Export Snapshots
+
+Use `assertGraphExportSnapshot()` when exact portable graph structure matters more than a
+focused graph predicate:
+
+```ts
+assertGraphExportSnapshot(composer.getGraph(), expectedCanonicalJson)
+```
+
+The helper accepts `ModuleGraph`, `ComposerInspection`, `RuntimeInspection` or an existing
+`GraphExportDocument`. It projects through the public graph export API and compares exact
+canonical JSON bytes. A mismatch throws `GraphExportSnapshotAssertionError` with the first
+differing line. The helper does not read or update files; snapshot I/O and explicit update
+commands belong to the test runner or application edge. See the
+[graph export workflow](graph-export.md).
 
 ## Child Scope Assertions
 

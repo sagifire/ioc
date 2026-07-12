@@ -1,4 +1,13 @@
-import { createComposer, defineModule, formatDiagnostics, namespace } from '@sagifire/ioc'
+import {
+    createComposer,
+    createGraphExportDocument,
+    defineModule,
+    formatDiagnostics,
+    namespace,
+    renderGraphExportDot,
+    renderGraphExportMermaid,
+    serializeGraphExport
+} from '@sagifire/ioc'
 
 interface AuthUser {
     readonly id: string
@@ -183,6 +192,10 @@ async function main(): Promise<void> {
     }
 
     const inspection = composer.inspect()
+    const graphDocument = createGraphExportDocument(inspection)
+    const graphJson = serializeGraphExport(graphDocument)
+    const graphDot = renderGraphExportDot(graphDocument, { direction: 'LR' })
+    const graphMermaid = renderGraphExportMermaid(graphDocument, { direction: 'LR' })
     const authBindingEdge = inspection.edges.find((edge) => {
         return (
             edge.edgeKind === 'binding' &&
@@ -217,6 +230,9 @@ async function main(): Promise<void> {
     assertEqual(inspection.bindings[0]?.tokenId, CONTACT_REQUESTS_AUTH_READER.id, 'binding token')
     assertEqual(inspection.bindings[0]?.kind, 'adapter', 'binding kind')
     assertEqual(adminContributions?.providers.length, 2, 'admin contribution provider count')
+    assert(graphJson.includes('"schemaVersion": "1"'), 'expected canonical JSON export')
+    assert(graphDot.startsWith('digraph "SagifireIocGraph"'), 'expected DOT export')
+    assert(graphMermaid.startsWith('flowchart LR'), 'expected Mermaid export')
     assertEqual(adminContributions?.providers[0]?.source, 'module', 'module contribution source')
     assertEqual(
         adminContributions?.providers[1]?.source,

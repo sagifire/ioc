@@ -2,7 +2,7 @@
 
 ## Призначення
 
-Prepared run для graph export docs, Project Memory workflow і testing hardening.
+Active run для graph export docs, Project Memory workflow і testing hardening.
 
 ## Папки
 
@@ -11,3 +11,4 @@ Prepared run для graph export docs, Project Memory workflow і testing harden
 ## Файли
 
 - [Context](context.md) - Заморожуваний після активації run contract.
+- [Result](result.md) - Execution, verification, self-review та audit report.

@@ -19,6 +19,7 @@ Package README files and this map are the current entry points.
 - [Async model](async-model.md) - async providers, async resources, `getAsync()` and
   disposal.
 - [Composer](composer.md) - composer builder, validation, inspection and dependency edges.
+- [Graph export](graph-export.md) - v1 schema, JSON/DOT/Mermaid, privacy and snapshot/diff workflow.
 - [Modules](modules.md) - module definitions, capabilities, required ports and isolation.
 - [Diagnostics](diagnostics.md) - typed errors, diagnostic reports, formatting and
   diagnostic assertions.

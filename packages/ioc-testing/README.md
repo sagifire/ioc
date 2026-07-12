@@ -27,6 +27,7 @@ import {
     assertGraphHasMultiCapability,
     assertGraphHasMultiCapabilityProvider,
     assertGraphHasRequiredPort,
+    assertGraphExportSnapshot,
     assertChildScopeHasValue,
     assertChildScopeHasValues,
     createModuleHarness,
@@ -58,6 +59,7 @@ The package exposes a root export only and depends on `@sagifire/ioc`.
   `assertGraphHasMultiCapability()`, `assertGraphHasMultiCapabilityProvider()`,
   `assertGraphHasRequiredPort()`, `assertGraphHasBinding()`, `assertGraphHasEdge()` and
   `assertGraphHasAdapterSourceEdge()`.
+- Canonical export assertion: `assertGraphExportSnapshot()` through public graph export APIs.
 - Child scope assertions: `assertChildScopeHasValue()` and `assertChildScopeHasValues()`.
 - Diagnostic assertions: `assertDiagnosticReportOk()`,
   `assertDiagnosticReportHasDiagnostic()` and `assertErrorDiagnostic()`.
@@ -166,6 +168,17 @@ Fake modules remain visible through public graph inspection, and module-private 
 remain hidden behind normal composed runtime capability access.
 
 ## Assertions
+
+Canonical JSON snapshots can cover the complete portable graph without parsing DOT or
+Mermaid labels:
+
+```ts
+assertGraphExportSnapshot(harness.getGraph(), expectedCanonicalJson)
+```
+
+The helper performs no filesystem access. It throws `GraphExportSnapshotAssertionError`
+with the first differing line; file reads and explicit snapshot updates stay at the test
+runner edge.
 
 Graph assertions read `ModuleGraph`, `ComposerInspection` or `RuntimeInspection` data:
 

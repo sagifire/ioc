@@ -375,7 +375,7 @@ import { add as addFromDslSubpath, adapter as adapterFromDslSubpath, bind, modul
 import { diagnosticFromError as diagnosticFromSubpath } from '@sagifire/ioc/diagnostics'
 import { renderGraphExportMermaid, serializeGraphExport } from '@sagifire/ioc/graph-export'
 import { createNextRequestContext, createNextRuntime, nextRequestValue, withRouteScope, withServerActionScope } from '@sagifire/ioc-next'
-import { assertDiagnosticReportOk, assertGraphHasCapability, assertGraphHasModule, createModuleHarness, createTestRuntime, fakeModule, override } from '@sagifire/ioc-testing'
+import { assertDiagnosticReportOk, assertGraphExportSnapshot, assertGraphHasCapability, assertGraphHasModule, createModuleHarness, createTestRuntime, fakeModule, override } from '@sagifire/ioc-testing'
 
 const valueToken = token('smoke.value')
 const secondaryToken = tokenFromSubpath('smoke.secondary')
@@ -414,6 +414,7 @@ const moduleDefinition = defineModule({
 })
 const composedRuntime = await createComposer().use(moduleDefinition).compose()
 const graphJson = serializeGraphExport(createGraphExportDocument(composedRuntime.inspect()))
+assertGraphExportSnapshot(composedRuntime.inspect(), graphJson)
 assertIncludes(graphJson, '"schemaVersion": "1"', 'graph export root and subpath exports')
 assertIncludes(
     renderGraphExportDot(createGraphExportDocument(composedRuntime.inspect())),

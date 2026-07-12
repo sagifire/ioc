@@ -344,6 +344,9 @@ private token IDs for module providers or other runtime internals.
 
 ## Graph Export v1
 
+For the full schema, privacy and snapshot/diff workflow, see the
+[graph export guide](graph-export.md).
+
 `createGraphExportDocument()` creates a detached, immutable v1 projection from a public
 `ModuleGraph`. A `ComposerInspection` or `RuntimeInspection` is also accepted because both
 include the same public graph fields. Validation diagnostics and runtime provider summaries

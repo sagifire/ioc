@@ -158,11 +158,13 @@ describe('package boundaries', () => {
             'assertGraphHasRequiredPort',
             'assertGraphHasBinding',
             'assertGraphHasEdge',
+            'assertGraphExportSnapshot',
             'assertDiagnosticReportOk',
             'assertDiagnosticReportHasDiagnostic',
             'assertErrorDiagnostic',
             'DuplicateTestOverrideError',
             'GraphAssertionError',
+            'GraphExportSnapshotAssertionError',
             'DiagnosticAssertionError'
         ]
         const publicExportViolations = testingExportNames.filter((exportName) => {

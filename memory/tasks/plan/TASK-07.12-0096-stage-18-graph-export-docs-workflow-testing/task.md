@@ -1,6 +1,6 @@
 # TASK-07.12-0096: Stage 18 graph export docs, workflow and testing
 
-Task Status: backlog
+Task Status: done
 Type: implementation
 Created: 2026-07-12
 Owner Role: Documentation and Testing Agent
@@ -8,13 +8,13 @@ Current Run: RUN-001
 
 ## Поточний стан
 
-Run Status: prepared
-Progress: Task package prepared; очікує завершення TASK-07.12-0095.
-Acceptance: 0/10
-Blockers: TASK-07.12-0095 not done
-Blocked Phase: sequencing
+Run Status: completed
+Progress: Результат схвалено; TASK-07.12-0096 завершена.
+Acceptance: 10/10
+Blockers: none
+Blocked Phase: n/a
 Pending Decisions: none
-Next Action: Активувати після human-approved completion TASK-07.12-0095.
+Next Action: Перейти до наступного Stage 18 task за окремою командою.
 
 ## Мета
 
@@ -37,16 +37,16 @@ Project Memory snapshot/diff workflow і optional testing helpers поверх p
 
 ## Критерії приймання
 
-- [ ] Schema/API/compatibility/privacy docs complete.
-- [ ] JSON/DOT/Mermaid examples use public API.
-- [ ] Snapshot/diff workflow records provenance and avoids automatic mutation.
-- [ ] Agent workflow treats JSON, not renderer labels, as source of truth.
-- [ ] Optional testing helpers do not read private internals.
-- [ ] Migration/additive compatibility documented.
-- [ ] Deterministic/privacy fixtures remain passing.
-- [ ] Package/export/docs checks pass.
-- [ ] No CLI/filesystem behavior added to core.
-- [ ] Self-review and independent audit passed; task passed to human review.
+- [x] Schema/API/compatibility/privacy docs complete.
+- [x] JSON/DOT/Mermaid examples use public API.
+- [x] Snapshot/diff workflow records provenance and avoids automatic mutation.
+- [x] Agent workflow treats JSON, not renderer labels, as source of truth.
+- [x] Optional testing helpers do not read private internals.
+- [x] Migration/additive compatibility documented.
+- [x] Deterministic/privacy fixtures remain passing.
+- [x] Package/export/docs checks pass.
+- [x] No CLI/filesystem behavior added to core.
+- [x] Self-review and independent audit passed; task passed to human review.
 
 ## Пов'язана пам'ять
 
@@ -59,18 +59,18 @@ Project Memory snapshot/diff workflow і optional testing helpers поверх p
 
 ## Прогони
 
-- [RUN-001](RUN-001/index.md) - prepared - Docs/workflow/testing hardening.
+- [RUN-001](RUN-001/index.md) - completed - Docs/workflow/testing hardening.
 
 ## Human Review
 
-Status: not-requested
-Requested: n/a
-Reviewed: n/a
-Approval Source: n/a
+Status: requested
+Requested: 2026-07-12
+Reviewed: 2026-07-12
+Approval Source: User task-level `approve` у поточній сесії.
 
 ## Фінальний результат
 
-Completed: pending
-Final Run: pending
-Summary: pending
-Residual Risks: pending
+Completed: 2026-07-12
+Final Run: RUN-001
+Summary: Graph export docs, runnable usage, Project Memory snapshot/diff workflow і public-API-only testing helper схвалено.
+Residual Risks: Schema reference є prose/TypeScript contract, не machine-readable JSON Schema; caller-controlled expected snapshots можуть містити власні sensitive values.

@@ -217,6 +217,7 @@ edges.
 - [Async model](../../docs/async-model.md)
 - [Async DB resource example](../../examples/async-db-resource/README.md)
 - [Composer](../../docs/composer.md)
+- [Graph export](../../docs/graph-export.md)
 - [Modules](../../docs/modules.md)
 - [Diagnostics](../../docs/diagnostics.md)
 - [Migration from DI containers](../../docs/migration-from-di-container.md)

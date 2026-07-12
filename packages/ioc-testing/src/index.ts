@@ -5,6 +5,8 @@ import {
     formatDiagnostics,
     createComposer,
     createContainer,
+    createGraphExportDocument,
+    serializeGraphExport,
     type AsyncProviderFactory,
     type CapabilityProviderRegistrationKind,
     type CapabilityProviderSource,
@@ -19,6 +21,7 @@ import {
     type Diagnostic,
     type DiagnosticReport,
     type DiagnosticSeverity,
+    type GraphExportDocument,
     type InspectionProviderKind,
     type ModuleCardinality,
     type ModuleCapabilityDefinition,
@@ -278,6 +281,7 @@ export interface ModuleHarness<TModule extends ModuleDefinition = ModuleDefiniti
 }
 
 export type GraphAssertionInput = ModuleGraph | ComposerInspection | RuntimeInspection
+export type GraphExportSnapshotInput = GraphAssertionInput | GraphExportDocument
 
 export interface GraphCapabilityExpectation {
     readonly moduleId?: string
@@ -375,6 +379,16 @@ export interface DiagnosticExpectation {
 
 export class GraphAssertionError extends Error {
     override readonly name = 'GraphAssertionError'
+
+    constructor(message: string) {
+        super(message)
+
+        Object.setPrototypeOf(this, new.target.prototype)
+    }
+}
+
+export class GraphExportSnapshotAssertionError extends Error {
+    override readonly name = 'GraphExportSnapshotAssertionError'
 
     constructor(message: string) {
         super(message)
@@ -730,6 +744,31 @@ export function assertGraphHasAdapterSourceEdge(
         ...expectation,
         edgeKind: 'adapter-source'
     })
+}
+
+export function assertGraphExportSnapshot(
+    input: GraphExportSnapshotInput,
+    expectedCanonicalJson: string
+): void {
+    const document = isGraphExportDocument(input)
+        ? input
+        : createGraphExportDocument(getAssertionGraph(input))
+    const actualCanonicalJson = serializeGraphExport(document)
+
+    if (actualCanonicalJson === expectedCanonicalJson) {
+        return
+    }
+
+    const mismatch = findFirstLineMismatch(expectedCanonicalJson, actualCanonicalJson)
+
+    throw new GraphExportSnapshotAssertionError(
+        [
+            'Expected graph export to match the canonical JSON snapshot.',
+            `First mismatch at line ${mismatch.line}.`,
+            `Expected: ${JSON.stringify(mismatch.expected)}`,
+            `Actual: ${JSON.stringify(mismatch.actual)}`
+        ].join('\n')
+    )
 }
 
 export async function assertChildScopeHasValue<TValue>(
@@ -1679,6 +1718,39 @@ function withTemporaryChildScope<TValue>(
 
 function valuesEqual(actual: unknown, expected: unknown): boolean {
     return stableFormat(actual) === stableFormat(expected)
+}
+
+function isGraphExportDocument(input: GraphExportSnapshotInput): input is GraphExportDocument {
+    return 'schema' in input && 'schemaVersion' in input && 'graph' in input
+}
+
+function findFirstLineMismatch(
+    expected: string,
+    actual: string
+): {
+    readonly line: number
+    readonly expected: string | undefined
+    readonly actual: string | undefined
+} {
+    const expectedLines = expected.split('\n')
+    const actualLines = actual.split('\n')
+    const lineCount = Math.max(expectedLines.length, actualLines.length)
+
+    for (let index = 0; index < lineCount; index += 1) {
+        if (expectedLines[index] !== actualLines[index]) {
+            return {
+                line: index + 1,
+                expected: expectedLines[index],
+                actual: actualLines[index]
+            }
+        }
+    }
+
+    return {
+        line: 1,
+        expected: expectedLines[0],
+        actual: actualLines[0]
+    }
 }
 
 function hasExpectedParentValue<TValue>(
