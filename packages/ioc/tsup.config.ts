@@ -9,6 +9,7 @@ export default defineConfig({
         composer: 'src/composer.ts',
         dsl: 'src/dsl.ts',
         diagnostics: 'src/diagnostics.ts',
+        'graph-export': 'src/graph-export.ts',
         lifecycle: 'src/lifecycle.ts'
     },
     format: ['esm'],

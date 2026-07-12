@@ -20,6 +20,7 @@ const packageTargets = [
             './composer',
             './dsl',
             './diagnostics',
+            './graph-export',
             './lifecycle',
             './package.json'
         ]
@@ -355,6 +356,7 @@ function createRuntimeSmokeSource() {
     adapter,
     add,
     contributionToken,
+    createGraphExportDocument,
     createComposer,
     createContainer,
     defineApp,
@@ -370,6 +372,7 @@ import { createContainer as createContainerFromSubpath, scopeValue } from '@sagi
 import { AdapterSourceMissingError as AdapterSourceMissingErrorFromSubpath, defineModule as defineModuleFromSubpath } from '@sagifire/ioc/composer'
 import { add as addFromDslSubpath, adapter as adapterFromDslSubpath, bind, module as moduleFromDslSubpath } from '@sagifire/ioc/dsl'
 import { diagnosticFromError as diagnosticFromSubpath } from '@sagifire/ioc/diagnostics'
+import { serializeGraphExport } from '@sagifire/ioc/graph-export'
 import { createNextRequestContext, createNextRuntime, nextRequestValue, withRouteScope, withServerActionScope } from '@sagifire/ioc-next'
 import { assertDiagnosticReportOk, assertGraphHasCapability, assertGraphHasModule, createModuleHarness, createTestRuntime, fakeModule, override } from '@sagifire/ioc-testing'
 
@@ -409,6 +412,8 @@ const moduleDefinition = defineModule({
     }
 })
 const composedRuntime = await createComposer().use(moduleDefinition).compose()
+const graphJson = serializeGraphExport(createGraphExportDocument(composedRuntime.inspect()))
+assertIncludes(graphJson, '"schemaVersion": "1"', 'graph export root and subpath exports')
 
 assertEqual(composedRuntime.get(valueToken), 'module', 'composer root export')
 

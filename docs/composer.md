@@ -342,6 +342,37 @@ were actually registered during setup.
 Inspection data does not expose provider values, resource instances, scope-local values,
 private token IDs for module providers or other runtime internals.
 
+## Graph Export JSON v1
+
+`createGraphExportDocument()` creates a detached, immutable v1 projection from a public
+`ModuleGraph`. A `ComposerInspection` or `RuntimeInspection` is also accepted because both
+include the same public graph fields. Validation diagnostics and runtime provider summaries
+are intentionally outside the graph document.
+
+```ts
+import { createGraphExportDocument, serializeGraphExport } from '@sagifire/ioc/graph-export'
+
+const document = createGraphExportDocument(composer.getGraph())
+const json = serializeGraphExport(document)
+```
+
+The envelope uses `schema: 'sagifire.ioc.graph'` and `schemaVersion: '1'`. Schema versions
+are independent of npm package versions. Within v1, additive optional fields are compatible;
+removing or changing the meaning or type of an existing field requires a new schema version.
+Optional fields are omitted rather than emitted as `null`. Serialization rejects an unknown
+schema name or version instead of silently relabeling it as v1.
+
+The projection preserves every semantic array order from `ModuleGraph`, including module,
+declaration, provider registration and edge order. It does not globally sort those arrays.
+Arbitrary module metadata and descriptions are omitted from v1 so user-controlled values,
+secrets and paths do not cross the default export boundary. Module and token IDs remain
+lossless public graph identifiers; applications must treat declared IDs as public and must
+not place secrets or environment-specific absolute paths in them.
+
+`serializeGraphExport()` emits deterministic JSON with four-space indentation, LF line
+endings and exactly one final newline. It performs no filesystem access, executes no
+factories or resources and invokes no external renderer.
+
 ## Dependency Edges
 
 There are three edge kinds:

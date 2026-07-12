@@ -29,6 +29,7 @@ Tree-shaking-friendly subpath exports:
 - `@sagifire/ioc/composer`
 - `@sagifire/ioc/dsl`
 - `@sagifire/ioc/diagnostics`
+- `@sagifire/ioc/graph-export`
 - `@sagifire/ioc/lifecycle`
 
 ## Public Surface
@@ -47,6 +48,8 @@ Tree-shaking-friendly subpath exports:
   `getGraph()` and composed runtime inspection.
 - Diagnostics: `SagifireIocError`, `DiagnosticReport`, `diagnosticFromError()` and
   `formatDiagnostics()`.
+- Graph export: versioned `createGraphExportDocument()` safe projection and deterministic
+  `serializeGraphExport()` JSON.
 - Optional DSL: `module()`, `defineApp()`, `bind()`, `add()`, `adapt()` and
   graph-aware `adapter()`.
 

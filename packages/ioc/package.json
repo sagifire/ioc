@@ -59,6 +59,10 @@
             "types": "./dist/diagnostics.d.ts",
             "import": "./dist/diagnostics.js"
         },
+        "./graph-export": {
+            "types": "./dist/graph-export.d.ts",
+            "import": "./dist/graph-export.js"
+        },
         "./lifecycle": {
             "types": "./dist/lifecycle.d.ts",
             "import": "./dist/lifecycle.js"
@@ -87,6 +91,9 @@
         "dist/diagnostics.js",
         "dist/diagnostics.js.map",
         "dist/diagnostics.d.ts",
+        "dist/graph-export.js",
+        "dist/graph-export.js.map",
+        "dist/graph-export.d.ts",
         "dist/lifecycle.js",
         "dist/lifecycle.js.map",
         "dist/lifecycle.d.ts",

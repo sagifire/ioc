@@ -186,3 +186,30 @@ export type {
     SyncProviderFactory
 } from './container'
 export type { Resource, ResourceDisposer } from './lifecycle'
+export {
+    GRAPH_EXPORT_SCHEMA_VERSION,
+    createGraphExportDocument,
+    serializeGraphExport
+} from './graph-export'
+export type {
+    GraphExportAdapterBindingProviderV1,
+    GraphExportAdapterCapabilityProviderV1,
+    GraphExportAdapterMultiBindingProviderV1,
+    GraphExportAdapterObjectSourcePropertyV1,
+    GraphExportAdapterObjectSourceV1,
+    GraphExportAdapterSourceEdgeV1,
+    GraphExportAdapterSourceProviderV1,
+    GraphExportAdapterSourceV1,
+    GraphExportAdapterTokenSourceV1,
+    GraphExportBindingV1,
+    GraphExportBindingEdgeV1,
+    GraphExportCapabilityEdgeV1,
+    GraphExportCapabilityProviderV1,
+    GraphExportCapabilityV1,
+    GraphExportDocument,
+    GraphExportDocumentV1,
+    GraphExportEdgeV1,
+    GraphExportGraphV1,
+    GraphExportModuleV1,
+    GraphExportRequiredPortV1
+} from './graph-export'

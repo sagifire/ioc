@@ -1,6 +1,6 @@
 # TASK-07.12-0094: Stage 18 graph export v1 schema and safe projection
 
-Task Status: backlog
+Task Status: done
 Type: implementation
 Created: 2026-07-12
 Owner Role: Implementation Agent
@@ -8,13 +8,13 @@ Current Run: RUN-001
 
 ## Поточний стан
 
-Run Status: prepared
-Progress: Task package prepared; implementation не розпочато.
-Acceptance: 0/12
+Run Status: completed
+Progress: V1 schema/projection/JSON, exports, tests і docs завершено та схвалено.
+Acceptance: 12/12
 Blockers: none
 Blocked Phase: n/a
 Pending Decisions: none
-Next Action: Активувати RUN-001 після завершення TASK-07.12-0093.
+Next Action: Перейти до TASK-07.12-0095 за окремою командою.
 
 ## Мета
 
@@ -50,18 +50,18 @@ Next Action: Активувати RUN-001 після завершення TASK-0
 
 ## Критерії приймання
 
-- [ ] V1 schema/DTO має окрему version identity і compatibility policy.
-- [ ] Projection походить тільки з public safe inspection graph.
-- [ ] Semantic ordering preservation задокументовано й протестовано.
-- [ ] Canonical JSON повторюваний byte-for-byte для того самого input.
-- [ ] Privacy boundary закрито sentinel tests.
-- [ ] Factories/resources не виконуються під час export.
-- [ ] Core не отримує Node-only/filesystem dependencies.
-- [ ] Object API fully usable без DSL.
-- [ ] Public exports і type tests оновлено.
-- [ ] Relevant unit/integration/package smoke checks проходять.
-- [ ] Docs описують лише implemented v1 behavior.
-- [ ] Self-review та independent audit passed; task передано в human review.
+- [x] V1 schema/DTO має окрему version identity і compatibility policy.
+- [x] Projection походить тільки з public safe inspection graph.
+- [x] Semantic ordering preservation задокументовано й протестовано.
+- [x] Canonical JSON повторюваний byte-for-byte для того самого input.
+- [x] Privacy boundary закрито sentinel tests.
+- [x] Factories/resources не виконуються під час export.
+- [x] Core не отримує Node-only/filesystem dependencies.
+- [x] Object API fully usable без DSL.
+- [x] Public exports і type tests оновлено.
+- [x] Relevant unit/integration/package smoke checks проходять.
+- [x] Docs описують лише implemented v1 behavior.
+- [x] Self-review та independent audit passed; task передано в human review.
 
 ## Пов'язана пам'ять
 
@@ -87,14 +87,14 @@ Next Action: Активувати RUN-001 після завершення TASK-0
 
 ## Human Review
 
-Status: not-requested
-Requested: n/a
-Reviewed: n/a
-Approval Source: n/a
+Status: requested
+Requested: 2026-07-12
+Reviewed: 2026-07-12
+Approval Source: User task-level `approve` у поточній сесії.
 
 ## Фінальний результат
 
-Completed: pending
-Final Run: pending
-Summary: pending
-Residual Risks: pending
+Completed: 2026-07-12
+Final Run: RUN-001
+Summary: Graph export v1 safe projection і canonical JSON foundation схвалено.
+Residual Risks: Declared public IDs мають лишатися non-secret і environment-independent.
