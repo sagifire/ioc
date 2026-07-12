@@ -489,6 +489,21 @@ Stage 17 почався як audit/decision gate для `0.0.2` feature request 
 - Lifetime validation не виводить static dependency edges з виконання або source parsing
   user factories.
 - Proven unsafe direct capture і incomplete metadata coverage мають різні diagnostics.
+- Provider dependency metadata описує concrete registration і не інжектить factory
+  arguments та не замінює runtime resolution.
+- Direct `instance` capture singleton → scoped і parent/singleton → child-scope provider
+  є error лише коли edge та effective lifetimes доведені explicit metadata.
+- Direct capture ordinary transient та transient→scoped escape risk є lifetime-sensitive
+  warning, а не автоматичний error.
+- Deferred edge з explicit caller-provided scope не є instance capture; hidden current
+  scope заборонений.
+- Container/runtime/scope-owned resource має derived ownership edge; consumer ownership
+  transfer цим API не підтримується.
+- Incomplete metadata coverage має окремий diagnostic і ніколи не маскується як
+  unsafe-capture error.
+- Private provider diagnostics/inspection/export використовують module ID та registration
+  index без private token ID.
+- Validator, inspection і graph export не створюють паралельні provider-edge models.
 - Async multi implementation не може робити `getAll()` async, повертати partial arrays або
   створювати collection lifecycle, відмінний від single-provider ownership rules без
   explicit approved design.

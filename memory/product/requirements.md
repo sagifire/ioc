@@ -35,7 +35,7 @@ Source trace: `SPEC.md` sections 1-54 і `AGENTS.md` architecture/workflow rules
 | REQ-FEATURE-AUDIT-002 | Вважати attached `0.0.2` feature request proposals implementation candidates, доки Stage 17 audit review не затвердить concrete follow-up tasks. | accepted |
 | REQ-FEATURE-PORTFOLIO-001 | Перед реалізацією `0.0.3` провести formal research async multi-providers, lifetime dependency validation і graph export, відділяючи marketing input від canonical specification. | accepted |
 | REQ-GRAPH-EXPORT-001 | Розвивати graph export як versioned deterministic safe projection normalized inspection graph; JSON є canonical representation, DOT/Mermaid — похідні text renderers без Node-only залежностей у core. | accepted |
-| REQ-LIFETIME-VALIDATION-001 | Lifetime dependency validation допускається до реалізації лише після design explicit provider dependency metadata, capture/deferred semantics, coverage boundary і diagnostic severity. | design-first |
+| REQ-LIFETIME-VALIDATION-001 | Lifetime dependency validation реалізується phased на explicit provider metadata `instance | deferred`, derived managed-resource ownership, explicit handle/target для deferred edges і concrete expansion multi registrations, єдиній normalized provider-edge foundation, proven-capture severity, explicit coverage і private-safe identity; implementation потребує окремих human-approved tasks. | design-approved |
 | REQ-ASYNC-MULTI-001 | Async multi-providers допускаються до реалізації лише після design ordering, concurrency, failure/retry, eager/lazy, scope/resource ownership і disposal semantics; `getAll()` лишається synchronous. | design-first |
 
 ## Правило статусу вимог

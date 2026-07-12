@@ -493,12 +493,31 @@ paths. Schema version не дорівнює package version.
 Core повертає text/data artifacts і не пише filesystem, не запускає Graphviz/Mermaid та
 не отримує Node-only dependencies.
 
-### Lifetime dependency validation design boundary
+### Lifetime dependency validation
 
-Static lifetime validation потребує explicit provider dependency metadata. Generic
-`ResolutionContext` lookup і runtime tracing не доводять instance capture. Design має
-розрізнити direct instance, deferred factory/handle та ownership edges; errors дозволені
-лише для доведених unsafe captures, а incomplete coverage має бути explicit.
+Provider dependency metadata є explicit declaration concrete provider registration, а не
+inference з `ResolutionContext` lookup. Рекомендована object-configuration shape додає
+optional dependencies options до factory/resource registration; кожен edge має access
+`instance | deferred`, token і cardinality. Ownership edge виводиться з managed-resource
+registration та owner `runtime | scope`, а не декларується consumer як access. Deferred declaration окремо містить
+ultimate dependency token, retained handle token `via` та `scope: 'caller'`. Multi
+declaration розгортається у normalized edge до кожної concrete registration з її index.
+
+`instance` означає утримання dependency instance протягом lifetime consumer;
+`deferred` означає explicit factory/handle з caller-provided scope і не є capture;
+Передача disposal ownership consumer не входить у цей design і потребує окремого
+creation/disposer/failure/transfer contract.
+
+Єдина normalized provider-edge foundation живить static validation, scope-effective
+validation, inspection і graph export. Static validation не виконує factories і не
+аналізує source. Scope-effective validation детерміновано виконується в `createScope()`
+після нормалізації inherited/local registrations, для всіх declared edges і до повернення
+scope або factory execution; tracing lookup не є evidence retention.
+
+Coverage є explicit: provider `not-applicable | declared | undeclared`, aggregate
+`complete | partial | none`. Unknown coverage не є unsafe capture. Private provider має
+safe identity `moduleId + registrationIndex`; private token ID не потрапляє в diagnostics,
+inspection або export.
 
 ### Async multi-provider design boundary
 

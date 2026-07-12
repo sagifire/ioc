@@ -161,7 +161,7 @@
 
 ## Stage 18 Design Gates
 
-- [ ] **[Backlog]** [TASK-07.12-0097-stage-18-lifetime-dependency-validation-design](TASK-07.12-0097-stage-18-lifetime-dependency-validation-design/index.md) - Explicit provider dependency metadata, lifetime severity і coverage design.
+- [x] **[Done]** [TASK-07.12-0097-stage-18-lifetime-dependency-validation-design](TASK-07.12-0097-stage-18-lifetime-dependency-validation-design/index.md) - Explicit provider dependency metadata, lifetime severity і coverage design.
 - [ ] **[Backlog]** [TASK-07.12-0098-stage-18-async-multi-provider-semantics-design](TASK-07.12-0098-stage-18-async-multi-provider-semantics-design/index.md) - Async multi ordering, concurrency, failure, retry, ownership і disposal design.
 
 ## Формат

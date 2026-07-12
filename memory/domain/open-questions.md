@@ -1,14 +1,5 @@
 # Open Questions
 
-## Stage 18: lifetime dependency validation
-
-- Яка explicit object-configuration declaration описує direct instance dependency та
-  deferred factory/handle dependency без decorators, source parsing або factory execution?
-- Яка severity matrix застосовується до singleton → scoped, singleton → ordinary
-  transient, singleton → managed resource і child-scope capture?
-- Як inspection/diagnostics ідентифікують private providers без витоку private token IDs?
-- Який coverage contract чесно відрізняє proven unsafe capture від undeclared/unknown edge?
-
 ## Stage 18: async multi-providers
 
 - Чи може sync `getAll()` читати collection, усі async contributions якого eager-ready

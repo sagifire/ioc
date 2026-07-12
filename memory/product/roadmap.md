@@ -200,6 +200,10 @@ Stage 18 є research/decision gate, а не implementation stage.
   - async multi-providers — `design-first`.
 - Guardrail: жоден кандидат не реалізовано Stage 18; follow-up tasks створюються лише
   після окремого human decision.
+- Lifetime design gate `TASK-07.12-0097`: design approved; phased implementation
+  eligible лише через окремі human-approved tasks у порядку metadata/edge foundation,
+  static validation/diagnostics, scope-effective inspection/export integration,
+  testing/DSL/docs. Design approval не є implementation approval.
 
 ## Завершена maintenance task
 

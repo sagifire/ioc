@@ -40,6 +40,13 @@ implementation або звичайних memory-update задач.
     `memory/technical/architecture.md`, `memory/technical/rules.md`,
     `memory/domain/open-questions.md`,
     `memory/tasks/plan/TASK-07.12-0093-stage-18-0-0-3-feature-portfolio-research/RSCH-001.md`.
+- Human-reviewed Stage 18 lifetime dependency validation design:
+  - `memory/reports/research/2026-07-12-stage-18-lifetime-dependency-validation-design.md`
+  - `memory/tasks/plan/TASK-07.12-0097-stage-18-lifetime-dependency-validation-design/RSCH-001.md`
+  - Canonical targets: `memory/technical/architecture.md`,
+    `memory/technical/rules.md`, `memory/technical/testing.md`,
+    `memory/domain/open-questions.md`, `memory/product/requirements.md`,
+    `memory/product/roadmap.md`.
 
 ## `SPEC.md` Section Map
 

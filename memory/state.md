@@ -65,6 +65,11 @@ Stage 18 завершив research/decision gate для `0.0.3` feature portfoli
 async multi-providers і lifetime dependency validation мають статус `design-first` та не
 вважаються прийнятими до реалізації без окремих design decisions.
 
+`TASK-07.12-0097` завершила lifetime dependency validation design gate: explicit
+provider metadata, edge/severity matrix, coverage contract і private-safe identity
+design-approved. Runtime/public API ще не реалізовано; implementation tasks потребують
+окремого human decision.
+
 Research source:
 
 `memory/sources/sagifire_ioc_0_0_3_market_research_uk.md`
@@ -317,8 +322,8 @@ memory/tasks/plan/TASK-07.05-0080-stage-17-adapter-cycle-diagnostics/
 
 1. Виконати `TASK-07.12-0094` як graph export v1 foundation; `0095` і `0096` активувати
    послідовно після human-approved completion попередньої graph task.
-2. Провести `TASK-07.12-0097` і `TASK-07.12-0098` як окремі design gates; не створювати
-   lifetime/async-multi implementation tasks до approval їхніх design recommendations.
+2. Після окремого human decision створити bounded phased lifetime implementation tasks;
+   `TASK-07.12-0098` лишається окремим async multi-provider design gate.
 3. Actual npm publish `0.0.2` лишається human-controlled external action.
 
 ## Відкриті питання

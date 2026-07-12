@@ -276,3 +276,17 @@ tests мають покривати:
 - object API parity with DSL.
 
 `get()` має лишатися synchronous і ніколи не повертати `Promise`.
+## Lifetime dependency validation gates
+
+- Compile-time tests покривають typed dependency options і single/multi cardinality.
+- Behavioral matrix покриває singleton, scoped, ordinary transient, managed resources,
+  deferred/derived ownership edges та child-scope effective overrides.
+- Validation/inspection/export tests доводять, що user factories не виконуються.
+- Coverage fixtures перевіряють `complete | partial | none` і відмінність unknown від
+  proven unsafe capture.
+- Privacy sentinel tests доводять відсутність private token IDs у diagnostics, JSON, DOT і
+  Mermaid.
+- Parity tests доводять одну normalized provider-edge foundation для validation,
+  inspection і export.
+- Existing providers без metadata зберігають resolution behavior; incomplete coverage
+  лишається additive diagnostic/adoption concern.

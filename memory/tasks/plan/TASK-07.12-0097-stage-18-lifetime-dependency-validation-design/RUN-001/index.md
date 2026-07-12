@@ -2,7 +2,7 @@
 
 ## Призначення
 
-Prepared run для formal design lifetime dependency validation.
+Completed run: design approved, exact FIX-001..002 applied and verified.
 
 ## Папки
 
@@ -10,5 +10,5 @@ Prepared run для formal design lifetime dependency validation.
 
 ## Файли
 
-- [context.md](context.md) - immutable після activation context snapshot.
-
+- [context.md](context.md) - immutable context snapshot.
+- [result.md](result.md) - active execution, verification, self-review та audit report.
