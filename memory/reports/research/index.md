@@ -12,4 +12,4 @@ Detailed reports для formal research, planning і design усередині t
 
 ## Файли
 
-Немає.
+- [Stage 18 feature portfolio research](2026-07-12-stage-18-0-0-3-feature-portfolio.md) - Async multi-providers, lifetime dependency validation і graph export decision gate для `0.0.3`.

@@ -34,6 +34,12 @@ implementation або звичайних memory-update задач.
   - Canonical targets: `memory/product/requirements.md`, `memory/product/roadmap.md`,
     `memory/technical/rules.md`, `memory/technical/definition-of-done.md`,
     `memory/tasks/plan/TASK-07.04-0071-stage-17-feature-request-audit/research/RSCH-001.md`.
+- Human Stage 18 directive and attached `0.0.3` market research, 2026-07-12:
+  - Source file: `memory/sources/sagifire_ioc_0_0_3_market_research_uk.md`.
+  - Canonical targets: `memory/product/requirements.md`, `memory/product/roadmap.md`,
+    `memory/technical/architecture.md`, `memory/technical/rules.md`,
+    `memory/domain/open-questions.md`,
+    `memory/tasks/plan/TASK-07.12-0093-stage-18-0-0-3-feature-portfolio-research/RSCH-001.md`.
 
 ## `SPEC.md` Section Map
 
@@ -141,6 +147,13 @@ implementation або звичайних memory-update задач.
   - `memory/technical/rules.md`
   - `memory/technical/definition-of-done.md`
   - `memory/tasks/plan/TASK-07.04-0071-stage-17-feature-request-audit/research/RSCH-001.md`
+- Human Stage 18 directive and attached `0.0.3` market research:
+  - `memory/product/requirements.md`
+  - `memory/product/roadmap.md`
+  - `memory/technical/architecture.md`
+  - `memory/technical/rules.md`
+  - `memory/domain/open-questions.md`
+  - `memory/tasks/plan/TASK-07.12-0093-stage-18-0-0-3-feature-portfolio-research/RSCH-001.md`
 
 ## Source handling
 

@@ -33,8 +33,15 @@ Source trace: `SPEC.md` sections 1-54 і `AGENTS.md` architecture/workflow rules
 | REQ-RELEASE-002 | Фіксувати publishable package versions і changelogs at `0.0.1` тільки після audit and critical-fix closure, зберігаючи existing no-unapproved-publish rule. | accepted |
 | REQ-FEATURE-AUDIT-001 | Перед прийняттям `0.0.2` feature proposals як implementation scope провести аудит щодо project goals, philosophy, architecture, implementation risks і conflicts with existing functionality. | accepted |
 | REQ-FEATURE-AUDIT-002 | Вважати attached `0.0.2` feature request proposals implementation candidates, доки Stage 17 audit review не затвердить concrete follow-up tasks. | accepted |
+| REQ-FEATURE-PORTFOLIO-001 | Перед реалізацією `0.0.3` провести formal research async multi-providers, lifetime dependency validation і graph export, відділяючи marketing input від canonical specification. | accepted |
+| REQ-GRAPH-EXPORT-001 | Розвивати graph export як versioned deterministic safe projection normalized inspection graph; JSON є canonical representation, DOT/Mermaid — похідні text renderers без Node-only залежностей у core. | accepted |
+| REQ-LIFETIME-VALIDATION-001 | Lifetime dependency validation допускається до реалізації лише після design explicit provider dependency metadata, capture/deferred semantics, coverage boundary і diagnostic severity. | design-first |
+| REQ-ASYNC-MULTI-001 | Async multi-providers допускаються до реалізації лише після design ordering, concurrency, failure/retry, eager/lazy, scope/resource ownership і disposal semantics; `getAll()` лишається synchronous. | design-first |
 
 ## Правило статусу вимог
 
 `accepted` означає, що вимога є канонічною для цього проекту. Це не означає, що вона вже
 реалізована в коді. Implementation status відстежується через roadmap stages і tasks.
+
+`design-first` означає, що product fit підтверджено, але implementation scope не прийнято
+до окремого human-reviewed design decision.

@@ -98,6 +98,12 @@
 - [TASK-07.05-0090-stage-17-version-0-0-2-release-handoff](TASK-07.05-0090-stage-17-version-0-0-2-release-handoff/index.md) - Stage 17 version `0.0.2` fixation and release handoff before human push and publish workflow.
 - [TASK-07.06-0091-memory-mvp-0-4-migration](TASK-07.06-0091-memory-mvp-0-4-migration/index.md) - Міграція Project Memory з PDADM MVP 0.3 / Starter Kit 3.0 на PDADM MVP 0.4 / Starter Kit 4.0.
 - [TASK-07.12-0092-memory-mvp-0-5-migration](TASK-07.12-0092-memory-mvp-0-5-migration/index.md) - Міграція Project Memory з PDADM MVP 0.4 / Starter Kit 4.0 на PDADM MVP 0.5 / Starter Kit 5.0.
+- [TASK-07.12-0093-stage-18-0-0-3-feature-portfolio-research](TASK-07.12-0093-stage-18-0-0-3-feature-portfolio-research/index.md) - Stage 18 formal research і decision gate для bounded feature portfolio версії `0.0.3`.
+- [TASK-07.12-0094-stage-18-graph-export-v1-schema-projection](TASK-07.12-0094-stage-18-graph-export-v1-schema-projection/index.md) - Graph export v1 schema, safe projection і canonical JSON.
+- [TASK-07.12-0095-stage-18-graph-export-dot-mermaid-renderers](TASK-07.12-0095-stage-18-graph-export-dot-mermaid-renderers/index.md) - Pure DOT/Mermaid renderers поверх v1 export document.
+- [TASK-07.12-0096-stage-18-graph-export-docs-workflow-testing](TASK-07.12-0096-stage-18-graph-export-docs-workflow-testing/index.md) - Graph export docs, Project Memory workflow і testing hardening.
+- [TASK-07.12-0097-stage-18-lifetime-dependency-validation-design](TASK-07.12-0097-stage-18-lifetime-dependency-validation-design/index.md) - Design gate для lifetime dependency metadata і validation semantics.
+- [TASK-07.12-0098-stage-18-async-multi-provider-semantics-design](TASK-07.12-0098-stage-18-async-multi-provider-semantics-design/index.md) - Design gate для async multi-provider semantics.
 
 ## Файли
 

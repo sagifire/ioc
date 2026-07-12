@@ -473,3 +473,23 @@ Stage 17 почався як audit/decision gate для `0.0.2` feature request 
 - no hidden current scope;
 - no filesystem discovery;
 - не додавати site-engine business APIs у core.
+
+## Stage 18 rules
+
+- Stage 18 research не реалізує runtime/public API і не фіксує version.
+- Graph export використовує normalized safe inspection graph як єдине semantic source.
+- JSON schema version керується окремо від package version.
+- DOT/Mermaid renderers є pure text projections; core не виконує external renderers і не
+  пише filesystem.
+- Determinism зберігає semantic registration order; global sorting, що змінює multi
+  contribution meaning, заборонене.
+- Export за замовчуванням не включає arbitrary metadata, provider values, private provider
+  IDs, scope-local values, resource state, function source, secrets, timestamps, random IDs
+  або absolute paths.
+- Lifetime validation не виводить static dependency edges з виконання або source parsing
+  user factories.
+- Proven unsafe direct capture і incomplete metadata coverage мають різні diagnostics.
+- Async multi implementation не може робити `getAll()` async, повертати partial arrays або
+  створювати collection lifecycle, відмінний від single-provider ownership rules без
+  explicit approved design.
+- Object API проектується перед DSL; testing helpers не визначають production semantics.

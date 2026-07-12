@@ -10,6 +10,7 @@
 - `memory/domain/glossary.md`.
 - `memory/technical/rules.md`.
 - Approved task fixations through Stage 17.
+- Approved Stage 18 feature portfolio research and fixations.
 
 ## Загальний опис
 
@@ -467,6 +468,44 @@ technical rules.
 Якщо pressure істотний, рекомендований шлях: audit report у `memory/reports/audits/`,
 окрема `design` або `research` task, ADR/proposal, малий refactor task і тільки потім
 incremental implementation.
+
+## Stage 18 target extensions
+
+### Graph export
+
+Graph export є pure projection чинного normalized safe inspection graph, а не окремою
+graph model:
+
+```text
+ModuleGraph / safe RuntimeInspection
+    -> versioned GraphExportDocument
+        -> canonical JSON
+        -> DOT text renderer
+        -> Mermaid text renderer
+```
+
+JSON є lossless canonical representation. DOT і Mermaid є похідними presentation formats
+і не визначають semantics. Export зберігає semantic registration order, стабілізує лише
+non-semantic ordering, не виконує factories і не розкриває provider values, scope-local
+values, resources, private provider identities, function source, secrets або filesystem
+paths. Schema version не дорівнює package version.
+
+Core повертає text/data artifacts і не пише filesystem, не запускає Graphviz/Mermaid та
+не отримує Node-only dependencies.
+
+### Lifetime dependency validation design boundary
+
+Static lifetime validation потребує explicit provider dependency metadata. Generic
+`ResolutionContext` lookup і runtime tracing не доводять instance capture. Design має
+розрізнити direct instance, deferred factory/handle та ownership edges; errors дозволені
+лише для доведених unsafe captures, а incomplete coverage має бути explicit.
+
+### Async multi-provider design boundary
+
+Async multi semantics мають зберігати sync `getAll()`, deterministic registration order,
+per-provider cache/ownership та no-partial-results policy. Eager/lazy, concurrency,
+failure/retry, scope/resource disposal і mixed sync/async behavior визначаються окремим
+design decision до implementation.
 
 ## Stage 17 extension points
 
