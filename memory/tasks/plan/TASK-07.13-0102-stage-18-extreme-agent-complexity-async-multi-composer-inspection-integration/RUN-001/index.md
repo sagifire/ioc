@@ -2,7 +2,7 @@
 
 ## Призначення
 
-Prepared run для composer/module/composed runtime та inspection/graph-export integration.
+Completed run для composer/module/composed runtime та inspection/graph-export integration.
 
 ## Папки
 
@@ -11,3 +11,4 @@ Prepared run для composer/module/composed runtime та inspection/graph-expor
 ## Файли
 
 - [context.md](context.md) - immutable після activation context snapshot.
+- [result.md](result.md) - execution, verification, self-review та audit result.

@@ -5,6 +5,7 @@ import {
     type BindingBuilder,
     type ClassConstructor,
     type ContainerBuilder,
+    type ContainerMultiBindingBuilder,
     type ContainerRuntime,
     type CreateScopeOptions,
     type AsyncProviderInitializationMode,
@@ -84,7 +85,7 @@ export interface ModuleSetupContext extends ResolutionContext {
     readonly moduleId: string
 
     bind<TValue>(token: Token<TValue>): BindingBuilder<TValue>
-    add<TValue>(token: Token<TValue>): MultiBindingBuilder<TValue>
+    add<TValue>(token: Token<TValue>): ContainerMultiBindingBuilder<TValue>
 }
 
 export interface ModuleSetupResult<TMetadata = unknown> {
@@ -141,7 +142,7 @@ export type CapabilityProviderSource = 'module' | 'composition-root'
 
 export type ProviderRegistrationSource = 'module' | 'composition-root'
 
-export type ComposerMultiBindingKind = 'value' | 'factory'
+export type ComposerMultiBindingKind = 'value' | 'factory' | 'async-factory'
 
 export interface ComposerBindingContext {
     get<TValue>(token: Token<TValue>): TValue
@@ -193,6 +194,10 @@ export interface ComposerMultiBindingBuilder<TValue> {
         factory: ComposerBindingFactory<TValue>,
         options?: ProviderDependencyOptions
     ): LifetimeBinding
+    toAsyncFactory(
+        factory: ComposerAsyncBindingFactory<TValue>,
+        options?: ProviderDependencyOptions
+    ): AsyncFactoryBinding
 }
 
 export interface ComposerAdapterBuilder<TValue> {
@@ -479,7 +484,7 @@ export interface GetUsedForMultiTokenErrorDetails {
 
 export interface GetAllUsedForSingleTokenErrorDetails {
     readonly tokenId: string
-    readonly accessMethod: 'getAll'
+    readonly accessMethod: 'getAll' | 'getAllAsync'
     readonly cardinality: 'single'
 }
 
@@ -1202,11 +1207,14 @@ export class GetUsedForMultiTokenError extends SagifireIocError<GetUsedForMultiT
         tokenId: string,
         accessMethod: 'get' | 'tryGet' | 'getAsync' | 'tryGetAsync' = 'get'
     ) {
+        const suggestedMethod =
+            accessMethod === 'getAsync' || accessMethod === 'tryGetAsync' ? 'getAllAsync' : 'getAll'
+
         super({
             code: 'SAGIFIRE_IOC_GET_USED_FOR_MULTI_TOKEN',
             message:
                 `Composed runtime ${accessMethod}() cannot resolve multi capability ` +
-                `"${tokenId}"; use getAll() instead`,
+                `"${tokenId}"; use ${suggestedMethod}() instead`,
             details: {
                 tokenId,
                 accessMethod,
@@ -1225,18 +1233,20 @@ export class GetAllUsedForSingleTokenError extends SagifireIocError<GetAllUsedFo
     override readonly name = 'GetAllUsedForSingleTokenError'
     override readonly code = 'SAGIFIRE_IOC_GET_ALL_USED_FOR_SINGLE_TOKEN'
     readonly tokenId: string
-    readonly accessMethod = 'getAll' as const
+    readonly accessMethod: 'getAll' | 'getAllAsync'
     readonly cardinality = 'single' as const
 
-    constructor(tokenId: string) {
+    constructor(tokenId: string, accessMethod: 'getAll' | 'getAllAsync' = 'getAll') {
+        const suggestedMethod = accessMethod === 'getAllAsync' ? 'getAsync' : 'get'
+
         super({
             code: 'SAGIFIRE_IOC_GET_ALL_USED_FOR_SINGLE_TOKEN',
             message:
-                `Composed runtime getAll() cannot resolve single capability "${tokenId}"; ` +
-                'use get() instead',
+                `Composed runtime ${accessMethod}() cannot resolve single capability ` +
+                `"${tokenId}"; use ${suggestedMethod}() instead`,
             details: {
                 tokenId,
-                accessMethod: 'getAll',
+                accessMethod,
                 cardinality: 'single'
             }
         })
@@ -1244,6 +1254,7 @@ export class GetAllUsedForSingleTokenError extends SagifireIocError<GetAllUsedFo
         Object.setPrototypeOf(this, new.target.prototype)
 
         this.tokenId = tokenId
+        this.accessMethod = accessMethod
     }
 }
 
@@ -1391,6 +1402,13 @@ type ComposerMultiBindingRecord =
           readonly kind: 'factory'
           readonly token: Token<unknown>
           readonly factory: ComposerBindingFactory<unknown>
+          readonly dependencyOptions: ProviderDependencyOptions | undefined
+          readonly providerRegistration: ProviderRegistrationRecord
+      }
+    | {
+          readonly kind: 'async-factory'
+          readonly token: Token<unknown>
+          readonly factory: ComposerAsyncBindingFactory<unknown>
           readonly dependencyOptions: ProviderDependencyOptions | undefined
           readonly providerRegistration: ProviderRegistrationRecord
       }
@@ -1681,6 +1699,27 @@ function createComposerMultiBindingBuilder<TValue>(
             })
 
             return createDeferredLifetimeBinding(providerRegistration)
+        },
+
+        toAsyncFactory(
+            factory: ComposerAsyncBindingFactory<TValue>,
+            options?: ProviderDependencyOptions
+        ): AsyncFactoryBinding {
+            const providerRegistration = createProviderRegistrationRecord(
+                'async-factory',
+                'transient',
+                'lazy'
+            )
+
+            multiBindings.push({
+                kind: 'async-factory',
+                token: bindingToken,
+                factory,
+                dependencyOptions: options,
+                providerRegistration
+            })
+
+            return createDeferredAsyncFactoryBinding(providerRegistration)
         }
     }
 }
@@ -2627,12 +2666,18 @@ function applyComposerMultiBindings(
 
         if (binding.kind === 'value') {
             builder.toValue(binding.value)
-        } else {
+        } else if (binding.kind === 'factory') {
             const lifetime = builder.toFactory((context) => {
                 return binding.factory(createComposerBindingResolutionContext(context, access))
             }, binding.dependencyOptions)
 
             applyDeferredProviderLifetime(lifetime, binding.providerRegistration.lifetime)
+        } else {
+            const asyncBinding = builder.toAsyncFactory((context) => {
+                return binding.factory(createComposerBindingResolutionContext(context, access))
+            }, binding.dependencyOptions)
+
+            applyDeferredAsyncFactoryConfiguration(asyncBinding, binding.providerRegistration)
         }
 
         recordCompositionRootProvider(binding.token, binding.providerRegistration, access)
@@ -2789,7 +2834,7 @@ function createLiveModuleSetupContext(
             )
         },
 
-        add<TValue>(bindingToken: Token<TValue>): MultiBindingBuilder<TValue> {
+        add<TValue>(bindingToken: Token<TValue>): ContainerMultiBindingBuilder<TValue> {
             return createModuleMultiBindingBuilder(
                 moduleDefinition,
                 bindingToken,
@@ -2959,7 +3004,7 @@ function createModuleMultiBindingBuilder<TValue>(
     access: CompositionAccessModel,
     allocateProviderIdentity: ModuleProviderIdentityAllocator,
     mapDependencyOptions: ModuleProviderDependencyMapper
-): MultiBindingBuilder<TValue> {
+): ContainerMultiBindingBuilder<TValue> {
     const registration = resolveModuleRegistrationToken(moduleDefinition, originalToken, access)
     const builder = container.add(registration.token)
 
@@ -2998,6 +3043,31 @@ function createModuleMultiBindingBuilder<TValue>(
             )
 
             return createInspectableLifetimeBinding(lifetime, providerRegistration)
+        },
+
+        toAsyncFactory(factory, options): AsyncFactoryBinding {
+            applyModuleProviderIdentity(
+                builder,
+                allocateProviderIdentity(originalToken, registration.visibility, 'multi')
+            )
+            const providerRegistration = createProviderRegistrationRecord(
+                'async-factory',
+                'transient',
+                'lazy'
+            )
+            const binding = builder.toAsyncFactory((context) => {
+                return factory(createModuleResolutionContext(moduleDefinition, context, access))
+            }, mapDependencyOptions(options))
+
+            recordModuleProvider(
+                moduleDefinition,
+                originalToken,
+                'multi',
+                providerRegistration,
+                access
+            )
+
+            return createInspectableAsyncFactoryBinding(binding, providerRegistration)
         }
     }
 }
@@ -3039,6 +3109,61 @@ function createDeferredLifetimeBinding(
         scoped(): void {
             providerRegistration.lifetime = 'scoped'
         }
+    }
+}
+
+function createDeferredAsyncFactoryBinding(
+    providerRegistration: ProviderRegistrationRecord
+): AsyncFactoryBinding {
+    const binding: AsyncFactoryBinding = {
+        singleton(): AsyncFactoryBinding {
+            providerRegistration.lifetime = 'singleton'
+
+            return binding
+        },
+
+        transient(): AsyncFactoryBinding {
+            providerRegistration.lifetime = 'transient'
+
+            return binding
+        },
+
+        scoped(): AsyncFactoryBinding {
+            providerRegistration.lifetime = 'scoped'
+
+            return binding
+        },
+
+        eager(): AsyncFactoryBinding {
+            providerRegistration.initialization = 'eager'
+
+            return binding
+        },
+
+        lazy(): AsyncFactoryBinding {
+            providerRegistration.initialization = 'lazy'
+
+            return binding
+        }
+    }
+
+    return binding
+}
+
+function applyDeferredAsyncFactoryConfiguration(
+    binding: AsyncFactoryBinding,
+    providerRegistration: ProviderRegistrationRecord
+): void {
+    applyDeferredProviderLifetime(binding, providerRegistration.lifetime)
+
+    if (providerRegistration.initialization === 'eager') {
+        binding.eager()
+
+        return
+    }
+
+    if (providerRegistration.initialization === 'lazy') {
+        binding.lazy()
     }
 }
 
@@ -3293,13 +3418,13 @@ function createComposedRuntime(
 
         getAll<TValue>(resolutionToken: Token<TValue>): TValue[] {
             return containerRuntime.getAll(
-                resolvePublicMultiCapabilityToken(resolutionToken, access)
+                resolvePublicMultiCapabilityToken(resolutionToken, access, 'getAll')
             )
         },
 
         async getAllAsync<TValue>(resolutionToken: Token<TValue>): Promise<TValue[]> {
             return containerRuntime.getAllAsync(
-                resolvePublicMultiCapabilityToken(resolutionToken, access)
+                resolvePublicMultiCapabilityToken(resolutionToken, access, 'getAllAsync')
             )
         },
 
@@ -3379,12 +3504,14 @@ function createComposedScope(containerScope: Scope, access: CompositionAccessMod
         },
 
         getAll<TValue>(resolutionToken: Token<TValue>): TValue[] {
-            return containerScope.getAll(resolvePublicMultiCapabilityToken(resolutionToken, access))
+            return containerScope.getAll(
+                resolvePublicMultiCapabilityToken(resolutionToken, access, 'getAll')
+            )
         },
 
         async getAllAsync<TValue>(resolutionToken: Token<TValue>): Promise<TValue[]> {
             return containerScope.getAllAsync(
-                resolvePublicMultiCapabilityToken(resolutionToken, access)
+                resolvePublicMultiCapabilityToken(resolutionToken, access, 'getAllAsync')
             )
         },
 
@@ -3430,7 +3557,8 @@ function resolvePublicSingleCapabilityToken<TValue>(
 
 function resolvePublicMultiCapabilityToken<TValue>(
     resolutionToken: Token<TValue>,
-    access: CompositionAccessModel
+    access: CompositionAccessModel,
+    accessMethod: 'getAll' | 'getAllAsync'
 ): Token<TValue> {
     const cardinality = getPublicCapabilityCardinality(resolutionToken, access)
 
@@ -3442,7 +3570,7 @@ function resolvePublicMultiCapabilityToken<TValue>(
         return resolutionToken
     }
 
-    throw new GetAllUsedForSingleTokenError(resolutionToken.id)
+    throw new GetAllUsedForSingleTokenError(resolutionToken.id, accessMethod)
 }
 
 function resolvePublicCapabilityToken<TValue>(

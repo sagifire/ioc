@@ -4158,7 +4158,7 @@ describe('inspection api', () => {
         }>()
         expectTypeOf<InvalidComposerMultiBindingErrorDetails>().toEqualTypeOf<{
             readonly tokenId: string
-            readonly bindingKind: 'value' | 'factory'
+            readonly bindingKind: 'value' | 'factory' | 'async-factory'
             readonly reason:
                 'missing-public-multi-capability' | 'required-port-only' | 'single-capability'
         }>()
@@ -4167,7 +4167,7 @@ describe('inspection api', () => {
             readonly bindingKinds: readonly (
                 'value' | 'factory' | 'class' | 'async-factory' | 'adapter'
             )[]
-            readonly multiBindingKinds: readonly ('value' | 'factory')[]
+            readonly multiBindingKinds: readonly ('value' | 'factory' | 'async-factory')[]
         }>()
         expectTypeOf<AdapterSourceErrorDetails>().toEqualTypeOf<{
             readonly targetTokenId: string
