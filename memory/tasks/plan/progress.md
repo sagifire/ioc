@@ -170,7 +170,7 @@
 
 ## Stage 18 Async Multi-Provider Implementation (Extreme Agent Complexity)
 
-- [ ] **[Backlog]** [TASK-07.13-0100-stage-18-extreme-agent-complexity-async-multi-identity-cycle-foundation](TASK-07.13-0100-stage-18-extreme-agent-complexity-async-multi-identity-cycle-foundation/index.md) - Shared contribution identity, collection/provider cycle frames і private-safe diagnostic foundation.
+- [x] **[Done]** [TASK-07.13-0100-stage-18-extreme-agent-complexity-async-multi-identity-cycle-foundation](TASK-07.13-0100-stage-18-extreme-agent-complexity-async-multi-identity-cycle-foundation/index.md) - Shared contribution identity, collection/provider cycle frames і private-safe diagnostic foundation.
 - [ ] **[Backlog]** [TASK-07.13-0101-stage-18-extreme-agent-complexity-async-multi-core-factory-resolution](TASK-07.13-0101-stage-18-extreme-agent-complexity-async-multi-core-factory-resolution/index.md) - Core async factory contributions, sync preflight і explicit async collection resolution.
 - [ ] **[Backlog]** [TASK-07.13-0102-stage-18-extreme-agent-complexity-async-multi-composer-inspection-integration](TASK-07.13-0102-stage-18-extreme-agent-complexity-async-multi-composer-inspection-integration/index.md) - Module/composer/runtime cardinality, inspection і graph-export integration.
 - [ ] **[Backlog]** [TASK-07.13-0103-stage-18-extreme-agent-complexity-async-multi-resource-ownership-disposal](TASK-07.13-0103-stage-18-extreme-agent-complexity-async-multi-resource-ownership-disposal/index.md) - Runtime/scope resource ownership, partial failure, concurrency і disposal.
@@ -179,7 +179,7 @@
 
 ## Stage 18 Lifetime Validation Implementation (Extreme Agent Complexity)
 
-- [ ] **[Backlog]** [TASK-07.13-0106-stage-18-extreme-agent-complexity-lifetime-metadata-provider-edge-foundation](TASK-07.13-0106-stage-18-extreme-agent-complexity-lifetime-metadata-provider-edge-foundation/index.md) - Shared lifetime metadata, canonical provider identity і normalized provider-edge foundation.
+- [x] **[Done]** [TASK-07.13-0106-stage-18-extreme-agent-complexity-lifetime-metadata-provider-edge-foundation](TASK-07.13-0106-stage-18-extreme-agent-complexity-lifetime-metadata-provider-edge-foundation/index.md) - Shared lifetime metadata, canonical provider identity і normalized provider-edge foundation.
 - [ ] **[Backlog]** [TASK-07.13-0107-stage-18-extreme-agent-complexity-lifetime-static-validation-coverage-diagnostics](TASK-07.13-0107-stage-18-extreme-agent-complexity-lifetime-static-validation-coverage-diagnostics/index.md) - Static validation, coverage, diagnostics і opt-in enforcement modes.
 - [ ] **[Backlog]** [TASK-07.13-0108-stage-18-extreme-agent-complexity-lifetime-scope-inspection-graph-export-v2](TASK-07.13-0108-stage-18-extreme-agent-complexity-lifetime-scope-inspection-graph-export-v2/index.md) - Scope-effective validation, inspection і opt-in graph export v2.
 - [ ] **[Backlog]** [TASK-07.13-0109-stage-18-extreme-agent-complexity-lifetime-testing-dsl-docs-adoption](TASK-07.13-0109-stage-18-extreme-agent-complexity-lifetime-testing-dsl-docs-adoption/index.md) - Testing helpers, DSL parity, docs, adoption і staged enforcement.

@@ -176,6 +176,7 @@ export type {
     InvalidScopeReason,
     LifetimeBinding,
     MultiBindingBuilder,
+    ProviderCycleFrame,
     ProviderLifetime,
     ProviderRegistrationKind,
     ResolutionContext,
@@ -185,6 +186,25 @@ export type {
     ScopeLocalValueObject,
     SyncProviderFactory
 } from './container'
+export type {
+    PrivateProviderRegistrationKey,
+    ProviderRegistrationKey,
+    PublicProviderRegistrationKey
+} from './provider-identity'
+export type {
+    NormalizedProviderCoverage,
+    NormalizedProviderDependencyEdge,
+    NormalizedProviderDependencySelector,
+    NormalizedProviderGraphSnapshot,
+    NormalizedProviderNode,
+    NormalizedProviderOwnershipEdge,
+    ProviderDependency,
+    ProviderDependencyCardinality,
+    ProviderDependencyCoverage,
+    ProviderDependencyOptions,
+    ProviderDependencyTarget,
+    ProviderNodeKind
+} from './provider-metadata'
 export type { Resource, ResourceDisposer } from './lifecycle'
 export {
     GRAPH_EXPORT_SCHEMA_VERSION,

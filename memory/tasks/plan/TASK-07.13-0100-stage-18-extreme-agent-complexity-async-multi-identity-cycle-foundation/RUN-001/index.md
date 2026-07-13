@@ -2,7 +2,7 @@
 
 ## Призначення
 
-Prepared run для internal/shared async multi identity і cycle foundation.
+Completed run для internal/shared async multi identity і cycle foundation.
 
 ## Папки
 
@@ -10,4 +10,5 @@ Prepared run для internal/shared async multi identity і cycle foundation.
 
 ## Файли
 
-- [context.md](context.md) - immutable після activation context snapshot.
+- [context.md](context.md) - frozen activation context snapshot.
+- [result.md](result.md) - completed execution, verification, self-review, audit та approval report.

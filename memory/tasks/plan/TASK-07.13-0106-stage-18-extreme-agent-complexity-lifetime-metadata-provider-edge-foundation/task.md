@@ -1,6 +1,6 @@
 # TASK-07.13-0106: [EXTREME AGENT COMPLEXITY] Stage 18 lifetime metadata and provider-edge foundation
 
-Task Status: backlog
+Task Status: done
 Type: implementation
 Created: 2026-07-13
 Agent Complexity: extreme
@@ -9,13 +9,13 @@ Current Run: RUN-001
 
 ## Поточний стан
 
-Run Status: prepared
-Progress: Task package prepared; predecessor pending.
-Acceptance: 0/12
-Blockers: TASK-0100 must be done
-Blocked Phase: activation
+Run Status: completed
+Progress: Human review approved; implementation finalized without fixations.
+Acceptance: 12/12
+Blockers: none
+Blocked Phase: n/a
 Pending Decisions: none
-Next Action: Активувати лише після human-approved completion TASK-0100.
+Next Action: Proceed to approved coordinated successor `TASK-07.13-0107` only by explicit command.
 
 ## Мета
 
@@ -59,18 +59,18 @@ public inspection/export або alternative graph model.
 
 ## Критерії приймання
 
-- [ ] TASK-0100 final identity contract traced до implementation result.
-- [ ] Один canonical provider key використовується provider records, lifetime edges і async frames.
-- [ ] Private collection coordinate є окремою mapped coordinate, а не equality identity.
-- [ ] Interleaved private single/two-multi-collection fixture не має collisions або raw ID leaks.
-- [ ] Typed dependency options мають parity у core, module setup і composer object API.
-- [ ] Declarations атомарно зберігаються та клонуються разом із provider registration.
-- [ ] Single/multi/private/resource fixtures утворюють deterministic normalized snapshot.
-- [ ] Empty multi зберігає selector/coverage та створює нуль concrete edges.
-- [ ] Ownership edges derivable з owner facts і не декларуються consumer ownership transfer.
-- [ ] Normalization/freeze/inspection preparation не виконують user factories.
-- [ ] Existing one-argument registrations, build, tests, typecheck, lint і format проходять.
-- [ ] Validation, scope/export, DSL/testing/docs не реалізовані; independent audit passed.
+- [x] TASK-0100 final identity contract traced до implementation result.
+- [x] Один canonical provider key використовується provider records, lifetime edges і async frames.
+- [x] Private collection coordinate є окремою mapped coordinate, а не equality identity.
+- [x] Interleaved private single/two-multi-collection fixture не має collisions або raw ID leaks.
+- [x] Typed dependency options мають parity у core, module setup і composer object API.
+- [x] Declarations атомарно зберігаються та клонуються разом із provider registration.
+- [x] Single/multi/private/resource fixtures утворюють deterministic normalized snapshot.
+- [x] Empty multi зберігає selector/coverage та створює нуль concrete edges.
+- [x] Ownership edges derivable з owner facts і не декларуються consumer ownership transfer.
+- [x] Normalization/freeze/inspection preparation не виконують user factories.
+- [x] Existing one-argument registrations, build, tests, typecheck, lint і format проходять.
+- [x] Validation, scope/export, DSL/testing/docs не реалізовані; independent audit passed.
 
 ## Пов'язана пам'ять
 
@@ -84,7 +84,7 @@ public inspection/export або alternative graph model.
 
 ## Прогони
 
-- [RUN-001](RUN-001/index.md) - prepared - Metadata/provider-edge foundation.
+- [RUN-001](RUN-001/index.md) - completed - Metadata/provider-edge foundation approved.
 
 ## Дослідження
 
@@ -100,15 +100,14 @@ public inspection/export або alternative graph model.
 
 ## Human Review
 
-Status: not-requested
-Requested: n/a
-Reviewed: n/a
-Approval Source: n/a
+Status: approved
+Requested: 2026-07-13
+Reviewed: approved 2026-07-13
+Approval Source: user message: "approve"
 
 ## Фінальний результат
 
-Completed: pending
-Final Run: pending
-Summary: pending
-Residual Risks: pending
-
+Completed: 2026-07-13
+Final Run: RUN-001
+Summary: Shared lifetime metadata, canonical provider identity and normalized provider-edge foundation implemented and approved.
+Residual Risks: Successor tasks must extend the same snapshot without parallel normalization; validation and scope-effective semantics remain intentionally unimplemented.

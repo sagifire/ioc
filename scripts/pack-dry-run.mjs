@@ -150,7 +150,7 @@ async function runSmokeProject(packedPackages) {
             strict: true,
             noImplicitAny: true,
             exactOptionalPropertyTypes: true,
-            skipLibCheck: true
+            skipLibCheck: false
         },
         include: ['type-smoke.ts']
     })
@@ -331,11 +331,23 @@ function normalizePackagePath(packagePath) {
 }
 
 function assertPackageEntry(packageName, packageEntries, requiredEntry) {
-    if (packageEntries.includes(requiredEntry)) {
+    if (
+        packageEntries.includes(requiredEntry) ||
+        (requiredEntry.includes('*') &&
+            packageEntries.some((packageEntry) => {
+                return createManifestFilePattern(requiredEntry).test(packageEntry)
+            }))
+    ) {
         return
     }
 
     throw new Error(`${packageName} tarball is missing ${requiredEntry}`)
+}
+
+function createManifestFilePattern(manifestFile) {
+    const escapedPattern = manifestFile.replace(/[.+?^${}()|[\]\\]/gu, '\\$&').replace(/\*/gu, '.*')
+
+    return new RegExp(`^${escapedPattern}$`, 'u')
 }
 
 function createRuntimeSmokeSource() {

@@ -10,6 +10,7 @@ import {
     createContainer,
     type ContainerRuntime,
     type MultiBindingBuilder,
+    type ProviderCycleFrame,
     type ResolutionContext
 } from '../src/container.js'
 import { token } from '../src/tokens.js'
@@ -482,6 +483,69 @@ describe('container sync providers', () => {
                     'container.multi-cycle.first'
             )
         }
+    })
+
+    test('detects a re-entrant collection before nested siblings execute', async () => {
+        const collection = token<string>('container.collection-frame-cycle')
+        const container = createContainer()
+        let nestedSiblingCalls = 0
+
+        container.add(collection).toValue('first')
+        container.add(collection).toFactory(({ getAll }) => getAll(collection).join(','))
+        container.add(collection).toFactory(() => {
+            nestedSiblingCalls += 1
+
+            return 'later'
+        })
+
+        const runtime = await container.freeze()
+        let error: unknown
+
+        try {
+            runtime.getAll(collection)
+        } catch (caught) {
+            error = caught
+        }
+
+        expect(error).toBeInstanceOf(ProviderCycleError)
+        expect(nestedSiblingCalls).toBe(0)
+
+        if (error instanceof ProviderCycleError) {
+            expectTypeOf(error.frames).toEqualTypeOf<readonly ProviderCycleFrame[] | undefined>()
+            expect(error.frames).toEqual([
+                {
+                    kind: 'collection',
+                    visibility: 'public',
+                    tokenId: collection.id
+                },
+                {
+                    kind: 'provider',
+                    visibility: 'public',
+                    tokenId: collection.id,
+                    registrationIndex: 1,
+                    registrationKind: 'multi'
+                },
+                {
+                    kind: 'collection',
+                    visibility: 'public',
+                    tokenId: collection.id
+                }
+            ])
+            expect(error.tokenIds).toEqual([collection.id, collection.id])
+        }
+    })
+
+    test('resolves ordinary sibling contributions without a false provider cycle', async () => {
+        const collection = token<string>('container.collection-frame-siblings')
+        const container = createContainer()
+
+        container.add(collection).toFactory(() => 'first')
+        container.add(collection).toFactory(() => 'second')
+
+        const runtime = await container.freeze()
+
+        expect(runtime.getAll(collection)).toEqual(['first', 'second'])
+        expect(runtime.getAll(collection)).toEqual(['first', 'second'])
     })
 
     test('freezes configuration and exposes immutable runtime APIs', async () => {

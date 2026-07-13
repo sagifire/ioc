@@ -19,6 +19,21 @@ import {
 } from './container'
 import { SagifireIocError, diagnosticFromError } from './diagnostics'
 import type { Diagnostic, DiagnosticReport } from './diagnostics'
+import {
+    createPrivateProviderRegistrationIdentity,
+    setProviderRegistrationIdentity
+} from './provider-identity'
+import type { ProviderRegistrationIdentity } from './provider-identity'
+import {
+    getProviderGraphSnapshot,
+    mapProviderDependencyOptions,
+    providerGraphSnapshotBridge
+} from './provider-metadata'
+import type {
+    ProviderDependencyOptions,
+    ProviderDependencyTarget,
+    ProviderGraphSnapshotAwareRuntime
+} from './provider-metadata'
 import type { Token } from './tokens'
 
 export type ModuleDependencyKind = 'external' | 'shared'
@@ -161,14 +176,20 @@ export type ComposerAdapterFactory<TSource extends ComposerAdapterSource, TValue
 
 export interface ComposerBindingBuilder<TValue> {
     toValue(value: TValue): void
-    toFactory(factory: ComposerBindingFactory<TValue>): void
+    toFactory(factory: ComposerBindingFactory<TValue>, options?: ProviderDependencyOptions): void
     toClass(classConstructor: ClassConstructor<TValue>): void
-    toAsyncFactory(factory: ComposerAsyncBindingFactory<TValue>): void
+    toAsyncFactory(
+        factory: ComposerAsyncBindingFactory<TValue>,
+        options?: ProviderDependencyOptions
+    ): void
 }
 
 export interface ComposerMultiBindingBuilder<TValue> {
     toValue(value: TValue): void
-    toFactory(factory: ComposerBindingFactory<TValue>): LifetimeBinding
+    toFactory(
+        factory: ComposerBindingFactory<TValue>,
+        options?: ProviderDependencyOptions
+    ): LifetimeBinding
 }
 
 export interface ComposerAdapterBuilder<TValue> {
@@ -1310,6 +1331,7 @@ type ComposerBindingRecord =
           readonly kind: 'factory'
           readonly token: Token<unknown>
           readonly factory: ComposerBindingFactory<unknown>
+          readonly dependencyOptions: ProviderDependencyOptions | undefined
       }
     | {
           readonly kind: 'class'
@@ -1320,6 +1342,7 @@ type ComposerBindingRecord =
           readonly kind: 'async-factory'
           readonly token: Token<unknown>
           readonly factory: ComposerAsyncBindingFactory<unknown>
+          readonly dependencyOptions: ProviderDependencyOptions | undefined
       }
     | {
           readonly kind: 'adapter'
@@ -1359,6 +1382,7 @@ type ComposerMultiBindingRecord =
           readonly kind: 'factory'
           readonly token: Token<unknown>
           readonly factory: ComposerBindingFactory<unknown>
+          readonly dependencyOptions: ProviderDependencyOptions | undefined
           readonly providerRegistration: ProviderRegistrationRecord
       }
 
@@ -1438,6 +1462,16 @@ interface LiveModuleSetupContext {
     readonly context: ModuleSetupContext
     activate(runtimeContext: ResolutionContext): void
 }
+
+type ModuleProviderIdentityAllocator = (
+    token: Token<unknown>,
+    visibility: 'exported' | 'private',
+    registrationKind: ProviderRegistrationKind
+) => ProviderRegistrationIdentity | undefined
+
+type ModuleProviderDependencyMapper = (
+    options: ProviderDependencyOptions | undefined
+) => ProviderDependencyOptions | undefined
 
 interface BuiltComposition {
     readonly modules: readonly ModuleDefinition[]
@@ -1568,11 +1602,15 @@ function createComposerBindingBuilder<TValue>(
             })
         },
 
-        toFactory(factory: ComposerBindingFactory<TValue>): void {
+        toFactory(
+            factory: ComposerBindingFactory<TValue>,
+            options?: ProviderDependencyOptions
+        ): void {
             bindings.push({
                 kind: 'factory',
                 token: bindingToken,
-                factory
+                factory,
+                dependencyOptions: options
             })
         },
 
@@ -1584,11 +1622,15 @@ function createComposerBindingBuilder<TValue>(
             })
         },
 
-        toAsyncFactory(factory: ComposerAsyncBindingFactory<TValue>): void {
+        toAsyncFactory(
+            factory: ComposerAsyncBindingFactory<TValue>,
+            options?: ProviderDependencyOptions
+        ): void {
             bindings.push({
                 kind: 'async-factory',
                 token: bindingToken,
-                factory
+                factory,
+                dependencyOptions: options
             })
         }
     }
@@ -1608,13 +1650,17 @@ function createComposerMultiBindingBuilder<TValue>(
             })
         },
 
-        toFactory(factory: ComposerBindingFactory<TValue>): LifetimeBinding {
+        toFactory(
+            factory: ComposerBindingFactory<TValue>,
+            options?: ProviderDependencyOptions
+        ): LifetimeBinding {
             const providerRegistration = createProviderRegistrationRecord('factory', 'transient')
 
             multiBindings.push({
                 kind: 'factory',
                 token: bindingToken,
                 factory,
+                dependencyOptions: options,
                 providerRegistration
             })
 
@@ -2509,7 +2555,7 @@ function applyComposerBindings(
         } else if (binding.kind === 'factory') {
             builder.toFactory((context) => {
                 return binding.factory(createComposerBindingResolutionContext(context, access))
-            })
+            }, binding.dependencyOptions)
         } else if (binding.kind === 'adapter') {
             builder.toFactory((context) => {
                 return binding.factory(
@@ -2521,7 +2567,7 @@ function applyComposerBindings(
         } else {
             builder.toAsyncFactory((context) => {
                 return binding.factory(createComposerBindingResolutionContext(context, access))
-            })
+            }, binding.dependencyOptions)
         }
     }
 }
@@ -2559,7 +2605,7 @@ function applyComposerMultiBindings(
         } else {
             const lifetime = builder.toFactory((context) => {
                 return binding.factory(createComposerBindingResolutionContext(context, access))
-            })
+            }, binding.dependencyOptions)
 
             applyDeferredProviderLifetime(lifetime, binding.providerRegistration.lifetime)
         }
@@ -2595,6 +2641,101 @@ function createLiveModuleSetupContext(
     access: CompositionAccessModel
 ): LiveModuleSetupContext {
     let activeContext: ResolutionContext | undefined
+    let nextModuleRegistrationIndex = 0
+    let nextPrivateCollectionOrdinal = 0
+    let nextPrivateDependencySelectorIndex = 0
+    const privateCollections = new Map<
+        string,
+        {
+            readonly ordinal: number
+            nextContributionIndex: number
+        }
+    >()
+    const privateDependencySelectorIndexes = new Map<string, number>()
+
+    const allocateProviderIdentity: ModuleProviderIdentityAllocator = (
+        originalToken,
+        visibility,
+        registrationKind
+    ) => {
+        const registrationIndex = nextModuleRegistrationIndex
+
+        nextModuleRegistrationIndex += 1
+
+        if (visibility === 'exported') {
+            return undefined
+        }
+
+        if (registrationKind === 'single') {
+            return createPrivateProviderRegistrationIdentity({
+                moduleId: moduleDefinition.id,
+                registrationIndex,
+                registrationKind
+            })
+        }
+
+        let collection = privateCollections.get(originalToken.id)
+
+        if (collection === undefined) {
+            collection = {
+                ordinal: nextPrivateCollectionOrdinal,
+                nextContributionIndex: 0
+            }
+            nextPrivateCollectionOrdinal += 1
+            privateCollections.set(originalToken.id, collection)
+        }
+
+        const contributionIndex = collection.nextContributionIndex
+
+        collection.nextContributionIndex += 1
+
+        return createPrivateProviderRegistrationIdentity({
+            moduleId: moduleDefinition.id,
+            registrationIndex,
+            registrationKind,
+            privateCollectionOrdinal: collection.ordinal,
+            contributionIndex
+        })
+    }
+
+    const mapDependencyOptions: ModuleProviderDependencyMapper = (options) => {
+        return mapProviderDependencyOptions(options, (originalToken) => {
+            const registration = resolveModuleRegistrationToken(
+                moduleDefinition,
+                originalToken,
+                access
+            )
+
+            if (registration.visibility === 'exported') {
+                return {
+                    token: registration.token,
+                    target: Object.freeze({
+                        visibility: 'public' as const,
+                        tokenId: originalToken.id
+                    })
+                }
+            }
+
+            let selectorIndex = privateDependencySelectorIndexes.get(originalToken.id)
+
+            if (selectorIndex === undefined) {
+                selectorIndex = nextPrivateDependencySelectorIndex
+                nextPrivateDependencySelectorIndex += 1
+                privateDependencySelectorIndexes.set(originalToken.id, selectorIndex)
+            }
+
+            const target: ProviderDependencyTarget = Object.freeze({
+                visibility: 'private',
+                moduleId: moduleDefinition.id,
+                selectorIndex
+            })
+
+            return {
+                token: registration.token,
+                target
+            }
+        })
+    }
 
     const getActiveContext = (token: Token<unknown>): ResolutionContext => {
         if (activeContext === undefined) {
@@ -2613,7 +2754,14 @@ function createLiveModuleSetupContext(
         moduleId: moduleDefinition.id,
 
         bind<TValue>(bindingToken: Token<TValue>): BindingBuilder<TValue> {
-            return createModuleBindingBuilder(moduleDefinition, bindingToken, container, access)
+            return createModuleBindingBuilder(
+                moduleDefinition,
+                bindingToken,
+                container,
+                access,
+                allocateProviderIdentity,
+                mapDependencyOptions
+            )
         },
 
         add<TValue>(bindingToken: Token<TValue>): MultiBindingBuilder<TValue> {
@@ -2621,7 +2769,9 @@ function createLiveModuleSetupContext(
                 moduleDefinition,
                 bindingToken,
                 container,
-                access
+                access,
+                allocateProviderIdentity,
+                mapDependencyOptions
             )
         },
 
@@ -2658,13 +2808,19 @@ function createModuleBindingBuilder<TValue>(
     moduleDefinition: ModuleDefinition,
     originalToken: Token<TValue>,
     container: ContainerBuilder,
-    access: CompositionAccessModel
+    access: CompositionAccessModel,
+    allocateProviderIdentity: ModuleProviderIdentityAllocator,
+    mapDependencyOptions: ModuleProviderDependencyMapper
 ): BindingBuilder<TValue> {
     const registration = resolveModuleRegistrationToken(moduleDefinition, originalToken, access)
     const builder = container.bind(registration.token)
 
     return {
         toValue(value: TValue): void {
+            applyModuleProviderIdentity(
+                builder,
+                allocateProviderIdentity(originalToken, registration.visibility, 'single')
+            )
             builder.toValue(value)
             recordModuleProvider(
                 moduleDefinition,
@@ -2675,11 +2831,15 @@ function createModuleBindingBuilder<TValue>(
             )
         },
 
-        toFactory(factory): LifetimeBinding {
+        toFactory(factory, options): LifetimeBinding {
+            applyModuleProviderIdentity(
+                builder,
+                allocateProviderIdentity(originalToken, registration.visibility, 'single')
+            )
             const providerRegistration = createProviderRegistrationRecord('factory', 'transient')
             const lifetime = builder.toFactory((context) => {
                 return factory(createModuleResolutionContext(moduleDefinition, context, access))
-            })
+            }, mapDependencyOptions(options))
 
             recordModuleProvider(
                 moduleDefinition,
@@ -2693,6 +2853,10 @@ function createModuleBindingBuilder<TValue>(
         },
 
         toClass(classConstructor: ClassConstructor<TValue>): LifetimeBinding {
+            applyModuleProviderIdentity(
+                builder,
+                allocateProviderIdentity(originalToken, registration.visibility, 'single')
+            )
             const providerRegistration = createProviderRegistrationRecord('class', 'transient')
             const lifetime = builder.toClass(classConstructor)
 
@@ -2707,7 +2871,11 @@ function createModuleBindingBuilder<TValue>(
             return createInspectableLifetimeBinding(lifetime, providerRegistration)
         },
 
-        toAsyncFactory(factory): AsyncFactoryBinding {
+        toAsyncFactory(factory, options): AsyncFactoryBinding {
+            applyModuleProviderIdentity(
+                builder,
+                allocateProviderIdentity(originalToken, registration.visibility, 'single')
+            )
             const providerRegistration = createProviderRegistrationRecord(
                 'async-factory',
                 'transient',
@@ -2715,7 +2883,7 @@ function createModuleBindingBuilder<TValue>(
             )
             const binding = builder.toAsyncFactory((context) => {
                 return factory(createModuleResolutionContext(moduleDefinition, context, access))
-            })
+            }, mapDependencyOptions(options))
 
             recordModuleProvider(
                 moduleDefinition,
@@ -2728,7 +2896,11 @@ function createModuleBindingBuilder<TValue>(
             return createInspectableAsyncFactoryBinding(binding, providerRegistration)
         },
 
-        toAsyncResource(factory): AsyncResourceBinding {
+        toAsyncResource(factory, options): AsyncResourceBinding {
+            applyModuleProviderIdentity(
+                builder,
+                allocateProviderIdentity(originalToken, registration.visibility, 'single')
+            )
             const providerRegistration = createProviderRegistrationRecord(
                 'async-resource',
                 undefined,
@@ -2736,7 +2908,7 @@ function createModuleBindingBuilder<TValue>(
             )
             const binding = builder.toAsyncResource((context) => {
                 return factory(createModuleResolutionContext(moduleDefinition, context, access))
-            })
+            }, mapDependencyOptions(options))
 
             recordModuleProvider(
                 moduleDefinition,
@@ -2755,13 +2927,19 @@ function createModuleMultiBindingBuilder<TValue>(
     moduleDefinition: ModuleDefinition,
     originalToken: Token<TValue>,
     container: ContainerBuilder,
-    access: CompositionAccessModel
+    access: CompositionAccessModel,
+    allocateProviderIdentity: ModuleProviderIdentityAllocator,
+    mapDependencyOptions: ModuleProviderDependencyMapper
 ): MultiBindingBuilder<TValue> {
     const registration = resolveModuleRegistrationToken(moduleDefinition, originalToken, access)
     const builder = container.add(registration.token)
 
     return {
         toValue(value: TValue): void {
+            applyModuleProviderIdentity(
+                builder,
+                allocateProviderIdentity(originalToken, registration.visibility, 'multi')
+            )
             builder.toValue(value)
             recordModuleProvider(
                 moduleDefinition,
@@ -2772,11 +2950,15 @@ function createModuleMultiBindingBuilder<TValue>(
             )
         },
 
-        toFactory(factory): LifetimeBinding {
+        toFactory(factory, options): LifetimeBinding {
+            applyModuleProviderIdentity(
+                builder,
+                allocateProviderIdentity(originalToken, registration.visibility, 'multi')
+            )
             const providerRegistration = createProviderRegistrationRecord('factory', 'transient')
             const lifetime = builder.toFactory((context) => {
                 return factory(createModuleResolutionContext(moduleDefinition, context, access))
-            })
+            }, mapDependencyOptions(options))
 
             recordModuleProvider(
                 moduleDefinition,
@@ -2788,6 +2970,15 @@ function createModuleMultiBindingBuilder<TValue>(
 
             return createInspectableLifetimeBinding(lifetime, providerRegistration)
         }
+    }
+}
+
+function applyModuleProviderIdentity<TValue>(
+    builder: BindingBuilder<TValue> | MultiBindingBuilder<TValue>,
+    identity: ProviderRegistrationIdentity | undefined
+): void {
+    if (identity !== undefined) {
+        setProviderRegistrationIdentity(builder, identity)
     }
 }
 
@@ -3041,7 +3232,8 @@ function createComposedRuntime(
         })
     }
 
-    const runtime: ComposedRuntime = {
+    const runtime: ComposedRuntime & ProviderGraphSnapshotAwareRuntime = {
+        [providerGraphSnapshotBridge]: getProviderGraphSnapshot(containerRuntime),
         get<TValue>(resolutionToken: Token<TValue>): TValue {
             return containerRuntime.get(
                 resolvePublicSingleCapabilityToken(resolutionToken, access, 'get')

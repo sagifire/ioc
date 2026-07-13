@@ -3,6 +3,31 @@ import type { Token } from './tokens'
 import { DuplicateScopeLocalValueError, InvalidScopeError, ScopeDisposedError } from './context'
 import type { CreateScopeOptions, Scope, ScopeCallback, ScopeLocalValue } from './context'
 import { SagifireIocError } from './diagnostics'
+import {
+    createPublicProviderRegistrationIdentity,
+    providerRegistrationIdentityBridge,
+    providerCollectionsEqual,
+    providerRegistrationKeysEqual
+} from './provider-identity'
+import type {
+    PrivateCollectionCycleCoordinate,
+    ProviderIdentityRegistrationKind,
+    ProviderCollectionIdentity,
+    ProviderRegistrationIdentityAwareBuilder,
+    ProviderRegistrationIdentity,
+    ProviderRegistrationKey
+} from './provider-identity'
+import {
+    createNormalizedProviderGraphSnapshot,
+    createProviderDependencyDeclarations,
+    providerGraphSnapshotBridge
+} from './provider-metadata'
+import type {
+    ProviderDependencyDeclaration,
+    ProviderDependencyOptions,
+    ProviderGraphSnapshotAwareRuntime,
+    ProviderNodeKind
+} from './provider-metadata'
 
 export {
     DuplicateScopeLocalValueError,
@@ -23,7 +48,36 @@ export type { Resource, ResourceDisposer } from './lifecycle'
 
 export type ProviderLifetime = 'singleton' | 'transient' | 'scoped'
 
-export type ProviderRegistrationKind = 'single' | 'multi'
+export type ProviderRegistrationKind = ProviderIdentityRegistrationKind
+
+export type ProviderCycleFrame =
+    | {
+          readonly kind: 'collection'
+          readonly visibility: 'public'
+          readonly tokenId: string
+      }
+    | {
+          readonly kind: 'collection'
+          readonly visibility: 'private'
+          readonly moduleId: string
+          readonly privateCollectionOrdinal: number
+      }
+    | {
+          readonly kind: 'provider'
+          readonly visibility: 'public'
+          readonly tokenId: string
+          readonly registrationIndex: number
+          readonly registrationKind: ProviderRegistrationKind
+      }
+    | {
+          readonly kind: 'provider'
+          readonly visibility: 'private'
+          readonly moduleId: string
+          readonly registrationIndex: number
+          readonly registrationKind: ProviderRegistrationKind
+          readonly privateCollectionOrdinal?: number
+          readonly contributionIndex?: number
+      }
 
 export type AsyncProviderInitializationMode = 'lazy' | 'eager'
 
@@ -47,15 +101,27 @@ export interface ContainerBuilder {
 
 export interface BindingBuilder<TValue> {
     toValue(value: TValue): void
-    toFactory(factory: SyncProviderFactory<TValue>): LifetimeBinding
+    toFactory(
+        factory: SyncProviderFactory<TValue>,
+        options?: ProviderDependencyOptions
+    ): LifetimeBinding
     toClass(classConstructor: ClassConstructor<TValue>): LifetimeBinding
-    toAsyncFactory(factory: AsyncProviderFactory<TValue>): AsyncFactoryBinding
-    toAsyncResource(factory: AsyncResourceFactory<TValue>): AsyncResourceBinding
+    toAsyncFactory(
+        factory: AsyncProviderFactory<TValue>,
+        options?: ProviderDependencyOptions
+    ): AsyncFactoryBinding
+    toAsyncResource(
+        factory: AsyncResourceFactory<TValue>,
+        options?: ProviderDependencyOptions
+    ): AsyncResourceBinding
 }
 
 export interface MultiBindingBuilder<TValue> {
     toValue(value: TValue): void
-    toFactory(factory: SyncProviderFactory<TValue>): LifetimeBinding
+    toFactory(
+        factory: SyncProviderFactory<TValue>,
+        options?: ProviderDependencyOptions
+    ): LifetimeBinding
 }
 
 export interface LifetimeBinding {
@@ -184,26 +250,174 @@ export class ProviderKindMismatchError extends SagifireIocError<{
     }
 }
 
-export class ProviderCycleError extends SagifireIocError<{
-    readonly tokenIds: readonly string[]
-}> {
+type ProviderCycleErrorDetails =
+    | {
+          readonly tokenIds: readonly string[]
+      }
+    | {
+          readonly tokenIds: readonly string[]
+          readonly frames: readonly ProviderCycleFrame[]
+      }
+
+export class ProviderCycleError extends SagifireIocError<ProviderCycleErrorDetails> {
     override readonly name = 'ProviderCycleError'
     override readonly code = 'SAGIFIRE_IOC_PROVIDER_CYCLE'
     readonly tokenIds: readonly string[]
+    readonly frames: readonly ProviderCycleFrame[] | undefined
 
-    constructor(tokenIds: readonly string[]) {
+    constructor(path: readonly string[] | { readonly frames: readonly ProviderCycleFrame[] }) {
+        const frames = isProviderCycleFramePath(path) ? Object.freeze([...path.frames]) : undefined
+        const tokenIds =
+            frames === undefined
+                ? Object.freeze([...(path as readonly string[])])
+                : Object.freeze(createLegacyCycleTokenPath(frames))
+
         super({
             code: 'SAGIFIRE_IOC_PROVIDER_CYCLE',
             message: `Provider cycle detected: ${tokenIds.join(' -> ')}`,
-            details: {
-                tokenIds
-            }
+            details:
+                frames === undefined
+                    ? {
+                          tokenIds
+                      }
+                    : {
+                          tokenIds,
+                          frames
+                      }
         })
 
         Object.setPrototypeOf(this, new.target.prototype)
 
         this.tokenIds = tokenIds
+        this.frames = frames
     }
+}
+
+function isProviderCycleFramePath(
+    path: readonly string[] | { readonly frames: readonly ProviderCycleFrame[] }
+): path is { readonly frames: readonly ProviderCycleFrame[] } {
+    return !Array.isArray(path)
+}
+
+function createLegacyCycleTokenPath(frames: readonly ProviderCycleFrame[]): string[] {
+    const tokenIds: string[] = []
+
+    for (const frame of frames) {
+        const tokenId = getCycleFrameLegacyTokenId(frame)
+
+        if (tokenIds[tokenIds.length - 1] !== tokenId) {
+            tokenIds.push(tokenId)
+        }
+    }
+
+    if (tokenIds.length === 1 && frames.length > 1) {
+        const tokenId = tokenIds[0]
+
+        if (tokenId !== undefined) {
+            tokenIds.push(tokenId)
+        }
+    }
+
+    return tokenIds
+}
+
+function getCycleFrameLegacyTokenId(frame: ProviderCycleFrame): string {
+    if (frame.visibility === 'public') {
+        return frame.tokenId
+    }
+
+    if (frame.kind === 'collection') {
+        return `module:${frame.moduleId}:private-collection:${frame.privateCollectionOrdinal}`
+    }
+
+    return `module:${frame.moduleId}:private-provider:${frame.registrationIndex}`
+}
+
+function createProviderResolutionFrame(
+    identity: ProviderRegistrationIdentity
+): ProviderResolutionFrame {
+    if (identity.key.visibility === 'public') {
+        return Object.freeze({
+            kind: 'provider' as const,
+            key: identity.key,
+            diagnostic: Object.freeze({
+                kind: 'provider' as const,
+                visibility: 'public' as const,
+                tokenId: identity.key.tokenId,
+                registrationIndex: identity.key.registrationIndex,
+                registrationKind: identity.registrationKind
+            })
+        })
+    }
+
+    const privateCollection = getPrivateCollectionCoordinate(identity.collection)
+    const diagnostic =
+        privateCollection === undefined
+            ? Object.freeze({
+                  kind: 'provider' as const,
+                  visibility: 'private' as const,
+                  moduleId: identity.key.moduleId,
+                  registrationIndex: identity.key.registrationIndex,
+                  registrationKind: identity.registrationKind
+              })
+            : Object.freeze({
+                  kind: 'provider' as const,
+                  visibility: 'private' as const,
+                  moduleId: identity.key.moduleId,
+                  registrationIndex: identity.key.registrationIndex,
+                  registrationKind: identity.registrationKind,
+                  privateCollectionOrdinal: privateCollection.privateCollectionOrdinal,
+                  contributionIndex: privateCollection.contributionIndex
+              })
+
+    return Object.freeze({
+        kind: 'provider' as const,
+        key: identity.key,
+        diagnostic
+    })
+}
+
+function createCollectionResolutionFrame(
+    identity: ProviderRegistrationIdentity
+): CollectionResolutionFrame {
+    const collection = identity.collection
+
+    if (collection === undefined) {
+        throw new Error('Multi-provider registration is missing collection identity')
+    }
+
+    if (collection.visibility === 'public') {
+        return Object.freeze({
+            kind: 'collection' as const,
+            identity: collection,
+            diagnostic: Object.freeze({
+                kind: 'collection' as const,
+                visibility: 'public' as const,
+                tokenId: collection.tokenId
+            })
+        })
+    }
+
+    return Object.freeze({
+        kind: 'collection' as const,
+        identity: collection,
+        diagnostic: Object.freeze({
+            kind: 'collection' as const,
+            visibility: 'private' as const,
+            moduleId: collection.moduleId,
+            privateCollectionOrdinal: collection.privateCollectionOrdinal
+        })
+    })
+}
+
+function getPrivateCollectionCoordinate(
+    collection: ProviderCollectionIdentity | undefined
+): PrivateCollectionCycleCoordinate | undefined {
+    if (collection?.visibility === 'private') {
+        return collection
+    }
+
+    return undefined
 }
 
 export class ContainerFrozenError extends SagifireIocError<{
@@ -355,11 +569,28 @@ type ProviderExecution<TValue> =
 
 interface ProviderRecord<TValue> {
     readonly tokenId: string
+    readonly identity: ProviderRegistrationIdentity
+    readonly providerKind: ProviderNodeKind
+    readonly dependencies: readonly ProviderDependencyDeclaration[] | undefined
     lifetime: ProviderLifetime | undefined
     initialization: AsyncProviderInitializationMode
     cache: ProviderCache<TValue>
     readonly execution: ProviderExecution<TValue>
 }
+
+interface CollectionResolutionFrame {
+    readonly kind: 'collection'
+    readonly identity: ProviderCollectionIdentity
+    readonly diagnostic: Extract<ProviderCycleFrame, { readonly kind: 'collection' }>
+}
+
+interface ProviderResolutionFrame {
+    readonly kind: 'provider'
+    readonly key: ProviderRegistrationKey
+    readonly diagnostic: Extract<ProviderCycleFrame, { readonly kind: 'provider' }>
+}
+
+type ResolutionFrame = CollectionResolutionFrame | ProviderResolutionFrame
 
 interface SingleProviderRegistration {
     readonly kind: 'single'
@@ -476,12 +707,35 @@ function createBindingBuilder<TValue>(
     registrations: Map<string, ProviderRegistration>,
     assertMutable: AssertMutable
 ): BindingBuilder<TValue> {
-    return {
+    let pendingIdentity: ProviderRegistrationIdentity | undefined
+
+    const takeIdentity = (): ProviderRegistrationIdentity => {
+        const identity = pendingIdentity
+
+        pendingIdentity = undefined
+
+        if (identity !== undefined) {
+            assertProviderIdentityKind(identity, 'single')
+
+            return identity
+        }
+
+        return createPublicProviderRegistrationIdentity(tokenId, 0, 'single')
+    }
+
+    const builder: BindingBuilder<TValue> & ProviderRegistrationIdentityAwareBuilder = {
+        [providerRegistrationIdentityBridge](identity): void {
+            pendingIdentity = identity
+        },
+
         toValue(value: TValue): void {
             assertMutable(`register value provider for token "${tokenId}"`)
 
             addSingleProvider(registrations, {
                 tokenId,
+                identity: takeIdentity(),
+                providerKind: 'value',
+                dependencies: undefined,
                 lifetime: 'singleton',
                 initialization: 'lazy',
                 cache: {
@@ -497,11 +751,18 @@ function createBindingBuilder<TValue>(
             })
         },
 
-        toFactory(factory: SyncProviderFactory<TValue>): LifetimeBinding {
+        toFactory(
+            factory: SyncProviderFactory<TValue>,
+            options?: ProviderDependencyOptions
+        ): LifetimeBinding {
             assertMutable(`register factory provider for token "${tokenId}"`)
+            const identity = takeIdentity()
 
             const provider: ProviderRecord<TValue> = {
                 tokenId,
+                identity,
+                providerKind: 'factory',
+                dependencies: createProviderDependencyDeclarations(options),
                 lifetime: 'transient',
                 initialization: 'lazy',
                 cache: {
@@ -525,6 +786,9 @@ function createBindingBuilder<TValue>(
 
             const provider: ProviderRecord<TValue> = {
                 tokenId,
+                identity: takeIdentity(),
+                providerKind: 'class',
+                dependencies: undefined,
                 lifetime: 'transient',
                 initialization: 'lazy',
                 cache: {
@@ -543,11 +807,17 @@ function createBindingBuilder<TValue>(
             return createLifetimeBinding(tokenId, provider, assertMutable)
         },
 
-        toAsyncFactory(factory: AsyncProviderFactory<TValue>): AsyncFactoryBinding {
+        toAsyncFactory(
+            factory: AsyncProviderFactory<TValue>,
+            options?: ProviderDependencyOptions
+        ): AsyncFactoryBinding {
             assertMutable(`register async factory provider for token "${tokenId}"`)
 
             const provider: ProviderRecord<TValue> = {
                 tokenId,
+                identity: takeIdentity(),
+                providerKind: 'async-factory',
+                dependencies: createProviderDependencyDeclarations(options),
                 lifetime: 'transient',
                 initialization: 'lazy',
                 cache: {
@@ -566,11 +836,17 @@ function createBindingBuilder<TValue>(
             return createAsyncFactoryBinding(tokenId, provider, assertMutable)
         },
 
-        toAsyncResource(factory: AsyncResourceFactory<TValue>): AsyncResourceBinding {
+        toAsyncResource(
+            factory: AsyncResourceFactory<TValue>,
+            options?: ProviderDependencyOptions
+        ): AsyncResourceBinding {
             assertMutable(`register async resource provider for token "${tokenId}"`)
 
             const provider: ProviderRecord<TValue> = {
                 tokenId,
+                identity: takeIdentity(),
+                providerKind: 'async-resource',
+                dependencies: createProviderDependencyDeclarations(options),
                 lifetime: undefined,
                 initialization: 'lazy',
                 cache: {
@@ -589,6 +865,8 @@ function createBindingBuilder<TValue>(
             return createAsyncResourceBinding(tokenId, provider, assertMutable)
         }
     }
+
+    return builder
 }
 
 function createMultiBindingBuilder<TValue>(
@@ -596,12 +874,39 @@ function createMultiBindingBuilder<TValue>(
     registrations: Map<string, ProviderRegistration>,
     assertMutable: AssertMutable
 ): MultiBindingBuilder<TValue> {
-    return {
+    let pendingIdentity: ProviderRegistrationIdentity | undefined
+
+    const takeIdentity = (): ProviderRegistrationIdentity => {
+        const identity = pendingIdentity
+
+        pendingIdentity = undefined
+
+        if (identity !== undefined) {
+            assertProviderIdentityKind(identity, 'multi')
+
+            return identity
+        }
+
+        return createPublicProviderRegistrationIdentity(
+            tokenId,
+            getNextMultiProviderRegistrationIndex(registrations, tokenId),
+            'multi'
+        )
+    }
+
+    const builder: MultiBindingBuilder<TValue> & ProviderRegistrationIdentityAwareBuilder = {
+        [providerRegistrationIdentityBridge](identity): void {
+            pendingIdentity = identity
+        },
+
         toValue(value: TValue): void {
             assertMutable(`register multi-provider value contribution for token "${tokenId}"`)
 
             addMultiProvider(registrations, {
                 tokenId,
+                identity: takeIdentity(),
+                providerKind: 'value',
+                dependencies: undefined,
                 lifetime: 'singleton',
                 initialization: 'lazy',
                 cache: {
@@ -617,11 +922,17 @@ function createMultiBindingBuilder<TValue>(
             })
         },
 
-        toFactory(factory: SyncProviderFactory<TValue>): LifetimeBinding {
+        toFactory(
+            factory: SyncProviderFactory<TValue>,
+            options?: ProviderDependencyOptions
+        ): LifetimeBinding {
             assertMutable(`register multi-provider factory contribution for token "${tokenId}"`)
 
             const provider: ProviderRecord<TValue> = {
                 tokenId,
+                identity: takeIdentity(),
+                providerKind: 'factory',
+                dependencies: createProviderDependencyDeclarations(options),
                 lifetime: 'transient',
                 initialization: 'lazy',
                 cache: {
@@ -640,6 +951,36 @@ function createMultiBindingBuilder<TValue>(
             return createLifetimeBinding(tokenId, provider, assertMutable)
         }
     }
+
+    return builder
+}
+
+function assertProviderIdentityKind(
+    identity: ProviderRegistrationIdentity,
+    expectedKind: ProviderRegistrationKind
+): void {
+    if (identity.registrationKind !== expectedKind) {
+        throw new Error(
+            `Provider identity kind mismatch: expected ${expectedKind}, got ${identity.registrationKind}`
+        )
+    }
+}
+
+function getNextMultiProviderRegistrationIndex(
+    registrations: ReadonlyMap<string, ProviderRegistration>,
+    tokenId: string
+): number {
+    const registration = registrations.get(tokenId)
+
+    if (registration === undefined) {
+        return 0
+    }
+
+    if (registration.kind === 'single') {
+        return 0
+    }
+
+    return registration.providers.length
 }
 
 function assertSyncFactoryResult<TValue>(tokenId: string, value: TValue): TValue {
@@ -893,6 +1234,9 @@ function cloneProviderRegistration(registration: ProviderRegistration): Provider
 function cloneProvider<TValue>(provider: ProviderRecord<TValue>): ProviderRecord<TValue> {
     return {
         tokenId: provider.tokenId,
+        identity: provider.identity,
+        providerKind: provider.providerKind,
+        dependencies: provider.dependencies,
         lifetime: provider.lifetime,
         initialization: provider.initialization,
         cache: cloneCache(provider.cache),
@@ -924,6 +1268,7 @@ async function createRuntime(
     registrations: ReadonlyMap<string, ProviderRegistration>
 ): Promise<ContainerRuntime> {
     validateProviderRegistrations(registrations)
+    const providerGraphSnapshot = createNormalizedProviderGraphSnapshot(registrations)
 
     const runtimeState: RuntimeState = {
         disposed: false,
@@ -966,7 +1311,7 @@ async function createRuntime(
     }
 
     const createResolutionContext = (
-        stack: readonly string[],
+        stack: readonly ResolutionFrame[],
         scopeState: ScopeState | undefined
     ): ResolutionContext =>
         Object.freeze({
@@ -991,24 +1336,57 @@ async function createRuntime(
             }
         })
 
-    const assertProviderHasNoCycle = (
-        provider: ProviderRecord<unknown>,
-        stack: readonly string[]
+    const assertCollectionHasNoCycle = (
+        frame: CollectionResolutionFrame,
+        stack: readonly ResolutionFrame[]
     ): void => {
-        const cycleStart = stack.indexOf(provider.tokenId)
+        const cycleStart = stack.findIndex((activeFrame) => {
+            return (
+                activeFrame.kind === 'collection' &&
+                providerCollectionsEqual(activeFrame.identity, frame.identity)
+            )
+        })
 
         if (cycleStart !== -1) {
-            throw new ProviderCycleError([...stack.slice(cycleStart), provider.tokenId])
+            throw new ProviderCycleError({
+                frames: [
+                    ...stack.slice(cycleStart).map((activeFrame) => activeFrame.diagnostic),
+                    frame.diagnostic
+                ]
+            })
+        }
+    }
+
+    const assertProviderHasNoCycle = (
+        frame: ProviderResolutionFrame,
+        stack: readonly ResolutionFrame[]
+    ): void => {
+        const cycleStart = stack.findIndex((activeFrame) => {
+            return (
+                activeFrame.kind === 'provider' &&
+                providerRegistrationKeysEqual(activeFrame.key, frame.key)
+            )
+        })
+
+        if (cycleStart !== -1) {
+            throw new ProviderCycleError({
+                frames: [
+                    ...stack.slice(cycleStart).map((activeFrame) => activeFrame.diagnostic),
+                    frame.diagnostic
+                ]
+            })
         }
     }
 
     const resolveProvider = <TValue>(
         provider: ProviderRecord<TValue>,
-        stack: readonly string[],
+        stack: readonly ResolutionFrame[],
         scopeState: ScopeState | undefined,
         accessMethod: 'get' | 'tryGet'
     ): TValue => {
-        assertProviderHasNoCycle(provider, stack)
+        const providerFrame = createProviderResolutionFrame(provider.identity)
+
+        assertProviderHasNoCycle(providerFrame, stack)
         assertScopeForScopedProvider(provider, scopeState)
 
         if (provider.execution.kind !== 'sync') {
@@ -1035,7 +1413,7 @@ async function createRuntime(
             return provider.cache.value
         }
 
-        const nextStack = [...stack, provider.tokenId]
+        const nextStack = [...stack, providerFrame]
         const context = createResolutionContext(nextStack, scopeState)
         const value = provider.execution.create(context)
 
@@ -1058,10 +1436,12 @@ async function createRuntime(
 
     const resolveProviderAsync = <TValue>(
         provider: ProviderRecord<TValue>,
-        stack: readonly string[],
+        stack: readonly ResolutionFrame[],
         scopeState: ScopeState | undefined
     ): Promise<TValue> => {
-        assertProviderHasNoCycle(provider, stack)
+        const providerFrame = createProviderResolutionFrame(provider.identity)
+
+        assertProviderHasNoCycle(providerFrame, stack)
         assertScopeForScopedProvider(provider, scopeState)
 
         if (provider.execution.kind === 'sync') {
@@ -1158,10 +1538,10 @@ async function createRuntime(
 
     const initializeAsyncProvider = async <TValue>(
         provider: ProviderRecord<TValue>,
-        stack: readonly string[],
+        stack: readonly ResolutionFrame[],
         scopeState: ScopeState | undefined
     ): Promise<TValue> => {
-        const nextStack = [...stack, provider.tokenId]
+        const nextStack = [...stack, createProviderResolutionFrame(provider.identity)]
         const context = createResolutionContext(nextStack, scopeState)
 
         if (provider.execution.kind === 'async-factory') {
@@ -1268,7 +1648,7 @@ async function createRuntime(
 
     const resolveRequired = <TValue>(
         token: Token<TValue>,
-        stack: readonly string[],
+        stack: readonly ResolutionFrame[],
         scopeState: ScopeState | undefined
     ): TValue => {
         assertResolutionIsActive(scopeState, `resolve provider for token "${token.id}"`)
@@ -1315,7 +1695,7 @@ async function createRuntime(
 
     const resolveOptional = <TValue>(
         token: Token<TValue>,
-        stack: readonly string[],
+        stack: readonly ResolutionFrame[],
         scopeState: ScopeState | undefined
     ): TValue | undefined => {
         assertResolutionIsActive(scopeState, `resolve provider for token "${token.id}"`)
@@ -1362,7 +1742,7 @@ async function createRuntime(
 
     const resolveRequiredAsync = async <TValue>(
         token: Token<TValue>,
-        stack: readonly string[],
+        stack: readonly ResolutionFrame[],
         scopeState: ScopeState | undefined
     ): Promise<TValue> => {
         assertResolutionIsActive(scopeState, `resolve provider for token "${token.id}"`)
@@ -1408,7 +1788,7 @@ async function createRuntime(
 
     const resolveOptionalAsync = async <TValue>(
         token: Token<TValue>,
-        stack: readonly string[],
+        stack: readonly ResolutionFrame[],
         scopeState: ScopeState | undefined
     ): Promise<TValue | undefined> => {
         assertResolutionIsActive(scopeState, `resolve provider for token "${token.id}"`)
@@ -1454,7 +1834,7 @@ async function createRuntime(
 
     const resolveAll = <TValue>(
         token: Token<TValue>,
-        stack: readonly string[],
+        stack: readonly ResolutionFrame[],
         scopeState: ScopeState | undefined
     ): TValue[] => {
         assertResolutionIsActive(scopeState, `resolve provider collection for token "${token.id}"`)
@@ -1497,8 +1877,20 @@ async function createRuntime(
             )
         }
 
+        const firstProvider = registration.providers[0]
+
+        if (firstProvider === undefined) {
+            return localMultiValues === undefined ? [] : ([...localMultiValues] as TValue[])
+        }
+
+        const collectionFrame = createCollectionResolutionFrame(firstProvider.identity)
+
+        assertCollectionHasNoCycle(collectionFrame, stack)
+
+        const collectionStack = [...stack, collectionFrame]
+
         const runtimeValues = registration.providers.map((provider) =>
-            resolveProvider(provider as ProviderRecord<TValue>, stack, scopeState, 'get')
+            resolveProvider(provider as ProviderRecord<TValue>, collectionStack, scopeState, 'get')
         )
 
         if (localMultiValues === undefined) {
@@ -1753,7 +2145,8 @@ async function createRuntime(
         }
     }
 
-    const runtime: ContainerRuntime = {
+    const runtime: ContainerRuntime & ProviderGraphSnapshotAwareRuntime = {
+        [providerGraphSnapshotBridge]: providerGraphSnapshot,
         get<TValue>(token: Token<TValue>): TValue {
             return resolveRequired(token, [], undefined)
         },
@@ -1846,7 +2239,7 @@ async function initializeEagerSingletonProviders(
     registrations: ReadonlyMap<string, ProviderRegistration>,
     resolveProviderAsync: <TValue>(
         provider: ProviderRecord<TValue>,
-        stack: readonly string[],
+        stack: readonly ResolutionFrame[],
         scopeState: ScopeState | undefined
     ) => Promise<TValue>
 ): Promise<void> {

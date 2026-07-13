@@ -4776,6 +4776,140 @@ describe('composed runtime capabilities', () => {
         await runtime.dispose()
     })
 
+    test('keeps interleaved private collection cycle identities collision-free and private', async () => {
+        interface PrivateCycleApi {
+            resolveFirst(): string[]
+            resolveSecond(): string[]
+        }
+
+        const publicApi = token<PrivateCycleApi>('private-cycle.public-api')
+        const firstPrivateSingle = token<string>('private-cycle.raw-single-first')
+        const firstPrivateCollection = token<string>('private-cycle.raw-collection-first')
+        const secondPrivateSingle = token<string>('private-cycle.raw-single-second')
+        const secondPrivateCollection = token<string>('private-cycle.raw-collection-second')
+        const moduleId = 'private-cycle-module'
+        const module = defineModule({
+            id: moduleId,
+            provides: [
+                {
+                    token: publicApi,
+                    kind: 'public-api'
+                }
+            ],
+            setup(context): void {
+                context.bind(firstPrivateSingle).toValue('first-single')
+                context
+                    .add(firstPrivateCollection)
+                    .toFactory(({ getAll }) => getAll(firstPrivateCollection).join(','))
+                context.bind(secondPrivateSingle).toValue('second-single')
+                context
+                    .add(secondPrivateCollection)
+                    .toFactory(({ getAll }) => getAll(secondPrivateCollection).join(','))
+                context.bind(publicApi).toFactory(({ getAll }) => {
+                    return {
+                        resolveFirst(): string[] {
+                            return getAll(firstPrivateCollection)
+                        },
+                        resolveSecond(): string[] {
+                            return getAll(secondPrivateCollection)
+                        }
+                    }
+                })
+            }
+        })
+        const runtime = await createComposer().use(module).compose()
+        const api = runtime.get(publicApi)
+
+        const captureCycle = (resolve: () => string[]): ProviderCycleError => {
+            let error: unknown
+
+            try {
+                resolve()
+            } catch (caught) {
+                error = caught
+            }
+
+            expect(error).toBeInstanceOf(ProviderCycleError)
+
+            if (!(error instanceof ProviderCycleError)) {
+                throw new Error('Expected a private provider cycle')
+            }
+
+            return error
+        }
+
+        const firstError = captureCycle(() => api.resolveFirst())
+        const secondError = captureCycle(() => api.resolveSecond())
+
+        expect(firstError.frames).toEqual([
+            {
+                kind: 'collection',
+                visibility: 'private',
+                moduleId,
+                privateCollectionOrdinal: 0
+            },
+            {
+                kind: 'provider',
+                visibility: 'private',
+                moduleId,
+                registrationIndex: 1,
+                registrationKind: 'multi',
+                privateCollectionOrdinal: 0,
+                contributionIndex: 0
+            },
+            {
+                kind: 'collection',
+                visibility: 'private',
+                moduleId,
+                privateCollectionOrdinal: 0
+            }
+        ])
+        expect(secondError.frames).toEqual([
+            {
+                kind: 'collection',
+                visibility: 'private',
+                moduleId,
+                privateCollectionOrdinal: 1
+            },
+            {
+                kind: 'provider',
+                visibility: 'private',
+                moduleId,
+                registrationIndex: 3,
+                registrationKind: 'multi',
+                privateCollectionOrdinal: 1,
+                contributionIndex: 0
+            },
+            {
+                kind: 'collection',
+                visibility: 'private',
+                moduleId,
+                privateCollectionOrdinal: 1
+            }
+        ])
+
+        const outwardErrors = JSON.stringify([
+            {
+                message: firstError.message,
+                details: firstError.details,
+                cause: firstError.cause
+            },
+            {
+                message: secondError.message,
+                details: secondError.details,
+                cause: secondError.cause
+            }
+        ])
+
+        expect(outwardErrors).not.toContain(firstPrivateCollection.id)
+        expect(outwardErrors).not.toContain(secondPrivateCollection.id)
+        expect(outwardErrors).not.toContain('sagifire/ioc/private/')
+        expect(firstError.cause).toBeUndefined()
+        expect(secondError.cause).toBeUndefined()
+
+        await runtime.dispose()
+    })
+
     test('rejects module cycles during prepare and compose with validation reports', async () => {
         let setupCalls = 0
         const first = defineModule({
