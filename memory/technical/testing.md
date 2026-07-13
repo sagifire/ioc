@@ -290,3 +290,32 @@ tests мають покривати:
   inspection і export.
 - Existing providers без metadata зберігають resolution behavior; incomplete coverage
   лишається additive diagnostic/adoption concern.
+
+## Async multi-provider design gates
+
+- Truth-table tests покривають empty, sync-only, eager-only, lazy-only, mixed та scoped
+  collections для sync і explicit async access.
+- Preflight tests доводять precedence lifecycle/access → cardinality/local-kind → scope
+  eligibility → sync eligibility → execution і відсутність earlier transient execution
+  для declarative blocker.
+- Ordering tests відділяють registration order від completion order і перевіряють module,
+  composition-root, parent-local та child-local contributions.
+- Sequential failure tests перевіряють first failure identity, preserved cause, відсутність
+  partial array і відсутність запуску later contributions.
+- Retry/concurrency tests покривають per-provider singleton/scoped in-flight deduplication,
+  failed cache reset, successful cache reuse та transient reexecution без collection cache.
+- Eager freeze tests покривають multi initialization, retry і cleanup unpublished
+  runtime-owned resources.
+- Cycle tests покривають collection/provider frames, re-entrant self-collection до sibling
+  execution та valid ordinary siblings одного token.
+- Privacy sentinel tests покривають async collection і eager-freeze failures private
+  providers без raw internal/original token ID, включно з cause.
+- Privacy collision fixture має дві private collections одного module з contribution
+  index `0` і перевіряє різні stable private collection ordinals.
+- Resource slice tests покривають runtime/scope ownership, lazy partial failure без
+  rollback owner state, reverse actual ledger disposal, dispose-during-pending та
+  concurrent collection/direct resolution exactly-once behavior без brittle global order.
+- Inspection/export tests перевіряють provider kind/lifetime/initialization/index і
+  відсутність mutable readiness/private state.
+- Composer, module setup, testing helpers і DSL мають parity з object API; async resource
+  helpers не з'являються до production resource slice.

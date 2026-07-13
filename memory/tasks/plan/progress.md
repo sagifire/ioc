@@ -162,7 +162,28 @@
 ## Stage 18 Design Gates
 
 - [x] **[Done]** [TASK-07.12-0097-stage-18-lifetime-dependency-validation-design](TASK-07.12-0097-stage-18-lifetime-dependency-validation-design/index.md) - Explicit provider dependency metadata, lifetime severity і coverage design.
-- [ ] **[Backlog]** [TASK-07.12-0098-stage-18-async-multi-provider-semantics-design](TASK-07.12-0098-stage-18-async-multi-provider-semantics-design/index.md) - Async multi ordering, concurrency, failure, retry, ownership і disposal design.
+- [x] **[Done]** [TASK-07.12-0098-stage-18-async-multi-provider-semantics-design](TASK-07.12-0098-stage-18-async-multi-provider-semantics-design/index.md) - Async multi ordering, concurrency, failure, retry, ownership і disposal design.
+
+## Stage 18 Lifetime Validation Implementation Planning
+
+- [x] **[Done]** [TASK-07.13-0099-stage-18-lifetime-validation-implementation-planning](TASK-07.13-0099-stage-18-lifetime-validation-implementation-planning/index.md) - Approved phased lifetime planning; FIX-001 applied, async tasks reconciled, TASK-0106..0110 created.
+
+## Stage 18 Async Multi-Provider Implementation (Extreme Agent Complexity)
+
+- [ ] **[Backlog]** [TASK-07.13-0100-stage-18-extreme-agent-complexity-async-multi-identity-cycle-foundation](TASK-07.13-0100-stage-18-extreme-agent-complexity-async-multi-identity-cycle-foundation/index.md) - Shared contribution identity, collection/provider cycle frames і private-safe diagnostic foundation.
+- [ ] **[Backlog]** [TASK-07.13-0101-stage-18-extreme-agent-complexity-async-multi-core-factory-resolution](TASK-07.13-0101-stage-18-extreme-agent-complexity-async-multi-core-factory-resolution/index.md) - Core async factory contributions, sync preflight і explicit async collection resolution.
+- [ ] **[Backlog]** [TASK-07.13-0102-stage-18-extreme-agent-complexity-async-multi-composer-inspection-integration](TASK-07.13-0102-stage-18-extreme-agent-complexity-async-multi-composer-inspection-integration/index.md) - Module/composer/runtime cardinality, inspection і graph-export integration.
+- [ ] **[Backlog]** [TASK-07.13-0103-stage-18-extreme-agent-complexity-async-multi-resource-ownership-disposal](TASK-07.13-0103-stage-18-extreme-agent-complexity-async-multi-resource-ownership-disposal/index.md) - Runtime/scope resource ownership, partial failure, concurrency і disposal.
+- [ ] **[Backlog]** [TASK-07.13-0104-stage-18-extreme-agent-complexity-async-multi-testing-dsl-docs](TASK-07.13-0104-stage-18-extreme-agent-complexity-async-multi-testing-dsl-docs/index.md) - Testing helpers, DSL parity, docs, migration й examples.
+- [ ] **[Backlog]** [TASK-07.13-0105-stage-18-extreme-agent-complexity-async-multi-0-0-3-audit-handoff](TASK-07.13-0105-stage-18-extreme-agent-complexity-async-multi-0-0-3-audit-handoff/index.md) - Full async multi audit and stabilization handoff for `0.0.3` without version/publish action.
+
+## Stage 18 Lifetime Validation Implementation (Extreme Agent Complexity)
+
+- [ ] **[Backlog]** [TASK-07.13-0106-stage-18-extreme-agent-complexity-lifetime-metadata-provider-edge-foundation](TASK-07.13-0106-stage-18-extreme-agent-complexity-lifetime-metadata-provider-edge-foundation/index.md) - Shared lifetime metadata, canonical provider identity і normalized provider-edge foundation.
+- [ ] **[Backlog]** [TASK-07.13-0107-stage-18-extreme-agent-complexity-lifetime-static-validation-coverage-diagnostics](TASK-07.13-0107-stage-18-extreme-agent-complexity-lifetime-static-validation-coverage-diagnostics/index.md) - Static validation, coverage, diagnostics і opt-in enforcement modes.
+- [ ] **[Backlog]** [TASK-07.13-0108-stage-18-extreme-agent-complexity-lifetime-scope-inspection-graph-export-v2](TASK-07.13-0108-stage-18-extreme-agent-complexity-lifetime-scope-inspection-graph-export-v2/index.md) - Scope-effective validation, inspection і opt-in graph export v2.
+- [ ] **[Backlog]** [TASK-07.13-0109-stage-18-extreme-agent-complexity-lifetime-testing-dsl-docs-adoption](TASK-07.13-0109-stage-18-extreme-agent-complexity-lifetime-testing-dsl-docs-adoption/index.md) - Testing helpers, DSL parity, docs, adoption і staged enforcement.
+- [ ] **[Backlog]** [TASK-07.13-0110-stage-18-extreme-agent-complexity-lifetime-shared-foundation-audit-handoff](TASK-07.13-0110-stage-18-extreme-agent-complexity-lifetime-shared-foundation-audit-handoff/index.md) - Lifetime/shared-foundation audit and stabilization handoff without version/publish action.
 
 ## Формат
 

@@ -504,7 +504,29 @@ Stage 17 почався як audit/decision gate для `0.0.2` feature request 
 - Private provider diagnostics/inspection/export використовують module ID та registration
   index без private token ID.
 - Validator, inspection і graph export не створюють паралельні provider-edge models.
-- Async multi implementation не може робити `getAll()` async, повертати partial arrays або
-  створювати collection lifecycle, відмінний від single-provider ownership rules без
-  explicit approved design.
+- Async multi implementation не змінює sync `getAll()` і не повертає partial arrays.
+- `getAll()` після lifecycle/cardinality/local-kind checks виконує scope-eligibility, а
+  потім sync-eligibility preflight до запуску contribution; lazy cache warm-up не змінює
+  declared sync contract, dynamic provider failures не preflight-яться.
+- Explicit async collection resolution є sequential fail-fast у per-token registration
+  order; parallelism потребує окремого cancellation/failure/disposal design.
+- Collection не має окремого cache, in-flight promise, retry state, owner або disposer;
+  ці стани лишаються per-provider.
+- No-partial-results є return atomicity, а не rollback arbitrary user factory side effects.
+- Lazy partial failure не dispose-ить успішні runtime/scope-owned resources; failed eager
+  freeze dispose-ить resources unpublished candidate runtime.
+- Async multi resources не входять у перший async-factory implementation slice;
+  singleton/scoped ownership semantics мають бути реалізовані окремим наступним slice,
+  transient resources заборонені.
+- Scope-local multi contributions лишаються sync values; async local factories/resources
+  не додаються цим design.
+- Contribution identity включає registration index; cycle state окремо моделює active
+  collection і provider frames, щоб self-collection fail-ила до nested sibling execution.
+- Module-private async collection diagnostics використовують registration-time safe
+  `moduleId + privateCollectionOrdinal + contributionIndex`; ordinal є stable в normalized
+  module setup order, а raw private token ID заборонений у message/details/cause.
+- Disposal використовує reverse actual owner-ledger acquisition order; per-call sequential
+  policy не створює global registration-order guarantee між concurrent resolutions.
+- Inspection/export не показує mutable async cache readiness; mixed state виводиться з
+  ordered declarative provider summaries.
 - Object API проектується перед DSL; testing helpers не визначають production semantics.

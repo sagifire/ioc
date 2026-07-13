@@ -2,7 +2,7 @@
 
 ## Призначення
 
-Prepared run для formal design async multi-provider semantics.
+Completed approved run для formal design async multi-provider semantics.
 
 ## Папки
 
@@ -11,3 +11,4 @@ Prepared run для formal design async multi-provider semantics.
 ## Файли
 
 - [context.md](context.md) - immutable після activation context snapshot.
+- [result.md](result.md) - execution, verification, self-review та audit result.

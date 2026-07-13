@@ -47,6 +47,13 @@ implementation або звичайних memory-update задач.
     `memory/technical/rules.md`, `memory/technical/testing.md`,
     `memory/domain/open-questions.md`, `memory/product/requirements.md`,
     `memory/product/roadmap.md`.
+- Human-reviewed Stage 18 async multi-provider semantics design:
+  - `memory/reports/research/2026-07-12-stage-18-async-multi-provider-semantics-design.md`
+  - `memory/tasks/plan/TASK-07.12-0098-stage-18-async-multi-provider-semantics-design/RSCH-001.md`
+  - Canonical targets: `memory/technical/architecture.md`,
+    `memory/technical/rules.md`, `memory/technical/testing.md`,
+    `memory/domain/open-questions.md`, `memory/product/requirements.md`,
+    `memory/product/roadmap.md`.
 
 ## `SPEC.md` Section Map
 

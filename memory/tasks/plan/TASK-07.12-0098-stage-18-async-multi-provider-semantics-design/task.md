@@ -1,6 +1,6 @@
 # TASK-07.12-0098: Stage 18 async multi-provider semantics design
 
-Task Status: backlog
+Task Status: done
 Type: design
 Created: 2026-07-12
 Owner Role: Design Agent
@@ -8,13 +8,13 @@ Current Run: RUN-001
 
 ## Поточний стан
 
-Run Status: prepared
-Progress: Design task package prepared.
-Acceptance: 0/12
+Run Status: completed
+Progress: Task approved; FIX-001..002 applied and upward consistency verified.
+Acceptance: 12/12
 Blockers: none
 Blocked Phase: n/a
-Pending Decisions: async multi-provider semantics
-Next Action: Активувати RUN-001 і провести formal design research.
+Pending Decisions: none
+Next Action: Create requested extreme-complexity phased implementation task packages.
 
 ## Мета
 
@@ -51,18 +51,18 @@ Next Action: Активувати RUN-001 і провести formal design rese
 
 ## Критерії приймання
 
-- [ ] Sync `getAll()` invariant і async boundary визначені без preselected API name.
-- [ ] Mixed sync/async та eager/lazy semantics мають candidate options.
-- [ ] Deterministic registration order збережено за всіх candidate policies.
-- [ ] Concurrency policy має cost і compatibility analysis.
-- [ ] Failure model гарантує no partial results і readable diagnostics.
-- [ ] Retry semantics визначені per contribution та collection.
-- [ ] Resource/scope ownership і disposal визначені для success та partial failure.
-- [ ] Composer, testing, DSL та inspection узгоджені з core semantics.
-- [ ] Async multi-provider питання approved `FIX-003` закриті decision-ready відповідями.
-- [ ] Створено `RSCH-001`, detailed українськомовний report і `FIX-*` proposals за потреби.
-- [ ] Виконано self-review, language/upward-consistency gates та independent subagent audit.
-- [ ] Реалізацію й public API changes не розпочато; результат передано в human review.
+- [x] Sync `getAll()` invariant і async boundary визначені без preselected API name.
+- [x] Mixed sync/async та eager/lazy semantics мають candidate options.
+- [x] Deterministic registration order збережено за всіх candidate policies.
+- [x] Concurrency policy має cost і compatibility analysis.
+- [x] Failure model гарантує no partial results і readable diagnostics.
+- [x] Retry semantics визначені per contribution та collection.
+- [x] Resource/scope ownership і disposal визначені для success та partial failure.
+- [x] Composer, testing, DSL та inspection узгоджені з core semantics.
+- [x] Async multi-provider питання approved `FIX-003` закриті decision-ready відповідями.
+- [x] Створено `RSCH-001`, detailed українськомовний report і `FIX-*` proposals за потреби.
+- [x] Виконано self-review, language/upward-consistency gates та independent subagent audit.
+- [x] Реалізацію й public API changes не розпочато; результат передано в human review.
 
 ## Пов'язана пам'ять
 
@@ -78,30 +78,32 @@ Next Action: Активувати RUN-001 і провести formal design rese
 
 ## Прогони
 
-- [RUN-001](RUN-001/index.md) - prepared - Async multi-provider formal design.
+- [RUN-001](RUN-001/index.md) - completed - Design approved and FIX-001..002 applied.
 
 ## Дослідження
 
-- Очікується `RSCH-001` під час active RUN-001.
+- [RSCH-001](RSCH-001.md) - completed; disposition `final-result`.
 
 ## Фіксації
 
-- Очікуються за design results; застосування потребує human approval.
+- [FIX-001](FIX-001.md) - applied - technical design.
+- [FIX-002](FIX-002.md) - applied - design-gate disposition.
 
 ## Запити на рішення
 
-- Немає до завершення RUN-001.
+- Немає.
 
 ## Human Review
 
-Status: not-requested
-Requested: n/a
-Reviewed: n/a
-Approval Source: n/a
+Status: approved
+Requested: 2026-07-13
+Reviewed: approved 2026-07-13
+Approval Source: user message: "Добре, я погоджую задачу та її FIX-001 та FIX-002"
+Approved Fixations: FIX-001, FIX-002
 
 ## Фінальний результат
 
-Completed: pending
-Final Run: pending
-Summary: pending
-Residual Risks: pending
+Completed: 2026-07-13
+Final Run: RUN-001
+Summary: Async multi sync/preflight, sequential resolution, retry, ownership, cycle/privacy and phased implementation design approved; FIX-001..002 applied.
+Residual Risks: Sequential latency, cleanup secondary-error visibility, non-transactional factory side effects and high implementation blast radius.

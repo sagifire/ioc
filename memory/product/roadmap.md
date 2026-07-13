@@ -204,6 +204,26 @@ Stage 18 є research/decision gate, а не implementation stage.
   eligible лише через окремі human-approved tasks у порядку metadata/edge foundation,
   static validation/diagnostics, scope-effective inspection/export integration,
   testing/DSL/docs. Design approval не є implementation approval.
+- Async multi design gate `TASK-07.12-0098`: semantic design approved; phased
+  implementation eligible лише через окремі human-approved tasks у порядку contribution
+  identity/preflight, container async collection resolution, composer/inspection,
+  resource ownership, testing/DSL/docs. Design approval не затверджує public accessor
+  name або implementation.
+- Lifetime implementation planning `TASK-07.13-0099`: phased plan approved; bounded
+  implementation backlog `TASK-07.13-0106`..`0110` створюється лише після planning
+  approval. Shared provider identity реалізує `TASK-0100`, а lifetime metadata/edges
+  повторно використовують її без parallel model.
+- Coordinated Stage 18 order:
+  `TASK-0100 -> TASK-0106 -> TASK-0107 -> TASK-0101 -> TASK-0102 -> TASK-0103 ->
+  TASK-0108 -> TASK-0104 -> TASK-0109 -> TASK-0105 -> TASK-0110`.
+- `TASK-0106`: explicit metadata і normalized provider-edge foundation;
+  `TASK-0107`: static validation, coverage та diagnostics;
+  `TASK-0108`: scope-effective validation, inspection і opt-in graph export v2;
+  `TASK-0109`: testing, DSL, docs, adoption та staged enforcement;
+  `TASK-0110`: lifetime/shared-foundation audit and stabilization handoff.
+- Default lifetime enforcement лишається off; report/enforce та graph export v2 є
+  opt-in. Version bump, publish і whole-`0.0.3` release-ready claim потребують окремого
+  human-reviewed task.
 
 ## Завершена maintenance task
 

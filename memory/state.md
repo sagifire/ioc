@@ -1,6 +1,6 @@
 # Стан проекту
 
-Оновлено: 2026-07-12
+Оновлено: 2026-07-13
 Starter Kit Version: 5.0
 PDADM MVP Version: 0.5
 
@@ -69,6 +69,19 @@ async multi-providers і lifetime dependency validation мають статус 
 provider metadata, edge/severity matrix, coverage contract і private-safe identity
 design-approved. Runtime/public API ще не реалізовано; implementation tasks потребують
 окремого human decision.
+
+`TASK-07.12-0098` завершила async multi-provider semantics design gate: sync preflight,
+sequential registration-order resolution, per-provider cache/retry/ownership,
+no-partial-results і phased resource model design-approved. Runtime/public API ще не
+реалізовано. Після окремого human decision створено extreme-complexity phased backlog
+`TASK-07.13-0100`..`0105`; activation `TASK-0100` потребує approved `TASK-0099` planning
+result або explicit shared-foundation reconciliation decision.
+
+`TASK-07.13-0099` завершила implementation planning lifetime dependency validation.
+Рекомендований backlog `TASK-0106`..`0110` узгоджений із async multi tasks через одну
+shared provider identity та serialized predecessor chain. Planning approval не означає
+implementation, version або release approval; derived task packages створюються лише за
+окремо схваленим follow-up.
 
 Research source:
 
@@ -320,10 +333,11 @@ memory/tasks/plan/TASK-07.05-0080-stage-17-adapter-cycle-diagnostics/
 
 ## Наступні кроки
 
-1. Виконати `TASK-07.12-0094` як graph export v1 foundation; `0095` і `0096` активувати
-   послідовно після human-approved completion попередньої graph task.
-2. Після окремого human decision створити bounded phased lifetime implementation tasks;
-   `TASK-07.12-0098` лишається окремим async multi-provider design gate.
+1. Graph export tasks `TASK-07.12-0094`..`0096` завершені після human review; наступний
+   graph-export work створювати лише за окремим scope.
+2. Після approval planning follow-up створити `TASK-0106`..`0110`, узгодити prepared
+   `TASK-0100`..`0105` і активувати тільки `TASK-0100`; далі виконувати
+   coordinated order із approved `TASK-0099` report.
 3. Actual npm publish `0.0.2` лишається human-controlled external action.
 
 ## Відкриті питання

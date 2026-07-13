@@ -519,12 +519,44 @@ Coverage є explicit: provider `not-applicable | declared | undeclared`, aggrega
 safe identity `moduleId + registrationIndex`; private token ID не потрапляє в diagnostics,
 inspection або export.
 
-### Async multi-provider design boundary
+### Async multi-providers
 
-Async multi semantics мають зберігати sync `getAll()`, deterministic registration order,
-per-provider cache/ownership та no-partial-results policy. Eager/lazy, concurrency,
-failure/retry, scope/resource disposal і mixed sync/async behavior визначаються окремим
-design decision до implementation.
+`getAll()` лишається synchronous. Після lifecycle/access і cardinality/local-kind checks,
+але перед виконанням contribution, він перевіряє scope eligibility, а потім sync
+eligibility всіх contributions. Sync providers і eager singleton async providers після
+successful `freeze()` є sync-eligible; lazy, transient або scoped async contribution
+робить collection async-required незалежно від поточного cache state. Missing scope має
+precedence над async blocker. Declarative access mismatch не запускає earlier sync
+transient factories; dynamic factory/dependency failures не отримують transactional
+preflight guarantee.
+
+Окремий explicit async collection accessor має semantic shape token → `Promise` of fresh
+ordered array; exact public name визначає implementation contract. Він резолвить mixed
+sync/async contributions послідовно в semantic registration order і зупиняється на першій
+failure. Collection не має власного cache, promise, retry state, owner або disposer.
+In-flight deduplication, retry, lifetime, ownership і disposal лишаються per-provider.
+
+No-partial-results означає, що caller отримує весь array або rejection; це не transaction
+для arbitrary factory side effects. Lazy partial failure зберігає успішні singleton/scoped
+providers у їх owner cache. Failed eager `freeze()` відхиляє candidate runtime і звільняє
+створені ним runtime-owned resources.
+
+Async factory contributions є першим implementation slice після окремого approval. Async
+resource contributions мають target ownership: singleton resource належить runtime,
+scoped resource — effective scope, transient resource заборонений; resource API
+реалізується наступним slice. Scope-local multi contributions лишаються sync values у
+порядку runtime, ancestors, child.
+
+Concrete contribution identity містить token ID та registration index. Cycle state окремо
+має active collection frame і concrete provider frame: re-entrant access до тієї самої
+collection fail-ить до nested sibling execution, але ordinary siblings не є cycles.
+Composer передає module-private registration-time safe identity `moduleId + stable
+privateCollectionOrdinal + contributionIndex`; collection ordinal призначається
+normalized module setup order і відрізняє private collections без raw token ID. Raw
+private token ID не потрапляє в outward message/details/cause.
+Inspection/export показує declarative provider kind, lifetime, initialization та per-token
+order, але не mutable cache readiness. Global eager traversal не є public registration
+order; resources dispose-яться у reverse actual owner-ledger acquisition order.
 
 ## Stage 17 extension points
 
