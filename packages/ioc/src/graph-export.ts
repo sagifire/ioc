@@ -13,8 +13,17 @@ import type {
     ModuleGraph
 } from './composer'
 import type { AsyncProviderInitializationMode, ProviderLifetime } from './container'
+import type { ProviderInspection } from './container'
+import type { ProviderRegistrationKey } from './provider-identity'
+import type {
+    NormalizedProviderDependencySelector,
+    ProviderDependencyCoverage,
+    ProviderDependencyTarget,
+    ProviderNodeKind
+} from './provider-metadata'
 
 export const GRAPH_EXPORT_SCHEMA_VERSION = '1' as const
+export const GRAPH_EXPORT_SCHEMA_VERSION_V2 = '2' as const
 
 export interface GraphExportDocumentV1 {
     readonly schema: 'sagifire.ioc.graph'
@@ -22,7 +31,21 @@ export interface GraphExportDocumentV1 {
     readonly graph: GraphExportGraphV1
 }
 
-export type GraphExportDocument = GraphExportDocumentV1
+export interface GraphExportDocumentV2 {
+    readonly schema: 'sagifire.ioc.graph'
+    readonly schemaVersion: typeof GRAPH_EXPORT_SCHEMA_VERSION_V2
+    readonly graph: GraphExportGraphV2
+}
+
+export type GraphExportDocument = GraphExportDocumentV1 | GraphExportDocumentV2
+
+export interface GraphExportV1Options {
+    readonly schemaVersion?: typeof GRAPH_EXPORT_SCHEMA_VERSION
+}
+
+export interface GraphExportV2Options {
+    readonly schemaVersion: typeof GRAPH_EXPORT_SCHEMA_VERSION_V2
+}
 
 export type GraphExportDirection = 'TB' | 'LR' | 'BT' | 'RL'
 
@@ -42,6 +65,46 @@ export interface GraphExportGraphV1 {
     readonly bindings: readonly GraphExportBindingV1[]
     readonly edges: readonly GraphExportEdgeV1[]
 }
+
+export interface GraphExportGraphV2 extends GraphExportGraphV1 {
+    readonly providers: readonly GraphExportProviderV2[]
+    readonly providerDependencySelectors: readonly GraphExportProviderDependencySelectorV2[]
+    readonly providerDependencyEdges: readonly GraphExportProviderDependencyEdgeV2[]
+    readonly providerOwnershipEdges: readonly GraphExportProviderOwnershipEdgeV2[]
+    readonly providerCoverage: readonly GraphExportProviderCoverageV2[]
+    readonly coverage: 'complete' | 'partial' | 'none'
+}
+
+export interface GraphExportProviderV2 {
+    readonly key: ProviderRegistrationKey
+    readonly label: string
+    readonly registrationKind: 'single' | 'multi'
+    readonly providerKind: ProviderNodeKind
+    readonly lifetime?: ProviderLifetime
+    readonly initialization: AsyncProviderInitializationMode
+    readonly scopeOwned?: true
+}
+
+export type GraphExportProviderDependencySelectorV2 = NormalizedProviderDependencySelector
+
+export interface GraphExportProviderDependencyEdgeV2 {
+    readonly selectorIndex: number
+    readonly consumer: ProviderRegistrationKey
+    readonly dependency: ProviderRegistrationKey
+    readonly access: 'instance' | 'deferred'
+}
+
+export interface GraphExportProviderOwnershipEdgeV2 {
+    readonly provider: ProviderRegistrationKey
+    readonly owner: 'runtime' | 'scope'
+}
+
+export interface GraphExportProviderCoverageV2 {
+    readonly provider: ProviderRegistrationKey
+    readonly coverage: ProviderDependencyCoverage
+}
+
+export type GraphExportV2Input = ProviderInspection | (ModuleGraph & ProviderInspection)
 
 export interface GraphExportModuleV1 {
     readonly id: string
@@ -169,7 +232,26 @@ export interface GraphExportAdapterSourceEdgeV1 extends GraphExportEdgeBaseV1 {
     readonly sourceProvider?: GraphExportAdapterSourceProviderV1
 }
 
-export function createGraphExportDocument(graph: ModuleGraph): GraphExportDocumentV1 {
+export function createGraphExportDocument(
+    graph: ModuleGraph,
+    options?: GraphExportV1Options
+): GraphExportDocumentV1
+export function createGraphExportDocument(
+    inspection: GraphExportV2Input,
+    options: GraphExportV2Options
+): GraphExportDocumentV2
+export function createGraphExportDocument(
+    input: ModuleGraph | GraphExportV2Input,
+    options: GraphExportV1Options | GraphExportV2Options = {}
+): GraphExportDocument {
+    if (options.schemaVersion === GRAPH_EXPORT_SCHEMA_VERSION_V2) {
+        return createGraphExportDocumentV2(input as GraphExportV2Input)
+    }
+
+    return createGraphExportDocumentV1(input as ModuleGraph)
+}
+
+function createGraphExportDocumentV1(graph: ModuleGraph): GraphExportDocumentV1 {
     return Object.freeze({
         schema: 'sagifire.ioc.graph',
         schemaVersion: GRAPH_EXPORT_SCHEMA_VERSION,
@@ -229,10 +311,85 @@ export function createGraphExportDocument(graph: ModuleGraph): GraphExportDocume
     })
 }
 
+function createGraphExportDocumentV2(input: GraphExportV2Input): GraphExportDocumentV2 {
+    const moduleGraph = isModuleGraph(input) ? input : createEmptyModuleGraph()
+    const v1Graph = createGraphExportDocumentV1(moduleGraph).graph
+    const providerGraph = input.providerGraph
+
+    return Object.freeze({
+        schema: 'sagifire.ioc.graph',
+        schemaVersion: GRAPH_EXPORT_SCHEMA_VERSION_V2,
+        graph: Object.freeze({
+            ...v1Graph,
+            providers: Object.freeze(
+                providerGraph.nodes.map((node) => {
+                    const provider: {
+                        key: ProviderRegistrationKey
+                        label: string
+                        registrationKind: 'single' | 'multi'
+                        providerKind: ProviderNodeKind
+                        lifetime?: ProviderLifetime
+                        initialization: AsyncProviderInitializationMode
+                        scopeOwned?: true
+                    } = {
+                        key: cloneProviderKey(node.key),
+                        label: formatProviderLabel(node.key),
+                        registrationKind: node.registrationKind,
+                        providerKind: node.providerKind,
+                        initialization: node.initialization
+                    }
+
+                    if (node.lifetime !== undefined) {
+                        provider.lifetime = node.lifetime
+                    }
+                    if (node.scopeOwned === true) {
+                        provider.scopeOwned = true
+                    }
+
+                    return canonicalizeGraphExportProvider(provider)
+                })
+            ),
+            providerDependencySelectors: Object.freeze(
+                providerGraph.selectors.map(projectProviderSelector)
+            ),
+            providerDependencyEdges: Object.freeze(
+                providerGraph.dependencyEdges.map((edge) => {
+                    return Object.freeze({
+                        selectorIndex: edge.selectorIndex,
+                        consumer: cloneProviderKey(edge.consumer),
+                        dependency: cloneProviderKey(edge.dependency),
+                        access: edge.access
+                    })
+                })
+            ),
+            providerOwnershipEdges: Object.freeze(
+                providerGraph.ownershipEdges.map((edge) => {
+                    return Object.freeze({
+                        provider: cloneProviderKey(edge.provider),
+                        owner: edge.owner
+                    })
+                })
+            ),
+            providerCoverage: Object.freeze(
+                providerGraph.providerCoverage.map((coverage) => {
+                    return Object.freeze({
+                        provider: cloneProviderKey(coverage.provider),
+                        coverage: coverage.coverage
+                    })
+                })
+            ),
+            coverage: providerGraph.coverage
+        })
+    })
+}
+
 export function serializeGraphExport(document: GraphExportDocument): string {
     assertGraphExportDocument(document)
 
-    const canonicalDocument = createGraphExportDocument(document.graph)
+    const canonicalDocument =
+        document.schemaVersion === GRAPH_EXPORT_SCHEMA_VERSION
+            ? createGraphExportDocumentV1(document.graph)
+            : canonicalizeGraphExportDocumentV2(document)
 
     return `${JSON.stringify(canonicalDocument, undefined, 4)}\n`
 }
@@ -274,7 +431,15 @@ export function renderGraphExportMermaid(
     return `${lines.join('\n')}\n`
 }
 
-type RenderNodeKind = 'module' | 'required-port' | 'capability' | 'binding' | 'adapter-source'
+type RenderNodeKind =
+    | 'module'
+    | 'required-port'
+    | 'capability'
+    | 'binding'
+    | 'adapter-source'
+    | 'provider'
+    | 'owner'
+    | 'coverage'
 
 function forEachRenderNode(
     document: GraphExportDocument,
@@ -325,6 +490,28 @@ function forEachRenderNode(
             'adapter-source'
         )
     })
+
+    if (document.schemaVersion === GRAPH_EXPORT_SCHEMA_VERSION_V2) {
+        document.graph.providers.forEach((provider, index) => {
+            const lifetime = provider.lifetime === undefined ? '' : `, ${provider.lifetime}`
+            const ownership = provider.scopeOwned === true ? '\nscope-owned value' : ''
+
+            visit(
+                `provider_${index}`,
+                `${provider.label}\n${provider.providerKind}${lifetime}${ownership}`,
+                'provider'
+            )
+        })
+
+        if (document.graph.providerOwnershipEdges.some((edge) => edge.owner === 'runtime')) {
+            visit('provider_owner_runtime', 'owner: runtime', 'owner')
+        }
+        if (document.graph.providerOwnershipEdges.some((edge) => edge.owner === 'scope')) {
+            visit('provider_owner_scope', 'owner: scope', 'owner')
+        }
+
+        visit('provider_coverage', `provider coverage: ${document.graph.coverage}`, 'coverage')
+    }
 }
 
 function forEachRenderEdge(
@@ -368,6 +555,33 @@ function forEachRenderEdge(
             edge.adapterSourceProperty === undefined ? '' : ` / ${edge.adapterSourceProperty}`
         visit(sourceId, adapterTargetId, `adapter-source: ${edge.adapterSourceTokenId}${property}`)
     })
+
+    if (document.schemaVersion === GRAPH_EXPORT_SCHEMA_VERSION_V2) {
+        document.graph.providerDependencyEdges.forEach((edge, index) => {
+            const consumerId = findProviderId(document, edge.consumer)
+            const dependencyId = findProviderId(document, edge.dependency)
+
+            if (consumerId === undefined || dependencyId === undefined) {
+                throw new TypeError(
+                    `Graph export provider dependency edge at index ${index} references a missing provider`
+                )
+            }
+
+            visit(consumerId, dependencyId, `${edge.access} dependency`)
+        })
+
+        document.graph.providerOwnershipEdges.forEach((edge, index) => {
+            const providerId = findProviderId(document, edge.provider)
+
+            if (providerId === undefined) {
+                throw new TypeError(
+                    `Graph export provider ownership edge at index ${index} references a missing provider`
+                )
+            }
+
+            visit(providerId, `provider_owner_${edge.owner}`, 'ownership')
+        })
+    }
 }
 
 function throwUnrenderableEdge(index: number): never {
@@ -401,6 +615,17 @@ function findBindingId(document: GraphExportDocument, tokenId: string): string |
     return index < 0 ? undefined : `binding_${index}`
 }
 
+function findProviderId(
+    document: GraphExportDocumentV2,
+    key: ProviderRegistrationKey
+): string | undefined {
+    const index = document.graph.providers.findIndex((provider) => {
+        return providerKeysEqual(provider.key, key)
+    })
+
+    return index < 0 ? undefined : `provider_${index}`
+}
+
 function resolveAdapterSourceId(
     document: GraphExportDocument,
     edge: GraphExportAdapterSourceEdgeV1,
@@ -427,7 +652,7 @@ function resolveAdapterSourceId(
     return `adapter_source_${edgeIndex}`
 }
 
-function dotShape(kind: RenderNodeKind): 'box' | 'ellipse' | 'hexagon' | 'diamond' {
+function dotShape(kind: RenderNodeKind): 'box' | 'ellipse' | 'hexagon' | 'diamond' | 'octagon' {
     if (kind === 'module') {
         return 'box'
     }
@@ -439,6 +664,12 @@ function dotShape(kind: RenderNodeKind): 'box' | 'ellipse' | 'hexagon' | 'diamon
     }
     if (kind === 'adapter-source') {
         return 'ellipse'
+    }
+    if (kind === 'provider') {
+        return 'octagon'
+    }
+    if (kind === 'owner' || kind === 'coverage') {
+        return 'box'
     }
     return 'diamond'
 }
@@ -476,12 +707,56 @@ function stripControlCharacters(value: string): string {
 function assertGraphExportDocument(document: GraphExportDocument): void {
     if (
         document.schema !== 'sagifire.ioc.graph' ||
-        document.schemaVersion !== GRAPH_EXPORT_SCHEMA_VERSION
+        (document.schemaVersion !== GRAPH_EXPORT_SCHEMA_VERSION &&
+            document.schemaVersion !== GRAPH_EXPORT_SCHEMA_VERSION_V2)
     ) {
         throw new TypeError(
             `Unsupported graph export schema: ${String(document.schema)}@${String(document.schemaVersion)}`
         )
     }
+}
+
+function canonicalizeGraphExportDocumentV2(document: GraphExportDocumentV2): GraphExportDocumentV2 {
+    const v1Graph = createGraphExportDocumentV1(document.graph).graph
+
+    return Object.freeze({
+        schema: 'sagifire.ioc.graph',
+        schemaVersion: GRAPH_EXPORT_SCHEMA_VERSION_V2,
+        graph: Object.freeze({
+            ...v1Graph,
+            providers: Object.freeze(document.graph.providers.map(canonicalizeGraphExportProvider)),
+            providerDependencySelectors: Object.freeze(
+                document.graph.providerDependencySelectors.map(projectProviderSelector)
+            ),
+            providerDependencyEdges: Object.freeze(
+                document.graph.providerDependencyEdges.map((edge) => {
+                    return Object.freeze({
+                        selectorIndex: edge.selectorIndex,
+                        consumer: cloneProviderKey(edge.consumer),
+                        dependency: cloneProviderKey(edge.dependency),
+                        access: edge.access
+                    })
+                })
+            ),
+            providerOwnershipEdges: Object.freeze(
+                document.graph.providerOwnershipEdges.map((edge) => {
+                    return Object.freeze({
+                        provider: cloneProviderKey(edge.provider),
+                        owner: edge.owner
+                    })
+                })
+            ),
+            providerCoverage: Object.freeze(
+                document.graph.providerCoverage.map((coverage) => {
+                    return Object.freeze({
+                        provider: cloneProviderKey(coverage.provider),
+                        coverage: coverage.coverage
+                    })
+                })
+            ),
+            coverage: document.graph.coverage
+        })
+    })
 }
 
 function projectBinding(binding: ModuleGraph['bindings'][number]): GraphExportBindingV1 {
@@ -551,6 +826,134 @@ function projectEdge(edge: ModuleDependencyEdge): GraphExportEdgeV1 {
     }
 
     return Object.freeze(result)
+}
+
+function projectProviderSelector(
+    selector: NormalizedProviderDependencySelector
+): GraphExportProviderDependencySelectorV2 {
+    if (selector.access === 'instance') {
+        return Object.freeze({
+            selectorIndex: selector.selectorIndex,
+            consumer: cloneProviderKey(selector.consumer),
+            target: cloneProviderTarget(selector.target),
+            access: selector.access,
+            cardinality: selector.cardinality,
+            targetRegistrationKind: selector.targetRegistrationKind
+        })
+    }
+
+    return Object.freeze({
+        selectorIndex: selector.selectorIndex,
+        consumer: cloneProviderKey(selector.consumer),
+        target: cloneProviderTarget(selector.target),
+        access: selector.access,
+        cardinality: selector.cardinality,
+        targetRegistrationKind: selector.targetRegistrationKind,
+        via: cloneProviderTarget(selector.via),
+        viaRegistrationKind: selector.viaRegistrationKind,
+        scope: selector.scope
+    })
+}
+
+function canonicalizeGraphExportProvider(provider: GraphExportProviderV2): GraphExportProviderV2 {
+    const result: {
+        key: ProviderRegistrationKey
+        label: string
+        registrationKind: 'single' | 'multi'
+        providerKind: ProviderNodeKind
+        initialization: AsyncProviderInitializationMode
+        lifetime?: ProviderLifetime
+        scopeOwned?: true
+    } = {
+        key: cloneProviderKey(provider.key),
+        label: provider.label,
+        registrationKind: provider.registrationKind,
+        providerKind: provider.providerKind,
+        initialization: provider.initialization
+    }
+
+    if (provider.lifetime !== undefined) {
+        result.lifetime = provider.lifetime
+    }
+    if (provider.scopeOwned === true) {
+        result.scopeOwned = true
+    }
+
+    return Object.freeze(result)
+}
+
+function cloneProviderKey(key: ProviderRegistrationKey): ProviderRegistrationKey {
+    if (key.visibility === 'public') {
+        return Object.freeze({
+            visibility: key.visibility,
+            tokenId: key.tokenId,
+            registrationIndex: key.registrationIndex
+        })
+    }
+
+    return Object.freeze({
+        visibility: key.visibility,
+        moduleId: key.moduleId,
+        registrationIndex: key.registrationIndex
+    })
+}
+
+function cloneProviderTarget(target: ProviderDependencyTarget): ProviderDependencyTarget {
+    if (target.visibility === 'public') {
+        return Object.freeze({ visibility: target.visibility, tokenId: target.tokenId })
+    }
+
+    return Object.freeze({
+        visibility: target.visibility,
+        moduleId: target.moduleId,
+        selectorIndex: target.selectorIndex
+    })
+}
+
+function formatProviderLabel(key: ProviderRegistrationKey): string {
+    if (key.visibility === 'public') {
+        return `provider: ${key.tokenId} #${key.registrationIndex}`
+    }
+
+    return `private provider #${key.registrationIndex} in module "${key.moduleId}"`
+}
+
+function providerKeysEqual(left: ProviderRegistrationKey, right: ProviderRegistrationKey): boolean {
+    if (left.visibility === 'public' && right.visibility === 'public') {
+        return left.tokenId === right.tokenId && left.registrationIndex === right.registrationIndex
+    }
+
+    if (left.visibility === 'private' && right.visibility === 'private') {
+        return (
+            left.moduleId === right.moduleId && left.registrationIndex === right.registrationIndex
+        )
+    }
+
+    return false
+}
+
+function isModuleGraph(
+    value: ModuleGraph | GraphExportV2Input
+): value is ModuleGraph & ProviderInspection {
+    const candidate = value as Partial<ModuleGraph>
+
+    return (
+        Array.isArray(candidate.modules) &&
+        Array.isArray(candidate.requiredPorts) &&
+        Array.isArray(candidate.capabilities) &&
+        Array.isArray(candidate.bindings) &&
+        Array.isArray(candidate.edges)
+    )
+}
+
+function createEmptyModuleGraph(): ModuleGraph {
+    return Object.freeze({
+        modules: Object.freeze([]),
+        requiredPorts: Object.freeze([]),
+        capabilities: Object.freeze([]),
+        bindings: Object.freeze([]),
+        edges: Object.freeze([])
+    })
 }
 
 function freezeStrings(values: readonly string[]): readonly string[] {

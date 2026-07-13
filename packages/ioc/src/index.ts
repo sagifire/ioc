@@ -190,6 +190,7 @@ export type {
     LifetimeBinding,
     MultiBindingBuilder,
     ProviderCycleFrame,
+    ProviderInspection,
     ProviderLifetime,
     ProviderRegistrationKind,
     ResourceDisposalErrorDetails,
@@ -237,6 +238,7 @@ export type {
 export type { Resource, ResourceDisposer } from './lifecycle'
 export {
     GRAPH_EXPORT_SCHEMA_VERSION,
+    GRAPH_EXPORT_SCHEMA_VERSION_V2,
     createGraphExportDocument,
     renderGraphExportDot,
     renderGraphExportMermaid,
@@ -262,8 +264,18 @@ export type {
     GraphExportCapabilityV1,
     GraphExportDocument,
     GraphExportDocumentV1,
+    GraphExportDocumentV2,
     GraphExportEdgeV1,
     GraphExportGraphV1,
+    GraphExportGraphV2,
     GraphExportModuleV1,
-    GraphExportRequiredPortV1
+    GraphExportProviderCoverageV2,
+    GraphExportProviderDependencyEdgeV2,
+    GraphExportProviderDependencySelectorV2,
+    GraphExportProviderOwnershipEdgeV2,
+    GraphExportProviderV2,
+    GraphExportRequiredPortV1,
+    GraphExportV1Options,
+    GraphExportV2Input,
+    GraphExportV2Options
 } from './graph-export'

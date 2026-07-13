@@ -181,7 +181,7 @@
 
 - [x] **[Done]** [TASK-07.13-0106-stage-18-extreme-agent-complexity-lifetime-metadata-provider-edge-foundation](TASK-07.13-0106-stage-18-extreme-agent-complexity-lifetime-metadata-provider-edge-foundation/index.md) - Shared lifetime metadata, canonical provider identity і normalized provider-edge foundation.
 - [x] **[Done]** [TASK-07.13-0107-stage-18-extreme-agent-complexity-lifetime-static-validation-coverage-diagnostics](TASK-07.13-0107-stage-18-extreme-agent-complexity-lifetime-static-validation-coverage-diagnostics/index.md) - Static validation, coverage, diagnostics і opt-in enforcement modes.
-- [ ] **[Backlog]** [TASK-07.13-0108-stage-18-extreme-agent-complexity-lifetime-scope-inspection-graph-export-v2](TASK-07.13-0108-stage-18-extreme-agent-complexity-lifetime-scope-inspection-graph-export-v2/index.md) - Scope-effective validation, inspection і opt-in graph export v2.
+- [x] **[Done]** [TASK-07.13-0108-stage-18-extreme-agent-complexity-lifetime-scope-inspection-graph-export-v2](TASK-07.13-0108-stage-18-extreme-agent-complexity-lifetime-scope-inspection-graph-export-v2/index.md) - Scope-effective validation, inspection і opt-in graph export v2.
 - [ ] **[Backlog]** [TASK-07.13-0109-stage-18-extreme-agent-complexity-lifetime-testing-dsl-docs-adoption](TASK-07.13-0109-stage-18-extreme-agent-complexity-lifetime-testing-dsl-docs-adoption/index.md) - Testing helpers, DSL parity, docs, adoption і staged enforcement.
 - [ ] **[Backlog]** [TASK-07.13-0110-stage-18-extreme-agent-complexity-lifetime-shared-foundation-audit-handoff](TASK-07.13-0110-stage-18-extreme-agent-complexity-lifetime-shared-foundation-audit-handoff/index.md) - Lifetime/shared-foundation audit and stabilization handoff without version/publish action.
 

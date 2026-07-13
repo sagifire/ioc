@@ -1,5 +1,6 @@
 import type { Token } from './tokens'
 import { SagifireIocError } from './diagnostics'
+import { providerRegistrationKeysEqual } from './provider-identity'
 import type { ProviderRegistrationIdentity, ProviderRegistrationKey } from './provider-identity'
 
 export type ProviderDependencyCardinality = 'single' | 'multi'
@@ -43,6 +44,7 @@ export interface NormalizedProviderNode {
     readonly providerKind: ProviderNodeKind
     readonly lifetime: 'singleton' | 'transient' | 'scoped' | undefined
     readonly initialization: 'lazy' | 'eager'
+    readonly scopeOwned?: true
 }
 
 export type NormalizedProviderDependencySelector =
@@ -284,6 +286,12 @@ export interface ProviderGraphRegistrationDescriptor {
     readonly dependencies: readonly ProviderDependencyDeclaration[] | undefined
 }
 
+export interface ScopeEffectiveProviderRegistration {
+    readonly tokenId: string
+    readonly registrationKind: 'single' | 'multi'
+    readonly count: number
+}
+
 export function createNormalizedProviderGraphSnapshot(
     registrations: ReadonlyMap<
         string,
@@ -398,6 +406,171 @@ export function createNormalizedProviderGraphSnapshot(
         providerCoverage: Object.freeze(providerCoverage),
         coverage
     })
+}
+
+export function createScopeEffectiveProviderGraphSnapshot(
+    baseSnapshot: NormalizedProviderGraphSnapshot,
+    localRegistrations: readonly ScopeEffectiveProviderRegistration[]
+): NormalizedProviderGraphSnapshot {
+    if (localRegistrations.length === 0) {
+        return baseSnapshot
+    }
+
+    const localTargets = new Map<
+        string,
+        {
+            readonly registrationKind: 'single' | 'multi'
+            readonly keys: readonly ProviderRegistrationKey[]
+        }
+    >()
+    const localNodes: NormalizedProviderNode[] = []
+    const localCoverage: NormalizedProviderCoverage[] = []
+    const localOwnershipEdges: NormalizedProviderOwnershipEdge[] = []
+
+    for (const localRegistration of localRegistrations) {
+        const firstRegistrationIndex = getNextPublicRegistrationIndex(
+            baseSnapshot.nodes,
+            localRegistration.tokenId
+        )
+        const keys: ProviderRegistrationKey[] = []
+
+        for (let index = 0; index < localRegistration.count; index += 1) {
+            const key = Object.freeze({
+                visibility: 'public' as const,
+                tokenId: localRegistration.tokenId,
+                registrationIndex: firstRegistrationIndex + index
+            })
+
+            keys.push(key)
+            localNodes.push(
+                Object.freeze({
+                    key,
+                    registrationKind: localRegistration.registrationKind,
+                    providerKind: 'value' as const,
+                    lifetime: 'scoped' as const,
+                    initialization: 'lazy' as const,
+                    scopeOwned: true as const
+                })
+            )
+            localCoverage.push(Object.freeze({ provider: key, coverage: 'not-applicable' }))
+            localOwnershipEdges.push(Object.freeze({ provider: key, owner: 'scope' }))
+        }
+
+        localTargets.set(
+            localRegistration.tokenId,
+            Object.freeze({
+                registrationKind: localRegistration.registrationKind,
+                keys: Object.freeze(keys)
+            })
+        )
+    }
+
+    const selectors = baseSnapshot.selectors.map((selector) => {
+        const consumer = baseSnapshot.nodes.find((node) => {
+            return providerRegistrationKeysEqual(node.key, selector.consumer)
+        })
+        const consumerUsesScopeTargets = consumer?.lifetime !== 'singleton'
+        const targetKind =
+            selector.access === 'deferred' || consumerUsesScopeTargets
+                ? getScopeEffectiveTargetKind(selector.target, localTargets)
+                : undefined
+
+        if (selector.access === 'instance') {
+            return Object.freeze({
+                ...selector,
+                targetRegistrationKind: targetKind ?? selector.targetRegistrationKind
+            })
+        }
+
+        const viaKind = consumerUsesScopeTargets
+            ? getScopeEffectiveTargetKind(selector.via, localTargets)
+            : undefined
+
+        return Object.freeze({
+            ...selector,
+            targetRegistrationKind: targetKind ?? selector.targetRegistrationKind,
+            viaRegistrationKind: viaKind ?? selector.viaRegistrationKind
+        })
+    })
+    const dependencyEdges: NormalizedProviderDependencyEdge[] = []
+
+    for (const selector of selectors) {
+        const baseEdges = baseSnapshot.dependencyEdges.filter((edge) => {
+            return (
+                edge.selectorIndex === selector.selectorIndex &&
+                providerRegistrationKeysEqual(edge.consumer, selector.consumer)
+            )
+        })
+        const consumer = baseSnapshot.nodes.find((node) => {
+            return providerRegistrationKeysEqual(node.key, selector.consumer)
+        })
+        const localTarget =
+            selector.target.visibility === 'public'
+                ? localTargets.get(selector.target.tokenId)
+                : undefined
+        const usesScopeTargets =
+            selector.access === 'deferred' || consumer?.lifetime !== 'singleton'
+
+        if (!usesScopeTargets || localTarget === undefined) {
+            dependencyEdges.push(...baseEdges)
+            continue
+        }
+
+        if (localTarget.registrationKind === 'multi') {
+            dependencyEdges.push(...baseEdges)
+        }
+
+        for (const dependency of localTarget.keys) {
+            dependencyEdges.push(
+                Object.freeze({
+                    selectorIndex: selector.selectorIndex,
+                    consumer: selector.consumer,
+                    dependency,
+                    access: selector.access
+                })
+            )
+        }
+    }
+
+    return Object.freeze({
+        nodes: Object.freeze([...baseSnapshot.nodes, ...localNodes]),
+        selectors: Object.freeze(selectors),
+        dependencyEdges: Object.freeze(dependencyEdges),
+        ownershipEdges: Object.freeze([...baseSnapshot.ownershipEdges, ...localOwnershipEdges]),
+        providerCoverage: Object.freeze([...baseSnapshot.providerCoverage, ...localCoverage]),
+        coverage: baseSnapshot.coverage
+    })
+}
+
+function getNextPublicRegistrationIndex(
+    nodes: readonly NormalizedProviderNode[],
+    tokenId: string
+): number {
+    let nextIndex = 0
+
+    for (const node of nodes) {
+        if (node.key.visibility === 'public' && node.key.tokenId === tokenId) {
+            nextIndex = Math.max(nextIndex, node.key.registrationIndex + 1)
+        }
+    }
+
+    return nextIndex
+}
+
+function getScopeEffectiveTargetKind(
+    target: ProviderDependencyTarget,
+    localTargets: ReadonlyMap<
+        string,
+        {
+            readonly registrationKind: 'single' | 'multi'
+        }
+    >
+): ProviderTargetRegistrationKind | undefined {
+    if (target.visibility === 'private') {
+        return undefined
+    }
+
+    return localTargets.get(target.tokenId)?.registrationKind
 }
 
 function createSelector(

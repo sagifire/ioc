@@ -111,8 +111,8 @@ describe('graph export v1', () => {
         }
 
         expect(() => {
-            serializeUnknown({ ...document, schemaVersion: '2' })
-        }).toThrow('Unsupported graph export schema: sagifire.ioc.graph@2')
+            serializeUnknown({ ...document, schemaVersion: '3' })
+        }).toThrow('Unsupported graph export schema: sagifire.ioc.graph@3')
         expect(() => {
             serializeUnknown({ ...document, schema: 'other.graph' })
         }).toThrow('Unsupported graph export schema: other.graph@1')
@@ -134,6 +134,14 @@ describe('graph export v1', () => {
                         message: secret
                     }
                 ]
+            },
+            providerGraph: {
+                nodes: [],
+                selectors: [],
+                dependencyEdges: [],
+                ownershipEdges: [],
+                providerCoverage: [],
+                coverage: 'complete'
             },
             providerRegistrations: []
         }
@@ -365,13 +373,13 @@ describe('graph export text renderers', () => {
 
     test('rejects unsupported schemas consistently and returns text only', () => {
         const document = createGraphExportDocument(createRendererGraph())
-        const unknown = { ...document, schemaVersion: '2' } as unknown as GraphExportDocument
+        const unknown = { ...document, schemaVersion: '3' } as unknown as GraphExportDocument
 
         expect(() => renderGraphExportDot(unknown)).toThrow(
-            'Unsupported graph export schema: sagifire.ioc.graph@2'
+            'Unsupported graph export schema: sagifire.ioc.graph@3'
         )
         expect(() => renderGraphExportMermaid(unknown)).toThrow(
-            'Unsupported graph export schema: sagifire.ioc.graph@2'
+            'Unsupported graph export schema: sagifire.ioc.graph@3'
         )
         expectTypeOf(renderGraphExportDot(document)).toEqualTypeOf<string>()
         expectTypeOf(renderGraphExportMermaid(document)).toEqualTypeOf<string>()

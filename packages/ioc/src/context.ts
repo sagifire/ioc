@@ -1,5 +1,12 @@
 import { SagifireIocError } from './diagnostics'
+import type { LifetimeValidationReport } from './lifetime-validation'
+import type { NormalizedProviderGraphSnapshot } from './provider-metadata'
 import type { Token } from './tokens'
+
+export interface ProviderInspection {
+    readonly providerGraph: NormalizedProviderGraphSnapshot
+    readonly lifetimeValidation?: LifetimeValidationReport
+}
 
 export interface Scope {
     get<TValue>(token: Token<TValue>): TValue
@@ -7,6 +14,7 @@ export interface Scope {
     getAll<TValue>(token: Token<TValue>): TValue[]
     getAllAsync<TValue>(token: Token<TValue>): Promise<TValue[]>
     getAsync<TValue>(token: Token<TValue>): Promise<TValue>
+    inspect(): ProviderInspection
     createChildScope(options?: CreateScopeOptions): Scope
     withChildScope<TValue>(callback: ScopeCallback<TValue>): Promise<TValue>
     withChildScope<TValue>(

@@ -1,7 +1,13 @@
 import type { Resource, ResourceDisposer } from './lifecycle'
 import type { Token } from './tokens'
 import { DuplicateScopeLocalValueError, InvalidScopeError, ScopeDisposedError } from './context'
-import type { CreateScopeOptions, Scope, ScopeCallback, ScopeLocalValue } from './context'
+import type {
+    CreateScopeOptions,
+    ProviderInspection,
+    Scope,
+    ScopeCallback,
+    ScopeLocalValue
+} from './context'
 import { SagifireIocError } from './diagnostics'
 import {
     LifetimeValidationError,
@@ -29,14 +35,17 @@ import type {
 } from './provider-identity'
 import {
     createNormalizedProviderGraphSnapshot,
+    createScopeEffectiveProviderGraphSnapshot,
     createProviderDependencyDeclarations,
     providerGraphSnapshotBridge
 } from './provider-metadata'
 import type {
+    NormalizedProviderGraphSnapshot,
     ProviderDependencyDeclaration,
     ProviderDependencyOptions,
     ProviderGraphSnapshotAwareRuntime,
-    ProviderNodeKind
+    ProviderNodeKind,
+    ScopeEffectiveProviderRegistration
 } from './provider-metadata'
 
 export {
@@ -49,6 +58,7 @@ export {
 export type {
     CreateScopeOptions,
     InvalidScopeReason,
+    ProviderInspection,
     Scope,
     ScopeCallback,
     ScopeLocalValue,
@@ -206,6 +216,7 @@ export interface ContainerRuntime {
     withScope<TValue>(options: CreateScopeOptions, callback: ScopeCallback<TValue>): Promise<TValue>
     getAsync<TValue>(token: Token<TValue>): Promise<TValue>
     tryGetAsync<TValue>(token: Token<TValue>): Promise<TValue | undefined>
+    inspect(): ProviderInspection
     dispose(): Promise<void>
 }
 
@@ -895,6 +906,7 @@ interface ScopeState {
     readonly pendingScopedResources: Set<Promise<unknown>>
     readonly childScopes: ScopeState[]
     readonly parent: ScopeState | undefined
+    readonly inspection: ProviderInspection
     disposed: boolean
     disposePromise: Promise<void> | undefined
 }
@@ -1851,7 +1863,8 @@ async function createRuntime(
         }
 
         const nextStack = [...stack, providerFrame]
-        const context = createResolutionContext(nextStack, scopeState)
+        const resolutionScopeState = provider.lifetime === 'singleton' ? undefined : scopeState
+        const context = createResolutionContext(nextStack, resolutionScopeState)
         const value = provider.execution.create(context)
 
         if (provider.lifetime === 'singleton') {
@@ -1894,7 +1907,7 @@ async function createRuntime(
                 return provider.cache.promise
             }
 
-            const pending = initializeAsyncProvider(provider, stack, scopeState)
+            const pending = initializeAsyncProvider(provider, stack, undefined)
                 .then((value) => {
                     provider.cache = {
                         state: 'ready',
@@ -2562,7 +2575,13 @@ async function createRuntime(
         assertScopeIsActive(parentState, 'create child scope')
         assertRuntimeIsActive('create child scope')
 
-        const childState = createScopeState(options, registrations, parentState)
+        const childState = createScopeState(
+            options,
+            registrations,
+            parentState,
+            providerGraphSnapshot,
+            lifetimeValidationOptions
+        )
 
         parentState.childScopes.push(childState)
 
@@ -2658,6 +2677,10 @@ async function createRuntime(
                 return resolveRequiredAsync(token, [], scopeState)
             },
 
+            inspect(): ProviderInspection {
+                return scopeState.inspection
+            },
+
             createChildScope(options?: CreateScopeOptions): Scope {
                 return createChildScopeForState(scopeState, options)
             },
@@ -2675,7 +2698,15 @@ async function createRuntime(
     const createScope = (options?: CreateScopeOptions): Scope => {
         assertRuntimeIsActive('create scope')
 
-        return createScopeObject(createScopeState(options, registrations, undefined))
+        return createScopeObject(
+            createScopeState(
+                options,
+                registrations,
+                undefined,
+                providerGraphSnapshot,
+                lifetimeValidationOptions
+            )
+        )
     }
 
     function withScope<TValue>(callback: ScopeCallback<TValue>): Promise<TValue>
@@ -2743,6 +2774,10 @@ async function createRuntime(
 
         tryGetAsync<TValue>(token: Token<TValue>): Promise<TValue | undefined> {
             return resolveOptionalAsync(token, [], undefined)
+        },
+
+        inspect(): ProviderInspection {
+            return createProviderInspection(providerGraphSnapshot, lifetimeValidation)
         },
 
         dispose(): Promise<void> {
@@ -2889,7 +2924,9 @@ async function initializeEagerSingletonProviders(
 function createScopeState(
     options: CreateScopeOptions | undefined,
     registrations: ReadonlyMap<string, ProviderRegistration>,
-    parent: ScopeState | undefined
+    parent: ScopeState | undefined,
+    baseProviderGraphSnapshot: NormalizedProviderGraphSnapshot,
+    lifetimeValidationOptions: LifetimeValidationOptions | undefined
 ): ScopeState {
     const localSingles = new Map<string, unknown>()
     const localMultis = new Map<string, unknown[]>()
@@ -2980,6 +3017,19 @@ function createScopeState(
         }
     }
 
+    const effectiveProviderGraphSnapshot = createScopeEffectiveProviderGraphSnapshot(
+        baseProviderGraphSnapshot,
+        collectEffectiveScopeLocalRegistrations(localSingles, localMultis, parent)
+    )
+    const lifetimeValidation = validateProviderLifetimes(
+        effectiveProviderGraphSnapshot,
+        lifetimeValidationOptions
+    )
+
+    if (lifetimeValidation.blocked) {
+        throw new LifetimeValidationError(lifetimeValidation)
+    }
+
     return {
         localSingles,
         localMultis,
@@ -2988,9 +3038,64 @@ function createScopeState(
         pendingScopedResources: new Set(),
         childScopes: [],
         parent,
+        inspection: createProviderInspection(effectiveProviderGraphSnapshot, lifetimeValidation),
         disposed: false,
         disposePromise: undefined
     }
+}
+
+function collectEffectiveScopeLocalRegistrations(
+    localSingles: ReadonlyMap<string, unknown>,
+    localMultis: ReadonlyMap<string, readonly unknown[]>,
+    parent: ScopeState | undefined
+): readonly ScopeEffectiveProviderRegistration[] {
+    const lineage: {
+        readonly localSingles: ReadonlyMap<string, unknown>
+        readonly localMultis: ReadonlyMap<string, readonly unknown[]>
+    }[] = []
+    let currentParent = parent
+
+    while (currentParent !== undefined) {
+        lineage.unshift(currentParent)
+        currentParent = currentParent.parent
+    }
+
+    lineage.push({ localSingles, localMultis })
+
+    const effectiveSingles = new Map<string, true>()
+    const effectiveMultiCounts = new Map<string, number>()
+
+    for (const layer of lineage) {
+        for (const tokenId of layer.localSingles.keys()) {
+            effectiveSingles.set(tokenId, true)
+        }
+
+        for (const [tokenId, values] of layer.localMultis) {
+            effectiveMultiCounts.set(
+                tokenId,
+                (effectiveMultiCounts.get(tokenId) ?? 0) + values.length
+            )
+        }
+    }
+
+    return Object.freeze([
+        ...[...effectiveSingles.keys()].map((tokenId) => {
+            return Object.freeze({ tokenId, registrationKind: 'single' as const, count: 1 })
+        }),
+        ...[...effectiveMultiCounts].map(([tokenId, count]) => {
+            return Object.freeze({ tokenId, registrationKind: 'multi' as const, count })
+        })
+    ])
+}
+
+function createProviderInspection(
+    providerGraph: NormalizedProviderGraphSnapshot,
+    lifetimeValidation: LifetimeValidationReport
+): ProviderInspection {
+    return Object.freeze({
+        providerGraph,
+        ...(lifetimeValidation.mode === 'off' ? {} : { lifetimeValidation })
+    })
 }
 
 function findScopeLocalKind(scopeState: ScopeState, tokenId: string): ScopeLocalKind | undefined {

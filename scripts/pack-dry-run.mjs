@@ -362,6 +362,7 @@ function createRuntimeSmokeSource() {
     DuplicateSingleCapabilityError,
     GetAllUsedForSingleTokenError,
     GetUsedForMultiTokenError,
+    GRAPH_EXPORT_SCHEMA_VERSION_V2,
     InvalidComposerMultiBindingError,
     RequiredMultiCapabilityMissingError,
     RequiredPortCardinalityMismatchError,
@@ -426,8 +427,21 @@ const moduleDefinition = defineModule({
 })
 const composedRuntime = await createComposer().use(moduleDefinition).compose()
 const graphJson = serializeGraphExport(createGraphExportDocument(composedRuntime.inspect()))
+const graphV2 = createGraphExportDocument(composedRuntime.inspect(), { schemaVersion: '2' })
+const graphJsonV2 = serializeGraphExport(graphV2)
 assertGraphExportSnapshot(composedRuntime.inspect(), graphJson)
 assertIncludes(graphJson, '"schemaVersion": "1"', 'graph export root and subpath exports')
+assertEqual(
+    graphV2.schemaVersion,
+    GRAPH_EXPORT_SCHEMA_VERSION_V2,
+    'graph export v2 root type and constant exports'
+)
+assertIncludes(graphJsonV2, '"providers"', 'graph export v2 provider projection')
+assertEqual(
+    composedRuntime.inspect().providerGraph.nodes.length,
+    1,
+    'runtime provider inspection export'
+)
 assertIncludes(
     renderGraphExportDot(createGraphExportDocument(composedRuntime.inspect())),
     'digraph "SagifireIocGraph"',
@@ -723,10 +737,13 @@ function createTypeSmokeSource() {
     add,
     contributionToken,
     createContainer,
+    createGraphExportDocument,
     multiToken,
     token,
     type ContainerRuntime,
     type DiagnosticReport,
+    type GraphExportDocumentV2,
+    type ProviderInspection,
     type ContributionToken,
     type ModuleCardinality,
     type MultiToken,
@@ -752,6 +769,13 @@ container.bind(valueToken).toValue('value')
 
 async function createRuntime(): Promise<ContainerRuntime> {
     return container.freeze()
+}
+
+async function createProviderInspectionDocument(): Promise<GraphExportDocumentV2> {
+    const runtime = await createRuntime()
+    const inspection: ProviderInspection = runtime.inspect()
+
+    return createGraphExportDocument(inspection, { schemaVersion: '2' })
 }
 
 const composer: Composer = createComposer()
@@ -805,6 +829,7 @@ void formatted
 void requestContext
 void testRuntime
 void createRuntime
+void createProviderInspectionDocument
 `
 }
 

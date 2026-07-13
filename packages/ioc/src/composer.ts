@@ -12,6 +12,7 @@ import {
     type LifetimeBinding,
     type MultiBindingBuilder,
     type ProviderLifetime,
+    type ProviderInspection,
     type ProviderRegistrationKind,
     type Resource,
     type ResolutionContext,
@@ -21,7 +22,6 @@ import {
 } from './container'
 import { SagifireIocError, diagnosticFromError } from './diagnostics'
 import type { Diagnostic, DiagnosticReport } from './diagnostics'
-import { getLifetimeValidationReport } from './lifetime-validation'
 import type { LifetimeValidationOptions, LifetimeValidationReport } from './lifetime-validation'
 import {
     createPrivateProviderRegistrationIdentity,
@@ -34,6 +34,7 @@ import {
     providerGraphSnapshotBridge
 } from './provider-metadata'
 import type {
+    NormalizedProviderGraphSnapshot,
     ProviderDependencyOptions,
     ProviderDependencyTarget,
     ProviderGraphSnapshotAwareRuntime
@@ -419,6 +420,7 @@ export interface RuntimeInspection extends ModuleGraph {
     readonly graph: ModuleGraph
     readonly validation: DiagnosticReport
     readonly lifetimeValidation?: LifetimeValidationReport
+    readonly providerGraph: NormalizedProviderGraphSnapshot
     readonly providerRegistrations: readonly ProviderRegistrationSummary[]
 }
 
@@ -1857,7 +1859,7 @@ function createRuntimeInspection(
     bindings: readonly ComposerBindingRecord[],
     multiBindings: readonly ComposerMultiBindingRecord[],
     access: CompositionAccessModel,
-    lifetimeValidation: LifetimeValidationReport
+    providerInspection: ProviderInspection
 ): RuntimeInspection {
     const graph = createModuleGraph(modules, bindings, multiBindings)
 
@@ -1869,7 +1871,10 @@ function createRuntimeInspection(
         edges: graph.edges,
         graph,
         validation: validateComposer(modules, bindings, multiBindings),
-        ...(lifetimeValidation.mode === 'off' ? {} : { lifetimeValidation }),
+        ...(providerInspection.lifetimeValidation === undefined
+            ? {}
+            : { lifetimeValidation: providerInspection.lifetimeValidation }),
+        providerGraph: providerInspection.providerGraph,
         providerRegistrations: createProviderRegistrationSummaries(modules, access)
     })
 }
@@ -3491,7 +3496,7 @@ function createComposedRuntime(
         bindings,
         multiBindings,
         access,
-        getLifetimeValidationReport(containerRuntime)
+        containerRuntime.inspect()
     )
 
     function withScope<TValue>(callback: ScopeCallback<TValue>): Promise<TValue>
@@ -3640,6 +3645,10 @@ function createComposedScope(containerScope: Scope, access: CompositionAccessMod
             return containerScope.getAsync(
                 resolvePublicSingleCapabilityToken(resolutionToken, access, 'getAsync')
             )
+        },
+
+        inspect(): ProviderInspection {
+            return containerScope.inspect()
         },
 
         createChildScope(options?: CreateScopeOptions): Scope {

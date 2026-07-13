@@ -316,6 +316,7 @@ function createCountingRuntime(runtime: ContainerRuntime): CountingRuntime {
         withScope: runtime.withScope,
         getAsync: runtime.getAsync,
         tryGetAsync: runtime.tryGetAsync,
+        inspect: runtime.inspect,
         dispose: runtime.dispose,
         getCreatedScopeCount(): number {
             return createdScopes
