@@ -1,7 +1,10 @@
 import type { Token } from './tokens'
+import { SagifireIocError } from './diagnostics'
 import type { ProviderRegistrationIdentity, ProviderRegistrationKey } from './provider-identity'
 
 export type ProviderDependencyCardinality = 'single' | 'multi'
+
+export type ProviderTargetRegistrationKind = 'single' | 'multi' | 'missing'
 
 export type ProviderDependency =
     | {
@@ -49,6 +52,7 @@ export type NormalizedProviderDependencySelector =
           readonly target: ProviderDependencyTarget
           readonly access: 'instance'
           readonly cardinality: ProviderDependencyCardinality
+          readonly targetRegistrationKind: ProviderTargetRegistrationKind
       }
     | {
           readonly selectorIndex: number
@@ -56,7 +60,9 @@ export type NormalizedProviderDependencySelector =
           readonly target: ProviderDependencyTarget
           readonly access: 'deferred'
           readonly cardinality: ProviderDependencyCardinality
+          readonly targetRegistrationKind: ProviderTargetRegistrationKind
           readonly via: ProviderDependencyTarget
+          readonly viaRegistrationKind: ProviderTargetRegistrationKind
           readonly scope: 'caller'
       }
 
@@ -91,6 +97,27 @@ export interface NormalizedProviderGraphSnapshot {
 interface ProviderDependencyReference {
     readonly lookupTokenId: string
     readonly target: ProviderDependencyTarget
+}
+
+export interface DependencyMetadataInvalidErrorDetails {
+    readonly reason: string
+    readonly dependencyIndex?: number
+    readonly field?: string
+}
+
+export class DependencyMetadataInvalidError extends SagifireIocError<DependencyMetadataInvalidErrorDetails> {
+    override readonly name = 'DependencyMetadataInvalidError'
+    override readonly code = 'SAGIFIRE_IOC_DEPENDENCY_METADATA_INVALID'
+
+    constructor(details: DependencyMetadataInvalidErrorDetails) {
+        super({
+            code: 'SAGIFIRE_IOC_DEPENDENCY_METADATA_INVALID',
+            message: 'Provider dependency metadata is structurally invalid',
+            details
+        })
+
+        Object.setPrototypeOf(this, new.target.prototype)
+    }
 }
 
 export type ProviderDependencyDeclaration =
@@ -128,6 +155,8 @@ export function mapProviderDependencyOptions(
     if (options === undefined) {
         return undefined
     }
+
+    assertProviderDependencyOptions(options)
 
     const references: {
         readonly target: ProviderDependencyReference
@@ -181,6 +210,8 @@ export function createProviderDependencyDeclarations(
     if (options === undefined) {
         return undefined
     }
+
+    assertProviderDependencyOptions(options)
 
     const bridged = options as Partial<ProviderDependencyOptionsWithReferences>
     const references = bridged[providerDependencyReferencesBridge]
@@ -312,9 +343,22 @@ export function createNormalizedProviderGraphSnapshot(
             providerCoverage.push(Object.freeze({ provider: key, coverage }))
 
             for (const [selectorIndex, declaration] of (provider.dependencies ?? []).entries()) {
-                selectors.push(createSelector(key, selectorIndex, declaration))
-
                 const targetRegistration = registrations.get(declaration.target.lookupTokenId)
+                const viaRegistration =
+                    declaration.access === 'deferred'
+                        ? registrations.get(declaration.via.lookupTokenId)
+                        : undefined
+
+                selectors.push(
+                    createSelector(
+                        key,
+                        selectorIndex,
+                        declaration,
+                        getTargetRegistrationKind(targetRegistration),
+                        getTargetRegistrationKind(viaRegistration)
+                    )
+                )
+
                 const targets = selectTargetProviders(targetRegistration, declaration.cardinality)
 
                 for (const target of targets) {
@@ -359,7 +403,9 @@ export function createNormalizedProviderGraphSnapshot(
 function createSelector(
     consumer: ProviderRegistrationKey,
     selectorIndex: number,
-    declaration: ProviderDependencyDeclaration
+    declaration: ProviderDependencyDeclaration,
+    targetRegistrationKind: ProviderTargetRegistrationKind,
+    viaRegistrationKind: ProviderTargetRegistrationKind
 ): NormalizedProviderDependencySelector {
     if (declaration.access === 'instance') {
         return Object.freeze({
@@ -367,7 +413,8 @@ function createSelector(
             consumer,
             target: declaration.target.target,
             access: declaration.access,
-            cardinality: declaration.cardinality
+            cardinality: declaration.cardinality,
+            targetRegistrationKind
         })
     }
 
@@ -377,9 +424,87 @@ function createSelector(
         target: declaration.target.target,
         access: declaration.access,
         cardinality: declaration.cardinality,
+        targetRegistrationKind,
         via: declaration.via.target,
+        viaRegistrationKind,
         scope: declaration.scope
     })
+}
+
+function getTargetRegistrationKind(
+    registration:
+        | {
+              readonly kind: 'single' | 'multi'
+          }
+        | undefined
+): ProviderTargetRegistrationKind {
+    return registration?.kind ?? 'missing'
+}
+
+function assertProviderDependencyOptions(options: ProviderDependencyOptions): void {
+    if (!isRecord(options) || !Array.isArray(options.dependencies)) {
+        throw new DependencyMetadataInvalidError({
+            reason: 'dependencies must be an array',
+            field: 'dependencies'
+        })
+    }
+
+    options.dependencies.forEach((dependency, dependencyIndex) => {
+        if (!isRecord(dependency)) {
+            throw new DependencyMetadataInvalidError({
+                reason: 'dependency must be an object',
+                dependencyIndex
+            })
+        }
+
+        assertTokenLike(dependency.token, dependencyIndex, 'token')
+
+        if (dependency.access !== 'instance' && dependency.access !== 'deferred') {
+            throw new DependencyMetadataInvalidError({
+                reason: 'access must be instance or deferred',
+                dependencyIndex,
+                field: 'access'
+            })
+        }
+
+        if (
+            dependency.cardinality !== undefined &&
+            dependency.cardinality !== 'single' &&
+            dependency.cardinality !== 'multi'
+        ) {
+            throw new DependencyMetadataInvalidError({
+                reason: 'cardinality must be single or multi',
+                dependencyIndex,
+                field: 'cardinality'
+            })
+        }
+
+        if (dependency.access === 'deferred') {
+            assertTokenLike(dependency.via, dependencyIndex, 'via')
+
+            if (dependency.scope !== 'caller') {
+                throw new DependencyMetadataInvalidError({
+                    reason: 'deferred dependency scope must be caller',
+                    dependencyIndex,
+                    field: 'scope'
+                })
+            }
+        }
+    })
+}
+
+function assertTokenLike(value: unknown, dependencyIndex: number, field: string): void {
+    if (!isRecord(value) || typeof value.id !== 'string' || value.id.length === 0) {
+        throw new DependencyMetadataInvalidError({
+            reason: `${field} must be a token`,
+            dependencyIndex,
+            field
+        })
+    }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
 function selectTargetProviders(

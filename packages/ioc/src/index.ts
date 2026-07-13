@@ -85,6 +85,7 @@ export type {
     ComposerBindingContext,
     ComposerBindingFactory,
     ComposerBindingKind,
+    ComposerOptions,
     ComposerMultiBindingBuilder,
     ComposerMultiBindingKind,
     ComposerValidationErrorDetails,
@@ -146,6 +147,8 @@ export type {
     RuntimeInspection
 } from './composer'
 export {
+    AsyncMultiProviderAccessError,
+    AsyncMultiProviderResolutionError,
     AsyncProviderAccessError,
     ContainerFrozenError,
     DuplicateScopeLocalValueError,
@@ -164,6 +167,10 @@ export {
 } from './container'
 export type {
     AsyncFactoryBinding,
+    AsyncMultiProviderAccessBlocker,
+    AsyncMultiProviderAccessErrorDetails,
+    AsyncMultiProviderResolutionErrorDetails,
+    AsyncMultiProviderResolutionPhase,
     AsyncProviderFactory,
     AsyncProviderInitializationMode,
     AsyncResourceBinding,
@@ -171,6 +178,8 @@ export type {
     BindingBuilder,
     ClassConstructor,
     ContainerBuilder,
+    ContainerMultiBindingBuilder,
+    ContainerOptions,
     ContainerRuntime,
     CreateScopeOptions,
     InvalidScopeReason,
@@ -192,6 +201,7 @@ export type {
     PublicProviderRegistrationKey
 } from './provider-identity'
 export type {
+    DependencyMetadataInvalidErrorDetails,
     NormalizedProviderCoverage,
     NormalizedProviderDependencyEdge,
     NormalizedProviderDependencySelector,
@@ -203,8 +213,19 @@ export type {
     ProviderDependencyCoverage,
     ProviderDependencyOptions,
     ProviderDependencyTarget,
+    ProviderTargetRegistrationKind,
     ProviderNodeKind
 } from './provider-metadata'
+export { DependencyMetadataInvalidError } from './provider-metadata'
+export { LifetimeValidationError } from './lifetime-validation'
+export type {
+    LifetimeValidationCoverageMode,
+    LifetimeValidationErrorDetails,
+    LifetimeValidationEvidence,
+    LifetimeValidationMode,
+    LifetimeValidationOptions,
+    LifetimeValidationReport
+} from './lifetime-validation'
 export type { Resource, ResourceDisposer } from './lifecycle'
 export {
     GRAPH_EXPORT_SCHEMA_VERSION,

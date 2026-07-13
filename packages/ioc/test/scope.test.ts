@@ -750,7 +750,7 @@ describe('container scopes', () => {
         expectScopeDisposed(rejectedScope)
     })
 
-    test('preserves Stage 7 scope type inference and does not expose async collection APIs', async () => {
+    test('preserves scope type inference and exposes async collection access', async () => {
         const container = createContainer()
         const options: CreateScopeOptions = {
             values: [scopeValue(REQUEST_ID, 'typed')],
@@ -808,7 +808,7 @@ describe('container scopes', () => {
         expect('getAsync' in runtime).toBe(true)
         expect('tryGetAsync' in runtime).toBe(true)
         expect('dispose' in runtime).toBe(true)
-        expect('getAllAsync' in scope).toBe(false)
+        expect('getAllAsync' in scope).toBe(true)
         expect('tryGetAsync' in scope).toBe(false)
     })
 })

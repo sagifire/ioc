@@ -280,6 +280,7 @@ function createCountingRuntime(runtime: ContainerRuntime): CountingRuntime {
         get: runtime.get,
         tryGet: runtime.tryGet,
         getAll: runtime.getAll,
+        getAllAsync: runtime.getAllAsync,
         createScope(options?: CreateScopeOptions): Scope {
             createdScopes += 1
 

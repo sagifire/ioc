@@ -5,6 +5,7 @@ export interface Scope {
     get<TValue>(token: Token<TValue>): TValue
     tryGet<TValue>(token: Token<TValue>): TValue | undefined
     getAll<TValue>(token: Token<TValue>): TValue[]
+    getAllAsync<TValue>(token: Token<TValue>): Promise<TValue[]>
     getAsync<TValue>(token: Token<TValue>): Promise<TValue>
     createChildScope(options?: CreateScopeOptions): Scope
     withChildScope<TValue>(callback: ScopeCallback<TValue>): Promise<TValue>

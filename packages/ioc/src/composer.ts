@@ -19,6 +19,8 @@ import {
 } from './container'
 import { SagifireIocError, diagnosticFromError } from './diagnostics'
 import type { Diagnostic, DiagnosticReport } from './diagnostics'
+import { getLifetimeValidationReport } from './lifetime-validation'
+import type { LifetimeValidationOptions, LifetimeValidationReport } from './lifetime-validation'
 import {
     createPrivateProviderRegistrationIdentity,
     setProviderRegistrationIdentity
@@ -145,6 +147,7 @@ export interface ComposerBindingContext {
     get<TValue>(token: Token<TValue>): TValue
     tryGet<TValue>(token: Token<TValue>): TValue | undefined
     getAll<TValue>(token: Token<TValue>): TValue[]
+    getAllAsync<TValue>(token: Token<TValue>): Promise<TValue[]>
     getAsync<TValue>(token: Token<TValue>): Promise<TValue>
     tryGetAsync<TValue>(token: Token<TValue>): Promise<TValue | undefined>
 }
@@ -214,10 +217,15 @@ export interface Composer {
     compose(): Promise<ComposedRuntime>
 }
 
+export interface ComposerOptions {
+    readonly lifetimeValidation?: LifetimeValidationOptions
+}
+
 export interface ComposedRuntime {
     get<TValue>(token: Token<TValue>): TValue
     tryGet<TValue>(token: Token<TValue>): TValue | undefined
     getAll<TValue>(token: Token<TValue>): TValue[]
+    getAllAsync<TValue>(token: Token<TValue>): Promise<TValue[]>
     createScope(options?: CreateScopeOptions): Scope
     withScope<TValue>(callback: ScopeCallback<TValue>): Promise<TValue>
     withScope<TValue>(options: CreateScopeOptions, callback: ScopeCallback<TValue>): Promise<TValue>
@@ -396,6 +404,7 @@ export interface ComposerInspection extends ModuleGraph {
 export interface RuntimeInspection extends ModuleGraph {
     readonly graph: ModuleGraph
     readonly validation: DiagnosticReport
+    readonly lifetimeValidation?: LifetimeValidationReport
     readonly providerRegistrations: readonly ProviderRegistrationSummary[]
 }
 
@@ -1541,10 +1550,17 @@ export function defineModule<
     return createModuleDefinition(definition, moduleId, version, setup, requires, provides)
 }
 
-export function createComposer(): Composer {
+export function createComposer(options: ComposerOptions = {}): Composer {
     const modules: ModuleDefinition[] = []
     const bindings: ComposerBindingRecord[] = []
     const multiBindings: ComposerMultiBindingRecord[] = []
+    const composerOptions: ComposerOptions = Object.freeze({
+        ...(options.lifetimeValidation === undefined
+            ? {}
+            : {
+                  lifetimeValidation: Object.freeze({ ...options.lifetimeValidation })
+              })
+    })
 
     const composer: Composer = {
         use(moduleDefinition: ModuleDefinition): Composer {
@@ -1578,11 +1594,11 @@ export function createComposer(): Composer {
         },
 
         prepare(): Promise<PreparedComposition> {
-            return prepareComposition(modules, bindings, multiBindings)
+            return prepareComposition(modules, bindings, multiBindings, composerOptions)
         },
 
         compose(): Promise<ComposedRuntime> {
-            return composeRuntime(modules, bindings, multiBindings)
+            return composeRuntime(modules, bindings, multiBindings, composerOptions)
         }
     }
 
@@ -1764,7 +1780,8 @@ function createRuntimeInspection(
     modules: readonly ModuleDefinition[],
     bindings: readonly ComposerBindingRecord[],
     multiBindings: readonly ComposerMultiBindingRecord[],
-    access: CompositionAccessModel
+    access: CompositionAccessModel,
+    lifetimeValidation: LifetimeValidationReport
 ): RuntimeInspection {
     const graph = createModuleGraph(modules, bindings, multiBindings)
 
@@ -1776,6 +1793,7 @@ function createRuntimeInspection(
         edges: graph.edges,
         graph,
         validation: validateComposer(modules, bindings, multiBindings),
+        ...(lifetimeValidation.mode === 'off' ? {} : { lifetimeValidation }),
         providerRegistrations: createProviderRegistrationSummaries(modules, access)
     })
 }
@@ -1855,9 +1873,10 @@ function createModuleGraph(
 async function prepareComposition(
     modules: readonly ModuleDefinition[],
     bindings: readonly ComposerBindingRecord[],
-    multiBindings: readonly ComposerMultiBindingRecord[]
+    multiBindings: readonly ComposerMultiBindingRecord[],
+    options: ComposerOptions
 ): Promise<PreparedComposition> {
-    const composition = await buildCompositionRuntime(modules, bindings, multiBindings)
+    const composition = await buildCompositionRuntime(modules, bindings, multiBindings, options)
 
     return createPreparedComposition(composition.modules, composition.access)
 }
@@ -1865,9 +1884,10 @@ async function prepareComposition(
 async function composeRuntime(
     modules: readonly ModuleDefinition[],
     bindings: readonly ComposerBindingRecord[],
-    multiBindings: readonly ComposerMultiBindingRecord[]
+    multiBindings: readonly ComposerMultiBindingRecord[],
+    options: ComposerOptions
 ): Promise<ComposedRuntime> {
-    const composition = await buildCompositionRuntime(modules, bindings, multiBindings)
+    const composition = await buildCompositionRuntime(modules, bindings, multiBindings, options)
 
     return createComposedRuntime(
         composition.runtime,
@@ -1881,7 +1901,8 @@ async function composeRuntime(
 async function buildCompositionRuntime(
     modules: readonly ModuleDefinition[],
     bindings: readonly ComposerBindingRecord[],
-    multiBindings: readonly ComposerMultiBindingRecord[]
+    multiBindings: readonly ComposerMultiBindingRecord[],
+    options: ComposerOptions
 ): Promise<BuiltComposition> {
     const moduleSnapshot = [...modules]
     const bindingSnapshot = [...bindings]
@@ -1896,7 +1917,11 @@ async function buildCompositionRuntime(
         throw new ComposerValidationError(staticValidation)
     }
 
-    const container = createContainer()
+    const container = createContainer(
+        options.lifetimeValidation === undefined
+            ? {}
+            : { lifetimeValidation: options.lifetimeValidation }
+    )
     const access = createCompositionAccessModel(moduleSnapshot, bindingSnapshot)
     const setupContexts: {
         readonly moduleDefinition: ModuleDefinition
@@ -2787,6 +2812,10 @@ function createLiveModuleSetupContext(
             return getActiveContext(resolutionToken).getAll(resolutionToken)
         },
 
+        async getAllAsync<TValue>(resolutionToken: Token<TValue>): Promise<TValue[]> {
+            return getActiveContext(resolutionToken).getAllAsync(resolutionToken)
+        },
+
         getAsync<TValue>(resolutionToken: Token<TValue>): Promise<TValue> {
             return getActiveContext(resolutionToken).getAsync(resolutionToken)
         },
@@ -3138,6 +3167,12 @@ function createModuleResolutionContext(
             )
         },
 
+        async getAllAsync<TValue>(resolutionToken: Token<TValue>): Promise<TValue[]> {
+            return context.getAllAsync(
+                resolveModuleAccessToken(moduleDefinition, resolutionToken, access)
+            )
+        },
+
         getAsync<TValue>(resolutionToken: Token<TValue>): Promise<TValue> {
             return context.getAsync(
                 resolveModuleAccessToken(moduleDefinition, resolutionToken, access)
@@ -3184,6 +3219,10 @@ function createComposerBindingResolutionContext(
             return context.getAll(resolveToken(resolutionToken))
         },
 
+        async getAllAsync<TValue>(resolutionToken: Token<TValue>): Promise<TValue[]> {
+            return context.getAllAsync(resolveToken(resolutionToken))
+        },
+
         getAsync<TValue>(resolutionToken: Token<TValue>): Promise<TValue> {
             return context.getAsync(resolveToken(resolutionToken))
         },
@@ -3201,7 +3240,13 @@ function createComposedRuntime(
     multiBindings: readonly ComposerMultiBindingRecord[],
     access: CompositionAccessModel
 ): ComposedRuntime {
-    const inspection = createRuntimeInspection(modules, bindings, multiBindings, access)
+    const inspection = createRuntimeInspection(
+        modules,
+        bindings,
+        multiBindings,
+        access,
+        getLifetimeValidationReport(containerRuntime)
+    )
 
     function withScope<TValue>(callback: ScopeCallback<TValue>): Promise<TValue>
     function withScope<TValue>(
@@ -3248,6 +3293,12 @@ function createComposedRuntime(
 
         getAll<TValue>(resolutionToken: Token<TValue>): TValue[] {
             return containerRuntime.getAll(
+                resolvePublicMultiCapabilityToken(resolutionToken, access)
+            )
+        },
+
+        async getAllAsync<TValue>(resolutionToken: Token<TValue>): Promise<TValue[]> {
+            return containerRuntime.getAllAsync(
                 resolvePublicMultiCapabilityToken(resolutionToken, access)
             )
         },
@@ -3329,6 +3380,12 @@ function createComposedScope(containerScope: Scope, access: CompositionAccessMod
 
         getAll<TValue>(resolutionToken: Token<TValue>): TValue[] {
             return containerScope.getAll(resolvePublicMultiCapabilityToken(resolutionToken, access))
+        },
+
+        async getAllAsync<TValue>(resolutionToken: Token<TValue>): Promise<TValue[]> {
+            return containerScope.getAllAsync(
+                resolvePublicMultiCapabilityToken(resolutionToken, access)
+            )
         },
 
         getAsync<TValue>(resolutionToken: Token<TValue>): Promise<TValue> {

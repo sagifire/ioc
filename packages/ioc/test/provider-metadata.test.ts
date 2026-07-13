@@ -65,14 +65,16 @@ describe('provider metadata foundation', () => {
                     consumer: publicKey('metadata.consumer', 0),
                     target: { visibility: 'public', tokenId: 'metadata.single' },
                     access: 'instance',
-                    cardinality: 'single'
+                    cardinality: 'single',
+                    targetRegistrationKind: 'single'
                 },
                 {
                     selectorIndex: 1,
                     consumer: publicKey('metadata.consumer', 0),
                     target: { visibility: 'public', tokenId: 'metadata.multi' },
                     access: 'instance',
-                    cardinality: 'multi'
+                    cardinality: 'multi',
+                    targetRegistrationKind: 'multi'
                 },
                 {
                     selectorIndex: 2,
@@ -80,7 +82,9 @@ describe('provider metadata foundation', () => {
                     target: { visibility: 'public', tokenId: 'metadata.empty-multi' },
                     access: 'deferred',
                     cardinality: 'multi',
+                    targetRegistrationKind: 'missing',
                     via: { visibility: 'public', tokenId: 'metadata.handle' },
+                    viaRegistrationKind: 'single',
                     scope: 'caller'
                 }
             ],

@@ -8,8 +8,8 @@ import {
     ProviderNotFoundError,
     SyncFactoryPromiseError,
     createContainer,
+    type ContainerMultiBindingBuilder,
     type ContainerRuntime,
-    type MultiBindingBuilder,
     type ProviderCycleFrame,
     type ResolutionContext
 } from '../src/container.js'
@@ -597,7 +597,7 @@ describe('container sync providers', () => {
     test('preserves multi-provider add and getAll inference', async () => {
         const container = createContainer()
 
-        expectTypeOf(container.add(PLUGINS)).toEqualTypeOf<MultiBindingBuilder<Plugin>>()
+        expectTypeOf(container.add(PLUGINS)).toEqualTypeOf<ContainerMultiBindingBuilder<Plugin>>()
 
         container.add(PLUGINS).toValue({
             name: 'typed'
@@ -608,7 +608,7 @@ describe('container sync providers', () => {
         expectTypeOf(runtime.getAll(PLUGINS)).toEqualTypeOf<Plugin[]>()
     })
 
-    test('exposes Stage 7 async APIs and does not expose async multi-provider APIs', async () => {
+    test('exposes core async multi factory and collection APIs without resource contributions', async () => {
         const container = createContainer()
         const binding = container.bind(LOGGER)
         const multiBinding = container.add(LOGGER)
@@ -618,7 +618,7 @@ describe('container sync providers', () => {
         expect('toAsyncFactory' in binding).toBe(true)
         expect('toAsyncResource' in binding).toBe(true)
         expect('toClass' in multiBinding).toBe(false)
-        expect('toAsyncFactory' in multiBinding).toBe(false)
+        expect('toAsyncFactory' in multiBinding).toBe(true)
         expect('toAsyncResource' in multiBinding).toBe(false)
         expect('getAll' in runtime).toBe(true)
         expect('getAsync' in runtime).toBe(true)
@@ -626,7 +626,7 @@ describe('container sync providers', () => {
         expect('createScope' in runtime).toBe(true)
         expect('withScope' in runtime).toBe(true)
         expect('dispose' in runtime).toBe(true)
-        expect('getAllAsync' in runtime).toBe(false)
+        expect('getAllAsync' in runtime).toBe(true)
     })
 })
 

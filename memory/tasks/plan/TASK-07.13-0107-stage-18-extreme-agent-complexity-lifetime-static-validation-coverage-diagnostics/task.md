@@ -1,6 +1,6 @@
 # TASK-07.13-0107: [EXTREME AGENT COMPLEXITY] Stage 18 lifetime static validation, coverage and diagnostics
 
-Task Status: backlog
+Task Status: done
 Type: implementation
 Created: 2026-07-13
 Agent Complexity: extreme
@@ -9,13 +9,13 @@ Current Run: RUN-001
 
 ## Поточний стан
 
-Run Status: prepared
-Progress: Task package prepared; predecessor pending.
-Acceptance: 0/12
-Blockers: TASK-0106 must be done
-Blocked Phase: activation
+Run Status: completed
+Progress: Human review схвалено; реалізацію фіналізовано без fixations.
+Acceptance: 12/12
+Blockers: none
+Blocked Phase: n/a
 Pending Decisions: none
-Next Action: Активувати лише після human-approved completion TASK-0106.
+Next Action: Перейти до coordinated successor `TASK-07.13-0101` лише за explicit командою.
 
 ## Мета
 
@@ -56,18 +56,18 @@ scope-effective substitution або global зміни `DiagnosticReport.ok`.
 
 ## Критерії приймання
 
-- [ ] TASK-0106 normalized snapshot є єдиним input validator без duplicate edge model.
-- [ ] Metadata invalidity, missing target, cardinality і deferred contract мають typed errors.
-- [ ] Кожен TASK-0097 matrix row та evidence class покрито behavioral tests.
-- [ ] Unknown/incomplete coverage ніколи не класифікується proven unsafe.
-- [ ] Default `off` не додає diagnostics або behavior changes existing metadata-free apps.
-- [ ] Unsafe severity лишається `error` у `report` і `enforce`; policy змінює лише blocking.
-- [ ] `report` не блокує capture/coverage, а `enforce` блокує proven unsafe capture.
-- [ ] Invalid explicit metadata блокує `off`, `report`, `enforce` з fixture на кожний mode.
-- [ ] Existing `DiagnosticReport.ok` semantics/consumers не змінені та мають regression gates.
-- [ ] Static validation і report inspection не виконують user factories.
-- [ ] Private sentinel відсутній у message/details/cause; full quality gates passed.
-- [ ] Scope/export/DSL/testing/docs не реалізовані; independent audit passed.
+- [x] TASK-0106 normalized snapshot є єдиним input validator без duplicate edge model.
+- [x] Metadata invalidity, missing target, cardinality і deferred contract мають typed errors.
+- [x] Кожен TASK-0097 matrix row та evidence class покрито behavioral tests.
+- [x] Unknown/incomplete coverage ніколи не класифікується proven unsafe.
+- [x] Default `off` не додає diagnostics або behavior changes existing metadata-free apps.
+- [x] Unsafe severity лишається `error` у `report` і `enforce`; policy змінює лише blocking.
+- [x] `report` не блокує capture/coverage, а `enforce` блокує proven unsafe capture.
+- [x] Invalid explicit metadata блокує `off`, `report`, `enforce` з fixture на кожний mode.
+- [x] Existing `DiagnosticReport.ok` semantics/consumers не змінені та мають regression gates.
+- [x] Static validation і report inspection не виконують user factories.
+- [x] Private sentinel відсутній у message/details/cause; full quality gates passed.
+- [x] Scope/export/DSL/testing/docs не реалізовані; independent audit passed.
 
 ## Пов'язана пам'ять
 
@@ -81,7 +81,7 @@ scope-effective substitution або global зміни `DiagnosticReport.ok`.
 
 ## Прогони
 
-- [RUN-001](RUN-001/index.md) - prepared - Static validation/coverage/diagnostics.
+- [RUN-001](RUN-001/index.md) - completed - Static validation/coverage/diagnostics approved.
 
 ## Дослідження
 
@@ -97,15 +97,14 @@ scope-effective substitution або global зміни `DiagnosticReport.ok`.
 
 ## Human Review
 
-Status: not-requested
-Requested: n/a
-Reviewed: n/a
-Approval Source: n/a
+Status: approved
+Requested: 2026-07-13
+Reviewed: approved 2026-07-13
+Approval Source: user message: "approve"
 
 ## Фінальний результат
 
-Completed: pending
-Final Run: pending
-Summary: pending
-Residual Risks: pending
-
+Completed: 2026-07-13
+Final Run: RUN-001
+Summary: Static lifetime validation, coverage, stable diagnostics і opt-in rollout policy реалізовано та схвалено.
+Residual Risks: Metadata лишається auditable declaration; scope-effective validation відкладено до TASK-0108.

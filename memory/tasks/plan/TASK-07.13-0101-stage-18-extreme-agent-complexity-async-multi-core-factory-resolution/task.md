@@ -1,6 +1,6 @@
 # TASK-07.13-0101: [EXTREME AGENT COMPLEXITY] Stage 18 async multi core factory resolution
 
-Task Status: backlog
+Task Status: done
 Type: implementation
 Created: 2026-07-13
 Agent Complexity: extreme
@@ -9,13 +9,13 @@ Current Run: RUN-001
 
 ## Поточний стан
 
-Run Status: prepared
-Progress: Task package prepared; predecessor pending.
-Acceptance: 0/12
-Blockers: TASK-0100 and TASK-0107 must be done
-Blocked Phase: activation
-Pending Decisions: exact public async collection accessor name, signatures and overloads
-Next Action: Активувати лише після human-approved completion TASK-0100 і TASK-0107.
+Run Status: completed
+Progress: Human review схвалено; реалізацію та exact public accessor contract фіналізовано.
+Acceptance: 12/12
+Blockers: none
+Blocked Phase: n/a
+Pending Decisions: none
+Next Action: Перейти до successor `TASK-07.13-0102` лише за explicit командою.
 
 ## Мета
 
@@ -61,18 +61,18 @@ Next Action: Активувати лише після human-approved completion 
 
 ## Критерії приймання
 
-- [ ] Exact accessor name/signatures/overloads мають explicit review decision і type contract.
-- [ ] Core `add()` підтримує async factory contributions з approved lifetime/initialization options.
-- [ ] Container runtime, Scope і ResolutionContext expose one consistent async collection operation.
-- [ ] Sync `getAll()` eligibility precedence виконується до earlier transient contribution execution.
-- [ ] Eager singleton async multi contributions init-яться під час freeze і sync-readable після нього.
-- [ ] Explicit async resolution sequential fail-fast у per-token order і не запускає later contributions after failure.
-- [ ] Caller отримує fresh full array або rejection; partial array і collection cache відсутні.
-- [ ] Singleton/scoped in-flight, cache reset/reuse і transient retry лишаються per-provider.
-- [ ] Missing valid multi повертає fresh resolved empty array; single/multi mismatch typed.
-- [ ] Cycle/private-safe diagnostics reuse TASK-0100 foundation і preserve/sanitize cause correctly.
-- [ ] Compile/type, truth-table, focused і full core quality gates passed.
-- [ ] Resources, composer, DSL/testing helpers і parallel scheduler не реалізовані; independent audit passed.
+- [x] Exact accessor name/signatures/overloads мають explicit review decision і type contract.
+- [x] Core `add()` підтримує async factory contributions з approved lifetime/initialization options.
+- [x] Container runtime, Scope і ResolutionContext expose one consistent async collection operation.
+- [x] Sync `getAll()` eligibility precedence виконується до earlier transient contribution execution.
+- [x] Eager singleton async multi contributions init-яться під час freeze і sync-readable після нього.
+- [x] Explicit async resolution sequential fail-fast у per-token order і не запускає later contributions after failure.
+- [x] Caller отримує fresh full array або rejection; partial array і collection cache відсутні.
+- [x] Singleton/scoped in-flight, cache reset/reuse і transient retry лишаються per-provider.
+- [x] Missing valid multi повертає fresh resolved empty array; single/multi mismatch typed.
+- [x] Cycle/private-safe diagnostics reuse TASK-0100 foundation і preserve/sanitize cause correctly.
+- [x] Compile/type, truth-table, focused і full core quality gates passed.
+- [x] Resources, composer registration/inspection, DSL/testing helpers і parallel scheduler не реалізовані; independent audit passed.
 
 ## Пов'язана пам'ять
 
@@ -87,7 +87,7 @@ Next Action: Активувати лише після human-approved completion 
 
 ## Прогони
 
-- [RUN-001](RUN-001/index.md) - prepared - Core async multi factory resolution.
+- [RUN-001](RUN-001/index.md) - review-ready - Core async multi factory resolution.
 
 ## Дослідження
 
@@ -103,14 +103,14 @@ Next Action: Активувати лише після human-approved completion 
 
 ## Human Review
 
-Status: not-requested
-Requested: n/a
-Reviewed: n/a
-Approval Source: n/a
+Status: approved
+Requested: 2026-07-13
+Reviewed: approved 2026-07-13
+Approval Source: user message: "approve"
 
 ## Фінальний результат
 
-Completed: pending
-Final Run: pending
-Summary: pending
-Residual Risks: pending
+Completed: 2026-07-13
+Final Run: RUN-001
+Summary: Core async multi factory registration і explicit sequential collection resolution реалізовано та схвалено.
+Residual Risks: Sequential latency і external factory side effects лишаються intentional; composer integration відкладено до TASK-0102.
