@@ -2,7 +2,7 @@
 
 ## Призначення
 
-Prepared run для async multi resource ownership, failure cleanup і disposal semantics.
+Completed run для async multi resource ownership, failure cleanup і disposal semantics.
 
 ## Папки
 
@@ -11,3 +11,4 @@ Prepared run для async multi resource ownership, failure cleanup і disposal 
 ## Файли
 
 - [context.md](context.md) - immutable після activation context snapshot.
+- [result.md](result.md) - execution, verification, self-review та audit result.

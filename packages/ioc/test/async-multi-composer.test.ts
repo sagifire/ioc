@@ -3,9 +3,11 @@ import { describe, expect, expectTypeOf, test } from 'vitest'
 import {
     AsyncMultiProviderAccessError,
     AsyncMultiProviderResolutionError,
+    AsyncResourceCleanupError,
     GetAllUsedForSingleTokenError,
     GetUsedForMultiTokenError,
     ProviderCycleError,
+    ResourceDisposalError,
     createComposer,
     createGraphExportDocument,
     defineModule,
@@ -14,6 +16,7 @@ import {
     serializeGraphExport,
     token,
     type AsyncFactoryBinding,
+    type AsyncResourceBinding,
     type ComposerMultiBindingBuilder,
     type ContainerMultiBindingBuilder
 } from '../src/index.js'
@@ -386,6 +389,14 @@ describe('async multi composer integration', () => {
 
         composer.add(source).toAsyncFactory(async () => `root-${(factoryCalls += 1)}`)
         composer
+            .add(source)
+            .toAsyncResource(async () => {
+                factoryCalls += 1
+
+                return { value: 'root-resource' }
+            })
+            .singleton()
+        composer
             .adapt(target)
             .from(source)
             .using((value) => value)
@@ -395,6 +406,13 @@ describe('async multi composer integration', () => {
             return (
                 edge.edgeKind === 'adapter-source' &&
                 edge.sourceProvider?.providerKind === 'multi-binding'
+            )
+        })
+        const resourceSourceEdge = document.graph.edges.find((edge) => {
+            return (
+                edge.edgeKind === 'adapter-source' &&
+                edge.sourceProvider?.providerKind === 'multi-binding' &&
+                edge.sourceProvider.bindingKind === 'async-resource'
             )
         })
         const json = serializeGraphExport(document)
@@ -412,11 +430,206 @@ describe('async multi composer integration', () => {
                 registrationIndex: 1
             }
         })
+        expect(resourceSourceEdge).toMatchObject({
+            edgeKind: 'adapter-source',
+            sourceProvider: {
+                source: 'composition-root',
+                providerKind: 'multi-binding',
+                bindingKind: 'async-resource',
+                cardinality: 'multi',
+                registrationIndex: 2
+            }
+        })
         expect(json).toContain('"bindingKind": "async-factory"')
+        expect(json).toContain('"bindingKind": "async-resource"')
         expect(json).not.toContain('providerRegistrations')
         expect(json).not.toMatch(/"(?:cache|inFlight|pending|ready|failed)"/u)
         expect(serializeGraphExport(document)).toBe(json)
         expect(renderGraphExportDot(document)).toBe(dot)
         expect(renderGraphExportMermaid(document)).toBe(mermaid)
+    })
+
+    test('supports module and composition-root resources with declarative inspection', async () => {
+        const values = token<string>('async-multi-composer.resource.values')
+        const disposed: string[] = []
+        const module = defineModule({
+            id: 'async-multi-resource-module',
+            provides: [{ token: values, kind: 'custom', cardinality: 'multi' }],
+            setup(context): void {
+                const binding = context.add(values).toAsyncResource(async () => ({
+                    value: 'module',
+                    dispose(): void {
+                        disposed.push('module')
+                    }
+                }))
+
+                expectTypeOf(binding).toEqualTypeOf<AsyncResourceBinding>()
+                binding.singleton()
+            }
+        })
+        const composer = createComposer().use(module)
+        const rootBinding = composer.add(values).toAsyncResource(async () => ({
+            value: 'root',
+            dispose(): void {
+                disposed.push('root')
+            }
+        }))
+
+        expectTypeOf(rootBinding).toEqualTypeOf<AsyncResourceBinding>()
+        rootBinding.singleton()
+
+        const runtime = await composer.compose()
+
+        await expect(runtime.getAllAsync(values)).resolves.toEqual(['module', 'root'])
+        expect(runtime.inspect().providerRegistrations).toEqual([
+            {
+                source: 'module',
+                moduleId: 'async-multi-resource-module',
+                tokenId: values.id,
+                capabilityKind: 'custom',
+                cardinality: 'multi',
+                visibility: 'exported',
+                registrationKind: 'multi',
+                providers: [
+                    {
+                        providerKind: 'async-resource',
+                        registrationIndex: 0,
+                        lifetime: 'singleton',
+                        initialization: 'lazy'
+                    }
+                ]
+            },
+            {
+                source: 'composition-root',
+                tokenId: values.id,
+                capabilityKind: 'custom',
+                cardinality: 'multi',
+                visibility: 'exported',
+                registrationKind: 'multi',
+                providers: [
+                    {
+                        providerKind: 'async-resource',
+                        registrationIndex: 1,
+                        lifetime: 'singleton',
+                        initialization: 'lazy'
+                    }
+                ]
+            }
+        ])
+        const exportJson = serializeGraphExport(createGraphExportDocument(composer.getGraph()))
+
+        expect(exportJson).toContain('"source": "composition-root"')
+        expect(exportJson).not.toContain('providerRegistrations')
+        expect(exportJson).not.toMatch(/"(?:cache|inFlight|pending|ready|failed)"/u)
+
+        await runtime.dispose()
+        expect(disposed).toEqual(['root', 'module'])
+    })
+
+    test('keeps private multi resource disposer failures private-safe', async () => {
+        const privateValues = token<string>('PRIVATE_RESOURCE_SENTINEL_TOKEN')
+        const output = token<string>('async-multi-composer.resource.private-output')
+        const privateCause = new Error('PRIVATE_RESOURCE_SENTINEL_CAUSE')
+        const module = defineModule({
+            id: 'async-multi-resource-private-module',
+            provides: [{ token: output, kind: 'custom' }],
+            setup(context): void {
+                context
+                    .add(privateValues)
+                    .toAsyncResource(async () => ({
+                        value: 'private',
+                        dispose(): void {
+                            throw privateCause
+                        }
+                    }))
+                    .singleton()
+                context
+                    .bind(output)
+                    .toAsyncFactory(async ({ getAllAsync }) => {
+                        return (await getAllAsync(privateValues)).join(',')
+                    })
+                    .singleton()
+            }
+        })
+        const runtime = await createComposer().use(module).compose()
+
+        await expect(runtime.getAsync(output)).resolves.toBe('private')
+
+        let error: unknown
+
+        try {
+            await runtime.dispose()
+        } catch (caught) {
+            error = caught
+        }
+
+        expect(error).toBeInstanceOf(ResourceDisposalError)
+
+        if (error instanceof ResourceDisposalError) {
+            expect(error.failures).toHaveLength(1)
+            expect(error.failures[0]?.provider).toMatchObject({
+                kind: 'provider',
+                visibility: 'private',
+                moduleId: 'async-multi-resource-private-module',
+                registrationKind: 'multi'
+            })
+            expect(error.failures[0]?.cause).toBeUndefined()
+            expect(error.cause).toBeUndefined()
+            expect(JSON.stringify(error)).not.toContain(privateValues.id)
+            expect(JSON.stringify(error)).not.toContain(privateCause.message)
+            expect(error.message).not.toContain(privateValues.id)
+        }
+    })
+
+    test('sanitizes private eager primary and cleanup failures together', async () => {
+        const privateValues = token<string>('PRIVATE_EAGER_RESOURCE_TOKEN')
+        const primaryFailure = new Error('PRIVATE_EAGER_PRIMARY_CAUSE')
+        const cleanupFailure = new Error('PRIVATE_EAGER_CLEANUP_CAUSE')
+        const module = defineModule({
+            id: 'async-multi-resource-private-eager-module',
+            provides: [],
+            setup(context): void {
+                context
+                    .add(privateValues)
+                    .toAsyncResource(async () => ({
+                        value: 'acquired',
+                        dispose(): void {
+                            throw cleanupFailure
+                        }
+                    }))
+                    .singleton()
+                    .eager()
+                context
+                    .add(privateValues)
+                    .toAsyncResource(async () => {
+                        throw primaryFailure
+                    })
+                    .singleton()
+                    .eager()
+            }
+        })
+
+        let error: unknown
+
+        try {
+            await createComposer().use(module).compose()
+        } catch (caught) {
+            error = caught
+        }
+
+        expect(error).toBeInstanceOf(AsyncResourceCleanupError)
+
+        if (error instanceof AsyncResourceCleanupError) {
+            expect(error.cause).toBeInstanceOf(AsyncMultiProviderResolutionError)
+            expect((error.cause as AsyncMultiProviderResolutionError).cause).toBeUndefined()
+            expect(error.cleanupError.cause).toBeUndefined()
+            expect(error.cleanupError.failures[0]?.cause).toBeUndefined()
+
+            const serialized = JSON.stringify(error)
+
+            expect(serialized).not.toContain(privateValues.id)
+            expect(serialized).not.toContain(primaryFailure.message)
+            expect(serialized).not.toContain(cleanupFailure.message)
+        }
     })
 })

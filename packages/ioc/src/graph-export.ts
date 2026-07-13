@@ -113,7 +113,7 @@ export interface GraphExportAdapterMultiBindingProviderV1 {
     readonly source: 'composition-root'
     readonly providerKind: 'multi-binding'
     readonly tokenId: string
-    readonly bindingKind: 'value' | 'factory' | 'async-factory'
+    readonly bindingKind: 'value' | 'factory' | 'async-factory' | 'async-resource'
     readonly cardinality: 'multi'
     readonly registrationIndex: number
 }

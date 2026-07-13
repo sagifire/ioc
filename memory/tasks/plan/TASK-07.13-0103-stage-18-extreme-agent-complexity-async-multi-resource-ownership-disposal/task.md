@@ -1,6 +1,6 @@
 # TASK-07.13-0103: [EXTREME AGENT COMPLEXITY] Stage 18 async multi resource ownership and disposal
 
-Task Status: backlog
+Task Status: done
 Type: implementation
 Created: 2026-07-13
 Agent Complexity: extreme
@@ -9,13 +9,13 @@ Current Run: RUN-001
 
 ## Поточний стан
 
-Run Status: prepared
-Progress: Task package prepared; predecessor pending.
-Acceptance: 0/12
-Blockers: TASK-0102 must be done
-Blocked Phase: activation
-Pending Decisions: cleanup secondary-error representation if existing typed error contract is insufficient
-Next Action: Активувати лише після human-approved completion TASK-0102.
+Run Status: completed
+Progress: Human review approved; task and RUN-001 finalized.
+Acceptance: 12/12
+Blockers: none
+Blocked Phase: n/a
+Pending Decisions: none
+Next Action: Proceed to successor only by explicit user command.
 
 ## Мета
 
@@ -73,18 +73,18 @@ partial failure, pending resolution та cleanup failure.
 
 ## Критерії приймання
 
-- [ ] Core, module setup і composer multi object API підтримують async resources через погоджені factory-slice surfaces.
-- [ ] Singleton resource owner є runtime, scoped resource owner є effective scope, а transient registration typed-rejected.
-- [ ] Eager singleton і lazy singleton/scoped contributions резолвляться sequential fail-fast без collection-owned state.
-- [ ] Lazy partial failure не повертає partial array і лишає успішні resources у owner cache/ledger для reuse та disposal.
-- [ ] Failed eager freeze не публікує candidate runtime й очищує всі acquired candidate resources exactly once.
-- [ ] Runtime/scope disposal використовує reverse actual owner-ledger acquisition order без brittle global registration-order guarantee.
-- [ ] Dispose-during-pending не завершується до безпечної координації acquisition та не залишає late unowned resource.
-- [ ] Concurrent collection/direct resolution deduplicates singleton/scoped work per provider та реєструє/dispose-ить resource exactly once.
-- [ ] Failed provider cache reset/retry і successful cache reuse відповідають existing per-provider lifecycle semantics.
-- [ ] Primary resolution/disposal і cleanup failures мають typed readable private-safe attribution без втрати cause boundary.
-- [ ] Eager/lazy, partial failure, retry, concurrency, pending disposal, privacy та full quality gates passed.
-- [ ] Parallel scheduler, transactional side-effect rollback, async scope-local resources, testing package і DSL не реалізовані; independent audit passed.
+- [x] Core, module setup і composer multi object API підтримують async resources через погоджені factory-slice surfaces.
+- [x] Singleton resource owner є runtime, scoped resource owner є effective scope, а transient registration typed-rejected.
+- [x] Eager singleton і lazy singleton/scoped contributions резолвляться sequential fail-fast без collection-owned state.
+- [x] Lazy partial failure не повертає partial array і лишає успішні resources у owner cache/ledger для reuse та disposal.
+- [x] Failed eager freeze не публікує candidate runtime й очищує всі acquired candidate resources exactly once.
+- [x] Runtime/scope disposal використовує reverse actual owner-ledger acquisition order без brittle global registration-order guarantee.
+- [x] Dispose-during-pending не завершується до безпечної координації acquisition та не залишає late unowned resource.
+- [x] Concurrent collection/direct resolution deduplicates singleton/scoped work per provider та реєструє/dispose-ить resource exactly once.
+- [x] Failed provider cache reset/retry і successful cache reuse відповідають existing per-provider lifecycle semantics.
+- [x] Primary resolution/disposal і cleanup failures мають typed readable private-safe attribution без втрати cause boundary.
+- [x] Eager/lazy, partial failure, retry, concurrency, pending disposal, privacy та full quality gates passed.
+- [x] Parallel scheduler, transactional side-effect rollback, async scope-local resources, testing package і DSL не реалізовані; independent audit passed.
 
 ## Пов'язана пам'ять
 
@@ -101,7 +101,7 @@ partial failure, pending resolution та cleanup failure.
 
 ## Прогони
 
-- [RUN-001](RUN-001/index.md) - prepared - Async multi resource ownership and disposal.
+- [RUN-001](RUN-001/index.md) - completed - Async multi resource ownership and disposal.
 
 ## Дослідження
 
@@ -119,14 +119,14 @@ partial failure, pending resolution та cleanup failure.
 
 ## Human Review
 
-Status: not-requested
-Requested: n/a
-Reviewed: n/a
-Approval Source: n/a
+Status: approved
+Requested: 2026-07-13
+Reviewed: approved 2026-07-14
+Approval Source: user message: `approve`
 
 ## Фінальний результат
 
-Completed: pending
-Final Run: pending
-Summary: pending
-Residual Risks: pending
+Completed: 2026-07-14
+Final Run: RUN-001
+Summary: Async multi resource ownership, pending-acquisition coordination, reverse owner-led disposal and typed cleanup failures implemented and approved.
+Residual Risks: Sequential collection latency, non-transactional user factory side effects and existing first-owner-error aggregation remain intentional boundaries.

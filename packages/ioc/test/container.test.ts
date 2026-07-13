@@ -608,7 +608,7 @@ describe('container sync providers', () => {
         expectTypeOf(runtime.getAll(PLUGINS)).toEqualTypeOf<Plugin[]>()
     })
 
-    test('exposes core async multi factory and collection APIs without resource contributions', async () => {
+    test('exposes core async multi factory, resource and collection APIs', async () => {
         const container = createContainer()
         const binding = container.bind(LOGGER)
         const multiBinding = container.add(LOGGER)
@@ -619,7 +619,7 @@ describe('container sync providers', () => {
         expect('toAsyncResource' in binding).toBe(true)
         expect('toClass' in multiBinding).toBe(false)
         expect('toAsyncFactory' in multiBinding).toBe(true)
-        expect('toAsyncResource' in multiBinding).toBe(false)
+        expect('toAsyncResource' in multiBinding).toBe(true)
         expect('getAll' in runtime).toBe(true)
         expect('getAsync' in runtime).toBe(true)
         expect('tryGetAsync' in runtime).toBe(true)

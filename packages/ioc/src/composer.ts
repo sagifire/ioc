@@ -13,6 +13,7 @@ import {
     type MultiBindingBuilder,
     type ProviderLifetime,
     type ProviderRegistrationKind,
+    type Resource,
     type ResolutionContext,
     type Scope,
     type ScopeCallback,
@@ -142,7 +143,7 @@ export type CapabilityProviderSource = 'module' | 'composition-root'
 
 export type ProviderRegistrationSource = 'module' | 'composition-root'
 
-export type ComposerMultiBindingKind = 'value' | 'factory' | 'async-factory'
+export type ComposerMultiBindingKind = 'value' | 'factory' | 'async-factory' | 'async-resource'
 
 export interface ComposerBindingContext {
     get<TValue>(token: Token<TValue>): TValue
@@ -158,6 +159,10 @@ export type ComposerBindingFactory<TValue> = (context: ComposerBindingContext) =
 export type ComposerAsyncBindingFactory<TValue> = (
     context: ComposerBindingContext
 ) => Awaitable<TValue>
+
+export type ComposerAsyncResourceFactory<TValue> = (
+    context: ComposerBindingContext
+) => Awaitable<Resource<TValue>>
 
 export type ComposerAdapterSource =
     | Token<unknown>
@@ -198,6 +203,10 @@ export interface ComposerMultiBindingBuilder<TValue> {
         factory: ComposerAsyncBindingFactory<TValue>,
         options?: ProviderDependencyOptions
     ): AsyncFactoryBinding
+    toAsyncResource(
+        factory: ComposerAsyncResourceFactory<TValue>,
+        options?: ProviderDependencyOptions
+    ): AsyncResourceBinding
 }
 
 export interface ComposerAdapterBuilder<TValue> {
@@ -1399,6 +1408,13 @@ type ComposerMultiBindingRecord =
           readonly providerRegistration: ProviderRegistrationRecord
       }
     | {
+          readonly kind: 'async-resource'
+          readonly token: Token<unknown>
+          readonly factory: ComposerAsyncResourceFactory<unknown>
+          readonly dependencyOptions: ProviderDependencyOptions | undefined
+          readonly providerRegistration: ProviderRegistrationRecord
+      }
+    | {
           readonly kind: 'factory'
           readonly token: Token<unknown>
           readonly factory: ComposerBindingFactory<unknown>
@@ -1720,6 +1736,27 @@ function createComposerMultiBindingBuilder<TValue>(
             })
 
             return createDeferredAsyncFactoryBinding(providerRegistration)
+        },
+
+        toAsyncResource(
+            factory: ComposerAsyncResourceFactory<TValue>,
+            options?: ProviderDependencyOptions
+        ): AsyncResourceBinding {
+            const providerRegistration = createProviderRegistrationRecord(
+                'async-resource',
+                undefined,
+                'lazy'
+            )
+
+            multiBindings.push({
+                kind: 'async-resource',
+                token: bindingToken,
+                factory,
+                dependencyOptions: options,
+                providerRegistration
+            })
+
+            return createDeferredAsyncResourceBinding(providerRegistration)
         }
     }
 }
@@ -2672,12 +2709,18 @@ function applyComposerMultiBindings(
             }, binding.dependencyOptions)
 
             applyDeferredProviderLifetime(lifetime, binding.providerRegistration.lifetime)
-        } else {
+        } else if (binding.kind === 'async-factory') {
             const asyncBinding = builder.toAsyncFactory((context) => {
                 return binding.factory(createComposerBindingResolutionContext(context, access))
             }, binding.dependencyOptions)
 
             applyDeferredAsyncFactoryConfiguration(asyncBinding, binding.providerRegistration)
+        } else {
+            const resourceBinding = builder.toAsyncResource((context) => {
+                return binding.factory(createComposerBindingResolutionContext(context, access))
+            }, binding.dependencyOptions)
+
+            applyDeferredAsyncResourceConfiguration(resourceBinding, binding.providerRegistration)
         }
 
         recordCompositionRootProvider(binding.token, binding.providerRegistration, access)
@@ -3068,6 +3111,31 @@ function createModuleMultiBindingBuilder<TValue>(
             )
 
             return createInspectableAsyncFactoryBinding(binding, providerRegistration)
+        },
+
+        toAsyncResource(factory, options): AsyncResourceBinding {
+            applyModuleProviderIdentity(
+                builder,
+                allocateProviderIdentity(originalToken, registration.visibility, 'multi')
+            )
+            const providerRegistration = createProviderRegistrationRecord(
+                'async-resource',
+                undefined,
+                'lazy'
+            )
+            const binding = builder.toAsyncResource((context) => {
+                return factory(createModuleResolutionContext(moduleDefinition, context, access))
+            }, mapDependencyOptions(options))
+
+            recordModuleProvider(
+                moduleDefinition,
+                originalToken,
+                'multi',
+                providerRegistration,
+                access
+            )
+
+            return createInspectableAsyncResourceBinding(binding, providerRegistration)
         }
     }
 }
@@ -3150,11 +3218,64 @@ function createDeferredAsyncFactoryBinding(
     return binding
 }
 
+function createDeferredAsyncResourceBinding(
+    providerRegistration: ProviderRegistrationRecord
+): AsyncResourceBinding {
+    const binding: AsyncResourceBinding = {
+        singleton(): AsyncResourceBinding {
+            providerRegistration.lifetime = 'singleton'
+
+            return binding
+        },
+
+        scoped(): AsyncResourceBinding {
+            providerRegistration.lifetime = 'scoped'
+
+            return binding
+        },
+
+        eager(): AsyncResourceBinding {
+            providerRegistration.initialization = 'eager'
+
+            return binding
+        },
+
+        lazy(): AsyncResourceBinding {
+            providerRegistration.initialization = 'lazy'
+
+            return binding
+        }
+    }
+
+    return binding
+}
+
 function applyDeferredAsyncFactoryConfiguration(
     binding: AsyncFactoryBinding,
     providerRegistration: ProviderRegistrationRecord
 ): void {
     applyDeferredProviderLifetime(binding, providerRegistration.lifetime)
+
+    if (providerRegistration.initialization === 'eager') {
+        binding.eager()
+
+        return
+    }
+
+    if (providerRegistration.initialization === 'lazy') {
+        binding.lazy()
+    }
+}
+
+function applyDeferredAsyncResourceConfiguration(
+    binding: AsyncResourceBinding,
+    providerRegistration: ProviderRegistrationRecord
+): void {
+    if (providerRegistration.lifetime === 'singleton') {
+        binding.singleton()
+    } else if (providerRegistration.lifetime === 'scoped') {
+        binding.scoped()
+    }
 
     if (providerRegistration.initialization === 'eager') {
         binding.eager()

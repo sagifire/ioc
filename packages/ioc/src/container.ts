@@ -169,6 +169,10 @@ export interface ContainerMultiBindingBuilder<TValue> extends MultiBindingBuilde
         factory: AsyncProviderFactory<TValue>,
         options?: ProviderDependencyOptions
     ): AsyncFactoryBinding
+    toAsyncResource(
+        factory: AsyncResourceFactory<TValue>,
+        options?: ProviderDependencyOptions
+    ): AsyncResourceBinding
 }
 
 export interface LifetimeBinding {
@@ -686,6 +690,89 @@ export class InvalidProviderLifecycleError extends SagifireIocError<{
     }
 }
 
+export type ResourceDisposalPhase = 'runtime-dispose' | 'scope-dispose' | 'eager-freeze-cleanup'
+
+export interface ResourceDisposalFailureDetails {
+    readonly provider: Extract<ProviderCycleFrame, { readonly kind: 'provider' }>
+}
+
+export interface ResourceDisposalFailure extends ResourceDisposalFailureDetails {
+    readonly cause: unknown | undefined
+}
+
+export interface ResourceDisposalErrorDetails {
+    readonly phase: ResourceDisposalPhase
+    readonly failures: readonly ResourceDisposalFailureDetails[]
+}
+
+export class ResourceDisposalError extends SagifireIocError<ResourceDisposalErrorDetails> {
+    override readonly name = 'ResourceDisposalError'
+    override readonly code = 'SAGIFIRE_IOC_RESOURCE_DISPOSAL'
+    readonly phase: ResourceDisposalPhase
+    readonly failures: readonly ResourceDisposalFailure[]
+
+    constructor(phase: ResourceDisposalPhase, failures: readonly ResourceDisposalFailure[]) {
+        const frozenFailures = Object.freeze([...failures])
+        const failureDetails = Object.freeze(
+            frozenFailures.map((failure) => Object.freeze({ provider: failure.provider }))
+        )
+        const firstPublicCause = frozenFailures.find((failure) => {
+            return failure.provider.visibility === 'public' && failure.cause !== undefined
+        })?.cause
+        const publicCauseMessage =
+            firstPublicCause instanceof Error ? `: ${firstPublicCause.message}` : ''
+
+        super({
+            code: 'SAGIFIRE_IOC_RESOURCE_DISPOSAL',
+            message:
+                `Failed to dispose ${failures.length} resource(s) during ${phase}` +
+                publicCauseMessage,
+            details: {
+                phase,
+                failures: failureDetails
+            },
+            cause: firstPublicCause
+        })
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.phase = phase
+        this.failures = frozenFailures
+    }
+}
+
+export interface AsyncResourceCleanupErrorDetails {
+    readonly phase: 'eager-freeze'
+    readonly cleanupFailures: readonly ResourceDisposalFailureDetails[]
+}
+
+export class AsyncResourceCleanupError extends SagifireIocError<AsyncResourceCleanupErrorDetails> {
+    override readonly name = 'AsyncResourceCleanupError'
+    override readonly code = 'SAGIFIRE_IOC_ASYNC_RESOURCE_CLEANUP'
+    readonly cleanupError: ResourceDisposalError
+
+    constructor(primaryError: unknown, cleanupError: ResourceDisposalError) {
+        super({
+            code: 'SAGIFIRE_IOC_ASYNC_RESOURCE_CLEANUP',
+            message:
+                'Async provider initialization failed and candidate resource cleanup also failed',
+            details: {
+                phase: 'eager-freeze',
+                cleanupFailures: Object.freeze(
+                    cleanupError.failures.map((failure) => {
+                        return Object.freeze({ provider: failure.provider })
+                    })
+                )
+            },
+            cause: primaryError
+        })
+
+        Object.setPrototypeOf(this, new.target.prototype)
+
+        this.cleanupError = cleanupError
+    }
+}
+
 type ProviderCache<TValue> =
     | {
           readonly state: 'empty'
@@ -789,13 +876,15 @@ interface MultiProviderRegistration {
 type ProviderRegistration = SingleProviderRegistration | MultiProviderRegistration
 
 interface ResourceDisposerRecord {
-    readonly tokenId: string
+    readonly provider: Extract<ProviderCycleFrame, { readonly kind: 'provider' }>
     readonly dispose: ResourceDisposer
 }
 
 interface RuntimeState {
     disposed: boolean
+    disposePromise: Promise<void> | undefined
     readonly singletonResourceDisposers: ResourceDisposerRecord[]
+    readonly pendingSingletonResources: Set<Promise<unknown>>
 }
 
 interface ScopeState {
@@ -803,9 +892,11 @@ interface ScopeState {
     readonly localMultis: ReadonlyMap<string, readonly unknown[]>
     readonly scopedCache: Map<ProviderRecord<unknown>, ProviderCache<unknown>>
     readonly scopedResourceDisposers: ResourceDisposerRecord[]
+    readonly pendingScopedResources: Set<Promise<unknown>>
     readonly childScopes: ScopeState[]
     readonly parent: ScopeState | undefined
     disposed: boolean
+    disposePromise: Promise<void> | undefined
 }
 
 interface NormalizedScopeLocalValue {
@@ -1184,6 +1275,38 @@ function createMultiBindingBuilder<TValue>(
                 addMultiProvider(registrations, provider)
 
                 return createAsyncFactoryBinding(tokenId, provider, assertMutable)
+            },
+
+            toAsyncResource(
+                factory: AsyncResourceFactory<TValue>,
+                options?: ProviderDependencyOptions
+            ): AsyncResourceBinding {
+                assertMutable(
+                    `register multi-provider async resource contribution for token "${tokenId}"`
+                )
+                const dependencies = createProviderDependencyDeclarations(options)
+
+                const provider: ProviderRecord<TValue> = {
+                    tokenId,
+                    identity: takeIdentity(),
+                    providerKind: 'async-resource',
+                    dependencies,
+                    lifetime: undefined,
+                    initialization: 'lazy',
+                    cache: {
+                        state: 'empty'
+                    },
+                    execution: {
+                        kind: 'async-resource',
+                        create(context): Awaitable<Resource<TValue>> {
+                            return factory(context)
+                        }
+                    }
+                }
+
+                addMultiProvider(registrations, provider)
+
+                return createAsyncResourceBinding(tokenId, provider, assertMutable)
             }
         }
 
@@ -1516,7 +1639,9 @@ async function createRuntime(
 
     const runtimeState: RuntimeState = {
         disposed: false,
-        singletonResourceDisposers: []
+        disposePromise: undefined,
+        singletonResourceDisposers: [],
+        pendingSingletonResources: new Set()
     }
 
     const assertRuntimeIsActive = (action: string): void => {
@@ -1868,9 +1993,22 @@ async function createRuntime(
         }
 
         if (provider.execution.kind === 'async-resource') {
-            const resource = await provider.execution.create(context)
+            const resourceResult = provider.execution.create(context)
+            const initialization = Promise.resolve(resourceResult).then((resource) => {
+                return registerResourceValue(provider, resource, scopeState)
+            })
+            const pendingResources =
+                provider.lifetime === 'singleton'
+                    ? runtimeState.pendingSingletonResources
+                    : scopeState?.pendingScopedResources
 
-            return registerResourceValue(provider, resource, scopeState)
+            pendingResources?.add(initialization)
+
+            try {
+                return await initialization
+            } finally {
+                pendingResources?.delete(initialization)
+            }
         }
 
         const value = provider.execution.create(context)
@@ -1900,13 +2038,13 @@ async function createRuntime(
         }
 
         const disposerRecord: ResourceDisposerRecord = {
-            tokenId: provider.tokenId,
+            provider: createProviderResolutionFrame(provider.identity).diagnostic,
             dispose
         }
 
         if (provider.lifetime === 'singleton') {
             if (runtimeState.disposed) {
-                await dispose()
+                runtimeState.singletonResourceDisposers.push(disposerRecord)
 
                 throw new RuntimeDisposedError(
                     `finish initializing resource for token "${provider.tokenId}"`
@@ -1932,13 +2070,13 @@ async function createRuntime(
             }
 
             if (scopeState.disposed) {
-                await dispose()
+                scopeState.scopedResourceDisposers.push(disposerRecord)
 
                 throw new ScopeDisposedError()
             }
 
             if (runtimeState.disposed) {
-                await dispose()
+                scopeState.scopedResourceDisposers.push(disposerRecord)
 
                 throw new RuntimeDisposedError(
                     `finish initializing resource for token "${provider.tokenId}"`
@@ -2300,26 +2438,38 @@ async function createRuntime(
     }
 
     const disposeResourceRecords = async (
-        resourceDisposers: ResourceDisposerRecord[]
+        resourceDisposers: ResourceDisposerRecord[],
+        phase: ResourceDisposalPhase
     ): Promise<void> => {
         const records = [...resourceDisposers].reverse()
 
         resourceDisposers.length = 0
 
-        let firstError: unknown
+        const failures: ResourceDisposalFailure[] = []
 
         for (const record of records) {
             try {
                 await record.dispose()
-            } catch (error) {
-                if (firstError === undefined) {
-                    firstError = error
-                }
+            } catch (error: unknown) {
+                failures.push(
+                    Object.freeze({
+                        provider: record.provider,
+                        cause: record.provider.visibility === 'public' ? error : undefined
+                    })
+                )
             }
         }
 
-        if (firstError !== undefined) {
-            throw firstError
+        if (failures.length !== 0) {
+            throw new ResourceDisposalError(phase, failures)
+        }
+    }
+
+    const settlePendingResourceInitializations = async (
+        pendingResources: Set<Promise<unknown>>
+    ): Promise<void> => {
+        while (pendingResources.size !== 0) {
+            await Promise.allSettled([...pendingResources])
         }
     }
 
@@ -2360,34 +2510,49 @@ async function createRuntime(
     }
 
     const disposeScopeState = async (scopeState: ScopeState): Promise<void> => {
+        if (scopeState.disposePromise !== undefined) {
+            return scopeState.disposePromise
+        }
+
         if (scopeState.disposed) {
             return
         }
 
         scopeState.disposed = true
+        const disposePromise = (async (): Promise<void> => {
+            let firstError: unknown
 
-        let firstError: unknown
-
-        try {
-            await disposeChildScopes(scopeState)
-        } catch (error) {
-            firstError = error
-        }
-
-        try {
-            await disposeResourceRecords(scopeState.scopedResourceDisposers)
-        } catch (error) {
-            if (firstError === undefined) {
+            try {
+                await disposeChildScopes(scopeState)
+            } catch (error) {
                 firstError = error
             }
-        } finally {
-            scopeState.scopedCache.clear()
-            removeChildScope(scopeState)
-        }
 
-        if (firstError !== undefined) {
-            throw firstError
-        }
+            await settlePendingResourceInitializations(scopeState.pendingScopedResources)
+
+            try {
+                await disposeResourceRecords(scopeState.scopedResourceDisposers, 'scope-dispose')
+            } catch (error) {
+                if (firstError === undefined) {
+                    firstError = error
+                }
+            } finally {
+                scopeState.scopedCache.clear()
+                removeChildScope(scopeState)
+            }
+
+            if (firstError !== undefined) {
+                throw firstError
+            }
+        })()
+
+        const trackedDisposePromise = disposePromise.finally(() => {
+            scopeState.disposePromise = undefined
+        })
+
+        scopeState.disposePromise = trackedDisposePromise
+
+        return trackedDisposePromise
     }
 
     const createChildScopeForState = (
@@ -2580,13 +2745,31 @@ async function createRuntime(
             return resolveOptionalAsync(token, [], undefined)
         },
 
-        async dispose(): Promise<void> {
+        dispose(): Promise<void> {
+            if (runtimeState.disposePromise !== undefined) {
+                return runtimeState.disposePromise
+            }
+
             if (runtimeState.disposed) {
-                return
+                return Promise.resolve()
             }
 
             runtimeState.disposed = true
-            await disposeResourceRecords(runtimeState.singletonResourceDisposers)
+            const disposePromise = (async (): Promise<void> => {
+                await settlePendingResourceInitializations(runtimeState.pendingSingletonResources)
+                await disposeResourceRecords(
+                    runtimeState.singletonResourceDisposers,
+                    'runtime-dispose'
+                )
+            })()
+
+            const trackedDisposePromise = disposePromise.finally(() => {
+                runtimeState.disposePromise = undefined
+            })
+
+            runtimeState.disposePromise = trackedDisposePromise
+
+            return trackedDisposePromise
         }
     }
 
@@ -2594,11 +2777,19 @@ async function createRuntime(
         await initializeEagerSingletonProviders(registrations, resolveProviderAsync)
     } catch (error) {
         runtimeState.disposed = true
+        await settlePendingResourceInitializations(runtimeState.pendingSingletonResources)
 
         try {
-            await disposeResourceRecords(runtimeState.singletonResourceDisposers)
-        } catch {
-            // Preserve the initialization failure for the rejected freeze attempt.
+            await disposeResourceRecords(
+                runtimeState.singletonResourceDisposers,
+                'eager-freeze-cleanup'
+            )
+        } catch (cleanupError: unknown) {
+            if (cleanupError instanceof ResourceDisposalError) {
+                throw new AsyncResourceCleanupError(error, cleanupError)
+            }
+
+            throw cleanupError
         }
 
         throw error
@@ -2794,9 +2985,11 @@ function createScopeState(
         localMultis,
         scopedCache: new Map<ProviderRecord<unknown>, ProviderCache<unknown>>(),
         scopedResourceDisposers: [],
+        pendingScopedResources: new Set(),
         childScopes: [],
         parent,
-        disposed: false
+        disposed: false,
+        disposePromise: undefined
     }
 }
 

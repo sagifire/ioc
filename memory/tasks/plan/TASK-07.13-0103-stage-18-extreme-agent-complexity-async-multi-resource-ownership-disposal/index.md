@@ -6,7 +6,7 @@
 
 ## Папки
 
-- [RUN-001](RUN-001/index.md) - prepared implementation run.
+- [RUN-001](RUN-001/index.md) - completed implementation run.
 
 ## Файли
 
