@@ -19,6 +19,7 @@ Async APIs are available on the immutable runtime, scopes and provider factory c
 ```ts
 const value = await runtime.getAsync(TOKEN)
 const maybeValue = await runtime.tryGetAsync(TOKEN)
+const values = await runtime.getAllAsync(MULTI_TOKEN)
 
 const scope = runtime.createScope()
 const scopedValue = await scope.getAsync(SCOPED_TOKEN)
@@ -27,8 +28,9 @@ const scopedValue = await scope.getAsync(SCOPED_TOKEN)
 `tryGetAsync()` returns `undefined` only for a truly missing single provider. It does not
 hide provider errors, lifecycle errors or disposal errors.
 
-There is no `getAllAsync()` or async multi-provider contribution API in the current core
-surface. Multi-providers use sync `add().toValue()` and `add().toFactory()`.
+Multi-provider collections use `getAllAsync()`. `add()` supports values, sync factories,
+async factories and async resources. `getAll()` remains synchronous and performs a full
+declarative eligibility preflight before it executes any contribution.
 
 ## Sync Providers Through Async APIs
 
@@ -131,6 +133,96 @@ Async factory lifetimes:
 Singleton and scoped lazy initialization is de-duplicated while it is in flight. Concurrent
 requests for the same singleton provider share one pending initialization. Concurrent
 requests for the same scoped provider share one pending initialization within that scope.
+
+## Async Multi-Provider Collections
+
+Register async collection contributions through the same object API used by sync
+multi-providers:
+
+```ts
+const PLUGINS = token<Plugin>('docs.plugins')
+
+container.add(PLUGINS).toValue(corePlugin)
+container
+    .add(PLUGINS)
+    .toAsyncFactory(async () => loadFeaturePlugin())
+    .singleton()
+container
+    .add(PLUGINS)
+    .toAsyncResource(async () => {
+        const plugin = await openManagedPlugin()
+
+        return {
+            value: plugin,
+            dispose: () => plugin.close()
+        }
+    })
+    .singleton()
+
+const runtime = await container.freeze()
+const plugins = await runtime.getAllAsync(PLUGINS)
+```
+
+`getAllAsync()` resolves contributions sequentially in registration order. Sync
+contributions are resolved on the same path, so mixed collections preserve one order. A
+missing multi token resolves to a fresh empty array.
+
+The collection has no cache, in-flight promise, retry state, owner or disposer. Those
+states belong to each concrete contribution:
+
+- singleton and scoped async contributions deduplicate their own in-flight work;
+- transient async factories execute once per collection call;
+- failed singleton/scoped contributions clear only their own failed state and retry on the
+  next call;
+- successful earlier singleton/scoped contributions remain cached if a later contribution
+  fails;
+- resources remain owned by their runtime or effective scope.
+
+### Sync/Async, Lifetime And Scope Truth Table
+
+| Collection contribution                   | `getAll()` after `freeze()`                        | `getAllAsync()`                                 | Ownership/cache                     |
+| ----------------------------------------- | -------------------------------------------------- | ----------------------------------------------- | ----------------------------------- |
+| none                                      | fresh `[]`                                         | resolved fresh `[]`                             | none                                |
+| values and sync factories                 | ordered values                                     | same ordered values                             | normal sync lifetime                |
+| eager singleton async factory             | ordered value                                      | ordered value                                   | runtime singleton                   |
+| eager singleton async resource            | ordered value                                      | ordered value                                   | runtime resource                    |
+| lazy singleton async factory              | `AsyncMultiProviderAccessError`                    | initializes/reuses value                        | runtime singleton                   |
+| lazy singleton async resource             | `AsyncMultiProviderAccessError`                    | initializes/reuses value                        | runtime resource                    |
+| transient async factory                   | `AsyncMultiProviderAccessError`                    | new execution per call                          | no contribution cache               |
+| scoped async factory without scope        | `InvalidScopeError`                                | `InvalidScopeError`                             | no active owner                     |
+| scoped async factory in scope             | `AsyncMultiProviderAccessError`                    | one value per scope                             | effective scope cache               |
+| scoped async resource without scope       | `InvalidScopeError`                                | `InvalidScopeError`                             | no active owner                     |
+| scoped async resource in scope            | `AsyncMultiProviderAccessError`                    | one resource per scope                          | effective scope resource            |
+| mixed sync/eager/lazy                     | fails sync preflight if any item is async-required | ordered success or first failure                | per contribution                    |
+| runtime providers plus scope-local values | depends on runtime provider eligibility            | runtime providers, ancestors, then child locals | locals are caller-owned sync values |
+
+An eager contribution is sync-readable only when it is a declared singleton and the whole
+`freeze()` completed successfully. Warming a lazy singleton through `getAllAsync()` never
+changes its declared sync contract: later `getAll()` calls still fail preflight.
+
+Async resources require explicit `singleton()` or `scoped()` ownership. Transient async
+resources are unsupported. Scoped async factories/resources are lazy; eager scoped
+initialization is invalid because no effective scope exists during `freeze()`.
+
+### Error Precedence And Return Atomicity
+
+Before executing collection contributions, access checks follow this order:
+
+1. runtime/scope lifecycle and public capability access;
+2. single/multi cardinality and scope-local kind consistency;
+3. scope eligibility;
+4. sync eligibility for `getAll()`;
+5. provider execution.
+
+This prevents an earlier transient factory from running when a later declarative scope or
+async-access blocker already makes the operation invalid. Dynamic factory/dependency
+failures occur during step 5 and stop sequential resolution at the first failing
+contribution.
+
+No-partial-results is return atomicity: the caller receives the complete ordered array or a
+rejection. It is not a transaction and does not roll back arbitrary side effects performed
+inside user factories. Earlier successful owner-managed resources remain cached and are
+disposed by their runtime/scope; later contributions are not started after failure.
 
 ## Retry Behavior
 
@@ -294,7 +386,7 @@ Runtime disposal rules:
   possible;
 - uninitialized lazy singleton resources are not created just to dispose them;
 - after disposal, `get()`, `tryGet()`, `getAsync()`, `tryGetAsync()` and `createScope()`
-  fail with `RuntimeDisposedError`;
+  fail with `RuntimeDisposedError`; `getAll()` and `getAllAsync()` fail as well;
 - runtime disposal does not maintain a hidden registry of live scopes and does not
   automatically dispose scoped resources.
 
@@ -316,8 +408,8 @@ Scope disposal rules:
 - initialized scoped resources are disposed in reverse initialization order where possible;
 - active child scopes are disposed before the parent's own scoped resources, in reverse
   child creation order;
-- after disposal, `scope.get()`, `scope.tryGet()`, `scope.getAll()` and `scope.getAsync()`
-  fail with `ScopeDisposedError`;
+- after disposal, `scope.get()`, `scope.tryGet()`, `scope.getAll()`, `scope.getAllAsync()`
+  and `scope.getAsync()` fail with `ScopeDisposedError`;
 - after disposal, `scope.createChildScope()` and `scope.withChildScope()` fail with
   `ScopeDisposedError`;
 - a scope created before runtime disposal cannot resolve after runtime disposal, but
@@ -355,9 +447,13 @@ database server.
 
 - Use `get()` only for sync providers and eager singleton async providers.
 - Use `getAsync()` for lazy async providers and async resources.
+- Use `getAllAsync()` for collections containing lazy, transient or scoped async
+  contributions.
+- Use `getAll()` for sync-only collections and collections whose async contributions are
+  all eager singletons after successful `freeze()`.
 - Use `toAsyncFactory()` for factories that return a `Promise`; sync `toFactory()` results
   must not be `Promise` or thenable values.
 - Do not document or build code that expects `get()` to perform async provider resolution.
-- Do not use async multi-provider collections; no `getAllAsync()` exists.
+- Do not treat a failed async collection as a rollback of user factory side effects.
 - Do not hide request or operation scope in a global current-context API.
 - Always dispose runtimes and scopes that own initialized resources.

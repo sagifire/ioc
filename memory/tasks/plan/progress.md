@@ -174,7 +174,7 @@
 - [x] **[Done]** [TASK-07.13-0101-stage-18-extreme-agent-complexity-async-multi-core-factory-resolution](TASK-07.13-0101-stage-18-extreme-agent-complexity-async-multi-core-factory-resolution/index.md) - Core async factory contributions, sync preflight і explicit async collection resolution.
 - [x] **[Done]** [TASK-07.13-0102-stage-18-extreme-agent-complexity-async-multi-composer-inspection-integration](TASK-07.13-0102-stage-18-extreme-agent-complexity-async-multi-composer-inspection-integration/index.md) - Module/composer/runtime cardinality, inspection і graph-export integration.
 - [x] **[Done]** [TASK-07.13-0103-stage-18-extreme-agent-complexity-async-multi-resource-ownership-disposal](TASK-07.13-0103-stage-18-extreme-agent-complexity-async-multi-resource-ownership-disposal/index.md) - Runtime/scope resource ownership, partial failure, concurrency і disposal.
-- [ ] **[Backlog]** [TASK-07.13-0104-stage-18-extreme-agent-complexity-async-multi-testing-dsl-docs](TASK-07.13-0104-stage-18-extreme-agent-complexity-async-multi-testing-dsl-docs/index.md) - Testing helpers, DSL parity, docs, migration й examples.
+- [x] **[Done]** [TASK-07.13-0104-stage-18-extreme-agent-complexity-async-multi-testing-dsl-docs](TASK-07.13-0104-stage-18-extreme-agent-complexity-async-multi-testing-dsl-docs/index.md) - Testing helpers, DSL parity, docs, migration й examples.
 - [ ] **[Backlog]** [TASK-07.13-0105-stage-18-extreme-agent-complexity-async-multi-0-0-3-audit-handoff](TASK-07.13-0105-stage-18-extreme-agent-complexity-async-multi-0-0-3-audit-handoff/index.md) - Full async multi audit and stabilization handoff for `0.0.3` without version/publish action.
 
 ## Stage 18 Lifetime Validation Implementation (Extreme Agent Complexity)

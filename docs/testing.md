@@ -85,15 +85,30 @@ declarations support:
 - `multiOverride(token).appendValue(value)`
 - `multiOverride(token).appendValues(values)`
 - `multiOverride(token).appendFactory(factory)`
+- `multiOverride(token).appendAsyncFactory(factory, options?)`
+- `multiOverride(token).appendAsyncResource(factory, { lifetime, initialization? })`
 - `multiOverride(token).replaceWithValue(value)`
 - `multiOverride(token).replaceWithValues(values)`
 - `multiOverride(token).replaceWithFactory(factory)`
+- `multiOverride(token).replaceWithAsyncFactory(factory, options?)`
+- `multiOverride(token).replaceWithAsyncResource(factory, { lifetime, initialization? })`
 
 Duplicate overrides for the same token fail with `DuplicateTestOverrideError` before the
 configuration callback runs. A test runtime is independent from every other runtime created
 by the helper. Multi override `replaceWith*()` entries replace previous test contribution
 declarations for the same token in the same helper input; they do not remove module
 contributions or mutate an existing runtime.
+
+Async factory options project only production lifecycle choices: `lifetime` may be
+`singleton`, `transient` or `scoped`, and `initialization` may be `lazy` or `eager`.
+Async resources require `lifetime: 'singleton' | 'scoped'`. Invalid combinations are not
+reinterpreted by the testing package; normal production validation rejects them.
+
+The helpers preserve production collection semantics: `getAllAsync()` is sequential and
+registration-ordered, failed contribution state retries per provider, successful
+singleton/scoped work is reused, resources remain runtime/scope-owned, and a failure
+returns no partial array. That last guarantee is return atomicity, not rollback of
+arbitrary user factory side effects.
 
 ## Test Composers
 
@@ -200,7 +215,9 @@ module setup API. They remain visible through `composer.getGraph()`, `composer.i
 and `runtime.inspect()`.
 
 For multi-capabilities, fake module providers may set `cardinality: 'multi'`. Value and
-synchronous factory providers are then registered through public `context.add()`.
+synchronous/async factory and async resource providers are then registered through public
+`context.add()`. Async fake providers use the same `lifetime` and `initialization` fields
+as async multi overrides; resources require explicit runtime/scope ownership.
 
 ## Module Harnesses
 

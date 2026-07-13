@@ -6,6 +6,8 @@ frozen runtimes:
 - `createTestRuntime()` for isolated container-level tests;
 - `createTestComposer()` and `override()` for required-port test bindings;
 - `fakeModule()` for graph-visible fake providers;
+- async multi `multiOverride()` append helpers and async fake-module contributions;
+- ordered `getAllAsync()` resolution with runtime-owned test resource disposal;
 - `createModuleHarness()` for one module under test;
 - graph assertions and diagnostic assertions over public inspection data.
 

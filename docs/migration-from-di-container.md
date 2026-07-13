@@ -21,7 +21,7 @@ concepts. It focuses on migration shape rather than package-by-package compariso
 | Singleton lifetime                         | `.singleton()` or `toValue()`                                    |
 | Transient lifetime                         | `.transient()` or default `toFactory()` / `toClass()` lifetime   |
 | Request-scoped lifetime                    | `.scoped()` plus `runtime.createScope()` / `withScope()`         |
-| Multi injection / plugin lists             | `add(token)` contributions and `getAll(token)`                   |
+| Multi injection / plugin lists             | `add(token)` plus `getAll()` / explicit `getAllAsync()`          |
 | Async factory                              | `toAsyncFactory()` and explicit `getAsync()`                     |
 | Managed async resource                     | `toAsyncResource()` with runtime or scope disposal               |
 | Child/request container                    | Scope with explicit scope-local values                           |
@@ -177,6 +177,24 @@ const hooks = runtime.getAll(STARTUP_HOOKS)
 be read as a multi-provider collection, and a multi-provider token cannot be read with
 `get()`.
 
+If any contribution performs async initialization, register it explicitly and move the
+collection call to `getAllAsync()`:
+
+```ts
+container
+    .add(STARTUP_HOOKS)
+    .toAsyncFactory(async () => loadRemoteStartupHook())
+    .singleton()
+
+const hooks = await runtime.getAllAsync(STARTUP_HOOKS)
+```
+
+Results still follow registration order. Resolution is sequential and stops on the first
+failure; later contributions do not start. A failed call returns no partial array, but the
+container does not undo arbitrary external side effects that earlier user factories may
+already have performed. Successful singleton/scoped providers and resources remain with
+their normal runtime/scope owner and are reused on retry.
+
 ## Migrate Async Providers And Resources
 
 If initialization is asynchronous, keep the async boundary explicit:
@@ -213,6 +231,8 @@ await runtime.dispose()
 Migration rules:
 
 - Use `getAsync()` / `tryGetAsync()` for lazy async providers.
+- Use `getAllAsync()` for collections containing lazy, transient or scoped async
+  contributions; a warmed lazy cache never makes sync `getAll()` valid.
 - Use eager singleton async providers only when startup should fail early.
 - Use `toAsyncResource()` for values that need disposal.
 - Use scoped async resources for per-request or per-operation ownership.

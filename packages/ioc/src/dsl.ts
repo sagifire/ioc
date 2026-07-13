@@ -7,6 +7,7 @@ import {
     type ComposerAdapterResolvedSource,
     type ComposerAdapterSource,
     type ComposerAsyncBindingFactory,
+    type ComposerAsyncResourceFactory,
     type ComposerBindingFactory,
     type ComposerInspection,
     type ModuleCardinality,
@@ -19,7 +20,14 @@ import {
     type ModuleGraph,
     type PreparedComposition
 } from './composer'
-import type { ClassConstructor, LifetimeBinding, ProviderLifetime } from './container'
+import type {
+    AsyncFactoryBinding,
+    AsyncProviderInitializationMode,
+    AsyncResourceBinding,
+    ClassConstructor,
+    LifetimeBinding,
+    ProviderLifetime
+} from './container'
 import type { DiagnosticReport } from './diagnostics'
 import type { Token } from './tokens'
 
@@ -80,6 +88,8 @@ export type AppDslBindingDefinition<TValue = unknown> =
     | AppDslAsyncFactoryBindingDefinition<TValue>
     | AppDslMultiValueBindingDefinition<TValue>
     | AppDslMultiFactoryBindingDefinition<TValue>
+    | AppDslMultiAsyncFactoryBindingDefinition<TValue>
+    | AppDslMultiAsyncResourceBindingDefinition<TValue>
     | AppDslAdapterBindingDefinition<TValue>
 
 export interface AppDslValueBindingDefinition<TValue = unknown> {
@@ -116,6 +126,29 @@ export interface AppDslMultiFactoryBindingDefinition<TValue = unknown> {
     scoped(): AppDslMultiFactoryBindingDefinition<TValue>
 }
 
+export interface AppDslMultiAsyncFactoryBindingDefinition<TValue = unknown> {
+    readonly token: Token<TValue>
+    readonly addAsyncFactory: ComposerAsyncBindingFactory<TValue>
+    readonly lifetime: ProviderLifetime | undefined
+    readonly initialization: AsyncProviderInitializationMode | undefined
+    singleton(): AppDslMultiAsyncFactoryBindingDefinition<TValue>
+    transient(): AppDslMultiAsyncFactoryBindingDefinition<TValue>
+    scoped(): AppDslMultiAsyncFactoryBindingDefinition<TValue>
+    eager(): AppDslMultiAsyncFactoryBindingDefinition<TValue>
+    lazy(): AppDslMultiAsyncFactoryBindingDefinition<TValue>
+}
+
+export interface AppDslMultiAsyncResourceBindingDefinition<TValue = unknown> {
+    readonly token: Token<TValue>
+    readonly addAsyncResource: ComposerAsyncResourceFactory<TValue>
+    readonly lifetime: Exclude<ProviderLifetime, 'transient'> | undefined
+    readonly initialization: AsyncProviderInitializationMode | undefined
+    singleton(): AppDslMultiAsyncResourceBindingDefinition<TValue>
+    scoped(): AppDslMultiAsyncResourceBindingDefinition<TValue>
+    eager(): AppDslMultiAsyncResourceBindingDefinition<TValue>
+    lazy(): AppDslMultiAsyncResourceBindingDefinition<TValue>
+}
+
 export interface AppDslAdapterBindingDefinition<
     TValue = unknown,
     TSource extends ComposerAdapterSource = ComposerAdapterSource
@@ -137,6 +170,12 @@ export interface BindDslBuilder<TValue> {
 export interface AddDslBuilder<TValue> {
     toValue(value: TValue): AppDslMultiValueBindingDefinition<TValue>
     toFactory(factory: ComposerBindingFactory<TValue>): AppDslMultiFactoryBindingDefinition<TValue>
+    toAsyncFactory(
+        factory: ComposerAsyncBindingFactory<TValue>
+    ): AppDslMultiAsyncFactoryBindingDefinition<TValue>
+    toAsyncResource(
+        factory: ComposerAsyncResourceFactory<TValue>
+    ): AppDslMultiAsyncResourceBindingDefinition<TValue>
 }
 
 export interface AdapterDslBuilder<TValue> {
@@ -311,6 +350,18 @@ function createAddDsl<TValue>(bindingToken: Token<TValue>): AddDslBuilder<TValue
             factory: ComposerBindingFactory<TValue>
         ): AppDslMultiFactoryBindingDefinition<TValue> {
             return createAppDslMultiFactoryBinding(bindingToken, factory)
+        },
+
+        toAsyncFactory(
+            factory: ComposerAsyncBindingFactory<TValue>
+        ): AppDslMultiAsyncFactoryBindingDefinition<TValue> {
+            return createAppDslMultiAsyncFactoryBinding(bindingToken, factory)
+        },
+
+        toAsyncResource(
+            factory: ComposerAsyncResourceFactory<TValue>
+        ): AppDslMultiAsyncResourceBindingDefinition<TValue> {
+            return createAppDslMultiAsyncResourceBinding(bindingToken, factory)
         }
     })
 }
@@ -342,6 +393,104 @@ function createAppDslMultiFactoryBinding<TValue>(
 
         scoped(): AppDslMultiFactoryBindingDefinition<TValue> {
             lifetime = 'scoped'
+
+            return this
+        }
+    }
+
+    return Object.freeze(binding)
+}
+
+function createAppDslMultiAsyncFactoryBinding<TValue>(
+    bindingToken: Token<TValue>,
+    factory: ComposerAsyncBindingFactory<TValue>
+): AppDslMultiAsyncFactoryBindingDefinition<TValue> {
+    let lifetime: ProviderLifetime | undefined
+    let initialization: AsyncProviderInitializationMode | undefined
+    const binding: AppDslMultiAsyncFactoryBindingDefinition<TValue> = {
+        token: bindingToken,
+        addAsyncFactory: factory,
+
+        get lifetime(): ProviderLifetime | undefined {
+            return lifetime
+        },
+
+        get initialization(): AsyncProviderInitializationMode | undefined {
+            return initialization
+        },
+
+        singleton(): AppDslMultiAsyncFactoryBindingDefinition<TValue> {
+            lifetime = 'singleton'
+
+            return this
+        },
+
+        transient(): AppDslMultiAsyncFactoryBindingDefinition<TValue> {
+            lifetime = 'transient'
+
+            return this
+        },
+
+        scoped(): AppDslMultiAsyncFactoryBindingDefinition<TValue> {
+            lifetime = 'scoped'
+
+            return this
+        },
+
+        eager(): AppDslMultiAsyncFactoryBindingDefinition<TValue> {
+            initialization = 'eager'
+
+            return this
+        },
+
+        lazy(): AppDslMultiAsyncFactoryBindingDefinition<TValue> {
+            initialization = 'lazy'
+
+            return this
+        }
+    }
+
+    return Object.freeze(binding)
+}
+
+function createAppDslMultiAsyncResourceBinding<TValue>(
+    bindingToken: Token<TValue>,
+    factory: ComposerAsyncResourceFactory<TValue>
+): AppDslMultiAsyncResourceBindingDefinition<TValue> {
+    let lifetime: Exclude<ProviderLifetime, 'transient'> | undefined
+    let initialization: AsyncProviderInitializationMode | undefined
+    const binding: AppDslMultiAsyncResourceBindingDefinition<TValue> = {
+        token: bindingToken,
+        addAsyncResource: factory,
+
+        get lifetime(): Exclude<ProviderLifetime, 'transient'> | undefined {
+            return lifetime
+        },
+
+        get initialization(): AsyncProviderInitializationMode | undefined {
+            return initialization
+        },
+
+        singleton(): AppDslMultiAsyncResourceBindingDefinition<TValue> {
+            lifetime = 'singleton'
+
+            return this
+        },
+
+        scoped(): AppDslMultiAsyncResourceBindingDefinition<TValue> {
+            lifetime = 'scoped'
+
+            return this
+        },
+
+        eager(): AppDslMultiAsyncResourceBindingDefinition<TValue> {
+            initialization = 'eager'
+
+            return this
+        },
+
+        lazy(): AppDslMultiAsyncResourceBindingDefinition<TValue> {
+            initialization = 'lazy'
 
             return this
         }
@@ -395,6 +544,24 @@ function applyAppDslBinding(composer: Composer, binding: AppDslBindingDefinition
         return
     }
 
+    if ('addAsyncFactory' in binding) {
+        const asyncBinding = composer.add(binding.token).toAsyncFactory(binding.addAsyncFactory)
+
+        applyAppDslAsyncFactoryOptions(asyncBinding, binding.lifetime, binding.initialization)
+
+        return
+    }
+
+    if ('addAsyncResource' in binding) {
+        const resourceBinding = composer
+            .add(binding.token)
+            .toAsyncResource(binding.addAsyncResource)
+
+        applyAppDslAsyncResourceOptions(resourceBinding, binding.lifetime, binding.initialization)
+
+        return
+    }
+
     if ('useAdapter' in binding) {
         applyAppDslAdapterBinding(composer, binding)
 
@@ -422,6 +589,44 @@ function applyAppDslBinding(composer: Composer, binding: AppDslBindingDefinition
     }
 
     builder.toAsyncFactory(binding.useAsyncFactory)
+}
+
+function applyAppDslAsyncFactoryOptions(
+    binding: AsyncFactoryBinding,
+    lifetime: ProviderLifetime | undefined,
+    initialization: AsyncProviderInitializationMode | undefined
+): void {
+    if (lifetime === 'singleton') {
+        binding.singleton()
+    } else if (lifetime === 'scoped') {
+        binding.scoped()
+    } else if (lifetime === 'transient') {
+        binding.transient()
+    }
+
+    if (initialization === 'eager') {
+        binding.eager()
+    } else if (initialization === 'lazy') {
+        binding.lazy()
+    }
+}
+
+function applyAppDslAsyncResourceOptions(
+    binding: AsyncResourceBinding,
+    lifetime: Exclude<ProviderLifetime, 'transient'> | undefined,
+    initialization: AsyncProviderInitializationMode | undefined
+): void {
+    if (lifetime === 'singleton') {
+        binding.singleton()
+    } else if (lifetime === 'scoped') {
+        binding.scoped()
+    }
+
+    if (initialization === 'eager') {
+        binding.eager()
+    } else if (initialization === 'lazy') {
+        binding.lazy()
+    }
 }
 
 function applyAppDslAdapterBinding<TValue, TSource extends ComposerAdapterSource>(

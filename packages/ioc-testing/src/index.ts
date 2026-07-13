@@ -7,7 +7,11 @@ import {
     createContainer,
     createGraphExportDocument,
     serializeGraphExport,
+    type AsyncFactoryBinding,
     type AsyncProviderFactory,
+    type AsyncProviderInitializationMode,
+    type AsyncResourceBinding,
+    type AsyncResourceFactory,
     type CapabilityProviderRegistrationKind,
     type CapabilityProviderSource,
     type ClassConstructor,
@@ -35,6 +39,7 @@ import {
     type ModuleGraph,
     type ModuleSetupContext,
     type PreparedComposition,
+    type ProviderLifetime,
     type RequiredPortSatisfaction,
     type RuntimeInspection,
     type Scope,
@@ -49,8 +54,8 @@ export type TestComposerConfigurator = (composer: Composer) => void
 
 export type TestOverrideKind = 'value' | 'factory' | 'class' | 'async-factory'
 export type TestMultiOverrideMode = 'append' | 'replace'
-export type TestMultiContributionKind = 'value' | 'factory'
-export type FakeModuleProviderKind = 'value' | 'factory' | 'async-factory'
+export type TestMultiContributionKind = 'value' | 'factory' | 'async-factory' | 'async-resource'
+export type FakeModuleProviderKind = 'value' | 'factory' | 'async-factory' | 'async-resource'
 
 export interface TestValueOverride<TValue = unknown> {
     readonly kind: 'value'
@@ -92,8 +97,33 @@ export interface TestMultiFactoryContribution<TValue = unknown> {
     readonly factory: SyncProviderFactory<TValue>
 }
 
+export interface TestMultiAsyncFactoryOptions {
+    readonly lifetime?: ProviderLifetime
+    readonly initialization?: AsyncProviderInitializationMode
+}
+
+export interface TestMultiAsyncResourceOptions {
+    readonly lifetime: Exclude<ProviderLifetime, 'transient'>
+    readonly initialization?: AsyncProviderInitializationMode
+}
+
+export interface TestMultiAsyncFactoryContribution<TValue = unknown> {
+    readonly kind: 'async-factory'
+    readonly factory: AsyncProviderFactory<TValue>
+    readonly options: Readonly<TestMultiAsyncFactoryOptions>
+}
+
+export interface TestMultiAsyncResourceContribution<TValue = unknown> {
+    readonly kind: 'async-resource'
+    readonly factory: AsyncResourceFactory<TValue>
+    readonly options: Readonly<TestMultiAsyncResourceOptions>
+}
+
 export type TestMultiContribution<TValue = unknown> =
-    TestMultiValueContribution<TValue> | TestMultiFactoryContribution<TValue>
+    | TestMultiValueContribution<TValue>
+    | TestMultiFactoryContribution<TValue>
+    | TestMultiAsyncFactoryContribution<TValue>
+    | TestMultiAsyncResourceContribution<TValue>
 
 export interface TestMultiOverride<TValue = unknown> {
     readonly mode: TestMultiOverrideMode
@@ -122,12 +152,23 @@ export interface FakeModuleAsyncFactoryProvider<
     TValue = unknown
 > extends FakeModuleProviderBase<TValue> {
     readonly useAsyncFactory: AsyncProviderFactory<TValue>
+    readonly lifetime?: ProviderLifetime
+    readonly initialization?: AsyncProviderInitializationMode
+}
+
+export interface FakeModuleAsyncResourceProvider<
+    TValue = unknown
+> extends FakeModuleProviderBase<TValue> {
+    readonly useAsyncResource: AsyncResourceFactory<TValue>
+    readonly lifetime: Exclude<ProviderLifetime, 'transient'>
+    readonly initialization?: AsyncProviderInitializationMode
 }
 
 export type FakeModuleProvider<TValue = unknown> =
     | FakeModuleValueProvider<TValue>
     | FakeModuleFactoryProvider<TValue>
     | FakeModuleAsyncFactoryProvider<TValue>
+    | FakeModuleAsyncResourceProvider<TValue>
 
 export interface TestOverrideBuilder<TValue> {
     toValue(value: TValue): TestValueOverride<TValue>
@@ -140,9 +181,25 @@ export interface TestMultiOverrideBuilder<TValue> {
     appendValue(value: TValue): TestMultiOverride<TValue>
     appendValues(values: readonly TValue[]): TestMultiOverride<TValue>
     appendFactory(factory: SyncProviderFactory<TValue>): TestMultiOverride<TValue>
+    appendAsyncFactory(
+        factory: AsyncProviderFactory<TValue>,
+        options?: TestMultiAsyncFactoryOptions
+    ): TestMultiOverride<TValue>
+    appendAsyncResource(
+        factory: AsyncResourceFactory<TValue>,
+        options: TestMultiAsyncResourceOptions
+    ): TestMultiOverride<TValue>
     replaceWithValue(value: TValue): TestMultiOverride<TValue>
     replaceWithValues(values: readonly TValue[]): TestMultiOverride<TValue>
     replaceWithFactory(factory: SyncProviderFactory<TValue>): TestMultiOverride<TValue>
+    replaceWithAsyncFactory(
+        factory: AsyncProviderFactory<TValue>,
+        options?: TestMultiAsyncFactoryOptions
+    ): TestMultiOverride<TValue>
+    replaceWithAsyncResource(
+        factory: AsyncResourceFactory<TValue>,
+        options: TestMultiAsyncResourceOptions
+    ): TestMultiOverride<TValue>
 }
 
 type NormalizedFakeModuleDependencies<
@@ -190,6 +247,7 @@ export class DuplicateTestOverrideError extends SagifireIocError<DuplicateTestOv
     }
 }
 
+/** @deprecated Async fake module contributions are supported; retained for source compatibility. */
 export class InvalidFakeModuleProviderError extends SagifireIocError<InvalidFakeModuleProviderErrorDetails> {
     override readonly name = 'InvalidFakeModuleProviderError'
     override readonly code = 'SAGIFIRE_IOC_TESTING_INVALID_FAKE_MODULE_PROVIDER'
@@ -199,7 +257,7 @@ export class InvalidFakeModuleProviderError extends SagifireIocError<InvalidFake
     constructor(tokenId: string, reason: 'multi-async-factory') {
         super({
             code: 'SAGIFIRE_IOC_TESTING_INVALID_FAKE_MODULE_PROVIDER',
-            message: `Invalid fake module provider for token "${tokenId}": ${formatInvalidFakeModuleProviderReason(reason)}`,
+            message: `Legacy invalid fake module provider for token "${tokenId}" (${reason})`,
             details: {
                 tokenId,
                 reason
@@ -951,6 +1009,24 @@ function createTestMultiOverride<TValue>(
             ])
         },
 
+        appendAsyncFactory(
+            factory: AsyncProviderFactory<TValue>,
+            options: TestMultiAsyncFactoryOptions = {}
+        ): TestMultiOverride<TValue> {
+            return createTestMultiOverrideRecord(overrideToken, 'append', [
+                createTestMultiAsyncFactoryContribution(factory, options)
+            ])
+        },
+
+        appendAsyncResource(
+            factory: AsyncResourceFactory<TValue>,
+            options: TestMultiAsyncResourceOptions
+        ): TestMultiOverride<TValue> {
+            return createTestMultiOverrideRecord(overrideToken, 'append', [
+                createTestMultiAsyncResourceContribution(factory, options)
+            ])
+        },
+
         replaceWithValue(value: TValue): TestMultiOverride<TValue> {
             return createTestMultiOverrideRecord(overrideToken, 'replace', [
                 createTestMultiValueContribution(value)
@@ -968,6 +1044,24 @@ function createTestMultiOverride<TValue>(
         replaceWithFactory(factory: SyncProviderFactory<TValue>): TestMultiOverride<TValue> {
             return createTestMultiOverrideRecord(overrideToken, 'replace', [
                 createTestMultiFactoryContribution(factory)
+            ])
+        },
+
+        replaceWithAsyncFactory(
+            factory: AsyncProviderFactory<TValue>,
+            options: TestMultiAsyncFactoryOptions = {}
+        ): TestMultiOverride<TValue> {
+            return createTestMultiOverrideRecord(overrideToken, 'replace', [
+                createTestMultiAsyncFactoryContribution(factory, options)
+            ])
+        },
+
+        replaceWithAsyncResource(
+            factory: AsyncResourceFactory<TValue>,
+            options: TestMultiAsyncResourceOptions
+        ): TestMultiOverride<TValue> {
+            return createTestMultiOverrideRecord(overrideToken, 'replace', [
+                createTestMultiAsyncResourceContribution(factory, options)
             ])
         }
     })
@@ -1010,6 +1104,28 @@ function createTestMultiFactoryContribution<TValue>(
     return Object.freeze({
         kind: 'factory',
         factory
+    })
+}
+
+function createTestMultiAsyncFactoryContribution<TValue>(
+    factory: AsyncProviderFactory<TValue>,
+    options: TestMultiAsyncFactoryOptions
+): TestMultiAsyncFactoryContribution<TValue> {
+    return Object.freeze({
+        kind: 'async-factory',
+        factory,
+        options: Object.freeze({ ...options })
+    })
+}
+
+function createTestMultiAsyncResourceContribution<TValue>(
+    factory: AsyncResourceFactory<TValue>,
+    options: TestMultiAsyncResourceOptions
+): TestMultiAsyncResourceContribution<TValue> {
+    return Object.freeze({
+        kind: 'async-resource',
+        factory,
+        options: Object.freeze({ ...options })
     })
 }
 
@@ -1120,7 +1236,19 @@ function applyFakeModuleProvider<TValue>(
             return
         }
 
-        throw new InvalidFakeModuleProviderError(provider.token.id, 'multi-async-factory')
+        if ('useAsyncFactory' in provider) {
+            const binding = builder.toAsyncFactory(provider.useAsyncFactory)
+
+            applyAsyncFactoryOptions(binding, provider)
+
+            return
+        }
+
+        const binding = builder.toAsyncResource(provider.useAsyncResource)
+
+        applyAsyncResourceOptions(binding, provider)
+
+        return
     }
 
     const builder = context.bind(provider.token)
@@ -1137,7 +1265,17 @@ function applyFakeModuleProvider<TValue>(
         return
     }
 
-    builder.toAsyncFactory(provider.useAsyncFactory)
+    if ('useAsyncFactory' in provider) {
+        const binding = builder.toAsyncFactory(provider.useAsyncFactory)
+
+        applyAsyncFactoryOptions(binding, provider)
+
+        return
+    }
+
+    const binding = builder.toAsyncResource(provider.useAsyncResource)
+
+    applyAsyncResourceOptions(binding, provider)
 }
 
 function getTestRuntimeConfigurator(
@@ -1263,8 +1401,16 @@ function applyTestMultiOverridesToContainer(
 
             if (contribution.kind === 'value') {
                 builder.toValue(contribution.value)
-            } else {
+            } else if (contribution.kind === 'factory') {
                 builder.toFactory(contribution.factory)
+            } else if (contribution.kind === 'async-factory') {
+                const binding = builder.toAsyncFactory(contribution.factory)
+
+                applyAsyncFactoryOptions(binding, contribution.options)
+            } else {
+                const binding = builder.toAsyncResource(contribution.factory)
+
+                applyAsyncResourceOptions(binding, contribution.options)
             }
         }
     }
@@ -1299,10 +1445,54 @@ function applyTestMultiOverridesToComposer(
 
             if (contribution.kind === 'value') {
                 builder.toValue(contribution.value)
-            } else {
+            } else if (contribution.kind === 'factory') {
                 builder.toFactory(contribution.factory)
+            } else if (contribution.kind === 'async-factory') {
+                const binding = builder.toAsyncFactory(contribution.factory)
+
+                applyAsyncFactoryOptions(binding, contribution.options)
+            } else {
+                const binding = builder.toAsyncResource(contribution.factory)
+
+                applyAsyncResourceOptions(binding, contribution.options)
             }
         }
+    }
+}
+
+function applyAsyncFactoryOptions(
+    binding: AsyncFactoryBinding,
+    options: TestMultiAsyncFactoryOptions
+): void {
+    if (options.lifetime === 'singleton') {
+        binding.singleton()
+    } else if (options.lifetime === 'scoped') {
+        binding.scoped()
+    } else if (options.lifetime === 'transient') {
+        binding.transient()
+    }
+
+    if (options.initialization === 'eager') {
+        binding.eager()
+    } else if (options.initialization === 'lazy') {
+        binding.lazy()
+    }
+}
+
+function applyAsyncResourceOptions(
+    binding: AsyncResourceBinding,
+    options: TestMultiAsyncResourceOptions
+): void {
+    if (options.lifetime === 'singleton') {
+        binding.singleton()
+    } else {
+        binding.scoped()
+    }
+
+    if (options.initialization === 'eager') {
+        binding.eager()
+    } else if (options.initialization === 'lazy') {
+        binding.lazy()
     }
 }
 
@@ -1767,16 +1957,6 @@ function hasExpectedParentValues<TValue>(
     readonly expectedParentValues: readonly TValue[] | undefined
 } {
     return 'expectedParentValues' in expectation
-}
-
-function formatInvalidFakeModuleProviderReason(
-    reason: InvalidFakeModuleProviderErrorDetails['reason']
-): string {
-    if (reason === 'multi-async-factory') {
-        return 'multi fake providers support values and synchronous factories only'
-    }
-
-    return reason
 }
 
 function stableFormat(value: unknown): string {

@@ -2,7 +2,7 @@
 
 ## Призначення
 
-Prepared run для testing helpers, DSL, documentation та export hardening async multi.
+Completed run для testing helpers, DSL, documentation та export hardening async multi.
 
 ## Папки
 
@@ -10,4 +10,5 @@ Prepared run для testing helpers, DSL, documentation та export hardening as
 
 ## Файли
 
-- [context.md](context.md) - immutable після activation context snapshot.
+- [context.md](context.md) - immutable context snapshot completed run.
+- [result.md](result.md) - execution, verification, self-review та audit report.

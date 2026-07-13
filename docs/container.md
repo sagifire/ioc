@@ -175,8 +175,13 @@ container.add(PLUGINS).toFactory(() => ({
     run() {}
 }))
 
+container
+    .add(PLUGINS)
+    .toAsyncFactory(async () => loadPlugin('remote-feature'))
+    .singleton()
+
 const runtime = await container.freeze()
-const plugins = runtime.getAll(PLUGINS)
+const plugins = await runtime.getAllAsync(PLUGINS)
 ```
 
 Multi-provider rules:
@@ -187,14 +192,24 @@ Multi-provider rules:
 - `bind()` and `add()` cannot be mixed for the same token ID;
 - `get()` and `tryGet()` fail for multi-provider tokens;
 - `getAll()` fails for tokens registered through `bind()`;
-- `add()` supports sync `toValue()` and sync `toFactory()` contributions only;
+- `add()` supports `toValue()`, `toFactory()`, `toAsyncFactory()` and
+  `toAsyncResource()` contributions;
 - `add().toFactory()` contributions also fail with `SyncFactoryPromiseError` if they return
   a `Promise` or thenable.
 
-Multi-provider factory contributions are transient by default and support
-`singleton()`, `transient()` and `scoped()`.
+Sync and async factory contributions are transient by default and support `singleton()`,
+`transient()` and `scoped()`. Async resource contributions require explicit
+`singleton()` or `scoped()` ownership; transient resources are unsupported.
 
-There is no `getAllAsync()` API in the current core surface.
+`getAllAsync()` resolves mixed sync/async contributions sequentially in registration order
+and returns a fresh array only after every contribution succeeds. `getAll()` stays
+synchronous: it can read sync contributions and eager singleton async contributions after
+successful `freeze()`, but it rejects lazy, transient or scoped async contributions before
+executing the collection. Lazy cache warm-up does not change this contract.
+
+No-partial-results means array return atomicity, not transaction rollback of arbitrary
+factory side effects. See the complete
+[sync/async lifetime and scope truth table](async-model.md#syncasync-lifetime-and-scope-truth-table).
 
 ## Scopes
 
@@ -349,9 +364,10 @@ See [Diagnostics](diagnostics.md) for diagnostic reports and formatting.
 
 ## Async Boundary
 
-Async single providers and resources are registered on `bind()` with `toAsyncFactory()` and
-`toAsyncResource()`. They are intentionally not resolved by sync `get()` unless they were
-eager singleton providers initialized during `freeze()`.
+Async single providers/resources are registered on `bind()`, and async collection
+contributions are registered on `add()`, with `toAsyncFactory()` and `toAsyncResource()`.
+They use explicit `getAsync()` / `getAllAsync()` access unless every relevant async
+provider is an eager singleton initialized during `freeze()`.
 
 Use [Async model](async-model.md) for `getAsync()`, eager/lazy initialization, resources,
 disposal and retry behavior.

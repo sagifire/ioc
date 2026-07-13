@@ -29,6 +29,8 @@ import {
     type AppDslAsyncFactoryBindingDefinition,
     type AppDslDefinition,
     type AppDslFactoryBindingDefinition,
+    type AppDslMultiAsyncFactoryBindingDefinition,
+    type AppDslMultiAsyncResourceBindingDefinition,
     type AppDslMultiFactoryBindingDefinition,
     type AppDslMultiValueBindingDefinition,
     type AppDslValueBindingDefinition,
@@ -1024,6 +1026,92 @@ describe('bind/adapt DSL', () => {
         })
 
         await runtime.dispose()
+    })
+
+    test('projects async multi factories and resources one-to-one onto composer add bindings', async () => {
+        const disposed: string[] = []
+        const asyncModule = moduleDsl('dsl-async-add-module', {
+            provides: [
+                {
+                    token: AUDIT_EVENTS,
+                    kind: 'event-subscriber',
+                    cardinality: 'multi'
+                }
+            ],
+            setup(context): void {
+                context.add(AUDIT_EVENTS).toValue('module')
+            }
+        })
+        const objectComposer = createComposer().use(asyncModule)
+
+        objectComposer
+            .add(AUDIT_EVENTS)
+            .toAsyncFactory(async () => 'object-eager')
+            .singleton()
+            .eager()
+        objectComposer
+            .add(AUDIT_EVENTS)
+            .toAsyncResource(async () => ({
+                value: 'object-resource',
+                dispose(): void {
+                    disposed.push('object-resource')
+                }
+            }))
+            .singleton()
+            .lazy()
+
+        const asyncFactory = add(AUDIT_EVENTS)
+            .toAsyncFactory(async () => 'object-eager')
+            .singleton()
+            .eager()
+        const asyncResource = add(AUDIT_EVENTS)
+            .toAsyncResource(async () => ({
+                value: 'object-resource',
+                dispose(): void {
+                    disposed.push('dsl-resource')
+                }
+            }))
+            .singleton()
+            .lazy()
+        const app = defineApp({
+            modules: [asyncModule],
+            bindings: [asyncFactory, asyncResource]
+        })
+
+        expectTypeOf(asyncFactory).toEqualTypeOf<AppDslMultiAsyncFactoryBindingDefinition<string>>()
+        expectTypeOf(asyncResource).toEqualTypeOf<
+            AppDslMultiAsyncResourceBindingDefinition<string>
+        >()
+        expect(asyncFactory).toMatchObject({
+            lifetime: 'singleton',
+            initialization: 'eager'
+        })
+        expect(asyncResource).toMatchObject({
+            lifetime: 'singleton',
+            initialization: 'lazy'
+        })
+        expect(app.validate()).toEqual(objectComposer.validate())
+        expect(app.getGraph()).toEqual(objectComposer.getGraph())
+        expect(app.inspect()).toEqual(objectComposer.inspect())
+
+        const objectRuntime = await objectComposer.compose()
+        const dslRuntime = await app.compose()
+
+        await expect(objectRuntime.getAllAsync(AUDIT_EVENTS)).resolves.toEqual([
+            'module',
+            'object-eager',
+            'object-resource'
+        ])
+        await expect(dslRuntime.getAllAsync(AUDIT_EVENTS)).resolves.toEqual([
+            'module',
+            'object-eager',
+            'object-resource'
+        ])
+        expect(dslRuntime.inspect()).toEqual(objectRuntime.inspect())
+
+        await dslRuntime.dispose()
+        await objectRuntime.dispose()
+        expect(disposed).toEqual(['dsl-resource', 'object-resource'])
     })
 
     test('registers graph-aware adapter declarations with explicit source edges', async () => {

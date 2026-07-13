@@ -1,6 +1,6 @@
 # TASK-07.13-0104: [EXTREME AGENT COMPLEXITY] Stage 18 async multi testing DSL and docs
 
-Task Status: backlog
+Task Status: done
 Type: implementation
 Created: 2026-07-13
 Agent Complexity: extreme
@@ -9,13 +9,13 @@ Current Run: RUN-001
 
 ## Поточний стан
 
-Run Status: prepared
-Progress: Task package prepared; predecessor pending.
-Acceptance: 0/12
-Blockers: TASK-0103 and TASK-0108 must be done
-Blocked Phase: activation
+Run Status: completed
+Progress: Human review approved; task and RUN-001 finalized.
+Acceptance: 12/12
+Blockers: none
+Blocked Phase: n/a
 Pending Decisions: none
-Next Action: Активувати лише після human-approved completion TASK-0103 і TASK-0108.
+Next Action: Proceed to successor only by explicit user command.
 
 ## Мета
 
@@ -57,18 +57,18 @@ Next Action: Активувати лише після human-approved completion 
 
 ## Критерії приймання
 
-- [ ] Testing append override додає async multi contributions у deterministic order лише через public API.
-- [ ] Testing replace override явно замінює collection і не мутує frozen production runtime.
-- [ ] Fake modules підтримують async factory/resource multi fixtures через public module/composer API.
-- [ ] Testing helpers зберігають production cardinality, preflight, retry, ownership і failure semantics.
-- [ ] DSL має one-to-one mapping на object API для всіх підтриманих async multi registrations/options.
-- [ ] Object-configuration API лишається повністю usable без DSL, а DSL не додає hidden dependency resolution.
-- [ ] Документація містить complete sync/async, eager/lazy, lifetime і scope truth table.
-- [ ] Migration/examples пояснюють explicit async accessor, ordering, retry та no-partial-results behavior.
-- [ ] Docs прямо відрізняють return atomicity від transaction/rollback arbitrary factory side effects.
-- [ ] Privacy collision, cycle-frame, order і resource ownership/disposal fixtures проходять у testing package.
-- [ ] Exports, compile/type smoke, package smoke, build, typecheck, lint, format і full tests passed.
-- [ ] Production semantics не перевизначені; predecessor contracts traced і independent audit passed.
+- [x] Testing append override додає async multi contributions у deterministic order лише через public API.
+- [x] Testing replace override явно замінює collection і не мутує frozen production runtime.
+- [x] Fake modules підтримують async factory/resource multi fixtures через public module/composer API.
+- [x] Testing helpers зберігають production cardinality, preflight, retry, ownership і failure semantics.
+- [x] DSL має one-to-one mapping на object API для всіх підтриманих async multi registrations/options.
+- [x] Object-configuration API лишається повністю usable без DSL, а DSL не додає hidden dependency resolution.
+- [x] Документація містить complete sync/async, eager/lazy, lifetime і scope truth table.
+- [x] Migration/examples пояснюють explicit async accessor, ordering, retry та no-partial-results behavior.
+- [x] Docs прямо відрізняють return atomicity від transaction/rollback arbitrary factory side effects.
+- [x] Privacy collision, cycle-frame, order і resource ownership/disposal fixtures проходять у testing package.
+- [x] Exports, compile/type smoke, package smoke, build, typecheck, lint, format і full tests passed.
+- [x] Production semantics не перевизначені; predecessor contracts traced і independent audit passed.
 
 ## Пов'язана пам'ять
 
@@ -83,7 +83,7 @@ Next Action: Активувати лише після human-approved completion 
 
 ## Прогони
 
-- [RUN-001](RUN-001/index.md) - prepared - Testing, DSL, docs and export hardening.
+- [RUN-001](RUN-001/index.md) - completed - Testing, DSL, docs and export hardening.
 
 ## Дослідження
 
@@ -99,14 +99,14 @@ Next Action: Активувати лише після human-approved completion 
 
 ## Human Review
 
-Status: not-requested
-Requested: n/a
-Reviewed: n/a
-Approval Source: n/a
+Status: approved
+Requested: 2026-07-14
+Reviewed: approved 2026-07-14
+Approval Source: user message: `approve`
 
 ## Фінальний результат
 
-Completed: pending
-Final Run: pending
-Summary: pending
-Residual Risks: pending
+Completed: 2026-07-14
+Final Run: RUN-001
+Summary: Async multi testing overrides, fake modules, DSL parity, docs, examples and package smoke implemented and approved.
+Residual Risks: Sequential collection latency and non-transactional user factory side effects remain intentional; dependency-metadata adoption belongs to TASK-0109.

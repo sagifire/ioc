@@ -12,6 +12,8 @@ export type {
     AppDslDefinition,
     AppDslDefinitionInput,
     AppDslFactoryBindingDefinition,
+    AppDslMultiAsyncFactoryBindingDefinition,
+    AppDslMultiAsyncResourceBindingDefinition,
     AppDslMultiFactoryBindingDefinition,
     AppDslMultiValueBindingDefinition,
     AppDslValueBindingDefinition,

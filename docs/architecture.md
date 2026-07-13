@@ -74,8 +74,8 @@ const logger = runtime.get(LOGGER)
 After `freeze()`, providers cannot be added, removed or replaced. `freeze()` is async so
 eager async providers and resources can initialize before the runtime is returned.
 
-`get()` remains synchronous and never returns a `Promise`. Async providers use explicit
-`getAsync()` access.
+`get()` remains synchronous and never returns a `Promise`. Async single providers use
+explicit `getAsync()` access; mixed multi-provider collections use `getAllAsync()`.
 
 For larger applications, the composer adds module declarations, required ports,
 capabilities, validation and inspection on top of the same core runtime model. See
@@ -109,7 +109,8 @@ The container is the low-level provider registry:
 - `bind(token)` registers one provider for a token.
 - `add(token)` registers multi-provider contributions.
 - `toValue()`, `toFactory()` and `toClass()` register sync providers.
-- `toAsyncFactory()` and `toAsyncResource()` register async single providers.
+- `toAsyncFactory()` and `toAsyncResource()` register async single providers or async
+  multi contributions through the selected `bind()` / `add()` cardinality.
 - `singleton()`, `transient()` and `scoped()` control provider lifetime where supported.
 
 Scopes represent request, operation or task-local state:

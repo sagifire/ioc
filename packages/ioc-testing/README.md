@@ -10,7 +10,8 @@ The package is currently used from the workspace. The manifest is `0.0.2` and
 `Apache-2.0` with npm publish metadata, Changesets versioning, package dry-run validation
 and a manual npm publish workflow. Actual npm publishing remains gated by explicit human
 approval and external GitHub/npm settings. This README describes the current `0.0.2`
-workspace API.
+manifest plus unreleased workspace additions; it is not a version or publish-readiness
+claim.
 
 ## Imports
 
@@ -48,8 +49,9 @@ The package exposes a root export only and depends on `@sagifire/ioc`.
 - Override declarations: `override(token).toValue()`, `toFactory()`, `toClass()` and
   `toAsyncFactory()`.
 - Multi contribution declarations: `multiOverride(token).appendValue()`, `appendValues()`,
-  `appendFactory()`, `replaceWithValue()`, `replaceWithValues()` and
-  `replaceWithFactory()`.
+  `appendFactory()`, `appendAsyncFactory()`, `appendAsyncResource()`,
+  `replaceWithValue()`, `replaceWithValues()`, `replaceWithFactory()`,
+  `replaceWithAsyncFactory()` and `replaceWithAsyncResource()`.
 - Composer helpers: `createTestComposer(configure?)` and
   `createTestComposer({ modules, configure, overrides, multiOverrides })`.
 - Fake modules: `fakeModule(definition)` and `fakeModule(id, definition)`.
@@ -63,8 +65,8 @@ The package exposes a root export only and depends on `@sagifire/ioc`.
 - Child scope assertions: `assertChildScopeHasValue()` and `assertChildScopeHasValues()`.
 - Diagnostic assertions: `assertDiagnosticReportOk()`,
   `assertDiagnosticReportHasDiagnostic()` and `assertErrorDiagnostic()`.
-- Error classes: `DuplicateTestOverrideError`, `InvalidFakeModuleProviderError`,
-  `GraphAssertionError`, `ScopeAssertionError` and `DiagnosticAssertionError`.
+- Error classes: `DuplicateTestOverrideError`, `GraphAssertionError`,
+  `ScopeAssertionError` and `DiagnosticAssertionError`.
 
 ## Test Runtime
 
@@ -129,6 +131,11 @@ const composer = createTestComposer({
 same helper input. It does not remove module contributions or mutate an existing composed
 runtime.
 
+Async factory overrides accept optional production lifecycle choices (`lifetime` and
+`initialization`). Async resource overrides require explicit singleton/scoped lifetime.
+Helpers pass those choices through public `add()` builders and keep production ordering,
+retry, scope, ownership, disposal and no-partial-array behavior.
+
 ## Fake Modules And Harnesses
 
 Fake modules are normal explicit module definitions:
@@ -149,7 +156,8 @@ const fakeAuthModule = fakeModule('test-auth', {
 ```
 
 For declared multi-capabilities, fake module providers can set `cardinality: 'multi'`;
-value and synchronous factory providers are registered through public `context.add()`.
+values, sync/async factories and async resources are registered through public
+`context.add()`. Async resources require explicit `lifetime: 'singleton' | 'scoped'`.
 
 Module harnesses compose one module under test with support modules, fake modules or
 explicit required-port overrides:

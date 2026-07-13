@@ -388,7 +388,7 @@ import { add as addFromDslSubpath, adapter as adapterFromDslSubpath, bind, modul
 import { diagnosticFromError as diagnosticFromSubpath } from '@sagifire/ioc/diagnostics'
 import { renderGraphExportMermaid, serializeGraphExport } from '@sagifire/ioc/graph-export'
 import { createNextRequestContext, createNextRuntime, nextRequestValue, withRouteScope, withServerActionScope } from '@sagifire/ioc-next'
-import { assertDiagnosticReportOk, assertGraphExportSnapshot, assertGraphHasCapability, assertGraphHasModule, createModuleHarness, createTestRuntime, fakeModule, override } from '@sagifire/ioc-testing'
+import { assertDiagnosticReportOk, assertGraphExportSnapshot, assertGraphHasCapability, assertGraphHasModule, createModuleHarness, createTestRuntime, fakeModule, multiOverride, override } from '@sagifire/ioc-testing'
 
 const valueToken = token('smoke.value')
 const secondaryToken = tokenFromSubpath('smoke.secondary')
@@ -522,6 +522,23 @@ const multiRuntime = await multiApp.compose()
 
 assertDiagnosticReportOk(multiApp.validate())
 assertEqual(multiRuntime.get(multiSummaryToken), 'module-plugin,root-plugin', 'DSL add root export')
+
+const asyncMultiApp = defineApp({
+    modules: [multiProviderModule],
+    bindings: [
+        add(pluginToken)
+            .toAsyncFactory(async () => 'async-dsl-plugin')
+            .singleton()
+            .eager()
+    ]
+})
+const asyncMultiRuntime = await asyncMultiApp.compose()
+
+assertEqual(
+    (await asyncMultiRuntime.getAllAsync(pluginToken)).join(','),
+    'module-plugin,async-dsl-plugin',
+    'DSL async add root export'
+)
 
 const authApiToken = token('smoke.auth-api')
 const authReaderToken = token('smoke.auth-reader')
@@ -690,10 +707,18 @@ const action = withServerActionScope(
 assertEqual(await action(), 'action', 'Next server action scope export')
 
 const testRuntime = await createTestRuntime({
-    overrides: [override(valueToken).toValue('test')]
+    overrides: [override(valueToken).toValue('test')],
+    multiOverrides: [
+        multiOverride(pluginToken).appendAsyncFactory(async () => 'testing-async-plugin')
+    ]
 })
 
 assertEqual(testRuntime.get(valueToken), 'test', 'testing runtime export')
+assertEqual(
+    (await testRuntime.getAllAsync(pluginToken)).join(','),
+    'testing-async-plugin',
+    'testing async multi override export'
+)
 
 const fake = fakeModule({
     id: 'smoke.fake',
@@ -714,7 +739,29 @@ assertGraphHasCapability(harness.getGraph(), {
     tokenId: valueToken.id
 })
 
+const asyncFake = fakeModule({
+    id: 'smoke.async-fake',
+    provides: [
+        {
+            token: pluginToken,
+            cardinality: 'multi',
+            useAsyncResource: async () => ({ value: 'fake-resource' }),
+            lifetime: 'singleton'
+        }
+    ]
+})
+const asyncFakeRuntime = await createModuleHarness({ module: asyncFake }).compose()
+
+assertEqual(
+    (await asyncFakeRuntime.getAllAsync(pluginToken)).join(','),
+    'fake-resource',
+    'testing async fake module export'
+)
+
+await asyncFakeRuntime.dispose()
+await testRuntime.dispose()
 await adapterRuntime.dispose()
+await asyncMultiRuntime.dispose()
 await multiRuntime.dispose()
 
 function assertEqual(actual, expected, label) {
@@ -754,7 +801,7 @@ import { createComposer, type Composer } from '@sagifire/ioc/composer'
 import { add as addFromDslSubpath, adapter as adapterFromDslSubpath, defineApp, module as defineModuleDsl } from '@sagifire/ioc/dsl'
 import { formatDiagnostics } from '@sagifire/ioc/diagnostics'
 import { createNextRequestContext, nextRequestValue, type NextRequestContext } from '@sagifire/ioc-next'
-import { createTestRuntime, override, type TestOverride } from '@sagifire/ioc-testing'
+import { createTestRuntime, multiOverride, override, type TestMultiOverride, type TestOverride } from '@sagifire/ioc-testing'
 
 const valueToken: Token<string> = token<string>('types.value')
 const namespacedToken: Token<number> = namespace('types').token<number>('count')
@@ -800,6 +847,10 @@ const adapterBinding = adapter(valueToken).from(namespacedToken).using((count) =
 const subpathAddBinding = addFromDslSubpath(pluginToken).toFactory(() => {
     return 'subpath-plugin'
 })
+const asyncAddBinding = add(pluginToken)
+    .toAsyncFactory(async () => 'async-plugin')
+    .singleton()
+    .eager()
 const subpathAdapterBinding = adapterFromDslSubpath(valueToken)
     .from(namespacedToken)
     .using((count) => {
@@ -811,8 +862,13 @@ const requestContext: NextRequestContext = createNextRequestContext({
     values: [nextRequestValue(valueToken, 'request')]
 })
 const testOverride: TestOverride<string> = override(valueToken).toValue('test')
+const testMultiOverride: TestMultiOverride<string> = multiOverride(pluginToken)
+    .appendAsyncResource(async () => ({ value: 'test-resource' }), {
+        lifetime: 'singleton'
+    })
 const testRuntime = createTestRuntime({
-    overrides: [testOverride]
+    overrides: [testOverride],
+    multiOverrides: [testMultiOverride]
 })
 
 void namespacedToken
@@ -823,6 +879,7 @@ void cardinality
 void addBinding
 void adapterBinding
 void subpathAddBinding
+void asyncAddBinding
 void subpathAdapterBinding
 void composer
 void formatted

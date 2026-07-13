@@ -200,7 +200,9 @@ Module setup can register:
 - `bind(token).toAsyncFactory(factory)`;
 - `bind(token).toAsyncResource(factory)`;
 - `add(token).toValue(value)`;
-- `add(token).toFactory(factory)`.
+- `add(token).toFactory(factory)`;
+- `add(token).toAsyncFactory(factory)`;
+- `add(token).toAsyncResource(factory)`.
 
 The usual container lifetime and async initialization helpers apply to the returned
 bindings where the underlying provider kind supports them.
@@ -216,8 +218,16 @@ setup(context) {
     context.add(ADMIN_ITEMS).toFactory(() => ({
         label: 'Generated report'
     }))
+
+    context
+        .add(ADMIN_ITEMS)
+        .toAsyncFactory(async () => loadAdminItem('remote-report'))
+        .singleton()
 }
 ```
+
+Module and composition-root async contributions share the same `getAllAsync()` ordering,
+retry, scope and resource-ownership semantics as container registrations.
 
 ## Private Providers
 

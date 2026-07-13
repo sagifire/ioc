@@ -17,6 +17,7 @@ import {
     createTestComposer,
     createTestRuntime,
     fakeModule,
+    multiOverride,
     override
 } from '@sagifire/ioc-testing'
 
@@ -44,6 +45,7 @@ const CONTACT_REQUESTS_PUBLIC_API = tokens.token<ContactRequestsPublicApi>(
     'contact-requests-public-api'
 )
 const CONTACT_REQUEST_SECRET = tokens.token<ContactRequestSecret>('contact-request-secret')
+const AUDIT_HANDLERS = tokens.token<string>('audit-handlers')
 
 const contactRequestsModule = defineModule({
     id: 'examples-testing-overrides-contact-requests',
@@ -86,8 +88,67 @@ async function main(): Promise<void> {
     await demonstrateTestRuntime()
     await demonstrateTestComposerOverrides()
     await demonstrateModuleHarnessWithFakeModules()
+    await demonstrateAsyncMultiTestingHelpers()
     await demonstrateRuntimeIsolation()
     demonstrateDiagnosticAssertions()
+}
+
+async function demonstrateAsyncMultiTestingHelpers(): Promise<void> {
+    const disposed: string[] = []
+    const runtime = await createTestRuntime({
+        multiOverrides: [
+            multiOverride(AUDIT_HANDLERS).appendValue('sync-handler'),
+            multiOverride(AUDIT_HANDLERS).appendAsyncFactory(async () => 'async-handler', {
+                lifetime: 'singleton'
+            }),
+            multiOverride(AUDIT_HANDLERS).appendAsyncResource(
+                async () => ({
+                    value: 'resource-handler',
+                    dispose(): void {
+                        disposed.push('resource-handler')
+                    }
+                }),
+                { lifetime: 'singleton' }
+            )
+        ]
+    })
+
+    try {
+        assertEqual(
+            (await runtime.getAllAsync(AUDIT_HANDLERS)).join(','),
+            'sync-handler,async-handler,resource-handler',
+            'async multi override order'
+        )
+    } finally {
+        await runtime.dispose()
+    }
+
+    assertEqual(disposed.join(','), 'resource-handler', 'async multi resource disposal')
+
+    const asyncFakeModule = fakeModule('examples-testing-overrides-async-audit', {
+        provides: [
+            {
+                token: AUDIT_HANDLERS,
+                kind: 'event-subscriber',
+                cardinality: 'multi',
+                useAsyncFactory: async () => 'fake-module-handler',
+                lifetime: 'singleton'
+            }
+        ]
+    })
+    const fakeRuntime = await createTestComposer({
+        modules: [asyncFakeModule]
+    }).compose()
+
+    try {
+        assertEqual(
+            (await fakeRuntime.getAllAsync(AUDIT_HANDLERS)).join(','),
+            'fake-module-handler',
+            'async multi fake module'
+        )
+    } finally {
+        await fakeRuntime.dispose()
+    }
 }
 
 async function demonstrateTestRuntime(): Promise<void> {

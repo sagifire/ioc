@@ -11,7 +11,8 @@ This package is currently used from the workspace. The manifest is `0.0.2` and
 `Apache-2.0` with npm publish metadata, Changesets versioning, package dry-run validation
 and a manual npm publish workflow. Actual npm publishing remains gated by explicit human
 approval and external GitHub/npm settings. This README describes the current `0.0.2`
-workspace API.
+manifest plus unreleased workspace additions; it is not a version or publish-readiness
+claim.
 
 ## Imports
 
@@ -37,12 +38,13 @@ Tree-shaking-friendly subpath exports:
 - Tokens: `token()`, `multiToken()`, `contributionToken()`, `namespace()` and
   `Token<TValue>`.
 - Container: `createContainer()`, `bind()`, `add()`, lifetimes, `freeze()`, `get()`,
-  `tryGet()`, `getAll()`, `getAsync()`, `tryGetAsync()` and disposal.
+  `tryGet()`, `getAll()`, `getAllAsync()`, `getAsync()`, `tryGetAsync()` and disposal.
 - Scopes: `createScope()`, `withScope()`, scope-local values, scope-local multi-values,
-  child scopes, `scope.get()`, `scope.tryGet()`, `scope.getAll()`, `scope.getAsync()` and
-  `scope.dispose()`.
-- Async resources: `toAsyncFactory()`, `toAsyncResource()`, explicit `getAsync()` access
-  and runtime/scope disposal for initialized resources.
+  child scopes, `scope.get()`, `scope.tryGet()`, `scope.getAll()`, `scope.getAllAsync()`,
+  `scope.getAsync()` and `scope.dispose()`.
+- Async providers/resources: `toAsyncFactory()`, `toAsyncResource()`, explicit
+  `getAsync()` / `getAllAsync()` access and runtime/scope disposal for initialized
+  resources.
 - Composer/modules: `defineModule()`, `createComposer()`, `use()`, `bind()`, `add()`,
   `adapt().from().using()`, `validate()`, `prepare()`, `compose()`, `inspect()`,
   `getGraph()` and composed runtime inspection.
@@ -54,8 +56,8 @@ Tree-shaking-friendly subpath exports:
 - Optional DSL: `module()`, `defineApp()`, `bind()`, `add()`, `adapt()` and
   graph-aware `adapter()`.
 
-Async multi-provider contributions, `getAllAsync()` and framework adapters are not part of
-the current core API.
+Framework adapters are not part of the core API; they live in `@sagifire/ioc-next`.
+Async multi-provider contributions and `getAllAsync()` are explicit core APIs.
 
 `MultiToken<T>` and `ContributionToken<T>` are type-level helper markers over ordinary
 token identity. Runtime enforcement still comes from module/composer cardinality
@@ -176,6 +178,9 @@ const app = defineApp({
 DSL declarations convert to a fresh composer configuration. They do not add decorators,
 constructor metadata, filesystem discovery, global registries or hidden dependency
 inference.
+
+`add(token).toAsyncFactory()` and `add(token).toAsyncResource()` preserve the object API
+lifetime and eager/lazy choices one-to-one; the object API remains first-class.
 
 For graph-aware adapters in DSL, prefer:
 

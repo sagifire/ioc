@@ -257,6 +257,11 @@ const adminModule = defineModule({
 composer.add(ADMIN_ITEMS).toValue({
     label: 'Root shortcut'
 })
+
+composer
+    .add(ADMIN_ITEMS)
+    .toAsyncFactory(async () => loadAdminItem('remote-shortcut'))
+    .singleton()
 ```
 
 Rules:
@@ -268,6 +273,16 @@ Rules:
   code that calls `getAll(token)` receives `[]`;
 - module contributions resolve first in effective module registration order, then
   composition-root additions resolve after module contributions.
+- module setup and composition-root `add()` support async factories/resources with the
+  same lifetime, eager/lazy and ownership rules as the container object API;
+- composed runtimes/scopes use `getAllAsync()` for mixed async collections; `getAll()`
+  stays synchronous and rejects async-required collections before contribution execution;
+- sequential resolution preserves module/setup/root registration order and stops at the
+  first failure without returning a partial array.
+
+The DSL `add(token).toAsyncFactory()` / `toAsyncResource()` definitions project these
+registration and lifecycle choices one-to-one. The object API remains fully usable without
+the DSL, and neither path infers hidden dependencies from factory bodies.
 
 ## Graph-Aware Adapters
 

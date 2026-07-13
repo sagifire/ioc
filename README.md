@@ -65,9 +65,10 @@ try {
 }
 ```
 
-`runtime.get()` is always synchronous. Async providers and resources use explicit
-`getAsync()` access. A sync `toFactory()` must return a final sync value; Promise-producing
-factories belong behind `toAsyncFactory()`.
+`runtime.get()` is always synchronous. Async single providers/resources use explicit
+`getAsync()` access, while mixed async multi collections use `getAllAsync()`. A sync
+`toFactory()` must return a final sync value; Promise-producing factories belong behind
+`toAsyncFactory()`.
 
 ## Module Composition
 
@@ -147,8 +148,8 @@ const contactRequests = app.get(CONTACT_API)
 
 Multi capabilities are explicit too: declare `cardinality: 'multi'` in `provides` or
 `requires`, register providers with `add()` and resolve public multi capabilities with
-`getAll()`. The composed runtime rejects `get()` for multi capabilities and rejects
-`getAll()` for single capabilities.
+`getAll()` / `getAllAsync()`. The composed runtime rejects `get()` for multi capabilities
+and rejects either collection accessor for single capabilities.
 
 The optional DSL (`module()`, `defineApp()`, `bind()`, `add()`, `adapt()` and `adapter()`)
 is a convenience layer over the same composer behavior. Use
@@ -237,7 +238,8 @@ and external GitHub/npm settings.
 - [Async DB resource](examples/async-db-resource/README.md) - lazy async database resource,
   retry after failed initialization, scoped unit-of-work and disposal.
 - [Testing overrides](examples/testing-overrides/README.md) - isolated test runtimes,
-  composer overrides, fake modules, module harnesses and graph/diagnostic assertions.
+  sync/async multi overrides, fake modules, module harnesses and graph/diagnostic
+  assertions.
 - [Next App Router](examples/next-app-router/README.md) - cached runtime, explicit
   request/action context, route scopes and server action scopes for `@sagifire/ioc-next`.
 
