@@ -10,6 +10,7 @@ import {
     type ComposerAsyncResourceFactory,
     type ComposerBindingFactory,
     type ComposerInspection,
+    type ComposerOptions,
     type ModuleCardinality,
     type ModuleCapabilityDefinition,
     type ModuleCapabilityDefinitionInput,
@@ -29,6 +30,7 @@ import type {
     ProviderLifetime
 } from './container'
 import type { DiagnosticReport } from './diagnostics'
+import type { ProviderDependencyOptions } from './provider-metadata'
 import type { Token } from './tokens'
 
 export type ModuleDslDefinitionInput<
@@ -100,6 +102,7 @@ export interface AppDslValueBindingDefinition<TValue = unknown> {
 export interface AppDslFactoryBindingDefinition<TValue = unknown> {
     readonly token: Token<TValue>
     readonly useFactory: ComposerBindingFactory<TValue>
+    readonly options?: ProviderDependencyOptions
 }
 
 export interface AppDslClassBindingDefinition<TValue = unknown> {
@@ -110,6 +113,7 @@ export interface AppDslClassBindingDefinition<TValue = unknown> {
 export interface AppDslAsyncFactoryBindingDefinition<TValue = unknown> {
     readonly token: Token<TValue>
     readonly useAsyncFactory: ComposerAsyncBindingFactory<TValue>
+    readonly options?: ProviderDependencyOptions
 }
 
 export interface AppDslMultiValueBindingDefinition<TValue = unknown> {
@@ -120,6 +124,7 @@ export interface AppDslMultiValueBindingDefinition<TValue = unknown> {
 export interface AppDslMultiFactoryBindingDefinition<TValue = unknown> {
     readonly token: Token<TValue>
     readonly addFactory: ComposerBindingFactory<TValue>
+    readonly options?: ProviderDependencyOptions
     readonly lifetime: ProviderLifetime | undefined
     singleton(): AppDslMultiFactoryBindingDefinition<TValue>
     transient(): AppDslMultiFactoryBindingDefinition<TValue>
@@ -129,6 +134,7 @@ export interface AppDslMultiFactoryBindingDefinition<TValue = unknown> {
 export interface AppDslMultiAsyncFactoryBindingDefinition<TValue = unknown> {
     readonly token: Token<TValue>
     readonly addAsyncFactory: ComposerAsyncBindingFactory<TValue>
+    readonly options?: ProviderDependencyOptions
     readonly lifetime: ProviderLifetime | undefined
     readonly initialization: AsyncProviderInitializationMode | undefined
     singleton(): AppDslMultiAsyncFactoryBindingDefinition<TValue>
@@ -141,6 +147,7 @@ export interface AppDslMultiAsyncFactoryBindingDefinition<TValue = unknown> {
 export interface AppDslMultiAsyncResourceBindingDefinition<TValue = unknown> {
     readonly token: Token<TValue>
     readonly addAsyncResource: ComposerAsyncResourceFactory<TValue>
+    readonly options?: ProviderDependencyOptions
     readonly lifetime: Exclude<ProviderLifetime, 'transient'> | undefined
     readonly initialization: AsyncProviderInitializationMode | undefined
     singleton(): AppDslMultiAsyncResourceBindingDefinition<TValue>
@@ -160,21 +167,30 @@ export interface AppDslAdapterBindingDefinition<
 
 export interface BindDslBuilder<TValue> {
     toValue(value: TValue): AppDslValueBindingDefinition<TValue>
-    toFactory(factory: ComposerBindingFactory<TValue>): AppDslFactoryBindingDefinition<TValue>
+    toFactory(
+        factory: ComposerBindingFactory<TValue>,
+        options?: ProviderDependencyOptions
+    ): AppDslFactoryBindingDefinition<TValue>
     toClass(classConstructor: ClassConstructor<TValue>): AppDslClassBindingDefinition<TValue>
     toAsyncFactory(
-        factory: ComposerAsyncBindingFactory<TValue>
+        factory: ComposerAsyncBindingFactory<TValue>,
+        options?: ProviderDependencyOptions
     ): AppDslAsyncFactoryBindingDefinition<TValue>
 }
 
 export interface AddDslBuilder<TValue> {
     toValue(value: TValue): AppDslMultiValueBindingDefinition<TValue>
-    toFactory(factory: ComposerBindingFactory<TValue>): AppDslMultiFactoryBindingDefinition<TValue>
+    toFactory(
+        factory: ComposerBindingFactory<TValue>,
+        options?: ProviderDependencyOptions
+    ): AppDslMultiFactoryBindingDefinition<TValue>
     toAsyncFactory(
-        factory: ComposerAsyncBindingFactory<TValue>
+        factory: ComposerAsyncBindingFactory<TValue>,
+        options?: ProviderDependencyOptions
     ): AppDslMultiAsyncFactoryBindingDefinition<TValue>
     toAsyncResource(
-        factory: ComposerAsyncResourceFactory<TValue>
+        factory: ComposerAsyncResourceFactory<TValue>,
+        options?: ProviderDependencyOptions
     ): AppDslMultiAsyncResourceBindingDefinition<TValue>
 }
 
@@ -196,6 +212,7 @@ export interface AppDslDefinitionInput<
 > {
     readonly modules: TModules
     readonly bindings?: TBindings
+    readonly options?: ComposerOptions
 }
 
 export interface AppDslDefinition<
@@ -204,6 +221,7 @@ export interface AppDslDefinition<
 > {
     readonly modules: TModules
     readonly bindings: TBindings
+    readonly options?: ComposerOptions
     createComposer(): Composer
     validate(): DiagnosticReport
     inspect(): ComposerInspection
@@ -258,9 +276,11 @@ function defineAppDsl<
 >(definition: AppDslDefinitionInput<TModules, TBindings>): AppDslDefinition<TModules, TBindings> {
     const modules = Object.freeze([...definition.modules]) as unknown as TModules
     const bindings = Object.freeze([...(definition.bindings ?? [])]) as unknown as TBindings
+    const options =
+        definition.options === undefined ? undefined : Object.freeze({ ...definition.options })
 
     const createConfiguredComposer = (): Composer => {
-        const composer = createComposer()
+        const composer = createComposer(options)
 
         for (const moduleDefinition of modules) {
             composer.use(moduleDefinition)
@@ -276,6 +296,7 @@ function defineAppDsl<
     return Object.freeze({
         modules,
         bindings,
+        ...(options === undefined ? {} : { options }),
 
         createComposer(): Composer {
             return createConfiguredComposer()
@@ -312,10 +333,14 @@ function createBindDsl<TValue>(bindingToken: Token<TValue>): BindDslBuilder<TVal
             })
         },
 
-        toFactory(factory: ComposerBindingFactory<TValue>): AppDslFactoryBindingDefinition<TValue> {
+        toFactory(
+            factory: ComposerBindingFactory<TValue>,
+            options?: ProviderDependencyOptions
+        ): AppDslFactoryBindingDefinition<TValue> {
             return Object.freeze({
                 token: bindingToken,
-                useFactory: factory
+                useFactory: factory,
+                ...(options === undefined ? {} : { options })
             })
         },
 
@@ -327,11 +352,13 @@ function createBindDsl<TValue>(bindingToken: Token<TValue>): BindDslBuilder<TVal
         },
 
         toAsyncFactory(
-            factory: ComposerAsyncBindingFactory<TValue>
+            factory: ComposerAsyncBindingFactory<TValue>,
+            options?: ProviderDependencyOptions
         ): AppDslAsyncFactoryBindingDefinition<TValue> {
             return Object.freeze({
                 token: bindingToken,
-                useAsyncFactory: factory
+                useAsyncFactory: factory,
+                ...(options === undefined ? {} : { options })
             })
         }
     })
@@ -347,33 +374,38 @@ function createAddDsl<TValue>(bindingToken: Token<TValue>): AddDslBuilder<TValue
         },
 
         toFactory(
-            factory: ComposerBindingFactory<TValue>
+            factory: ComposerBindingFactory<TValue>,
+            options?: ProviderDependencyOptions
         ): AppDslMultiFactoryBindingDefinition<TValue> {
-            return createAppDslMultiFactoryBinding(bindingToken, factory)
+            return createAppDslMultiFactoryBinding(bindingToken, factory, options)
         },
 
         toAsyncFactory(
-            factory: ComposerAsyncBindingFactory<TValue>
+            factory: ComposerAsyncBindingFactory<TValue>,
+            options?: ProviderDependencyOptions
         ): AppDslMultiAsyncFactoryBindingDefinition<TValue> {
-            return createAppDslMultiAsyncFactoryBinding(bindingToken, factory)
+            return createAppDslMultiAsyncFactoryBinding(bindingToken, factory, options)
         },
 
         toAsyncResource(
-            factory: ComposerAsyncResourceFactory<TValue>
+            factory: ComposerAsyncResourceFactory<TValue>,
+            options?: ProviderDependencyOptions
         ): AppDslMultiAsyncResourceBindingDefinition<TValue> {
-            return createAppDslMultiAsyncResourceBinding(bindingToken, factory)
+            return createAppDslMultiAsyncResourceBinding(bindingToken, factory, options)
         }
     })
 }
 
 function createAppDslMultiFactoryBinding<TValue>(
     bindingToken: Token<TValue>,
-    factory: ComposerBindingFactory<TValue>
+    factory: ComposerBindingFactory<TValue>,
+    options?: ProviderDependencyOptions
 ): AppDslMultiFactoryBindingDefinition<TValue> {
     let lifetime: ProviderLifetime | undefined
     const binding: AppDslMultiFactoryBindingDefinition<TValue> = {
         token: bindingToken,
         addFactory: factory,
+        ...(options === undefined ? {} : { options }),
 
         get lifetime(): ProviderLifetime | undefined {
             return lifetime
@@ -403,13 +435,15 @@ function createAppDslMultiFactoryBinding<TValue>(
 
 function createAppDslMultiAsyncFactoryBinding<TValue>(
     bindingToken: Token<TValue>,
-    factory: ComposerAsyncBindingFactory<TValue>
+    factory: ComposerAsyncBindingFactory<TValue>,
+    options?: ProviderDependencyOptions
 ): AppDslMultiAsyncFactoryBindingDefinition<TValue> {
     let lifetime: ProviderLifetime | undefined
     let initialization: AsyncProviderInitializationMode | undefined
     const binding: AppDslMultiAsyncFactoryBindingDefinition<TValue> = {
         token: bindingToken,
         addAsyncFactory: factory,
+        ...(options === undefined ? {} : { options }),
 
         get lifetime(): ProviderLifetime | undefined {
             return lifetime
@@ -455,13 +489,15 @@ function createAppDslMultiAsyncFactoryBinding<TValue>(
 
 function createAppDslMultiAsyncResourceBinding<TValue>(
     bindingToken: Token<TValue>,
-    factory: ComposerAsyncResourceFactory<TValue>
+    factory: ComposerAsyncResourceFactory<TValue>,
+    options?: ProviderDependencyOptions
 ): AppDslMultiAsyncResourceBindingDefinition<TValue> {
     let lifetime: Exclude<ProviderLifetime, 'transient'> | undefined
     let initialization: AsyncProviderInitializationMode | undefined
     const binding: AppDslMultiAsyncResourceBindingDefinition<TValue> = {
         token: bindingToken,
         addAsyncResource: factory,
+        ...(options === undefined ? {} : { options }),
 
         get lifetime(): Exclude<ProviderLifetime, 'transient'> | undefined {
             return lifetime
@@ -537,7 +573,9 @@ function applyAppDslBinding(composer: Composer, binding: AppDslBindingDefinition
     }
 
     if ('addFactory' in binding) {
-        const lifetimeBinding = composer.add(binding.token).toFactory(binding.addFactory)
+        const lifetimeBinding = composer
+            .add(binding.token)
+            .toFactory(binding.addFactory, binding.options)
 
         applyAppDslProviderLifetime(lifetimeBinding, binding.lifetime)
 
@@ -545,7 +583,9 @@ function applyAppDslBinding(composer: Composer, binding: AppDslBindingDefinition
     }
 
     if ('addAsyncFactory' in binding) {
-        const asyncBinding = composer.add(binding.token).toAsyncFactory(binding.addAsyncFactory)
+        const asyncBinding = composer
+            .add(binding.token)
+            .toAsyncFactory(binding.addAsyncFactory, binding.options)
 
         applyAppDslAsyncFactoryOptions(asyncBinding, binding.lifetime, binding.initialization)
 
@@ -555,7 +595,7 @@ function applyAppDslBinding(composer: Composer, binding: AppDslBindingDefinition
     if ('addAsyncResource' in binding) {
         const resourceBinding = composer
             .add(binding.token)
-            .toAsyncResource(binding.addAsyncResource)
+            .toAsyncResource(binding.addAsyncResource, binding.options)
 
         applyAppDslAsyncResourceOptions(resourceBinding, binding.lifetime, binding.initialization)
 
@@ -577,7 +617,7 @@ function applyAppDslBinding(composer: Composer, binding: AppDslBindingDefinition
     }
 
     if ('useFactory' in binding) {
-        builder.toFactory(binding.useFactory)
+        builder.toFactory(binding.useFactory, binding.options)
 
         return
     }
@@ -588,7 +628,7 @@ function applyAppDslBinding(composer: Composer, binding: AppDslBindingDefinition
         return
     }
 
-    builder.toAsyncFactory(binding.useAsyncFactory)
+    builder.toAsyncFactory(binding.useAsyncFactory, binding.options)
 }
 
 function applyAppDslAsyncFactoryOptions(

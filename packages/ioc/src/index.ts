@@ -228,7 +228,7 @@ export type {
     ProviderNodeKind
 } from './provider-metadata'
 export { DependencyMetadataInvalidError } from './provider-metadata'
-export { LifetimeValidationError } from './lifetime-validation'
+export { LifetimeValidationError, getLifetimeValidationReport } from './lifetime-validation'
 export type {
     LifetimeValidationCoverageMode,
     LifetimeValidationErrorDetails,

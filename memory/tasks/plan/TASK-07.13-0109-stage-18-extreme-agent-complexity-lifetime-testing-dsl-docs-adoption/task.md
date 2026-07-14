@@ -1,6 +1,6 @@
 # TASK-07.13-0109: [EXTREME AGENT COMPLEXITY] Stage 18 lifetime testing, DSL, docs and adoption
 
-Task Status: backlog
+Task Status: done
 Type: implementation
 Created: 2026-07-13
 Agent Complexity: extreme
@@ -9,13 +9,13 @@ Current Run: RUN-001
 
 ## Поточний стан
 
-Run Status: prepared
-Progress: Task package prepared; predecessors pending.
-Acceptance: 0/12
-Blockers: TASK-0104 and TASK-0108 must be done
-Blocked Phase: activation
+Run Status: completed
+Progress: Human review approved; RUN-001 finalized.
+Acceptance: 12/12
+Blockers: none
+Blocked Phase: none
 Pending Decisions: none
-Next Action: Активувати лише після human-approved completion TASK-0104 і TASK-0108.
+Next Action: None; task finalized.
 
 ## Мета
 
@@ -58,18 +58,18 @@ default enforcement або graph schema defaults.
 
 ## Критерії приймання
 
-- [ ] TASK-0104 і TASK-0108 final contracts traced до result.
-- [ ] Provider-edge/coverage/diagnostic/scope assertions use public APIs only.
-- [ ] Overrides/fake modules preserve metadata without frozen production mutation.
-- [ ] Helpers preserve production cardinality, identity, lifetime and scope semantics.
-- [ ] DSL maps one-to-one to every supported object dependency option.
-- [ ] Object API remains fully usable without DSL and DSL has no hidden resolution.
-- [ ] Docs include matrix, deferred handles, derived ownership, coverage and privacy.
-- [ ] Docs explain v1 freeze, opt-in v2 and deterministic safe projection.
-- [ ] Migration begins with report/coverage review before explicit enforce adoption.
-- [ ] Docs state declaration coverage is not proof of factory implementation behavior.
-- [ ] Export/type/package/example/full quality gates and privacy fixtures pass.
-- [ ] Production/default/release semantics unchanged; independent audit passed.
+- [x] TASK-0104 і TASK-0108 final contracts traced до result.
+- [x] Provider-edge/coverage/diagnostic/scope assertions use public APIs only.
+- [x] Overrides/fake modules preserve metadata without frozen production mutation.
+- [x] Helpers preserve production cardinality, identity, lifetime and scope semantics.
+- [x] DSL maps one-to-one to every supported object dependency option.
+- [x] Object API remains fully usable without DSL and DSL has no hidden resolution.
+- [x] Docs include matrix, deferred handles, derived ownership, coverage and privacy.
+- [x] Docs explain v1 freeze, opt-in v2 and deterministic safe projection.
+- [x] Migration begins with report/coverage review before explicit enforce adoption.
+- [x] Docs state declaration coverage is not proof of factory implementation behavior.
+- [x] Export/type/package/example/full quality gates and privacy fixtures pass.
+- [x] Production/default/release semantics unchanged; independent audit passed.
 
 ## Пов'язана пам'ять
 
@@ -84,7 +84,7 @@ default enforcement або graph schema defaults.
 
 ## Прогони
 
-- [RUN-001](RUN-001/index.md) - prepared - Testing/DSL/docs/adoption.
+- [RUN-001](RUN-001/index.md) - completed - Testing/DSL/docs/adoption.
 
 ## Дослідження
 
@@ -100,15 +100,15 @@ Canonical memory changes потребують окремого approved `FIX-*`,
 
 ## Human Review
 
-Status: not-requested
-Requested: n/a
-Reviewed: n/a
-Approval Source: n/a
+Status: approved
+Requested: 2026-07-14
+Reviewed: 2026-07-14
+Approval Source: user message on 2026-07-14: `approve`
 
 ## Фінальний результат
 
-Completed: pending
-Final Run: pending
-Summary: pending
-Residual Risks: pending
-
+Completed: 2026-07-14
+Final Run: RUN-001
+Summary: Testing helpers, DSL parity, docs, adoption workflow and quality gates approved.
+Residual Risks: Declarative dependency metadata cannot prove hidden factory-body lookups; graph
+v2 remains opt-in and future incompatible projection changes require a new schema version.

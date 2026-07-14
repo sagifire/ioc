@@ -389,6 +389,59 @@ typed IoC error and the test should assert the diagnostic derived from that erro
 
 Failed diagnostic assertions throw `DiagnosticAssertionError`. Inputs are not mutated.
 
+## Provider Graph And Lifetime Assertions
+
+Pass `lifetimeValidation` to `createTestRuntime()`, `createTestComposer()` or
+`createModuleHarness()` to exercise the same production policy. Factory overrides and fake
+factory/resource providers accept `ProviderDependencyOptions`; async multi options additionally
+accept `dependencies` beside their lifecycle fields.
+
+```ts
+const runtime = await createTestRuntime({
+    lifetimeValidation: {
+        mode: 'report',
+        coverage: 'summary'
+    },
+    configure(container) {
+        container.bind(REQUEST).toValue(request)
+    },
+    overrides: [
+        override(SERVICE).toFactory(createService, {
+            dependencies: [
+                {
+                    token: REQUEST,
+                    access: 'instance'
+                }
+            ]
+        })
+    ]
+})
+
+const inspection = runtime.inspect()
+
+assertProviderGraphHasNode(inspection, {
+    key: { visibility: 'public', tokenId: SERVICE.id },
+    providerKind: 'factory'
+})
+assertProviderGraphHasDependencyEdge(inspection, {
+    consumer: { visibility: 'public', tokenId: SERVICE.id },
+    dependency: { visibility: 'public', tokenId: REQUEST.id }
+})
+assertProviderGraphHasCoverage(inspection, {
+    provider: { visibility: 'public', tokenId: SERVICE.id },
+    coverage: 'declared'
+})
+assertProviderGraphCoverage(inspection, 'complete')
+assertLifetimeValidationReportHasDiagnostic(inspection.lifetimeValidation!, {
+    code: 'SAGIFIRE_IOC_LIFETIME_CAPTURE_UNSAFE'
+})
+```
+
+Ownership assertions inspect only derived `runtime | scope` edges. Scope wrappers call the public
+`scope.inspect()` method. Private expectation keys use module ID and registration index; assertion
+messages never reveal private token IDs. See
+[lifetime dependency validation](lifetime-validation.md) for matrix, coverage and staged adoption.
+
 ## Runnable Example
 
 See [`examples/testing-overrides`](../examples/testing-overrides/README.md) for a complete

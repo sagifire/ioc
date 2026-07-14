@@ -99,6 +99,15 @@ describe('package exports', () => {
         expect(testing.assertGraphHasBinding).toBeTypeOf('function')
         expect(testing.assertGraphHasEdge).toBeTypeOf('function')
         expect(testing.assertGraphExportSnapshot).toBeTypeOf('function')
+        expect(testing.assertProviderGraphHasNode).toBeTypeOf('function')
+        expect(testing.assertProviderGraphHasDependencyEdge).toBeTypeOf('function')
+        expect(testing.assertProviderGraphHasOwnershipEdge).toBeTypeOf('function')
+        expect(testing.assertProviderGraphHasCoverage).toBeTypeOf('function')
+        expect(testing.assertProviderGraphCoverage).toBeTypeOf('function')
+        expect(testing.assertLifetimeValidationReportOk).toBeTypeOf('function')
+        expect(testing.assertLifetimeValidationReportHasDiagnostic).toBeTypeOf('function')
+        expect(testing.assertScopeInspectionHasProviderNode).toBeTypeOf('function')
+        expect(testing.assertScopeInspectionHasDependencyEdge).toBeTypeOf('function')
         expect(testing.assertDiagnosticReportOk).toBeTypeOf('function')
         expect(testing.assertDiagnosticReportHasDiagnostic).toBeTypeOf('function')
         expect(testing.assertErrorDiagnostic).toBeTypeOf('function')
@@ -106,6 +115,7 @@ describe('package exports', () => {
         expect(testing.GraphExportSnapshotAssertionError).toBeTypeOf('function')
         expect(testing.DiagnosticAssertionError).toBeTypeOf('function')
         expect(testing.DuplicateTestOverrideError).toBeTypeOf('function')
+        expect(core.getLifetimeValidationReport).toBeTypeOf('function')
         expect(Object.keys(testing).filter((exportName) => exportName.includes('Next'))).toEqual([])
         testing.assertGraphHasModule(harness.getGraph(), 'exports-testing-module')
         testing.assertGraphHasCapability(harness.getGraph(), {
@@ -113,6 +123,22 @@ describe('package exports', () => {
             moduleId: 'exports-testing-module'
         })
         testing.assertDiagnosticReportOk(harness.validate())
+        testing.assertProviderGraphHasNode(runtime.inspect(), {
+            key: {
+                visibility: 'public',
+                tokenId: value.id
+            },
+            providerKind: 'value'
+        })
+        testing.assertProviderGraphHasCoverage(runtime.inspect(), {
+            provider: {
+                visibility: 'public',
+                tokenId: value.id
+            },
+            coverage: 'not-applicable'
+        })
+        testing.assertProviderGraphCoverage(runtime.inspect(), 'complete')
+        testing.assertLifetimeValidationReportOk(core.getLifetimeValidationReport(runtime))
         expect(runtime.get(value)).toBe('testing-export')
         expect(composedRuntime.get(publicApi).submit()).toBe('testing-composer-export')
         expect(harnessRuntime.get(publicApi).submit()).toBe('testing-harness-export')

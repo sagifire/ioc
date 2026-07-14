@@ -27,6 +27,8 @@ import {
     type DiagnosticSeverity,
     type GraphExportDocument,
     type InspectionProviderKind,
+    type LifetimeValidationOptions,
+    type LifetimeValidationReport,
     type ModuleCardinality,
     type ModuleCapabilityDefinition,
     type ModuleCapabilityKind,
@@ -38,8 +40,18 @@ import {
     type ModuleDependencyKind,
     type ModuleGraph,
     type ModuleSetupContext,
+    type NormalizedProviderCoverage,
+    type NormalizedProviderDependencyEdge,
+    type NormalizedProviderGraphSnapshot,
+    type NormalizedProviderNode,
+    type NormalizedProviderOwnershipEdge,
     type PreparedComposition,
     type ProviderLifetime,
+    type ProviderDependencyOptions,
+    type ProviderNodeKind,
+    type ProviderRegistrationKey,
+    type ProviderInspection,
+    type ProviderDependencyCoverage,
     type RequiredPortSatisfaction,
     type RuntimeInspection,
     type Scope,
@@ -67,6 +79,7 @@ export interface TestFactoryOverride<TValue = unknown> {
     readonly kind: 'factory'
     readonly token: Token<TValue>
     readonly factory: SyncProviderFactory<TValue>
+    readonly options?: ProviderDependencyOptions
 }
 
 export interface TestClassOverride<TValue = unknown> {
@@ -79,6 +92,7 @@ export interface TestAsyncFactoryOverride<TValue = unknown> {
     readonly kind: 'async-factory'
     readonly token: Token<TValue>
     readonly factory: AsyncProviderFactory<TValue>
+    readonly options?: ProviderDependencyOptions
 }
 
 export type TestOverride<TValue = unknown> =
@@ -95,16 +109,19 @@ export interface TestMultiValueContribution<TValue = unknown> {
 export interface TestMultiFactoryContribution<TValue = unknown> {
     readonly kind: 'factory'
     readonly factory: SyncProviderFactory<TValue>
+    readonly options?: ProviderDependencyOptions
 }
 
 export interface TestMultiAsyncFactoryOptions {
     readonly lifetime?: ProviderLifetime
     readonly initialization?: AsyncProviderInitializationMode
+    readonly dependencies?: ProviderDependencyOptions['dependencies']
 }
 
 export interface TestMultiAsyncResourceOptions {
     readonly lifetime: Exclude<ProviderLifetime, 'transient'>
     readonly initialization?: AsyncProviderInitializationMode
+    readonly dependencies?: ProviderDependencyOptions['dependencies']
 }
 
 export interface TestMultiAsyncFactoryContribution<TValue = unknown> {
@@ -146,12 +163,14 @@ export interface FakeModuleFactoryProvider<
     TValue = unknown
 > extends FakeModuleProviderBase<TValue> {
     readonly useFactory: SyncProviderFactory<TValue>
+    readonly options?: ProviderDependencyOptions
 }
 
 export interface FakeModuleAsyncFactoryProvider<
     TValue = unknown
 > extends FakeModuleProviderBase<TValue> {
     readonly useAsyncFactory: AsyncProviderFactory<TValue>
+    readonly options?: ProviderDependencyOptions
     readonly lifetime?: ProviderLifetime
     readonly initialization?: AsyncProviderInitializationMode
 }
@@ -160,6 +179,7 @@ export interface FakeModuleAsyncResourceProvider<
     TValue = unknown
 > extends FakeModuleProviderBase<TValue> {
     readonly useAsyncResource: AsyncResourceFactory<TValue>
+    readonly options?: ProviderDependencyOptions
     readonly lifetime: Exclude<ProviderLifetime, 'transient'>
     readonly initialization?: AsyncProviderInitializationMode
 }
@@ -172,15 +192,24 @@ export type FakeModuleProvider<TValue = unknown> =
 
 export interface TestOverrideBuilder<TValue> {
     toValue(value: TValue): TestValueOverride<TValue>
-    toFactory(factory: SyncProviderFactory<TValue>): TestFactoryOverride<TValue>
+    toFactory(
+        factory: SyncProviderFactory<TValue>,
+        options?: ProviderDependencyOptions
+    ): TestFactoryOverride<TValue>
     toClass(classConstructor: ClassConstructor<TValue>): TestClassOverride<TValue>
-    toAsyncFactory(factory: AsyncProviderFactory<TValue>): TestAsyncFactoryOverride<TValue>
+    toAsyncFactory(
+        factory: AsyncProviderFactory<TValue>,
+        options?: ProviderDependencyOptions
+    ): TestAsyncFactoryOverride<TValue>
 }
 
 export interface TestMultiOverrideBuilder<TValue> {
     appendValue(value: TValue): TestMultiOverride<TValue>
     appendValues(values: readonly TValue[]): TestMultiOverride<TValue>
-    appendFactory(factory: SyncProviderFactory<TValue>): TestMultiOverride<TValue>
+    appendFactory(
+        factory: SyncProviderFactory<TValue>,
+        options?: ProviderDependencyOptions
+    ): TestMultiOverride<TValue>
     appendAsyncFactory(
         factory: AsyncProviderFactory<TValue>,
         options?: TestMultiAsyncFactoryOptions
@@ -191,7 +220,10 @@ export interface TestMultiOverrideBuilder<TValue> {
     ): TestMultiOverride<TValue>
     replaceWithValue(value: TValue): TestMultiOverride<TValue>
     replaceWithValues(values: readonly TValue[]): TestMultiOverride<TValue>
-    replaceWithFactory(factory: SyncProviderFactory<TValue>): TestMultiOverride<TValue>
+    replaceWithFactory(
+        factory: SyncProviderFactory<TValue>,
+        options?: ProviderDependencyOptions
+    ): TestMultiOverride<TValue>
     replaceWithAsyncFactory(
         factory: AsyncProviderFactory<TValue>,
         options?: TestMultiAsyncFactoryOptions
@@ -275,6 +307,7 @@ export interface CreateTestRuntimeOptions {
     readonly configure?: TestRuntimeConfigurator
     readonly overrides?: readonly TestOverride[]
     readonly multiOverrides?: readonly TestMultiOverride[]
+    readonly lifetimeValidation?: LifetimeValidationOptions
 }
 
 export interface CreateTestComposerOptions {
@@ -282,6 +315,7 @@ export interface CreateTestComposerOptions {
     readonly configure?: TestComposerConfigurator
     readonly overrides?: readonly TestOverride[]
     readonly multiOverrides?: readonly TestMultiOverride[]
+    readonly lifetimeValidation?: LifetimeValidationOptions
 }
 
 export interface FakeModuleOptions<
@@ -323,6 +357,7 @@ export interface CreateModuleHarnessOptions<TModule extends ModuleDefinition = M
     readonly configure?: TestComposerConfigurator
     readonly overrides?: readonly TestOverride[]
     readonly multiOverrides?: readonly TestMultiOverride[]
+    readonly lifetimeValidation?: LifetimeValidationOptions
 }
 
 export interface ModuleHarness<TModule extends ModuleDefinition = ModuleDefinition> {
@@ -435,6 +470,42 @@ export interface DiagnosticExpectation {
     readonly details?: unknown
 }
 
+export interface ProviderRegistrationKeyExpectation {
+    readonly visibility?: ProviderRegistrationKey['visibility']
+    readonly tokenId?: string
+    readonly moduleId?: string
+    readonly registrationIndex?: number
+}
+
+export interface ProviderNodeExpectation {
+    readonly key?: ProviderRegistrationKeyExpectation
+    readonly registrationKind?: 'single' | 'multi'
+    readonly providerKind?: ProviderNodeKind
+    readonly lifetime?: ProviderLifetime
+    readonly initialization?: AsyncProviderInitializationMode
+    readonly scopeOwned?: true
+}
+
+export interface ProviderDependencyEdgeExpectation {
+    readonly selectorIndex?: number
+    readonly consumer?: ProviderRegistrationKeyExpectation
+    readonly dependency?: ProviderRegistrationKeyExpectation
+    readonly access?: 'instance' | 'deferred'
+}
+
+export interface ProviderOwnershipEdgeExpectation {
+    readonly provider?: ProviderRegistrationKeyExpectation
+    readonly owner?: 'runtime' | 'scope'
+}
+
+export interface ProviderCoverageExpectation {
+    readonly provider?: ProviderRegistrationKeyExpectation
+    readonly coverage: ProviderDependencyCoverage
+}
+
+export type ProviderGraphAssertionInput =
+    NormalizedProviderGraphSnapshot | ProviderInspection | RuntimeInspection | Scope
+
 export class GraphAssertionError extends Error {
     override readonly name = 'GraphAssertionError'
 
@@ -483,10 +554,13 @@ export async function createTestRuntime(
     const configure = getTestRuntimeConfigurator(input)
     const overrides = getTestRuntimeOverrides(input)
     const multiOverrides = getTestRuntimeMultiOverrides(input)
+    const lifetimeValidation = getTestRuntimeLifetimeValidation(input)
 
     assertNoDuplicateTestOverrides(overrides)
 
-    const container = createContainer()
+    const container = createContainer(
+        lifetimeValidation === undefined ? {} : { lifetimeValidation }
+    )
 
     if (configure !== undefined) {
         await configure(container)
@@ -507,10 +581,11 @@ export function createTestComposer(
     const configure = getTestComposerConfigurator(input)
     const overrides = getTestComposerOverrides(input)
     const multiOverrides = getTestComposerMultiOverrides(input)
+    const lifetimeValidation = getTestComposerLifetimeValidation(input)
 
     assertNoDuplicateTestOverrides(overrides)
 
-    const composer = createComposer()
+    const composer = createComposer(lifetimeValidation === undefined ? {} : { lifetimeValidation })
 
     for (const moduleDefinition of modules) {
         composer.use(moduleDefinition)
@@ -579,7 +654,10 @@ export function createModuleHarness<TModule extends ModuleDefinition = ModuleDef
         modules,
         ...(options.configure === undefined ? {} : { configure: options.configure }),
         ...(options.overrides === undefined ? {} : { overrides: options.overrides }),
-        ...(options.multiOverrides === undefined ? {} : { multiOverrides: options.multiOverrides })
+        ...(options.multiOverrides === undefined ? {} : { multiOverrides: options.multiOverrides }),
+        ...(options.lifetimeValidation === undefined
+            ? {}
+            : { lifetimeValidation: options.lifetimeValidation })
     })
 
     return Object.freeze({
@@ -829,6 +907,171 @@ export function assertGraphExportSnapshot(
     )
 }
 
+export function assertProviderGraphHasNode(
+    input: ProviderGraphAssertionInput,
+    expectation: ProviderNodeExpectation
+): void {
+    const graph = getProviderGraph(input)
+    const matchedNode = graph.nodes.find((node) => matchesProviderNode(node, expectation))
+
+    if (matchedNode !== undefined) {
+        return
+    }
+
+    throw new GraphAssertionError(
+        [
+            `Expected provider graph to contain node ${formatProviderNodeExpectation(expectation)}.`,
+            'Available provider nodes:',
+            ...graph.nodes.map(formatProviderNode)
+        ].join('\n')
+    )
+}
+
+export function assertProviderGraphHasDependencyEdge(
+    input: ProviderGraphAssertionInput,
+    expectation: ProviderDependencyEdgeExpectation
+): void {
+    const graph = getProviderGraph(input)
+    const matchedEdge = graph.dependencyEdges.find((edge) => {
+        return matchesProviderDependencyEdge(edge, expectation)
+    })
+
+    if (matchedEdge !== undefined) {
+        return
+    }
+
+    throw new GraphAssertionError(
+        [
+            `Expected provider graph to contain dependency edge ${formatProviderDependencyEdgeExpectation(expectation)}.`,
+            'Available provider dependency edges:',
+            ...graph.dependencyEdges.map(formatProviderDependencyEdge)
+        ].join('\n')
+    )
+}
+
+export function assertProviderGraphHasOwnershipEdge(
+    input: ProviderGraphAssertionInput,
+    expectation: ProviderOwnershipEdgeExpectation
+): void {
+    const graph = getProviderGraph(input)
+    const matchedEdge = graph.ownershipEdges.find((edge) => {
+        return matchesProviderOwnershipEdge(edge, expectation)
+    })
+
+    if (matchedEdge !== undefined) {
+        return
+    }
+
+    throw new GraphAssertionError(
+        [
+            `Expected provider graph to contain ownership edge ${formatProviderOwnershipEdgeExpectation(expectation)}.`,
+            'Available provider ownership edges:',
+            ...graph.ownershipEdges.map(formatProviderOwnershipEdge)
+        ].join('\n')
+    )
+}
+
+export function assertProviderGraphHasCoverage(
+    input: ProviderGraphAssertionInput,
+    expectation: ProviderCoverageExpectation
+): void {
+    const graph = getProviderGraph(input)
+    const matchedCoverage = graph.providerCoverage.find((coverage) => {
+        return (
+            coverage.coverage === expectation.coverage &&
+            (expectation.provider === undefined ||
+                matchesProviderRegistrationKey(coverage.provider, expectation.provider))
+        )
+    })
+
+    if (matchedCoverage !== undefined) {
+        return
+    }
+
+    throw new GraphAssertionError(
+        [
+            `Expected provider graph to contain coverage ${formatProviderCoverageExpectation(expectation)}.`,
+            `Actual graph coverage: ${graph.coverage}.`,
+            'Available provider coverage:',
+            ...graph.providerCoverage.map(formatProviderCoverage)
+        ].join('\n')
+    )
+}
+
+export function assertProviderGraphCoverage(
+    input: ProviderGraphAssertionInput,
+    expectedCoverage: NormalizedProviderGraphSnapshot['coverage']
+): void {
+    const graph = getProviderGraph(input)
+
+    if (graph.coverage === expectedCoverage) {
+        return
+    }
+
+    throw new GraphAssertionError(
+        `Expected provider graph coverage to be "${expectedCoverage}", but received "${graph.coverage}".`
+    )
+}
+
+export function assertLifetimeValidationReportOk(report: LifetimeValidationReport): void {
+    if (!report.blocked && report.diagnostics.length === 0) {
+        return
+    }
+
+    throw new DiagnosticAssertionError(
+        [
+            'Expected lifetime validation report to be unblocked with no diagnostics.',
+            `Coverage: ${report.coverage}.`,
+            `Mode: ${report.mode}.`,
+            'Actual report:',
+            formatDiagnostics({
+                ok: !report.blocked,
+                diagnostics: report.diagnostics
+            })
+        ].join('\n')
+    )
+}
+
+export function assertLifetimeValidationReportHasDiagnostic(
+    report: LifetimeValidationReport,
+    expectation: DiagnosticExpectation
+): void {
+    const matchedDiagnostic = report.diagnostics.find((diagnostic) => {
+        return matchesDiagnostic(diagnostic, expectation)
+    })
+
+    if (matchedDiagnostic !== undefined) {
+        return
+    }
+
+    throw new DiagnosticAssertionError(
+        [
+            `Expected lifetime validation report to contain diagnostic ${formatDiagnosticExpectation(expectation)}.`,
+            `Coverage: ${report.coverage}.`,
+            `Mode: ${report.mode}.`,
+            'Actual report:',
+            formatDiagnostics({
+                ok: !report.blocked,
+                diagnostics: report.diagnostics
+            })
+        ].join('\n')
+    )
+}
+
+export function assertScopeInspectionHasProviderNode(
+    scope: Scope,
+    expectation: ProviderNodeExpectation
+): void {
+    assertProviderGraphHasNode(scope.inspect(), expectation)
+}
+
+export function assertScopeInspectionHasDependencyEdge(
+    scope: Scope,
+    expectation: ProviderDependencyEdgeExpectation
+): void {
+    assertProviderGraphHasDependencyEdge(scope.inspect(), expectation)
+}
+
 export async function assertChildScopeHasValue<TValue>(
     expectation: ChildScopeValueExpectation<TValue>
 ): Promise<void> {
@@ -959,11 +1202,15 @@ function createTestOverride<TValue>(overrideToken: Token<TValue>): TestOverrideB
             })
         },
 
-        toFactory(factory: SyncProviderFactory<TValue>): TestFactoryOverride<TValue> {
+        toFactory(
+            factory: SyncProviderFactory<TValue>,
+            options?: ProviderDependencyOptions
+        ): TestFactoryOverride<TValue> {
             return Object.freeze({
                 kind: 'factory',
                 token: overrideToken,
-                factory
+                factory,
+                ...(options === undefined ? {} : { options })
             })
         },
 
@@ -975,11 +1222,15 @@ function createTestOverride<TValue>(overrideToken: Token<TValue>): TestOverrideB
             })
         },
 
-        toAsyncFactory(factory: AsyncProviderFactory<TValue>): TestAsyncFactoryOverride<TValue> {
+        toAsyncFactory(
+            factory: AsyncProviderFactory<TValue>,
+            options?: ProviderDependencyOptions
+        ): TestAsyncFactoryOverride<TValue> {
             return Object.freeze({
                 kind: 'async-factory',
                 token: overrideToken,
-                factory
+                factory,
+                ...(options === undefined ? {} : { options })
             })
         }
     })
@@ -1003,9 +1254,12 @@ function createTestMultiOverride<TValue>(
             )
         },
 
-        appendFactory(factory: SyncProviderFactory<TValue>): TestMultiOverride<TValue> {
+        appendFactory(
+            factory: SyncProviderFactory<TValue>,
+            options?: ProviderDependencyOptions
+        ): TestMultiOverride<TValue> {
             return createTestMultiOverrideRecord(overrideToken, 'append', [
-                createTestMultiFactoryContribution(factory)
+                createTestMultiFactoryContribution(factory, options)
             ])
         },
 
@@ -1041,9 +1295,12 @@ function createTestMultiOverride<TValue>(
             )
         },
 
-        replaceWithFactory(factory: SyncProviderFactory<TValue>): TestMultiOverride<TValue> {
+        replaceWithFactory(
+            factory: SyncProviderFactory<TValue>,
+            options?: ProviderDependencyOptions
+        ): TestMultiOverride<TValue> {
             return createTestMultiOverrideRecord(overrideToken, 'replace', [
-                createTestMultiFactoryContribution(factory)
+                createTestMultiFactoryContribution(factory, options)
             ])
         },
 
@@ -1099,11 +1356,13 @@ function createTestMultiValueContributions<TValue>(
 }
 
 function createTestMultiFactoryContribution<TValue>(
-    factory: SyncProviderFactory<TValue>
+    factory: SyncProviderFactory<TValue>,
+    options?: ProviderDependencyOptions
 ): TestMultiFactoryContribution<TValue> {
     return Object.freeze({
         kind: 'factory',
-        factory
+        factory,
+        ...(options === undefined ? {} : { options })
     })
 }
 
@@ -1231,20 +1490,20 @@ function applyFakeModuleProvider<TValue>(
         }
 
         if ('useFactory' in provider) {
-            builder.toFactory(provider.useFactory)
+            builder.toFactory(provider.useFactory, provider.options)
 
             return
         }
 
         if ('useAsyncFactory' in provider) {
-            const binding = builder.toAsyncFactory(provider.useAsyncFactory)
+            const binding = builder.toAsyncFactory(provider.useAsyncFactory, provider.options)
 
             applyAsyncFactoryOptions(binding, provider)
 
             return
         }
 
-        const binding = builder.toAsyncResource(provider.useAsyncResource)
+        const binding = builder.toAsyncResource(provider.useAsyncResource, provider.options)
 
         applyAsyncResourceOptions(binding, provider)
 
@@ -1260,20 +1519,20 @@ function applyFakeModuleProvider<TValue>(
     }
 
     if ('useFactory' in provider) {
-        builder.toFactory(provider.useFactory)
+        builder.toFactory(provider.useFactory, provider.options)
 
         return
     }
 
     if ('useAsyncFactory' in provider) {
-        const binding = builder.toAsyncFactory(provider.useAsyncFactory)
+        const binding = builder.toAsyncFactory(provider.useAsyncFactory, provider.options)
 
         applyAsyncFactoryOptions(binding, provider)
 
         return
     }
 
-    const binding = builder.toAsyncResource(provider.useAsyncResource)
+    const binding = builder.toAsyncResource(provider.useAsyncResource, provider.options)
 
     applyAsyncResourceOptions(binding, provider)
 }
@@ -1306,6 +1565,16 @@ function getTestRuntimeMultiOverrides(
     }
 
     return input?.multiOverrides ?? []
+}
+
+function getTestRuntimeLifetimeValidation(
+    input: TestRuntimeConfigurator | CreateTestRuntimeOptions | undefined
+): LifetimeValidationOptions | undefined {
+    if (typeof input === 'function') {
+        return undefined
+    }
+
+    return input?.lifetimeValidation
 }
 
 function getTestComposerModules(
@@ -1348,6 +1617,16 @@ function getTestComposerMultiOverrides(
     return input?.multiOverrides ?? []
 }
 
+function getTestComposerLifetimeValidation(
+    input: TestComposerConfigurator | CreateTestComposerOptions | undefined
+): LifetimeValidationOptions | undefined {
+    if (typeof input === 'function') {
+        return undefined
+    }
+
+    return input?.lifetimeValidation
+}
+
 function assertNoDuplicateTestOverrides(overrides: readonly TestOverride[]): void {
     const tokenIds = new Set<string>()
 
@@ -1382,11 +1661,11 @@ function applyTestOverridesToContainer(
         if (testOverride.kind === 'value') {
             builder.toValue(testOverride.value)
         } else if (testOverride.kind === 'factory') {
-            builder.toFactory(testOverride.factory)
+            builder.toFactory(testOverride.factory, testOverride.options)
         } else if (testOverride.kind === 'class') {
             builder.toClass(testOverride.classConstructor)
         } else {
-            builder.toAsyncFactory(testOverride.factory)
+            builder.toAsyncFactory(testOverride.factory, testOverride.options)
         }
     }
 }
@@ -1402,13 +1681,19 @@ function applyTestMultiOverridesToContainer(
             if (contribution.kind === 'value') {
                 builder.toValue(contribution.value)
             } else if (contribution.kind === 'factory') {
-                builder.toFactory(contribution.factory)
+                builder.toFactory(contribution.factory, contribution.options)
             } else if (contribution.kind === 'async-factory') {
-                const binding = builder.toAsyncFactory(contribution.factory)
+                const binding = builder.toAsyncFactory(
+                    contribution.factory,
+                    getTestProviderDependencyOptions(contribution.options)
+                )
 
                 applyAsyncFactoryOptions(binding, contribution.options)
             } else {
-                const binding = builder.toAsyncResource(contribution.factory)
+                const binding = builder.toAsyncResource(
+                    contribution.factory,
+                    getTestProviderDependencyOptions(contribution.options)
+                )
 
                 applyAsyncResourceOptions(binding, contribution.options)
             }
@@ -1426,11 +1711,11 @@ function applyTestOverridesToComposer(
         if (testOverride.kind === 'value') {
             builder.toValue(testOverride.value)
         } else if (testOverride.kind === 'factory') {
-            builder.toFactory(testOverride.factory)
+            builder.toFactory(testOverride.factory, testOverride.options)
         } else if (testOverride.kind === 'class') {
             builder.toClass(testOverride.classConstructor)
         } else {
-            builder.toAsyncFactory(testOverride.factory)
+            builder.toAsyncFactory(testOverride.factory, testOverride.options)
         }
     }
 }
@@ -1446,17 +1731,39 @@ function applyTestMultiOverridesToComposer(
             if (contribution.kind === 'value') {
                 builder.toValue(contribution.value)
             } else if (contribution.kind === 'factory') {
-                builder.toFactory(contribution.factory)
+                builder.toFactory(contribution.factory, contribution.options)
             } else if (contribution.kind === 'async-factory') {
-                const binding = builder.toAsyncFactory(contribution.factory)
+                const binding = builder.toAsyncFactory(
+                    contribution.factory,
+                    getTestProviderDependencyOptions(contribution.options)
+                )
 
                 applyAsyncFactoryOptions(binding, contribution.options)
             } else {
-                const binding = builder.toAsyncResource(contribution.factory)
+                const binding = builder.toAsyncResource(
+                    contribution.factory,
+                    getTestProviderDependencyOptions(contribution.options)
+                )
 
                 applyAsyncResourceOptions(binding, contribution.options)
             }
         }
+    }
+}
+
+function getTestProviderDependencyOptions(
+    options:
+        | {
+              readonly dependencies?: ProviderDependencyOptions['dependencies']
+          }
+        | undefined
+): ProviderDependencyOptions | undefined {
+    if (options?.dependencies === undefined) {
+        return undefined
+    }
+
+    return {
+        dependencies: options.dependencies
     }
 }
 
@@ -1544,6 +1851,196 @@ function getAssertionGraph(input: GraphAssertionInput): ModuleGraph {
     }
 
     return input
+}
+
+function getProviderGraph(input: ProviderGraphAssertionInput): NormalizedProviderGraphSnapshot {
+    if (isScope(input)) {
+        return input.inspect().providerGraph
+    }
+
+    if (isProviderInspection(input)) {
+        return input.providerGraph
+    }
+
+    return input
+}
+
+function isScope(input: ProviderGraphAssertionInput): input is Scope {
+    return 'inspect' in input && typeof input.inspect === 'function'
+}
+
+function isProviderInspection(
+    input: ProviderGraphAssertionInput
+): input is ProviderInspection | RuntimeInspection {
+    return 'providerGraph' in input
+}
+
+function matchesProviderNode(
+    node: NormalizedProviderNode,
+    expectation: ProviderNodeExpectation
+): boolean {
+    return (
+        (expectation.key === undefined ||
+            matchesProviderRegistrationKey(node.key, expectation.key)) &&
+        matchesOptional(node.registrationKind, expectation.registrationKind) &&
+        matchesOptional(node.providerKind, expectation.providerKind) &&
+        matchesOptional(node.lifetime, expectation.lifetime) &&
+        matchesOptional(node.initialization, expectation.initialization) &&
+        matchesOptional(node.scopeOwned, expectation.scopeOwned)
+    )
+}
+
+function matchesProviderDependencyEdge(
+    edge: NormalizedProviderDependencyEdge,
+    expectation: ProviderDependencyEdgeExpectation
+): boolean {
+    return (
+        matchesOptional(edge.selectorIndex, expectation.selectorIndex) &&
+        (expectation.consumer === undefined ||
+            matchesProviderRegistrationKey(edge.consumer, expectation.consumer)) &&
+        (expectation.dependency === undefined ||
+            matchesProviderRegistrationKey(edge.dependency, expectation.dependency)) &&
+        matchesOptional(edge.access, expectation.access)
+    )
+}
+
+function matchesProviderOwnershipEdge(
+    edge: NormalizedProviderOwnershipEdge,
+    expectation: ProviderOwnershipEdgeExpectation
+): boolean {
+    return (
+        (expectation.provider === undefined ||
+            matchesProviderRegistrationKey(edge.provider, expectation.provider)) &&
+        matchesOptional(edge.owner, expectation.owner)
+    )
+}
+
+function matchesProviderRegistrationKey(
+    key: ProviderRegistrationKey,
+    expectation: ProviderRegistrationKeyExpectation
+): boolean {
+    if (expectation.visibility !== undefined && key.visibility !== expectation.visibility) {
+        return false
+    }
+
+    if (
+        expectation.registrationIndex !== undefined &&
+        key.registrationIndex !== expectation.registrationIndex
+    ) {
+        return false
+    }
+
+    if (key.visibility === 'public') {
+        if (expectation.moduleId !== undefined) {
+            return false
+        }
+
+        return expectation.tokenId === undefined || key.tokenId === expectation.tokenId
+    }
+
+    if (expectation.tokenId !== undefined) {
+        return false
+    }
+
+    return expectation.moduleId === undefined || key.moduleId === expectation.moduleId
+}
+
+function formatProviderNodeExpectation(expectation: ProviderNodeExpectation): string {
+    return formatExpectationParts([
+        expectation.key === undefined ? undefined : formatProviderKeyExpectation(expectation.key),
+        expectation.registrationKind,
+        expectation.providerKind,
+        expectation.lifetime,
+        expectation.initialization,
+        expectation.scopeOwned === undefined ? undefined : 'scope-owned'
+    ])
+}
+
+function formatProviderDependencyEdgeExpectation(
+    expectation: ProviderDependencyEdgeExpectation
+): string {
+    return formatExpectationParts([
+        expectation.consumer === undefined
+            ? undefined
+            : `consumer=${formatProviderKeyExpectation(expectation.consumer)}`,
+        expectation.dependency === undefined
+            ? undefined
+            : `dependency=${formatProviderKeyExpectation(expectation.dependency)}`,
+        expectation.access,
+        expectation.selectorIndex === undefined
+            ? undefined
+            : `selector=${expectation.selectorIndex}`
+    ])
+}
+
+function formatProviderOwnershipEdgeExpectation(
+    expectation: ProviderOwnershipEdgeExpectation
+): string {
+    return formatExpectationParts([
+        expectation.provider === undefined
+            ? undefined
+            : `provider=${formatProviderKeyExpectation(expectation.provider)}`,
+        expectation.owner
+    ])
+}
+
+function formatProviderCoverageExpectation(expectation: ProviderCoverageExpectation): string {
+    return formatExpectationParts([
+        expectation.provider === undefined
+            ? undefined
+            : `provider=${formatProviderKeyExpectation(expectation.provider)}`,
+        expectation.coverage
+    ])
+}
+
+function formatProviderKeyExpectation(expectation: ProviderRegistrationKeyExpectation): string {
+    return formatExpectationParts([
+        expectation.visibility,
+        expectation.tokenId === undefined ? undefined : `token=${expectation.tokenId}`,
+        expectation.moduleId === undefined ? undefined : `module=${expectation.moduleId}`,
+        expectation.registrationIndex === undefined
+            ? undefined
+            : `registration=${expectation.registrationIndex}`
+    ])
+}
+
+function formatProviderKey(key: ProviderRegistrationKey): string {
+    if (key.visibility === 'public') {
+        return `public:${key.tokenId}#${key.registrationIndex}`
+    }
+
+    return `private:${key.moduleId}#${key.registrationIndex}`
+}
+
+function formatProviderNode(node: NormalizedProviderNode): string {
+    return formatExpectationParts([
+        formatProviderKey(node.key),
+        node.registrationKind,
+        node.providerKind,
+        node.lifetime,
+        node.initialization,
+        node.scopeOwned === true ? 'scope-owned' : undefined
+    ])
+}
+
+function formatProviderDependencyEdge(edge: NormalizedProviderDependencyEdge): string {
+    return formatExpectationParts([
+        `consumer=${formatProviderKey(edge.consumer)}`,
+        `dependency=${formatProviderKey(edge.dependency)}`,
+        edge.access,
+        `selector=${edge.selectorIndex}`
+    ])
+}
+
+function formatProviderOwnershipEdge(edge: NormalizedProviderOwnershipEdge): string {
+    return formatExpectationParts([`provider=${formatProviderKey(edge.provider)}`, edge.owner])
+}
+
+function formatProviderCoverage(coverage: NormalizedProviderCoverage): string {
+    return formatExpectationParts([
+        `provider=${formatProviderKey(coverage.provider)}`,
+        coverage.coverage
+    ])
 }
 
 function hasGraphProperty(

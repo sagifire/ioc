@@ -425,6 +425,18 @@ It does not scan routes, discover modules or expose hidden current-request acces
 
 ## Migration Checklist
 
+Before enabling lifetime enforcement, adopt explicit metadata in stages:
+
+1. Start a representative composition root with `{ mode: 'report', coverage: 'summary' }`.
+2. Review diagnostics and coverage; incomplete coverage is unknown evidence, not a proven leak.
+3. Declare and correct high-risk singleton/scoped factories and resources first.
+4. Review opt-in graph schema v2 for dependency/ownership edges and private-safe identities.
+5. Keep report mode in CI, then enable `enforce` explicitly only for reviewed composition roots.
+
+Declaration coverage does not prove that a factory body performs only the declared lookups. Keep
+code review and behavior tests in the migration gate. See
+[lifetime dependency validation](lifetime-validation.md) for the full matrix and adoption workflow.
+
 1. Inventory existing service identifiers and create stable typed tokens.
 2. Move constructor metadata wiring into explicit factories.
 3. Register low-level providers with `bind()` and collection providers with `add()`.
@@ -458,6 +470,7 @@ Do not carry over patterns that conflict with the core design:
 
 - [Architecture](architecture.md)
 - [Container](container.md)
+- [Lifetime dependency validation](lifetime-validation.md)
 - [Async model](async-model.md)
 - [Composer](composer.md)
 - [Modules](modules.md)

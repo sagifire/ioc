@@ -53,6 +53,8 @@ Tree-shaking-friendly subpath exports:
 - Graph export: versioned `createGraphExportDocument()` safe projection, deterministic
   `serializeGraphExport()` JSON and pure `renderGraphExportDot()` /
   `renderGraphExportMermaid()` text views.
+- Lifetime validation: explicit `ProviderDependencyOptions`, opt-in `off | report | enforce`,
+  coverage summaries, immutable provider inspection and `getLifetimeValidationReport()`.
 - Optional DSL: `module()`, `defineApp()`, `bind()`, `add()`, `adapt()` and
   graph-aware `adapter()`.
 
@@ -181,6 +183,9 @@ inference.
 
 `add(token).toAsyncFactory()` and `add(token).toAsyncResource()` preserve the object API
 lifetime and eager/lazy choices one-to-one; the object API remains first-class.
+All dependency-capable DSL factory/resource helpers also preserve the object API
+`ProviderDependencyOptions` second argument. `defineApp({ options: { lifetimeValidation } })`
+projects the composer policy without changing the default.
 
 For graph-aware adapters in DSL, prefer:
 
@@ -219,6 +224,7 @@ edges.
 - [Documentation map](../../docs/README.md)
 - [Architecture](../../docs/architecture.md)
 - [Container](../../docs/container.md)
+- [Lifetime dependency validation](../../docs/lifetime-validation.md)
 - [Async model](../../docs/async-model.md)
 - [Async DB resource example](../../examples/async-db-resource/README.md)
 - [Composer](../../docs/composer.md)

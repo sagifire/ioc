@@ -16,6 +16,8 @@ Package README files and this map are the current entry points.
 - [Architecture](architecture.md) - package boundaries, explicit composition model and
   object API / DSL relationship.
 - [Container](container.md) - tokens, providers, lifetimes, scopes and sync resolution.
+- [Lifetime dependency validation](lifetime-validation.md) - explicit provider metadata,
+  lifetime matrix, coverage, privacy, graph v2 and staged enforcement.
 - [Async model](async-model.md) - async providers, async resources, `getAsync()` and
   disposal.
 - [Composer](composer.md) - composer builder, validation, inspection and dependency edges.

@@ -376,6 +376,7 @@ function createRuntimeSmokeSource() {
     defineModule,
     diagnosticFromError,
     formatDiagnostics,
+    getLifetimeValidationReport,
     multiToken,
     module as defineModuleDsl,
     renderGraphExportDot,
@@ -388,7 +389,7 @@ import { add as addFromDslSubpath, adapter as adapterFromDslSubpath, bind, modul
 import { diagnosticFromError as diagnosticFromSubpath } from '@sagifire/ioc/diagnostics'
 import { renderGraphExportMermaid, serializeGraphExport } from '@sagifire/ioc/graph-export'
 import { createNextRequestContext, createNextRuntime, nextRequestValue, withRouteScope, withServerActionScope } from '@sagifire/ioc-next'
-import { assertDiagnosticReportOk, assertGraphExportSnapshot, assertGraphHasCapability, assertGraphHasModule, createModuleHarness, createTestRuntime, fakeModule, multiOverride, override } from '@sagifire/ioc-testing'
+import { assertDiagnosticReportOk, assertGraphExportSnapshot, assertGraphHasCapability, assertGraphHasModule, assertLifetimeValidationReportOk, assertProviderGraphCoverage, assertProviderGraphHasNode, createModuleHarness, createTestRuntime, fakeModule, multiOverride, override } from '@sagifire/ioc-testing'
 
 const valueToken = token('smoke.value')
 const secondaryToken = tokenFromSubpath('smoke.secondary')
@@ -401,6 +402,12 @@ container.bind(valueToken).toValue('container')
 const runtime = await container.freeze()
 
 assertEqual(runtime.get(valueToken), 'container', 'root container export')
+assertLifetimeValidationReportOk(getLifetimeValidationReport(runtime))
+assertProviderGraphCoverage(runtime.inspect(), 'complete')
+assertProviderGraphHasNode(runtime.inspect(), {
+    key: { visibility: 'public', tokenId: valueToken.id },
+    providerKind: 'value'
+})
 assertEqual(pluginToken.id, 'smoke.plugins', 'root multiToken export')
 assertEqual(contribution.id, 'smoke.contribution', 'root contributionToken export')
 assertEqual(subpathPluginToken.id, 'smoke.subpath-plugins', 'tokens subpath multiToken export')
@@ -794,6 +801,7 @@ function createTypeSmokeSource() {
     type ContributionToken,
     type ModuleCardinality,
     type MultiToken,
+    type ProviderDependencyOptions,
     type Token
 } from '@sagifire/ioc'
 import { namespace } from '@sagifire/ioc/tokens'
@@ -801,7 +809,7 @@ import { createComposer, type Composer } from '@sagifire/ioc/composer'
 import { add as addFromDslSubpath, adapter as adapterFromDslSubpath, defineApp, module as defineModuleDsl } from '@sagifire/ioc/dsl'
 import { formatDiagnostics } from '@sagifire/ioc/diagnostics'
 import { createNextRequestContext, nextRequestValue, type NextRequestContext } from '@sagifire/ioc-next'
-import { createTestRuntime, multiOverride, override, type TestMultiOverride, type TestOverride } from '@sagifire/ioc-testing'
+import { createTestRuntime, multiOverride, override, type ProviderNodeExpectation, type TestMultiOverride, type TestOverride } from '@sagifire/ioc-testing'
 
 const valueToken: Token<string> = token<string>('types.value')
 const namespacedToken: Token<number> = namespace('types').token<number>('count')
@@ -811,6 +819,11 @@ const namespacedPlugin: MultiToken<string> = namespace('types').multiToken<strin
 const namespacedContribution: ContributionToken<string> =
     namespace('types').contributionToken<string>('contribution')
 const cardinality: ModuleCardinality = 'multi'
+const dependencyOptions: ProviderDependencyOptions = { dependencies: [] }
+const providerExpectation: ProviderNodeExpectation = {
+    key: { visibility: 'public', tokenId: valueToken.id },
+    providerKind: 'value'
+}
 const container = createContainer()
 container.bind(valueToken).toValue('value')
 
@@ -838,15 +851,23 @@ const dslModule = defineModuleDsl('types.module', {
     }
 })
 const app = defineApp({
-    modules: [dslModule]
+    modules: [dslModule],
+    options: {
+        lifetimeValidation: {
+            mode: 'report'
+        }
+    }
 })
 const addBinding = add(pluginToken).toValue('root-plugin')
 const adapterBinding = adapter(valueToken).from(namespacedToken).using((count) => {
     return count.toString()
 })
-const subpathAddBinding = addFromDslSubpath(pluginToken).toFactory(() => {
-    return 'subpath-plugin'
-})
+const subpathAddBinding = addFromDslSubpath(pluginToken).toFactory(
+    () => {
+        return 'subpath-plugin'
+    },
+    dependencyOptions
+)
 const asyncAddBinding = add(pluginToken)
     .toAsyncFactory(async () => 'async-plugin')
     .singleton()
@@ -876,6 +897,8 @@ void contribution
 void namespacedPlugin
 void namespacedContribution
 void cardinality
+void dependencyOptions
+void providerExpectation
 void addBinding
 void adapterBinding
 void subpathAddBinding

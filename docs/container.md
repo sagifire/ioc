@@ -117,6 +117,11 @@ Lifetimes:
 
 `toValue()` is already a singleton value and has no lifetime modifier.
 
+Factories and async resources can declare auditable dependency metadata through their optional
+second argument. Lifetime validation remains `off` by default; report/enforce modes, coverage,
+deferred handles and the lifetime matrix are documented in
+[lifetime dependency validation](lifetime-validation.md).
+
 Runtime-level resolution of a scoped provider fails because there is no active scope:
 
 ```ts

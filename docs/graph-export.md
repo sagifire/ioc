@@ -21,9 +21,9 @@ const mermaid = renderGraphExportMermaid(document, { direction: 'LR' })
 ```
 
 `createGraphExportDocument()` also accepts `composer.inspect()` and `runtime.inspect()`
-because those values expose the same public graph fields. The exporter ignores validation
-and runtime registration extras. It does not execute setup functions, factories or
-resources.
+because those values expose the same public graph fields. The default v1 projection ignores
+validation and provider inspection extras. Opt-in v2 requires public provider inspection data.
+Neither projection executes setup functions, factories or resources.
 
 ## V1 Schema And Compatibility
 
@@ -114,6 +114,38 @@ Array order is semantic. Module, declaration, provider registration and edge ord
 preserved and must not be sorted before comparison. Canonical JSON uses stable object-key
 order, four spaces, LF line endings and exactly one final newline.
 
+## Opt-In V2 Provider Graph
+
+V1 remains the default and is frozen: provider fields are not added to v1 documents. Request v2
+explicitly from `runtime.inspect()` or `scope.inspect()`:
+
+```ts
+const document = createGraphExportDocument(runtime.inspect(), {
+    schemaVersion: '2'
+})
+```
+
+V2 retains all v1 collections and adds:
+
+| Collection                    | Meaning                                                                                                                       |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `providers`                   | Safe provider key/label, registration kind, provider kind, optional lifetime, initialization and optional `scopeOwned` marker |
+| `providerDependencySelectors` | Declared aggregate selectors, including instance/deferred access and cardinality                                              |
+| `providerDependencyEdges`     | Concrete registration-indexed consumer-to-dependency edges                                                                    |
+| `providerOwnershipEdges`      | Derived runtime/scope resource or local-value ownership                                                                       |
+| `providerCoverage`            | Per-provider coverage: `not-applicable`, `declared` or `undeclared`                                                           |
+| `coverage`                    | Aggregate coverage: `complete`, `partial` or `none`                                                                           |
+
+Validation, inspection and v2 export consume the same immutable normalized provider snapshot;
+v2 does not rebuild a parallel graph. JSON remains canonical, and DOT/Mermaid renderers accept
+both schema versions with deterministic safe labels. Private provider keys contain module ID and
+registration index only. V2 omits private token IDs, values, readiness state, promises and
+disposers.
+
+Coverage is declaration coverage, not proof of factory body behavior. See
+[lifetime dependency validation](lifetime-validation.md) for the lifetime matrix, deferred
+handles, ownership and staged adoption.
+
 ## Privacy Boundary
 
 The document contains declared public module and token IDs plus safe structural provider
@@ -127,8 +159,8 @@ Export only to evidence locations whose access policy is appropriate for the gra
 
 ## DOT And Mermaid
 
-DOT and Mermaid renderers consume only `GraphExportDocument v1`. Their positional node IDs
-are collision-safe for the same document, and raw IDs appear only in escaped labels.
+DOT and Mermaid renderers consume `GraphExportDocument` v1 or v2. Their positional node IDs
+are collision-safe for the same document, and raw public IDs appear only in escaped labels.
 Renderer direction and DOT graph name are presentation options and do not change JSON.
 
 The library returns text only. It does not write files, run Graphviz or Mermaid, or produce

@@ -214,6 +214,7 @@ logic inside framework handlers.
 - [Documentation map](docs/README.md)
 - [Architecture](docs/architecture.md)
 - [Container](docs/container.md)
+- [Lifetime dependency validation](docs/lifetime-validation.md)
 - [Async model](docs/async-model.md)
 - [Composer](docs/composer.md)
 - [Modules](docs/modules.md)

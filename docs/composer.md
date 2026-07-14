@@ -498,6 +498,13 @@ const runtime = await app.compose()
 composer model. The DSL does not add decorators, `reflect-metadata`, filesystem
 discovery, global registries or hidden dependency inference.
 
+Dependency-capable DSL factory/resource helpers accept the same optional
+`ProviderDependencyOptions` second argument as their object-builder equivalents.
+`defineApp({ options: { lifetimeValidation } })` passes the policy to `createComposer()`.
+This is a one-to-one projection: the object API remains first-class and the DSL neither
+infers dependencies nor resolves them. See
+[lifetime dependency validation](lifetime-validation.md).
+
 The older DSL `adapt(token, factory)` helper remains supported as a compatibility
 factory-binding helper. Use `adapter(target).from(source).using(factory)` when the adapter
 source should be visible in graph inspection and adapter-aware cycle diagnostics.

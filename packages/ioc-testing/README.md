@@ -29,6 +29,10 @@ import {
     assertGraphHasMultiCapabilityProvider,
     assertGraphHasRequiredPort,
     assertGraphExportSnapshot,
+    assertProviderGraphCoverage,
+    assertProviderGraphHasDependencyEdge,
+    assertProviderGraphHasNode,
+    assertLifetimeValidationReportHasDiagnostic,
     assertChildScopeHasValue,
     assertChildScopeHasValues,
     createModuleHarness,
@@ -45,7 +49,7 @@ The package exposes a root export only and depends on `@sagifire/ioc`.
 ## Public Surface
 
 - Runtime helpers: `createTestRuntime(configure?)` and
-  `createTestRuntime({ configure, overrides, multiOverrides })`.
+  `createTestRuntime({ configure, overrides, multiOverrides, lifetimeValidation })`.
 - Override declarations: `override(token).toValue()`, `toFactory()`, `toClass()` and
   `toAsyncFactory()`.
 - Multi contribution declarations: `multiOverride(token).appendValue()`, `appendValues()`,
@@ -53,7 +57,7 @@ The package exposes a root export only and depends on `@sagifire/ioc`.
   `replaceWithValue()`, `replaceWithValues()`, `replaceWithFactory()`,
   `replaceWithAsyncFactory()` and `replaceWithAsyncResource()`.
 - Composer helpers: `createTestComposer(configure?)` and
-  `createTestComposer({ modules, configure, overrides, multiOverrides })`.
+  `createTestComposer({ modules, configure, overrides, multiOverrides, lifetimeValidation })`.
 - Fake modules: `fakeModule(definition)` and `fakeModule(id, definition)`.
 - Module harnesses:
   `createModuleHarness({ module, supportModules, fakeModules, overrides, multiOverrides })`.
@@ -62,6 +66,8 @@ The package exposes a root export only and depends on `@sagifire/ioc`.
   `assertGraphHasRequiredPort()`, `assertGraphHasBinding()`, `assertGraphHasEdge()` and
   `assertGraphHasAdapterSourceEdge()`.
 - Canonical export assertion: `assertGraphExportSnapshot()` through public graph export APIs.
+- Provider inspection assertions: nodes, dependency/ownership edges, per-provider and aggregate
+  coverage, lifetime diagnostics and focused scope inspection wrappers.
 - Child scope assertions: `assertChildScopeHasValue()` and `assertChildScopeHasValues()`.
 - Diagnostic assertions: `assertDiagnosticReportOk()`,
   `assertDiagnosticReportHasDiagnostic()` and `assertErrorDiagnostic()`.
@@ -177,6 +183,44 @@ remain hidden behind normal composed runtime capability access.
 
 ## Assertions
 
+Lifetime assertions read only public immutable provider inspection data. Test runtime,
+composer and harness options accept the same opt-in `lifetimeValidation` policy as production;
+factory overrides, multi overrides and fake factory/resource providers preserve explicit
+dependency metadata:
+
+```ts
+const runtime = await createTestRuntime({
+    lifetimeValidation: {
+        mode: 'report',
+        coverage: 'summary'
+    },
+    overrides: [
+        override(SERVICE).toFactory(createService, {
+            dependencies: [
+                {
+                    token: REQUEST,
+                    access: 'instance'
+                }
+            ]
+        })
+    ]
+})
+
+assertProviderGraphCoverage(runtime.inspect(), 'complete')
+assertProviderGraphHasDependencyEdge(runtime.inspect(), {
+    consumer: { visibility: 'public', tokenId: SERVICE.id },
+    dependency: { visibility: 'public', tokenId: REQUEST.id },
+    access: 'instance'
+})
+```
+
+Provider node, dependency-edge, ownership-edge and per-provider coverage assertions accept
+`ProviderInspection`, `RuntimeInspection`, a normalized provider graph or a public `Scope`.
+`assertScopeInspectionHasProviderNode()` and
+`assertScopeInspectionHasDependencyEdge()` are focused wrappers over `scope.inspect()`.
+Lifetime report assertions use the public `LifetimeValidationReport`; no helper reads container
+records or mutates a frozen runtime.
+
 Canonical JSON snapshots can cover the complete portable graph without parsing DOT or
 Mermaid labels:
 
@@ -264,6 +308,7 @@ runtime dependency on Vitest internals.
 ## More Documentation
 
 - [Testing guide](../../docs/testing.md)
+- [Lifetime dependency validation](../../docs/lifetime-validation.md)
 - [Testing overrides example](../../examples/testing-overrides/README.md)
 - [Diagnostics](../../docs/diagnostics.md)
 - [Composer](../../docs/composer.md)
