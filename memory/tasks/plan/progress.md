@@ -188,7 +188,7 @@
 ## Stage 18 Post-Audit Architecture Risk Research
 
 - [x] **[Done]** [TASK-07.15-0111-stage-18-architecture-pressure-residual-risks-decision-research](TASK-07.15-0111-stage-18-architecture-pressure-residual-risks-decision-research/index.md) - Погоджені classifications `APR-001..APR-005`; FIX-001 applied; створено лише approved TASK-0112 і TASK-0113.
-- [ ] **[Backlog]** [TASK-07.15-0112-stage-18-runtime-composition-state-machine-decomposition-research](TASK-07.15-0112-stage-18-runtime-composition-state-machine-decomposition-research/index.md) - Approved non-blocking deep research для рішення щодо декомпозиції runtime/composition state machines.
+- [x] **[Done]** [TASK-07.15-0112-stage-18-runtime-composition-state-machine-decomposition-research](TASK-07.15-0112-stage-18-runtime-composition-state-machine-decomposition-research/index.md) - Approved `no refactor` decision; optional FUP-A/B deferred до trigger/go-gate без створення task packages.
 - [ ] **[Backlog]** [TASK-07.15-0113-stage-18-graph-schema-evolution-policy-0-0-3-stabilization](TASK-07.15-0113-stage-18-graph-schema-evolution-policy-0-0-3-stabilization/index.md) - Approved graph schema evolution stabilization, обов'язкова до майбутнього `0.0.3` release handoff.
 
 ## Формат

@@ -2,8 +2,8 @@
 
 ## Призначення
 
-Prepared research run для evidence-driven рішення щодо декомпозиції великих runtime і
-composition state machines.
+Completed research run із approved evidence-driven рішенням щодо декомпозиції великих runtime
+і composition state machines.
 
 ## Папки
 
@@ -12,3 +12,5 @@ composition state machines.
 ## Файли
 
 - [context.md](context.md) - immutable context snapshot після активації.
+- [result.md](result.md) - execution, verification, self-review і audit result.
+- [source-metrics.mjs](source-metrics.mjs) - read-only TypeScript AST metrics для source evidence.
