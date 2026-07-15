@@ -239,8 +239,10 @@ export type {
 } from './lifetime-validation'
 export type { Resource, ResourceDisposer } from './lifecycle'
 export {
+    GRAPH_EXPORT_DEFAULT_SCHEMA_VERSION,
     GRAPH_EXPORT_SCHEMA_VERSION,
     GRAPH_EXPORT_SCHEMA_VERSION_V2,
+    GRAPH_EXPORT_SUPPORTED_SCHEMA_VERSIONS,
     createGraphExportDocument,
     renderGraphExportDot,
     renderGraphExportMermaid,
@@ -250,6 +252,7 @@ export type {
     GraphExportDirection,
     GraphExportDotOptions,
     GraphExportMermaidOptions,
+    GraphExportOptions,
     GraphExportAdapterBindingProviderV1,
     GraphExportAdapterCapabilityProviderV1,
     GraphExportAdapterMultiBindingProviderV1,
@@ -277,6 +280,7 @@ export type {
     GraphExportProviderOwnershipEdgeV2,
     GraphExportProviderV2,
     GraphExportRequiredPortV1,
+    GraphExportSchemaVersion,
     GraphExportV1Options,
     GraphExportV2Input,
     GraphExportV2Options

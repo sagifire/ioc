@@ -8,6 +8,8 @@ views derived from that JSON document.
 
 ```ts
 import {
+    GRAPH_EXPORT_DEFAULT_SCHEMA_VERSION,
+    GRAPH_EXPORT_SUPPORTED_SCHEMA_VERSIONS,
     createGraphExportDocument,
     renderGraphExportDot,
     renderGraphExportMermaid,
@@ -19,6 +21,11 @@ const json = serializeGraphExport(document)
 const dot = renderGraphExportDot(document, { direction: 'LR' })
 const mermaid = renderGraphExportMermaid(document, { direction: 'LR' })
 ```
+
+`GRAPH_EXPORT_DEFAULT_SCHEMA_VERSION` is `'1'` and
+`GRAPH_EXPORT_SUPPORTED_SCHEMA_VERSIONS` is the closed `['1', '2']` set. The exported
+`GraphExportSchemaVersion` and `GraphExportOptions` types carry the same closed contract.
+Adding a supported version does not change the default.
 
 `createGraphExportDocument()` also accepts `composer.inspect()` and `runtime.inspect()`
 because those values expose the same public graph fields. The default v1 projection ignores
@@ -43,11 +50,16 @@ The v1 envelope is:
 }
 ```
 
-The schema version is independent of the npm package version. V1 consumers may ignore
-unknown optional fields. Removing a field, changing its type or meaning, or making an enum
-expansion unsafe for exhaustive consumers requires a new schema version. Optional fields
-are omitted instead of serialized as `null`. Serializers and renderers reject unsupported
-schema envelopes.
+The schema version is an independent public compatibility contract, not the npm package
+version. A published version is immutable with respect to required fields, field types and
+meanings, closed-enum semantics, semantic array ordering and canonical serialization. A
+change that can make an existing typed or exhaustive consumer incorrect requires a new
+schema version instead of relabeling or mutating the published version. Consumers may
+ignore unknown optional fields only when doing so preserves the documented meaning.
+
+Optional fields are omitted instead of serialized as `null`. Serializers and renderers
+reject unsupported schema names and versions; they never reinterpret an unknown envelope
+as the default or nearest supported version.
 
 ### Graph Collections
 
@@ -145,6 +157,36 @@ disposers.
 Coverage is declaration coverage, not proof of factory body behavior. See
 [lifetime dependency validation](lifetime-validation.md) for the lifetime matrix, deferred
 handles, ownership and staged adoption.
+
+## Schema Evolution Checklist
+
+Use this checklist for every proposed graph schema version. A package release alone does
+not satisfy these gates.
+
+1. **Introduction:** define a new literal version constant, closed public document/options
+   types and a typed construction path. Do not modify an existing version's required
+   fields, types, meanings, closed enums, semantic ordering or canonical bytes.
+2. **Compatibility review:** classify every change as compatible for existing consumers or
+   incompatible. Field removal, type or meaning changes, exhaustive-unsafe closed-enum
+   changes and semantic-order changes are incompatible and require a new schema version.
+3. **Projection and privacy:** add canonical JSON projection and the same deterministic,
+   private-safe gates as every supported version. Do not expose private provider token IDs,
+   values, causes, caches, readiness, promises, resources or disposers.
+4. **Renderers:** support the new version in DOT and Mermaid, or publish an explicit
+   documented limitation. Unknown envelopes must still fail instead of falling back.
+5. **Golden and migration fixtures:** add frozen-input canonical JSON goldens covering
+   field meaning, semantic array order, LF line endings, exactly one final newline and byte
+   stability. Keep all existing-version goldens passing and add a migration example that
+   shows how consumers select and handle the new version.
+6. **Old-version support:** keep every published supported version readable, serializable
+   and renderable. Removal is a separate breaking compatibility and release decision with
+   an announced migration path; it is never implied by adding a newer version.
+7. **Default promotion:** keep the current default unchanged. Promoting another version
+   requires a separate human-reviewed compatibility/release decision, migration guidance
+   and an explicit update to the default-schema regression. A new constant, union member or
+   fixture is not promotion authorization.
+8. **Release trace:** record the schema decision, compatibility evidence, migration path,
+   supported-version matrix and default decision in the reviewed release artifacts.
 
 ## Privacy Boundary
 

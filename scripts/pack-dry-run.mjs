@@ -362,7 +362,9 @@ function createRuntimeSmokeSource() {
     DuplicateSingleCapabilityError,
     GetAllUsedForSingleTokenError,
     GetUsedForMultiTokenError,
+    GRAPH_EXPORT_DEFAULT_SCHEMA_VERSION,
     GRAPH_EXPORT_SCHEMA_VERSION_V2,
+    GRAPH_EXPORT_SUPPORTED_SCHEMA_VERSIONS,
     InvalidComposerMultiBindingError,
     RequiredMultiCapabilityMissingError,
     RequiredPortCardinalityMismatchError,
@@ -387,7 +389,12 @@ import { createContainer as createContainerFromSubpath, scopeValue } from '@sagi
 import { AdapterSourceMissingError as AdapterSourceMissingErrorFromSubpath, defineModule as defineModuleFromSubpath } from '@sagifire/ioc/composer'
 import { add as addFromDslSubpath, adapter as adapterFromDslSubpath, bind, module as moduleFromDslSubpath } from '@sagifire/ioc/dsl'
 import { diagnosticFromError as diagnosticFromSubpath } from '@sagifire/ioc/diagnostics'
-import { renderGraphExportMermaid, serializeGraphExport } from '@sagifire/ioc/graph-export'
+import {
+    GRAPH_EXPORT_DEFAULT_SCHEMA_VERSION as GRAPH_EXPORT_DEFAULT_SCHEMA_VERSION_FROM_SUBPATH,
+    GRAPH_EXPORT_SUPPORTED_SCHEMA_VERSIONS as GRAPH_EXPORT_SUPPORTED_SCHEMA_VERSIONS_FROM_SUBPATH,
+    renderGraphExportMermaid,
+    serializeGraphExport
+} from '@sagifire/ioc/graph-export'
 import { createNextRequestContext, createNextRuntime, nextRequestValue, withRouteScope, withServerActionScope } from '@sagifire/ioc-next'
 import { assertDiagnosticReportOk, assertGraphExportSnapshot, assertGraphHasCapability, assertGraphHasModule, assertLifetimeValidationReportOk, assertProviderGraphCoverage, assertProviderGraphHasNode, createModuleHarness, createTestRuntime, fakeModule, multiOverride, override } from '@sagifire/ioc-testing'
 
@@ -438,6 +445,26 @@ const graphV2 = createGraphExportDocument(composedRuntime.inspect(), { schemaVer
 const graphJsonV2 = serializeGraphExport(graphV2)
 assertGraphExportSnapshot(composedRuntime.inspect(), graphJson)
 assertIncludes(graphJson, '"schemaVersion": "1"', 'graph export root and subpath exports')
+assertEqual(
+    GRAPH_EXPORT_DEFAULT_SCHEMA_VERSION,
+    '1',
+    'graph export root default schema version export'
+)
+assertEqual(
+    GRAPH_EXPORT_DEFAULT_SCHEMA_VERSION_FROM_SUBPATH,
+    GRAPH_EXPORT_DEFAULT_SCHEMA_VERSION,
+    'graph export subpath default schema version export'
+)
+assertEqual(
+    GRAPH_EXPORT_SUPPORTED_SCHEMA_VERSIONS.join(','),
+    '1,2',
+    'graph export root supported schema versions export'
+)
+assertEqual(
+    GRAPH_EXPORT_SUPPORTED_SCHEMA_VERSIONS_FROM_SUBPATH.join(','),
+    GRAPH_EXPORT_SUPPORTED_SCHEMA_VERSIONS.join(','),
+    'graph export subpath supported schema versions export'
+)
 assertEqual(
     graphV2.schemaVersion,
     GRAPH_EXPORT_SCHEMA_VERSION_V2,
@@ -797,6 +824,8 @@ function createTypeSmokeSource() {
     type ContainerRuntime,
     type DiagnosticReport,
     type GraphExportDocumentV2,
+    type GraphExportOptions,
+    type GraphExportSchemaVersion,
     type ProviderInspection,
     type ContributionToken,
     type ModuleCardinality,
@@ -824,6 +853,8 @@ const providerExpectation: ProviderNodeExpectation = {
     key: { visibility: 'public', tokenId: valueToken.id },
     providerKind: 'value'
 }
+const graphSchemaVersion: GraphExportSchemaVersion = '2'
+const graphExportOptions: GraphExportOptions = { schemaVersion: graphSchemaVersion }
 const container = createContainer()
 container.bind(valueToken).toValue('value')
 
@@ -835,7 +866,13 @@ async function createProviderInspectionDocument(): Promise<GraphExportDocumentV2
     const runtime = await createRuntime()
     const inspection: ProviderInspection = runtime.inspect()
 
-    return createGraphExportDocument(inspection, { schemaVersion: '2' })
+    if (graphExportOptions.schemaVersion !== '2') {
+        throw new Error('Expected the graph export v2 type-smoke option')
+    }
+
+    return createGraphExportDocument(inspection, {
+        schemaVersion: graphExportOptions.schemaVersion
+    })
 }
 
 const composer: Composer = createComposer()

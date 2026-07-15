@@ -1,6 +1,6 @@
 # TASK-07.15-0113: [EXTREME AGENT COMPLEXITY] Stage 18 graph schema evolution policy 0.0.3 stabilization
 
-Task Status: backlog
+Task Status: done
 Type: stabilization
 Created: 2026-07-15
 Agent Complexity: extreme
@@ -9,15 +9,13 @@ Current Run: RUN-001
 
 ## Поточний стан
 
-Run Status: prepared
-Progress: Task package prepared from approved `DTP-APR-005`; predecessors завершено,
-  activation очікує окремої explicit command.
-Acceptance: 0/12
+Run Status: completed
+Progress: Human review approved; RUN-001 finalized without fixations.
+Acceptance: 12/12
 Blockers: none; TASK-0110 і TASK-0111 done, FIX-001 applied.
 Blocked Phase: n/a
 Pending Decisions: none
-Next Action: За окремою explicit command активувати RUN-001 і реалізувати policy у public
-  docs, types і tests.
+Next Action: none
 
 ## Мета
 
@@ -68,29 +66,29 @@ contract, а v2 як explicit opt-in schema. Задача є обов'язков
 
 ## Критерії приймання
 
-- [ ] TASK-0110 і TASK-0111 мають статус `done`; approved `FIX-001` має статус `applied`, а
+- [x] TASK-0110 і TASK-0111 мають статус `done`; approved `FIX-001` має статус `applied`, а
   їхні graph-evolution findings і decisions простежені до RUN-001 result.
-- [ ] Public docs фіксують, що schema version є окремим compatibility contract, published
+- [x] Public docs фіксують, що schema version є окремим compatibility contract, published
   version не мутується несумісно, а incompatible field/type/meaning/closed-enum/semantic-order
   change потребує нової schema version.
-- [ ] Public graph types/options лишають v1 і v2 explicit closed supported versions та не
+- [x] Public graph types/options лишають v1 і v2 explicit closed supported versions та не
   послаблюють unknown schema/version envelope до silently accepted або reinterpreted value.
-- [ ] V1 лишається default; canonical v1 JSON projection і frozen byte contract не змінені.
-- [ ] V2 лишається explicit opt-in; serializer, DOT і Mermaid підтримують v2 без зміни
+- [x] V1 лишається default; canonical v1 JSON projection і frozen byte contract не змінені.
+- [x] V2 лишається explicit opt-in; serializer, DOT і Mermaid підтримують v2 без зміни
   documented graph semantics.
-- [ ] Кожна supported version має canonical golden fixtures для field semantics, semantic
+- [x] Кожна supported version має canonical golden fixtures для field semantics, semantic
   array ordering, LF/final-newline policy і byte stability на frozen inputs.
-- [ ] Serializer, DOT і Mermaid мають regression gates для explicit typed rejection невідомих
+- [x] Serializer, DOT і Mermaid мають regression gates для explicit typed rejection невідомих
   schema/version envelopes без fallback до default або найближчої supported version.
-- [ ] Окремий default-schema regression доводить v1 default і запобігає неявному promotion v2
+- [x] Окремий default-schema regression доводить v1 default і запобігає неявному promotion v2
   через додавання version constant, union member або test fixture.
-- [ ] V1 і v2 проходять однакові privacy та determinism gates без витоку private token,
+- [x] V1 і v2 проходять однакові privacy та determinism gates без витоку private token,
   provider cause/value, cache/disposer чи іншої runtime-private інформації.
-- [ ] Public docs містять actionable checklist для introduction, compatibility review,
+- [x] Public docs містять actionable checklist для introduction, compatibility review,
   migration, old-version support/removal і окремого human-reviewed default-promotion decision.
-- [ ] Focused graph suite та повні build, test, typecheck, lint і format gates проходять; package
+- [x] Focused graph suite та повні build, test, typecheck, lint і format gates проходять; package
   exports/public type consumer smoke перевірено пропорційно зміненій surface.
-- [ ] Незалежний аудит підтверджує всі 12 критерії, відсутність schema v3/default promotion/
+- [x] Незалежний аудит підтверджує всі 12 критерії, відсутність schema v3/default promotion/
   provider-semantic/release змін і відсутність відкритих findings перед human review.
 
 ## Пов'язана пам'ять
@@ -118,7 +116,7 @@ contract, а v2 як explicit opt-in schema. Задача є обов'язков
 
 ## Прогони
 
-- [RUN-001](RUN-001/index.md) - prepared - Graph schema evolution policy stabilization.
+- [RUN-001](RUN-001/index.md) - completed - Graph schema evolution policy stabilization.
 
 ## Дослідження
 
@@ -136,12 +134,18 @@ Project Memory поза exact approved policy потребують окремо�
 
 ## Human Review
 
-Status: not-requested
-Requested: n/a
-Reviewed: n/a
-Approval Source: n/a
+Status: approved
+Requested: 2026-07-15
+Reviewed: approved 2026-07-15
+Approval Source: user message on 2026-07-15: `task-level рішення: approve`
 
 ## Фінальний результат
 
-Pending. Завершення TASK-0113 не виконує `0.0.3` release handoff, але є обов'язковою умовою
-для будь-якого такого майбутнього handoff.
+Completed: 2026-07-15.
+
+- Graph schema evolution policy реалізовано в public docs/types/tests.
+- V1 лишився default із frozen byte contract; v2 лишився explicit opt-in.
+- Full quality/package gates та independent audit пройдено без open findings.
+- Required/optional `FIX-*` і follow-up proposals відсутні.
+- Version bump, changelog release entry, publish та release workflow не виконувалися.
+- TASK-0113 є завершеним predecessor, але не whole-portfolio `0.0.3` release-ready claim.

@@ -2,12 +2,12 @@
 
 ## Призначення
 
-Backlog-пакет стабілізації public graph schema evolution policy перед будь-яким майбутнім
+Completed-пакет стабілізації public graph schema evolution policy перед будь-яким майбутнім
 `0.0.3` version/release handoff.
 
 ## Папки
 
-- [RUN-001](RUN-001/index.md) - prepared stabilization run.
+- [RUN-001](RUN-001/index.md) - completed stabilization run.
 
 ## Файли
 

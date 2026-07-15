@@ -2,7 +2,7 @@
 
 ## Призначення
 
-Prepared run реалізації graph schema evolution policy у public docs, types і tests.
+Completed run реалізації graph schema evolution policy у public docs, types і tests.
 
 ## Папки
 
@@ -10,4 +10,5 @@ Prepared run реалізації graph schema evolution policy у public docs, 
 
 ## Файли
 
-- [context.md](context.md) - prepared context snapshot для activation після завершення predecessors.
+- [context.md](context.md) - frozen context snapshot, активований після завершення predecessors.
+- [result.md](result.md) - completed execution, verification, self-review та audit report.

@@ -11,6 +11,7 @@ import {
     renderGraphExportMermaid,
     serializeGraphExport,
     token,
+    type GraphExportDocument,
     type GraphExportDocumentV1,
     type GraphExportDocumentV2,
     type ProviderInspection
@@ -403,6 +404,75 @@ describe('scope-effective lifetime validation and inspection', () => {
 })
 
 describe('graph export v2', () => {
+    test('keeps the canonical v2 bytes and semantic order for a frozen input', () => {
+        const input = createFrozenV2Inspection()
+        const document = createGraphExportDocument(input, { schemaVersion: '2' })
+        const serialized = serializeGraphExport(document)
+        const dot = renderGraphExportDot(document)
+        const mermaid = renderGraphExportMermaid(document)
+
+        expect(Object.isFrozen(input)).toBe(true)
+        expect(Object.isFrozen(input.providerGraph)).toBe(true)
+        expect(Object.isFrozen(input.providerGraph.nodes)).toBe(true)
+        expect(serialized).toBe(V2_CANONICAL_JSON_GOLDEN)
+        expect(serializeGraphExport(createGraphExportDocument(input, { schemaVersion: '2' }))).toBe(
+            serialized
+        )
+        expect(document.graph.providers.map((provider) => provider.key.registrationIndex)).toEqual([
+            1, 0
+        ])
+        expect(serialized.endsWith('\n')).toBe(true)
+        expect(serialized.endsWith('\n\n')).toBe(false)
+
+        for (const output of [serialized, dot, mermaid]) {
+            expect(output).not.toContain('\r')
+            expect(output.endsWith('\n')).toBe(true)
+            expect(output.endsWith('\n\n')).toBe(false)
+            expect(output).not.toContain('SENTINEL.raw.private.token')
+            expect(output).not.toContain('C:\\private\\provider-cache')
+        }
+
+        expect(renderGraphExportDot(document)).toBe(dot)
+        expect(renderGraphExportMermaid(document)).toBe(mermaid)
+    })
+
+    test('rejects unknown envelopes from every supported version in every renderer', () => {
+        const v1 = createGraphExportDocument({
+            modules: [],
+            requiredPorts: [],
+            capabilities: [],
+            bindings: [],
+            edges: []
+        })
+        const v2 = createGraphExportDocument(createFrozenV2Inspection(), { schemaVersion: '2' })
+
+        for (const document of [v1, v2]) {
+            const unknownVersion = {
+                ...document,
+                schemaVersion: 'unknown'
+            } as unknown as GraphExportDocument
+            const unknownSchema = {
+                ...document,
+                schema: 'unknown.graph'
+            } as unknown as GraphExportDocument
+
+            for (const render of [
+                serializeGraphExport,
+                renderGraphExportDot,
+                renderGraphExportMermaid
+            ]) {
+                expect(() => render(unknownVersion)).toThrow(TypeError)
+                expect(() => render(unknownVersion)).toThrow(
+                    'Unsupported graph export schema: sagifire.ioc.graph@unknown'
+                )
+                expect(() => render(unknownSchema)).toThrow(TypeError)
+                expect(() => render(unknownSchema)).toThrow(
+                    `Unsupported graph export schema: unknown.graph@${document.schemaVersion}`
+                )
+            }
+        }
+    })
+
     test('projects async kinds, ownership and private-safe identities without changing v1', async () => {
         const privateFactory = token<string>('SENTINEL.raw.private.async-factory')
         const privateResource = token<string>('SENTINEL.raw.private.async-resource')
@@ -520,3 +590,176 @@ describe('graph export v2', () => {
         await runtime.dispose()
     })
 })
+
+const V2_CANONICAL_JSON_GOLDEN = `{
+    "schema": "sagifire.ioc.graph",
+    "schemaVersion": "2",
+    "graph": {
+        "modules": [],
+        "requiredPorts": [],
+        "capabilities": [],
+        "bindings": [],
+        "edges": [],
+        "providers": [
+            {
+                "key": {
+                    "visibility": "public",
+                    "tokenId": "z.consumer",
+                    "registrationIndex": 1
+                },
+                "label": "provider: z.consumer #1",
+                "registrationKind": "single",
+                "providerKind": "factory",
+                "initialization": "lazy",
+                "lifetime": "transient"
+            },
+            {
+                "key": {
+                    "visibility": "private",
+                    "moduleId": "safe.module",
+                    "registrationIndex": 0
+                },
+                "label": ${JSON.stringify('private provider #0 in module "safe.module"')},
+                "registrationKind": "single",
+                "providerKind": "async-resource",
+                "initialization": "lazy",
+                "lifetime": "scoped",
+                "scopeOwned": true
+            }
+        ],
+        "providerDependencySelectors": [
+            {
+                "selectorIndex": 0,
+                "consumer": {
+                    "visibility": "public",
+                    "tokenId": "z.consumer",
+                    "registrationIndex": 1
+                },
+                "target": {
+                    "visibility": "private",
+                    "moduleId": "safe.module",
+                    "selectorIndex": 0
+                },
+                "access": "instance",
+                "cardinality": "single",
+                "targetRegistrationKind": "single"
+            }
+        ],
+        "providerDependencyEdges": [
+            {
+                "selectorIndex": 0,
+                "consumer": {
+                    "visibility": "public",
+                    "tokenId": "z.consumer",
+                    "registrationIndex": 1
+                },
+                "dependency": {
+                    "visibility": "private",
+                    "moduleId": "safe.module",
+                    "registrationIndex": 0
+                },
+                "access": "instance"
+            }
+        ],
+        "providerOwnershipEdges": [
+            {
+                "provider": {
+                    "visibility": "private",
+                    "moduleId": "safe.module",
+                    "registrationIndex": 0
+                },
+                "owner": "scope"
+            }
+        ],
+        "providerCoverage": [
+            {
+                "provider": {
+                    "visibility": "public",
+                    "tokenId": "z.consumer",
+                    "registrationIndex": 1
+                },
+                "coverage": "declared"
+            },
+            {
+                "provider": {
+                    "visibility": "private",
+                    "moduleId": "safe.module",
+                    "registrationIndex": 0
+                },
+                "coverage": "declared"
+            }
+        ],
+        "coverage": "complete"
+    }
+}
+`
+
+function createFrozenV2Inspection(): ProviderInspection & {
+    readonly privateTokenId: string
+    readonly cachePath: string
+} {
+    const publicKey = Object.freeze({
+        visibility: 'public' as const,
+        tokenId: 'z.consumer',
+        registrationIndex: 1
+    })
+    const privateKey = Object.freeze({
+        visibility: 'private' as const,
+        moduleId: 'safe.module',
+        registrationIndex: 0
+    })
+
+    return Object.freeze({
+        providerGraph: Object.freeze({
+            nodes: Object.freeze([
+                Object.freeze({
+                    key: publicKey,
+                    registrationKind: 'single' as const,
+                    providerKind: 'factory' as const,
+                    lifetime: 'transient' as const,
+                    initialization: 'lazy' as const
+                }),
+                Object.freeze({
+                    key: privateKey,
+                    registrationKind: 'single' as const,
+                    providerKind: 'async-resource' as const,
+                    lifetime: 'scoped' as const,
+                    initialization: 'lazy' as const,
+                    scopeOwned: true as const
+                })
+            ]),
+            selectors: Object.freeze([
+                Object.freeze({
+                    selectorIndex: 0,
+                    consumer: publicKey,
+                    target: Object.freeze({
+                        visibility: 'private' as const,
+                        moduleId: 'safe.module',
+                        selectorIndex: 0
+                    }),
+                    access: 'instance' as const,
+                    cardinality: 'single' as const,
+                    targetRegistrationKind: 'single' as const
+                })
+            ]),
+            dependencyEdges: Object.freeze([
+                Object.freeze({
+                    selectorIndex: 0,
+                    consumer: publicKey,
+                    dependency: privateKey,
+                    access: 'instance' as const
+                })
+            ]),
+            ownershipEdges: Object.freeze([
+                Object.freeze({ provider: privateKey, owner: 'scope' as const })
+            ]),
+            providerCoverage: Object.freeze([
+                Object.freeze({ provider: publicKey, coverage: 'declared' as const }),
+                Object.freeze({ provider: privateKey, coverage: 'declared' as const })
+            ]),
+            coverage: 'complete' as const
+        }),
+        privateTokenId: 'SENTINEL.raw.private.token',
+        cachePath: 'C:\\private\\provider-cache'
+    })
+}

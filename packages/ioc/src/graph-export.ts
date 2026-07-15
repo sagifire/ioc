@@ -24,6 +24,13 @@ import type {
 
 export const GRAPH_EXPORT_SCHEMA_VERSION = '1' as const
 export const GRAPH_EXPORT_SCHEMA_VERSION_V2 = '2' as const
+export const GRAPH_EXPORT_DEFAULT_SCHEMA_VERSION = GRAPH_EXPORT_SCHEMA_VERSION
+export const GRAPH_EXPORT_SUPPORTED_SCHEMA_VERSIONS = Object.freeze([
+    GRAPH_EXPORT_SCHEMA_VERSION,
+    GRAPH_EXPORT_SCHEMA_VERSION_V2
+] as const)
+
+export type GraphExportSchemaVersion = (typeof GRAPH_EXPORT_SUPPORTED_SCHEMA_VERSIONS)[number]
 
 export interface GraphExportDocumentV1 {
     readonly schema: 'sagifire.ioc.graph'
@@ -46,6 +53,8 @@ export interface GraphExportV1Options {
 export interface GraphExportV2Options {
     readonly schemaVersion: typeof GRAPH_EXPORT_SCHEMA_VERSION_V2
 }
+
+export type GraphExportOptions = GraphExportV1Options | GraphExportV2Options
 
 export type GraphExportDirection = 'TB' | 'LR' | 'BT' | 'RL'
 

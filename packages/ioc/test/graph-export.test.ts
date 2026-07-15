@@ -1,6 +1,8 @@
 import { describe, expect, expectTypeOf, test } from 'vitest'
 import {
+    GRAPH_EXPORT_DEFAULT_SCHEMA_VERSION,
     GRAPH_EXPORT_SCHEMA_VERSION,
+    GRAPH_EXPORT_SUPPORTED_SCHEMA_VERSIONS,
     createComposer,
     createGraphExportDocument,
     defineModule,
@@ -10,6 +12,10 @@ import {
     token,
     type GraphExportDocument,
     type GraphExportDocumentV1,
+    type GraphExportOptions,
+    type GraphExportSchemaVersion,
+    type GraphExportV1Options,
+    type GraphExportV2Options,
     type ModuleGraph,
     type RuntimeInspection
 } from '../src/index'
@@ -70,6 +76,23 @@ describe('graph export v1', () => {
         })
     })
 
+    test('keeps a closed supported-version set with v1 as the explicit default', () => {
+        const implicit = createGraphExportDocument(createGraph())
+        const explicit = createGraphExportDocument(createGraph(), {
+            schemaVersion: GRAPH_EXPORT_DEFAULT_SCHEMA_VERSION
+        })
+
+        expect(GRAPH_EXPORT_DEFAULT_SCHEMA_VERSION).toBe('1')
+        expect(GRAPH_EXPORT_SUPPORTED_SCHEMA_VERSIONS).toEqual(['1', '2'])
+        expect(Object.isFrozen(GRAPH_EXPORT_SUPPORTED_SCHEMA_VERSIONS)).toBe(true)
+        expect(implicit.schemaVersion).toBe('1')
+        expect(serializeGraphExport(implicit)).toBe(serializeGraphExport(explicit))
+        expectTypeOf<GraphExportSchemaVersion>().toEqualTypeOf<'1' | '2'>()
+        expectTypeOf<GraphExportOptions>().toEqualTypeOf<
+            GraphExportV1Options | GraphExportV2Options
+        >()
+    })
+
     test('preserves semantic registration order instead of globally sorting arrays', () => {
         const graph = createGraph()
         const document = createGraphExportDocument(graph)
@@ -84,9 +107,10 @@ describe('graph export v1', () => {
     })
 
     test('serializes byte-for-byte canonically with omission and newline policy', () => {
-        const document = createGraphExportDocument(createGraph())
+        const frozenInput = deepFreeze(createGraph())
+        const document = createGraphExportDocument(frozenInput)
         const first = serializeGraphExport(document)
-        const second = serializeGraphExport(createGraphExportDocument(createGraph()))
+        const second = serializeGraphExport(createGraphExportDocument(frozenInput))
         const reorderedDocument: GraphExportDocumentV1 = {
             graph: document.graph,
             schemaVersion: '1',
@@ -101,7 +125,10 @@ describe('graph export v1', () => {
         expect(first).not.toContain('"metadata"')
         expect(first).not.toContain('"description"')
         expect(first).not.toContain(': null')
-        expect(JSON.parse(first)).toEqual(createGraphExportDocument(createGraph()))
+        expect(Object.isFrozen(frozenInput)).toBe(true)
+        expect(Object.isFrozen(frozenInput.capabilities[0]?.providers)).toBe(true)
+        expect(JSON.parse(first)).toEqual(createGraphExportDocument(frozenInput))
+        expect(first).toBe(V1_CANONICAL_JSON_GOLDEN)
     })
 
     test('rejects unknown schema envelopes instead of relabeling them as v1', () => {
@@ -385,6 +412,71 @@ describe('graph export text renderers', () => {
         expectTypeOf(renderGraphExportMermaid(document)).toEqualTypeOf<string>()
     })
 })
+
+const V1_CANONICAL_JSON_GOLDEN = `{
+    "schema": "sagifire.ioc.graph",
+    "schemaVersion": "1",
+    "graph": {
+        "modules": [
+            {
+                "id": "consumer",
+                "requiredPortIds": [
+                    "catalog.items"
+                ],
+                "capabilityIds": [],
+                "version": "2.0.0"
+            }
+        ],
+        "requiredPorts": [
+            {
+                "moduleId": "consumer",
+                "tokenId": "catalog.items",
+                "required": true,
+                "kind": "external",
+                "cardinality": "multi",
+                "providerCount": 2,
+                "satisfiedBy": "capability"
+            }
+        ],
+        "capabilities": [
+            {
+                "moduleId": "catalog",
+                "tokenId": "catalog.items",
+                "kind": "public-api",
+                "cardinality": "multi",
+                "providers": [
+                    {
+                        "source": "module",
+                        "registrationKind": "add",
+                        "registrationIndex": 1,
+                        "moduleId": "catalog"
+                    },
+                    {
+                        "source": "module",
+                        "registrationKind": "add",
+                        "registrationIndex": 0,
+                        "moduleId": "catalog"
+                    }
+                ]
+            }
+        ],
+        "bindings": [],
+        "edges": []
+    }
+}
+`
+
+function deepFreeze<TValue>(value: TValue): TValue {
+    if (value === null || typeof value !== 'object' || Object.isFrozen(value)) {
+        return value
+    }
+
+    for (const child of Object.values(value as object as Record<string, unknown>)) {
+        deepFreeze(child)
+    }
+
+    return Object.freeze(value) as TValue
+}
 
 function createGraph(secret = 'SENTINEL-metadata', absolutePath = '/private/secret'): ModuleGraph {
     return {

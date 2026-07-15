@@ -339,19 +339,19 @@ memory/tasks/plan/TASK-07.05-0080-stage-17-adapter-cycle-diagnostics/
 - Actual npm publish для `0.0.2` не виконувався під час release handoff task; publish
   лишається human-controlled workflow action.
 - Великі integration state machines у `container.ts` і `composer.ts` лишаються
-  maintainability pressure, але не доведеним behavioral defect; TASK-0112 досліджує safe
-  seams і явно не блокує `0.0.3`.
-- Graph schema evolution policy зафіксована canonical, але public docs/types/tests ще мають
-  бути стабілізовані в TASK-0113 до будь-якого майбутнього `0.0.3` release handoff.
+  maintainability pressure, але не доведеним behavioral defect; TASK-0112 завершено з approved
+  рішенням `no refactor`, а optional follow-ups відкладено до окремого trigger/go-gate.
+- Graph schema evolution policy зафіксована canonical і реалізована в public docs/types/tests у
+  completed TASK-0113; independent audit та human review пройдено без open findings, version або
+  release action.
 - Sequential async latency і arbitrary user factory side effects не потребують окремих задач
   без нових measurable workload або compensation-protocol requirements.
 
 ## Наступні кроки
 
-1. Активувати TASK-0113 лише окремою explicit command і завершити її до будь-якого
-   майбутнього `0.0.3` version/release handoff.
-2. TASK-0112 є окремим non-blocking research backlog; активувати її лише explicit command,
-   без production refactor у межах research run.
+1. Будь-який майбутній `0.0.3` version/release handoff виконувати лише окремою explicit task;
+   TASK-0113 тепер є завершеним predecessor, а не release authorization.
+2. Optional follow-ups TASK-0112 не створювати без зафіксованого trigger і окремого go-gate.
 3. Для `APR-001`, `APR-003` і `APR-004` не створювати задач без спрацювання зафіксованих
    evidence/monitoring triggers і нового human decision.
 4. Actual npm publish `0.0.2` лишається human-controlled external action.
