@@ -79,19 +79,19 @@ use existing `bind()`, `add()`, sync providers, async providers and resources. O
 declarations support:
 
 - `override(token).toValue(value)`
-- `override(token).toFactory(factory)`
+- `override(token).toFactory(factory, options?)`
 - `override(token).toClass(ClassConstructor)`
-- `override(token).toAsyncFactory(factory)`
+- `override(token).toAsyncFactory(factory, options?)`
 - `multiOverride(token).appendValue(value)`
 - `multiOverride(token).appendValues(values)`
-- `multiOverride(token).appendFactory(factory)`
+- `multiOverride(token).appendFactory(factory, options?)`
 - `multiOverride(token).appendAsyncFactory(factory, options?)`
-- `multiOverride(token).appendAsyncResource(factory, { lifetime, initialization? })`
+- `multiOverride(token).appendAsyncResource(factory, { lifetime, initialization?, dependencies? })`
 - `multiOverride(token).replaceWithValue(value)`
 - `multiOverride(token).replaceWithValues(values)`
-- `multiOverride(token).replaceWithFactory(factory)`
+- `multiOverride(token).replaceWithFactory(factory, options?)`
 - `multiOverride(token).replaceWithAsyncFactory(factory, options?)`
-- `multiOverride(token).replaceWithAsyncResource(factory, { lifetime, initialization? })`
+- `multiOverride(token).replaceWithAsyncResource(factory, { lifetime, initialization?, dependencies? })`
 
 Duplicate overrides for the same token fail with `DuplicateTestOverrideError` before the
 configuration callback runs. A test runtime is independent from every other runtime created
@@ -99,10 +99,12 @@ by the helper. Multi override `replaceWith*()` entries replace previous test con
 declarations for the same token in the same helper input; they do not remove module
 contributions or mutate an existing runtime.
 
-Async factory options project only production lifecycle choices: `lifetime` may be
-`singleton`, `transient` or `scoped`, and `initialization` may be `lazy` or `eager`.
-Async resources require `lifetime: 'singleton' | 'scoped'`. Invalid combinations are not
-reinterpreted by the testing package; normal production validation rejects them.
+Sync and single async factory overrides accept the production `ProviderDependencyOptions`.
+Async multi factory options combine the same `dependencies` metadata with lifecycle choices:
+`lifetime` may be `singleton`, `transient` or `scoped`, and `initialization` may be `lazy` or
+`eager`. Async resources require `lifetime: 'singleton' | 'scoped'` and accept the same optional
+`dependencies`. Invalid combinations are not reinterpreted by the testing package; normal
+production validation rejects them.
 
 The helpers preserve production collection semantics: `getAllAsync()` is sequential and
 registration-ordered, failed contribution state retries per provider, successful

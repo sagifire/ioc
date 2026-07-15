@@ -479,6 +479,14 @@ Stage 17 почався як audit/decision gate для `0.0.2` feature request 
 - Stage 18 research не реалізує runtime/public API і не фіксує version.
 - Graph export використовує normalized safe inspection graph як єдине semantic source.
 - JSON schema version керується окремо від package version.
+- Published graph schema version не мутується несумісно; field removal, type/meaning change,
+  exhaustive-unsafe enum evolution або semantic ordering change потребує new schema version.
+- Нова graph schema version не змінює default автоматично; default promotion потребує
+  окремого human-reviewed compatibility/release decision.
+- Existing supported schema versions не видаляються мовчки; removal є explicit breaking
+  decision із migration path.
+- Serializer/renderers відхиляють unknown schema envelopes і не reinterpret-ять їх як
+  default або nearest supported version.
 - DOT/Mermaid renderers є pure text projections; core не виконує external renderers і не
   пише filesystem.
 - Determinism зберігає semantic registration order; global sorting, що змінює multi

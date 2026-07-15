@@ -54,6 +54,11 @@ implementation або звичайних memory-update задач.
     `memory/technical/rules.md`, `memory/technical/testing.md`,
     `memory/domain/open-questions.md`, `memory/product/requirements.md`,
     `memory/product/roadmap.md`.
+- Human-reviewed Stage 18 architecture-pressure/residual-risk decisions:
+  - `memory/reports/research/2026-07-15-stage-18-architecture-pressure-residual-risks-decision-research.md`
+  - `memory/tasks/plan/TASK-07.15-0111-stage-18-architecture-pressure-residual-risks-decision-research/RSCH-001.md`
+  - Canonical targets for approved `APR-005`: `memory/technical/architecture.md`,
+    `memory/technical/rules.md`, `memory/technical/testing.md`.
 
 ## `SPEC.md` Section Map
 

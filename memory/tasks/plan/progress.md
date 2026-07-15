@@ -175,7 +175,7 @@
 - [x] **[Done]** [TASK-07.13-0102-stage-18-extreme-agent-complexity-async-multi-composer-inspection-integration](TASK-07.13-0102-stage-18-extreme-agent-complexity-async-multi-composer-inspection-integration/index.md) - Module/composer/runtime cardinality, inspection і graph-export integration.
 - [x] **[Done]** [TASK-07.13-0103-stage-18-extreme-agent-complexity-async-multi-resource-ownership-disposal](TASK-07.13-0103-stage-18-extreme-agent-complexity-async-multi-resource-ownership-disposal/index.md) - Runtime/scope resource ownership, partial failure, concurrency і disposal.
 - [x] **[Done]** [TASK-07.13-0104-stage-18-extreme-agent-complexity-async-multi-testing-dsl-docs](TASK-07.13-0104-stage-18-extreme-agent-complexity-async-multi-testing-dsl-docs/index.md) - Testing helpers, DSL parity, docs, migration й examples.
-- [ ] **[Backlog]** [TASK-07.13-0105-stage-18-extreme-agent-complexity-async-multi-0-0-3-audit-handoff](TASK-07.13-0105-stage-18-extreme-agent-complexity-async-multi-0-0-3-audit-handoff/index.md) - Full async multi audit and stabilization handoff for `0.0.3` without version/publish action.
+- [x] **[Done]** [TASK-07.13-0105-stage-18-extreme-agent-complexity-async-multi-0-0-3-audit-handoff](TASK-07.13-0105-stage-18-extreme-agent-complexity-async-multi-0-0-3-audit-handoff/index.md) - Full async multi audit passed and stabilization handoff approved without version/publish action.
 
 ## Stage 18 Lifetime Validation Implementation (Extreme Agent Complexity)
 
@@ -183,7 +183,13 @@
 - [x] **[Done]** [TASK-07.13-0107-stage-18-extreme-agent-complexity-lifetime-static-validation-coverage-diagnostics](TASK-07.13-0107-stage-18-extreme-agent-complexity-lifetime-static-validation-coverage-diagnostics/index.md) - Static validation, coverage, diagnostics і opt-in enforcement modes.
 - [x] **[Done]** [TASK-07.13-0108-stage-18-extreme-agent-complexity-lifetime-scope-inspection-graph-export-v2](TASK-07.13-0108-stage-18-extreme-agent-complexity-lifetime-scope-inspection-graph-export-v2/index.md) - Scope-effective validation, inspection і opt-in graph export v2.
 - [x] **[Done]** [TASK-07.13-0109-stage-18-extreme-agent-complexity-lifetime-testing-dsl-docs-adoption](TASK-07.13-0109-stage-18-extreme-agent-complexity-lifetime-testing-dsl-docs-adoption/index.md) - Testing helpers, DSL parity, docs, adoption і staged enforcement.
-- [ ] **[Backlog]** [TASK-07.13-0110-stage-18-extreme-agent-complexity-lifetime-shared-foundation-audit-handoff](TASK-07.13-0110-stage-18-extreme-agent-complexity-lifetime-shared-foundation-audit-handoff/index.md) - Lifetime/shared-foundation audit and stabilization handoff without version/publish action.
+- [x] **[Done]** [TASK-07.13-0110-stage-18-extreme-agent-complexity-lifetime-shared-foundation-audit-handoff](TASK-07.13-0110-stage-18-extreme-agent-complexity-lifetime-shared-foundation-audit-handoff/index.md) - Lifetime/shared-foundation audit passed and was approved after documentation-parity closure; no version/publish action.
+
+## Stage 18 Post-Audit Architecture Risk Research
+
+- [x] **[Done]** [TASK-07.15-0111-stage-18-architecture-pressure-residual-risks-decision-research](TASK-07.15-0111-stage-18-architecture-pressure-residual-risks-decision-research/index.md) - Погоджені classifications `APR-001..APR-005`; FIX-001 applied; створено лише approved TASK-0112 і TASK-0113.
+- [ ] **[Backlog]** [TASK-07.15-0112-stage-18-runtime-composition-state-machine-decomposition-research](TASK-07.15-0112-stage-18-runtime-composition-state-machine-decomposition-research/index.md) - Approved non-blocking deep research для рішення щодо декомпозиції runtime/composition state machines.
+- [ ] **[Backlog]** [TASK-07.15-0113-stage-18-graph-schema-evolution-policy-0-0-3-stabilization](TASK-07.15-0113-stage-18-graph-schema-evolution-policy-0-0-3-stabilization/index.md) - Approved graph schema evolution stabilization, обов'язкова до майбутнього `0.0.3` release handoff.
 
 ## Формат
 

@@ -1,6 +1,6 @@
 # Стан проекту
 
-Оновлено: 2026-07-13
+Оновлено: 2026-07-15
 Starter Kit Version: 5.0
 PDADM MVP Version: 0.5
 
@@ -82,6 +82,14 @@ result або explicit shared-foundation reconciliation decision.
 shared provider identity та serialized predecessor chain. Planning approval не означає
 implementation, version або release approval; derived task packages створюються лише за
 окремо схваленим follow-up.
+
+Coordinated Stage 18 implementation chain `TASK-0100`..`0110` завершений після human
+review. `TASK-07.15-0111` завершила окреме decision research для post-audit architecture
+pressure: `APR-001`, `APR-003` і `APR-004` погоджені як такі, що не потребують уваги за
+чинного evidence та лишаються під explicit monitoring; `APR-002` передано в окрему
+non-blocking research task `TASK-0112`; `APR-005` потребує виправлення в `0.0.3` через
+обов'язкову pre-release stabilization task `TASK-0113`. Approved `FIX-001` із graph schema
+evolution policy застосовано до canonical technical memory.
 
 Research source:
 
@@ -330,15 +338,23 @@ memory/tasks/plan/TASK-07.05-0080-stage-17-adapter-cycle-diagnostics/
   edges.
 - Actual npm publish для `0.0.2` не виконувався під час release handoff task; publish
   лишається human-controlled workflow action.
+- Великі integration state machines у `container.ts` і `composer.ts` лишаються
+  maintainability pressure, але не доведеним behavioral defect; TASK-0112 досліджує safe
+  seams і явно не блокує `0.0.3`.
+- Graph schema evolution policy зафіксована canonical, але public docs/types/tests ще мають
+  бути стабілізовані в TASK-0113 до будь-якого майбутнього `0.0.3` release handoff.
+- Sequential async latency і arbitrary user factory side effects не потребують окремих задач
+  без нових measurable workload або compensation-protocol requirements.
 
 ## Наступні кроки
 
-1. Graph export tasks `TASK-07.12-0094`..`0096` завершені після human review; наступний
-   graph-export work створювати лише за окремим scope.
-2. Після approval planning follow-up створити `TASK-0106`..`0110`, узгодити prepared
-   `TASK-0100`..`0105` і активувати тільки `TASK-0100`; далі виконувати
-   coordinated order із approved `TASK-0099` report.
-3. Actual npm publish `0.0.2` лишається human-controlled external action.
+1. Активувати TASK-0113 лише окремою explicit command і завершити її до будь-якого
+   майбутнього `0.0.3` version/release handoff.
+2. TASK-0112 є окремим non-blocking research backlog; активувати її лише explicit command,
+   без production refactor у межах research run.
+3. Для `APR-001`, `APR-003` і `APR-004` не створювати задач без спрацювання зафіксованих
+   evidence/monitoring triggers і нового human decision.
+4. Actual npm publish `0.0.2` лишається human-controlled external action.
 
 ## Відкриті питання
 

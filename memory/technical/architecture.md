@@ -493,6 +493,21 @@ paths. Schema version не дорівнює package version.
 Core повертає text/data artifacts і не пише filesystem, не запускає Graphviz/Mermaid та
 не отримує Node-only dependencies.
 
+#### Graph export schema evolution
+
+Schema version є окремим public compatibility contract і не дорівнює package version.
+Після human-reviewed publication конкретної schema version її required fields, field types
+and meanings, closed enum semantics, semantic array ordering та canonical serialization не
+мутуються несумісно. Зміна, яка може зробити чинний typed/exhaustive consumer неправильним,
+створює нову schema version замість relabel або mutation existing version.
+
+Кожна нова schema version має explicit typed document/options, canonical JSON projection,
+DOT/Mermaid support або явне documented limitation, privacy/determinism gates і migration
+guide. Existing supported versions лишаються readable/renderable; їх removal є окремим
+breaking compatibility/release decision. Зміна default schema потребує окремого
+human-reviewed compatibility decision і не випливає автоматично з появи нової version.
+Невідомі schema envelopes завершуються explicit failure й не reinterpret-яться як current default.
+
 ### Lifetime dependency validation
 
 Provider dependency metadata є explicit declaration concrete provider registration, а не

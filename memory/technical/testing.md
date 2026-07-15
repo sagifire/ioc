@@ -319,3 +319,15 @@ tests мають покривати:
   відсутність mutable readiness/private state.
 - Composer, module setup, testing helpers і DSL мають parity з object API; async resource
   helpers не з'являються до production resource slice.
+
+## Graph export schema evolution gates
+
+- Кожна supported schema version має typed construction і canonical JSON golden fixtures.
+- Existing version fixtures перевіряють field meaning, semantic array order, LF/final-newline
+  policy та byte stability для frozen inputs.
+- Serializer, DOT і Mermaid перевіряють усі supported versions і typed rejection unknown
+  schema/version envelopes без fallback reinterpretation.
+- Нова schema version має privacy/determinism parity, migration fixture і regression, що
+  existing versions лишаються supported.
+- Default schema projection має окремий regression; promotion default потребує explicit
+  approved compatibility decision, а не лише додавання нової version constant.

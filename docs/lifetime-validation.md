@@ -104,16 +104,17 @@ active scope. A deferred selector is not treated as a direct instance capture. M
 Validation separates evidence from coverage. A declaration can establish a proven unsafe or
 lifetime-sensitive edge; missing declarations remain unknown rather than being guessed.
 
-| Consumer to dependency           | `instance` evidence                                | `deferred` evidence       | Enforcement               |
-| -------------------------------- | -------------------------------------------------- | ------------------------- | ------------------------- |
-| singleton to singleton/value     | no finding                                         | no finding                | allowed                   |
-| singleton to scoped              | `proven-unsafe`, error                             | no direct-capture finding | blocked only in `enforce` |
-| singleton to transient           | `lifetime-sensitive`, warning                      | no direct-capture finding | never blocked as unsafe   |
-| scoped to singleton/value        | no finding                                         | no finding                | allowed                   |
-| scoped to scoped                 | no finding in the effective scope                  | no finding                | allowed                   |
-| scoped to transient              | `lifetime-sensitive`, warning                      | no direct-capture finding | warning only              |
-| transient to scoped              | `lifetime-sensitive`, warning                      | no direct-capture finding | warning only              |
-| transient to transient/singleton | transient retention may be reported where relevant | no direct-capture finding | warning or allowed        |
+| Consumer to dependency       | `instance` evidence               | `deferred` evidence       | Enforcement               |
+| ---------------------------- | --------------------------------- | ------------------------- | ------------------------- |
+| singleton to singleton/value | no finding                        | no finding                | allowed                   |
+| singleton to scoped          | `proven-unsafe`, error            | no direct-capture finding | blocked only in `enforce` |
+| singleton to transient       | `lifetime-sensitive`, warning     | no direct-capture finding | never blocked as unsafe   |
+| scoped to singleton/value    | no finding                        | no finding                | allowed                   |
+| scoped to scoped             | no finding in the effective scope | no finding                | allowed                   |
+| scoped to transient          | `lifetime-sensitive`, warning     | no direct-capture finding | warning only              |
+| transient to singleton       | no finding                        | no finding                | allowed                   |
+| transient to scoped          | `lifetime-sensitive`, warning     | no direct-capture finding | warning only              |
+| transient to transient       | `lifetime-sensitive`, warning     | no direct-capture finding | warning only              |
 
 `SAGIFIRE_IOC_LIFETIME_CAPTURE_UNSAFE` is reserved for a declared, proven singleton-to-scoped
 direct capture. `SAGIFIRE_IOC_LIFETIME_CAPTURE_SENSITIVE` is a warning and does not claim a leak.

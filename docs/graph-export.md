@@ -86,11 +86,11 @@ Registration index and array position are provenance/order data, not runtime obj
 
 `AdapterSourceProvider` has three variants:
 
-| Discriminants                                                 | Remaining fields                                                                                                      |
-| ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `source: 'module'`, `providerKind: 'capability'`              | `moduleId`, `tokenId`, `capabilityKind: ModuleCapabilityKind`, `cardinality`, `registrationKind`, `registrationIndex` |
-| `source: 'composition-root'`, `providerKind: 'binding'`       | `tokenId`, `bindingKind`, `cardinality: 'single'`, `registrationIndex`                                                |
-| `source: 'composition-root'`, `providerKind: 'multi-binding'` | `tokenId`, `bindingKind: 'value' \| 'factory'`, `cardinality: 'multi'`, `registrationIndex`                           |
+| Discriminants                                                 | Remaining fields                                                                                                                   |
+| ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `source: 'module'`, `providerKind: 'capability'`              | `moduleId`, `tokenId`, `capabilityKind: ModuleCapabilityKind`, `cardinality`, `registrationKind`, `registrationIndex`              |
+| `source: 'composition-root'`, `providerKind: 'binding'`       | `tokenId`, `bindingKind`, `cardinality: 'single'`, `registrationIndex`                                                             |
+| `source: 'composition-root'`, `providerKind: 'multi-binding'` | `tokenId`, `bindingKind: 'value' \| 'factory' \| 'async-factory' \| 'async-resource'`, `cardinality: 'multi'`, `registrationIndex` |
 
 Here `capabilityKind` uses `ModuleCapabilityKind`, `cardinality` is `'single' | 'multi'`,
 `registrationKind` is `'bind' | 'add'`, and `bindingKind` uses the binding enum from the
