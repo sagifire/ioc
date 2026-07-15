@@ -2,6 +2,17 @@
 
 The root workspace is private and is not published.
 
+## 0.0.3 release handoff
+
+Publishable package versions and package changelogs were fixed at `0.0.3` after the Stage
+18 graph export, async multi-provider, lifetime validation and final schema-evolution
+stabilization tasks passed their audits and human review.
+
+This repository state prepares the synchronized `@sagifire/ioc`, `@sagifire/ioc-next` and
+`@sagifire/ioc-testing` package set for the controlled GitHub Actions release path. Version
+fixation alone does not prove npm publication; registry and provenance evidence are recorded
+separately by the release task.
+
 ## 0.0.2 release handoff
 
 Publishable package versions and package changelogs were fixed at `0.0.2` after Stage 17

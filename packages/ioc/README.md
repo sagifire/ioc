@@ -7,12 +7,11 @@ runtimes, request/operation scopes, async providers/resources, module compositio
 inspection, diagnostics, lifecycle types and the optional DSL. It does not import Next.js,
 React, Node-only APIs, decorators or `reflect-metadata`.
 
-This package is currently used from the workspace. The manifest is `0.0.2` and
+This package is currently used from the workspace. The manifest is `0.0.3` and
 `Apache-2.0` with npm publish metadata, Changesets versioning, package dry-run validation
 and a manual npm publish workflow. Actual npm publishing remains gated by explicit human
-approval and external GitHub/npm settings. This README describes the current `0.0.2`
-manifest plus unreleased workspace additions; it is not a version or publish-readiness
-claim.
+approval and external GitHub/npm settings. This README describes the version-fixed `0.0.3`
+public API; the manifest alone is not an npm publication claim.
 
 ## Imports
 

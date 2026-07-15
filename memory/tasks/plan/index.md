@@ -119,6 +119,7 @@
 - [TASK-07.15-0111-stage-18-architecture-pressure-residual-risks-decision-research](TASK-07.15-0111-stage-18-architecture-pressure-residual-risks-decision-research/index.md) - `[EXTREME AGENT COMPLEXITY]` Формальне дослідження й окреме рішення для кожного пункту architecture pressure та residual risks із TASK-0110.
 - [TASK-07.15-0112-stage-18-runtime-composition-state-machine-decomposition-research](TASK-07.15-0112-stage-18-runtime-composition-state-machine-decomposition-research/index.md) - `[EXTREME AGENT COMPLEXITY]` Окреме non-blocking research щодо безпечної декомпозиції runtime/composition state machines.
 - [TASK-07.15-0113-stage-18-graph-schema-evolution-policy-0-0-3-stabilization](TASK-07.15-0113-stage-18-graph-schema-evolution-policy-0-0-3-stabilization/index.md) - `[EXTREME AGENT COMPLEXITY]` Graph schema evolution policy stabilization, обов'язкова до майбутнього `0.0.3` release handoff.
+- [TASK-07.15-0114-stage-18-version-0-0-3-release](TASK-07.15-0114-stage-18-version-0-0-3-release/index.md) - Умовний gated release `0.0.3`: readiness, version fixation, validation, GitHub workflow і npm publish лише після проходження всіх gates.
 
 ## Файли
 

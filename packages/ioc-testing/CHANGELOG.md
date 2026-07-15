@@ -1,5 +1,14 @@
 # @sagifire/ioc-testing
 
+## 0.0.3
+
+### Patch Changes
+
+- Add Stage 18 testing support for graph export schemas, async multi-provider behavior and
+  lifetime dependency metadata/diagnostics while continuing to use public inspection APIs.
+- Updated dependencies
+    - @sagifire/ioc@0.0.3
+
 ## 0.0.2
 
 ### Patch Changes

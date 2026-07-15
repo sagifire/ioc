@@ -7,10 +7,10 @@ Next.js App Router boundary helpers without decorators, `reflect-metadata` or fi
 discovery.
 
 This repository is currently a release-prepared workspace. Publishable package manifests
-are fixed at version `0.0.2` and `Apache-2.0`, with Changesets, CI, package dry-run
+are fixed at version `0.0.3` and `Apache-2.0`, with Changesets, CI, package dry-run
 validation and a manual npm publish workflow. Actual npm publishing remains gated by
 explicit human approval and external GitHub/npm settings.
-The package names and import paths below describe the implemented `0.0.2` public API in
+The package names and import paths below describe the implemented `0.0.3` public API in
 this workspace.
 
 ## Packages
@@ -24,7 +24,7 @@ this workspace.
 
 ## Install Shape
 
-The current package changelogs include `0.0.2` entries. After the human-approved npm
+The current package changelogs include `0.0.3` entries. After the human-approved npm
 publish, the intended install shape is:
 
 ```sh

@@ -6,8 +6,8 @@ npm/GitHub environment supports it.
 
 ## Current Package Status
 
-The publishable package manifests are fixed at `0.0.2`, and the package changelogs include
-`0.0.2` entries. Release automation is present, but repository files and version fixation
+The publishable package manifests are fixed at `0.0.3`, and the package changelogs include
+`0.0.3` entries. Release automation is present, but repository files and version fixation
 alone do not mean the packages have been published to npm.
 
 Any real npm publish requires reviewed version/changelog state on `master`, explicit

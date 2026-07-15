@@ -1,5 +1,13 @@
 # @sagifire/ioc
 
+## 0.0.3
+
+### Patch Changes
+
+- Add the Stage 18 `0.0.3` portfolio: deterministic JSON/DOT/Mermaid graph export with
+  versioned v1/v2 schemas, explicit async multi-provider resolution and resource ownership,
+  and opt-in lifetime dependency metadata, validation, inspection and diagnostics.
+
 ## 0.0.2
 
 ### Patch Changes

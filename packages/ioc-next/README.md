@@ -7,11 +7,11 @@ creation, explicit request/action context values, route handler scopes and serve
 scopes. It does not add route scanning, filesystem discovery, hidden current-request APIs
 or business logic inside framework handlers.
 
-The package is currently used from the workspace. The manifest is `0.0.2` and
+The package is currently used from the workspace. The manifest is `0.0.3` and
 `Apache-2.0` with npm publish metadata, Changesets versioning, package dry-run validation
 and a manual npm publish workflow. Actual npm publishing remains gated by explicit human
-approval and external GitHub/npm settings. This README describes the current `0.0.2`
-workspace API.
+approval and external GitHub/npm settings. This README describes the version-fixed `0.0.3`
+public API; the manifest alone is not an npm publication claim.
 
 ## Imports
 

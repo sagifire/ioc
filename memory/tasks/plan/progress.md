@@ -191,6 +191,10 @@
 - [x] **[Done]** [TASK-07.15-0112-stage-18-runtime-composition-state-machine-decomposition-research](TASK-07.15-0112-stage-18-runtime-composition-state-machine-decomposition-research/index.md) - Approved `no refactor` decision; optional FUP-A/B deferred до trigger/go-gate без створення task packages.
 - [x] **[Done]** [TASK-07.15-0113-stage-18-graph-schema-evolution-policy-0-0-3-stabilization](TASK-07.15-0113-stage-18-graph-schema-evolution-policy-0-0-3-stabilization/index.md) - Graph schema evolution stabilization approved; v1 default/v2 opt-in policy та regressions завершено без release action.
 
+## Stage 18 `0.0.3` Release
+
+- [ ] **[Review]** [TASK-07.15-0114-stage-18-version-0-0-3-release](TASK-07.15-0114-stage-18-version-0-0-3-release/index.md) - Readiness, `0.0.3` version fixation, full local validation та independent audit пройдено; external finalization очікує human decision.
+
 ## Формат
 
 ```markdown

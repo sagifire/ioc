@@ -1,5 +1,14 @@
 # @sagifire/ioc-next
 
+## 0.0.3
+
+### Patch Changes
+
+- Synchronize the thin App Router boundary package with the core `0.0.3` runtime and type
+  contracts while preserving the existing framework boundary and scoped lifecycle behavior.
+- Updated dependencies
+    - @sagifire/ioc@0.0.3
+
 ## 0.0.2
 
 ### Patch Changes
