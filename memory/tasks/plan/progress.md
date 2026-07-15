@@ -193,7 +193,7 @@
 
 ## Stage 18 `0.0.3` Release
 
-- [ ] **[Review]** [TASK-07.15-0114-stage-18-version-0-0-3-release](TASK-07.15-0114-stage-18-version-0-0-3-release/index.md) - Readiness, `0.0.3` version fixation, full local validation та independent audit пройдено; external finalization очікує human decision.
+- [ ] **[Blocked]** [TASK-07.15-0114-stage-18-version-0-0-3-release](TASK-07.15-0114-stage-18-version-0-0-3-release/index.md) - Release commit `8c9198f` push-нуто і dry-run пройшов; npm publish відхилено E404 для всіх трьох packages, registry лишився на `0.0.2` без partial state.
 
 ## Формат
 

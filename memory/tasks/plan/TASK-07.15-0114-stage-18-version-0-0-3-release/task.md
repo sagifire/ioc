@@ -1,6 +1,6 @@
 # TASK-07.15-0114: Stage 18 version 0.0.3 release
 
-Task Status: review
+Task Status: blocked
 Type: release
 Created: 2026-07-15
 Owner Role: Release Agent
@@ -8,13 +8,15 @@ Current Run: RUN-001
 
 ## Поточний стан
 
-Run Status: finalizing
-Progress: task and FIX-001 approved; external release finalization in progress.
-Acceptance: 8/16 confirmed; 9/16..15/16 external finalization; 16/16 final outcome/done gate.
-Blockers: none before external gates; stop on any commit/push/workflow/registry mismatch.
-Blocked Phase: n/a
-Pending Decisions: none; task and required FIX-001 approved.
-Next Action: commit, push, manual dry-run, publish and post-publish verification.
+Run Status: blocked
+Progress: release commit pushed and dry-run passed; npm publish failed before publishing any package.
+Acceptance: 14/16 confirmed; post-publish verification and completed release outcome blocked.
+Blockers: npm rejected PUT for all three packages with E404 despite a present NPM_TOKEN; external token/package ownership permission repair is required.
+Blocked Phase: npm publish credential/ownership authorization.
+Pending Decisions: external maintainer must repair npm token/package access without changing
+reviewed repository content, then explicitly resume the same exact publish workflow.
+Next Action: after external repair, rerun registry preflight and manual publish on exact
+release commit `8c9198f90feb7f0eec9f2b3dcc49639e7f5de8cf`.
 
 ## Мета
 

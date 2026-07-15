@@ -1,7 +1,7 @@
 # Результат RUN-001
 
 Related Task: [TASK-07.15-0114](../task.md)
-Run Status: finalizing
+Run Status: blocked
 Started: 2026-07-15
 Agent Role: Release Agent
 
@@ -72,11 +72,20 @@ publish ще не виконані.
 
 ## External release
 
-- Commit: not-started.
-- Push: not-started.
-- Workflow dry-run: not-started.
-- npm publish: not-started.
-- Registry verification: not-started.
+- Commit: `8c9198f90feb7f0eec9f2b3dcc49639e7f5de8cf` (`Release 0.0.3`), exact audited
+  20-file release/task scope.
+- Push: success to `origin/master`; remote SHA parity confirmed before each workflow dispatch.
+- Workflow dry-run: success, run
+  `https://github.com/sagifire/ioc/actions/runs/29404516407`, exact release SHA.
+- npm publish: failed, run
+  `https://github.com/sagifire/ioc/actions/runs/29404636802`, exact release SHA.
+  Both validation jobs and token-presence check passed; `changeset publish` received npm
+  `E404 Not Found` for PUT of `@sagifire/ioc`, `@sagifire/ioc-next` and
+  `@sagifire/ioc-testing` at `0.0.3`.
+- Registry verification after failure: all three packages still report `latest: 0.0.2`;
+  no `0.0.3` package was published and no partial/mixed registry state exists.
+- FIX-001: approved but intentionally unapplied because its verified-success application
+  condition is false.
 
 ## Acceptance trace
 
@@ -88,8 +97,14 @@ publish ще не виконані.
 - 6/16 full validation: passed.
 - 7/16 packed artifacts/consumer smoke: passed.
 - 8/16 independent audit: passed after P2 closure re-audit.
-- 9/16..15/16 commit/push/workflows/registry: not-started.
-- 16/16 human review/final outcome: pending.
+- 9/16 release commit: passed.
+- 10/16 push/SHA parity: passed.
+- 11/16 GitHub preflight: passed.
+- 12/16 npm preflight: passed.
+- 13/16 manual dry-run: passed.
+- 14/16 publish gate: correctly failed closed and exact blocker recorded without credential edits.
+- 15/16 post-publish registry/provenance: blocked; registry remains consistently `0.0.2`.
+- 16/16 final release outcome: blocked; task approval exists, but release success cannot be claimed.
 
 ## Self-review
 
@@ -108,12 +123,15 @@ publish ще не виконані.
   governance residual risk, який не змінюється в межах цієї задачі.
 - `changeset:status` merge-base behavior on dirty trusted `master` is a documented tool
   limitation and is not substituted for `release:validate`.
+- npm publish authorization: `NPM_TOKEN` is present but npm rejected all three scoped package
+  PUT requests with E404. Secret/package ownership permissions require external maintainer
+  repair; the task forbids inspecting or editing credentials and repository/npm settings.
 
 ## Memory impact
 
 - Lifecycle-only activation updates applied.
 - Required [FIX-001](../FIX-001.md) proposed for post-publish canonical roadmap/state sync;
-  it remains unapproved and unapplied.
+  it is approved but remains unapplied because verified publish did not occur.
 
 ## Review freeze
 
@@ -140,3 +158,12 @@ Reviewed content frozen: 2026-07-15. Після human decision дозволен�
 - Source: user message on 2026-07-15: `Задача: approve`; `FIX-001: approve`.
 - RUN-001 moved to `finalizing`; reviewed content remains frozen and only approved external
   actions, lifecycle metadata and append-only finalization evidence may change.
+
+## Blocked finalization
+
+- Publish attempt: failed closed before any package reached npm `0.0.3`.
+- Blocking condition: external npm authorization/ownership for the existing `NPM_TOKEN`.
+- Safe recovery boundary: repair external access, confirm all three packages remain
+  `latest: 0.0.2`, then explicitly resume manual publish on release SHA `8c9198f`.
+- Prohibited recovery: local publish, token disclosure/edit inside repository, repeated
+  dispatch before access repair, or representing the failed run as a successful release.

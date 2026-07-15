@@ -2,7 +2,8 @@
 
 ## Призначення
 
-Finalizing gated run для `0.0.3` readiness verification, version fixation, validation і
+Blocked gated run для `0.0.3` після successful dry-run і npm authorization failure під час
+publish; version fixation, validation і
 контрольованого GitHub/npm release лише після проходження всіх gates.
 
 ## Папки

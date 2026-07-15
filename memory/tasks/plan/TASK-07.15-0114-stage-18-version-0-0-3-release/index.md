@@ -2,12 +2,13 @@
 
 ## Призначення
 
-Review-пакет умовного release run для перевірки готовності Stage 18, фіксації версії
+Blocked-пакет release run після успішної підготовки/dry-run і npm authorization failure
+під час publish версії
 `0.0.3` і фактичного npm release лише після проходження всіх локальних та зовнішніх gates.
 
 ## Папки
 
-- [RUN-001](RUN-001/index.md) - finalizing release run.
+- [RUN-001](RUN-001/index.md) - blocked at npm publish authorization.
 
 ## Файли
 
